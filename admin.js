@@ -1,736 +1,3214 @@
-// ============================================
-// DEAR NADIYA ADMIN - NEW VERSION
-// ============================================
+/* ============================================
+   DEAR NADIYA ADMIN
+   ADMIN.JS
+   VERSI BARU
+   ============================================ */
 
-const SUPABASE_URL = "https://cwwzsbqfznzwfclajwnw.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ADa_gyMfyBZ1ZcdUO8FRfw_iELzOmbQ";
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+/* ============================================
+   KONFIGURASI SUPABASE
+   ============================================ */
 
-// --------------------------------------------
-// LOGIN
-// --------------------------------------------
+const SUPABASE_URL =
+  "https://cwwzsbqfznzwfclajwnw.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_ADa_gyMfyBZ1ZcdUO8FRfw_iELzOmbQ";
+
+
+const db =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* ============================================
+   KONFIGURASI LOGIN ADMIN
+   ============================================ */
 
 const ADMIN_USERNAME = "admin";
+
 const ADMIN_PASSWORD = "180322";
 
-const loginScreen = document.getElementById("loginScreen");
-const app = document.getElementById("app");
-const loginForm = document.getElementById("loginForm");
-const loginMessage = document.getElementById("loginMessage");
 
-function showApp() {
-  loginScreen.classList.add("hidden");
-  app.classList.remove("hidden");
-  showPage("dashboard");
-}
+/* ============================================
+   ELEMENT UTAMA
+   ============================================ */
 
-function showLogin() {
-  app.classList.add("hidden");
-  loginScreen.classList.remove("hidden");
-}
+const loginPage =
+  document.getElementById("loginPage");
 
-loginForm.addEventListener("submit", function (event) {
-  event.preventDefault();
 
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value;
+const adminApp =
+  document.getElementById("adminApp");
 
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    sessionStorage.setItem("dearNadiyaAdminLoggedIn", "1");
-    loginMessage.classList.add("hidden");
-    showApp();
-  } else {
-    loginMessage.textContent = "Username atau password salah.";
-    loginMessage.className = "message error";
-  }
-});
 
-document.getElementById("logoutBtn").addEventListener("click", function () {
-  sessionStorage.removeItem("dearNadiyaAdminLoggedIn");
-  showLogin();
-});
+const loginForm =
+  document.getElementById("loginForm");
 
-if (sessionStorage.getItem("dearNadiyaAdminLoggedIn") === "1") {
-  showApp();
-}
 
-// --------------------------------------------
-// HELPERS
-// --------------------------------------------
+const loginError =
+  document.getElementById("loginError");
 
-function rupiah(value) {
-  const number = Number(value || 0);
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
-  }).format(number);
-}
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+const pageTitle =
+  document.getElementById("pageTitle");
 
-function statusBadge(status) {
-  const s = String(status || "pending").toLowerCase();
-  const label = s === "verified"
-    ? "Terverifikasi"
-    : s === "rejected"
-      ? "Ditolak"
-      : "Menunggu Verifikasi";
 
-  return `<span class="status ${escapeHtml(s)}">${label}</span>`;
-}
+const pageContent =
+  document.getElementById("pageContent");
 
-function setContent(html) {
-  document.getElementById("pageContent").innerHTML = html;
-}
 
-// --------------------------------------------
-// NAVIGATION
-// --------------------------------------------
+/* ============================================
+   LOGIN
+   ============================================ */
 
-const pageTitles = {
-  dashboard: "Dashboard",
-  products: "Produk & GO",
-  orders: "Pesanan",
-  payments: "Pembayaran",
-  recap: "Rekap GO"
-};
+loginForm.addEventListener(
+  "submit",
+  function (event) {
 
-document.querySelectorAll(".nav-btn").forEach(function (button) {
-  button.addEventListener("click", function () {
-    showPage(button.dataset.page);
-  });
-});
+    event.preventDefault();
 
-document.getElementById("refreshBtn").addEventListener("click", function () {
-  const active = document.querySelector(".nav-btn.active");
-  if (active) showPage(active.dataset.page);
-});
 
-async function showPage(page) {
-  document.getElementById("pageTitle").textContent =
-    pageTitles[page] || "Dashboard";
+    const username =
+      document
+        .getElementById("username")
+        .value
+        .trim();
 
-  document.querySelectorAll(".nav-btn").forEach(function (button) {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === page
-    );
-  });
 
-  if (page === "dashboard") return loadDashboard();
-  if (page === "products") return loadProducts();
-  if (page === "orders") return loadOrders();
-  if (page === "payments") return loadPayments();
-  if (page === "recap") return loadRecap();
-}
+    const password =
+      document
+        .getElementById("password")
+        .value;
 
-// --------------------------------------------
-// DASHBOARD
-// --------------------------------------------
 
-async function loadDashboard() {
-  setContent(`
-    <div class="grid-3">
-      <div class="card">
-        <div class="muted">Total Pesanan</div>
-        <div id="dashOrders" class="stat-value">...</div>
-      </div>
+    if (
+      username === ADMIN_USERNAME &&
+      password === ADMIN_PASSWORD
+    ) {
 
-      <div class="card">
-        <div class="muted">Total Pembayaran</div>
-        <div id="dashPayments" class="stat-value">...</div>
-      </div>
-
-      <div class="card">
-        <div class="muted">Pembayaran Menunggu</div>
-        <div id="dashPending" class="stat-value">...</div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>Selamat datang di Dear Nadiya Admin ♥</h2>
-      <p class="muted">
-        Kelola produk, pesanan, pembayaran, dan Group Order
-        dari dashboard baru ini.
-      </p>
-    </div>
-  `);
-
-  try {
-    const [orders, payments] = await Promise.all([
-      db.from("go_rekap_public").select("*"),
-      db.from("dn_payment_submissions").select("amount,status")
-    ]);
-
-    if (orders.error) throw orders.error;
-    if (payments.error) throw payments.error;
-
-    const paymentRows = payments.data || [];
-
-    document.getElementById("dashOrders").textContent =
-      (orders.data || []).length;
-
-    document.getElementById("dashPayments").textContent =
-      rupiah(
-        paymentRows.reduce(
-          (sum, row) => sum + Number(row.amount || 0),
-          0
-        )
+      sessionStorage.setItem(
+        "dearNadiyaAdmin",
+        "true"
       );
 
-    document.getElementById("dashPending").textContent =
-      paymentRows.filter(
-        row => String(row.status || "pending").toLowerCase() === "pending"
-      ).length;
 
-  } catch (error) {
-    showContentError(error);
+      loginError.textContent = "";
+
+
+      showAdmin();
+
+    } else {
+
+      loginError.textContent =
+        "Username atau password salah.";
+
+    }
+
   }
+);
+
+
+/* ============================================
+   TAMPILKAN ADMIN
+   ============================================ */
+
+function showAdmin() {
+
+  loginPage.classList.add(
+    "hidden"
+  );
+
+
+  adminApp.classList.remove(
+    "hidden"
+  );
+
+
+  showPage(
+    "dashboard"
+  );
+
 }
 
-// --------------------------------------------
-// PRODUCTS
-// --------------------------------------------
 
-async function loadProducts() {
-  setContent(`
-    <div class="toolbar">
-      <div>
-        <h2>Produk & Group Order</h2>
-        <p class="muted">Kelola produk dan GO Dear Nadiya.</p>
-      </div>
-      <button id="addProductBtn" class="primary-btn" style="width:auto">
-        ➕ Tambah Produk
-      </button>
-    </div>
+/* ============================================
+   TAMPILKAN LOGIN
+   ============================================ */
 
-    <div id="productFormArea"></div>
-    <div id="productList" class="product-list">
-      <div class="panel">Memuat produk...</div>
-    </div>
-  `);
+function showLogin() {
 
-  document.getElementById("addProductBtn").addEventListener(
+  adminApp.classList.add(
+    "hidden"
+  );
+
+
+  loginPage.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+/* ============================================
+   CEK SESSION
+   ============================================ */
+
+if (
+  sessionStorage.getItem(
+    "dearNadiyaAdmin"
+  ) === "true"
+) {
+
+  showAdmin();
+
+} else {
+
+  showLogin();
+
+}
+
+
+/* ============================================
+   LOGOUT
+   ============================================ */
+
+document
+  .getElementById("logoutButton")
+  .addEventListener(
     "click",
-    showProductForm
+    function () {
+
+      sessionStorage.removeItem(
+        "dearNadiyaAdmin"
+      );
+
+
+      showLogin();
+
+    }
   );
 
-  // Produk dibuat menggunakan localStorage untuk versi awal.
-  // Nanti dapat kita pindahkan ke tabel Supabase khusus products.
-  renderLocalProducts();
-}
 
-function getLocalProducts() {
-  try {
-    return JSON.parse(
-      localStorage.getItem("dearNadiyaProducts") || "[]"
+/* ============================================
+   NAVIGASI SIDEBAR
+   ============================================ */
+
+const menuButtons =
+  document.querySelectorAll(
+    ".menu-button"
+  );
+
+
+menuButtons.forEach(
+  function (button) {
+
+    button.addEventListener(
+      "click",
+      function () {
+
+        const page =
+          button.dataset.page;
+
+
+        if (!page) {
+          return;
+        }
+
+
+        showPage(page);
+
+      }
     );
-  } catch {
-    return [];
+
   }
-}
+);
 
-function saveLocalProducts(rows) {
-  localStorage.setItem(
-    "dearNadiyaProducts",
-    JSON.stringify(rows)
-  );
-}
 
-function renderLocalProducts() {
-  const list = document.getElementById("productList");
-  if (!list) return;
+/* ============================================
+   REFRESH
+   ============================================ */
 
-  const rows = getLocalProducts();
+document
+  .getElementById("refreshButton")
+  .addEventListener(
+    "click",
+    function () {
 
-  if (!rows.length) {
-    list.innerHTML = `
-      <div class="panel empty">
-        <h3>Belum ada produk</h3>
-        <p>Klik "Tambah Produk" untuk membuat GO baru.</p>
-      </div>
-    `;
-    return;
-  }
-
-  list.innerHTML = rows.map(row => `
-    <div class="product-card">
-      <div>
-        <h3>${escapeHtml(row.name)}</h3>
-        <p>Jenis: <b>${escapeHtml(row.type)}</b></p>
-        <p>Harga: <b>${rupiah(row.price)}</b></p>
-        <p>DP: <b>${rupiah(row.dp)}</b></p>
-        <p>Status: <b>${escapeHtml(row.status)}</b></p>
-        <p>Deadline List: <b>${escapeHtml(row.deadlineList || "-")}</b></p>
-        <p>Deadline Pembayaran: <b>${escapeHtml(row.deadlinePayment || "-")}</b></p>
-      </div>
-      <div class="actions">
-        <button class="danger-btn" data-delete-product="${row.id}">
-          🗑️ Hapus
-        </button>
-      </div>
-    </div>
-  `).join("");
-
-  document.querySelectorAll("[data-delete-product]").forEach(
-    function (button) {
-      button.addEventListener("click", function () {
-        const id = Number(button.dataset.deleteProduct);
-
-        if (!confirm("Hapus produk ini?")) return;
-
-        saveLocalProducts(
-          getLocalProducts().filter(row => row.id !== id)
+      const active =
+        document.querySelector(
+          ".menu-button.active"
         );
 
-        renderLocalProducts();
-      });
+
+      if (
+        active &&
+        active.dataset.page
+      ) {
+
+        showPage(
+          active.dataset.page
+        );
+
+      }
+
     }
   );
+
+
+/* ============================================
+   FUNGSI PINDAH HALAMAN
+   ============================================ */
+
+function showPage(
+  page
+) {
+
+  menuButtons.forEach(
+    function (button) {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      );
+
+    }
+  );
+
+
+  if (
+    pageTitle
+  ) {
+
+    const titles = {
+
+      dashboard:
+        "Dashboard",
+
+      products:
+        "Produk & GO",
+
+      orders:
+        "Pesanan",
+
+      payments:
+        "Pembayaran",
+
+      recap:
+        "Rekap GO"
+
+    };
+
+
+    pageTitle.textContent =
+      titles[page] ||
+      "Dashboard";
+
+  }
+
+
+  if (
+    page === "dashboard"
+  ) {
+
+    loadDashboard();
+
+    return;
+
+  }
+
+
+  if (
+    page === "products"
+  ) {
+
+    loadProducts();
+
+    return;
+
+  }
+
+
+  if (
+    page === "orders"
+  ) {
+
+    loadOrders();
+
+    return;
+
+  }
+
+
+  if (
+    page === "payments"
+  ) {
+
+    loadPayments();
+
+    return;
+
+  }
+
+
+  if (
+    page === "recap"
+  ) {
+
+    loadRecap();
+
+    return;
+
+  }
+
 }
 
-function showProductForm() {
-  const area = document.getElementById("productFormArea");
-  if (!area) return;
 
-  area.innerHTML = `
-    <div class="panel" style="margin-bottom:16px">
-      <h2>Tambah Produk / GO</h2>
+/* ============================================
+   HELPER RUPIAH
+   ============================================ */
 
-      <form id="productForm">
+function rupiah(
+  value
+) {
 
-        <label>
-          Nama Produk / GO
-          <input id="pName" required placeholder="Contoh: TREASURE Album Baru">
-        </label>
+  const number =
+    Number(value || 0);
 
-        <label>
-          Jenis
-          <select id="pType">
-            <option>Group Order</option>
-            <option>Pre Order</option>
-            <option>Ready Stock</option>
-          </select>
-        </label>
 
-        <label>
-          Harga
-          <input id="pPrice" type="number" min="0" required>
-        </label>
+  return new Intl.NumberFormat(
+    "id-ID",
+    {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0
+    }
+  ).format(number);
 
-        <label>
-          DP
-          <input id="pDp" type="number" min="0" value="0">
-        </label>
+}
 
-        <label>
-          Status
-          <select id="pStatus">
-            <option>Open</option>
-            <option>Closed</option>
-            <option>Selesai</option>
-          </select>
-        </label>
 
-        <label>
-          Deadline List
-          <input id="pDeadlineList" type="date">
-        </label>
+/* ============================================
+   HELPER HTML
+   ============================================ */
 
-        <label>
-          Deadline Pembayaran
-          <input id="pDeadlinePayment" type="date">
-        </label>
+function escapeHtml(
+  value
+) {
 
-        <div class="form-actions">
-          <button class="primary-btn" type="submit" style="width:auto">
-            💾 Simpan
-          </button>
-          <button class="secondary-btn" type="button" id="cancelProductBtn">
-            Batal
-          </button>
-        </div>
-      </form>
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* ============================================
+   ERROR
+   ============================================ */
+
+function showError(
+  error
+) {
+
+  console.error(
+    "Dear Nadiya Admin:",
+    error
+  );
+
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <h2>
+        Terjadi kesalahan
+      </h2>
+
+      <p>
+        Data belum dapat dimuat.
+      </p>
+
+      <p>
+        ${escapeHtml(
+          error.message ||
+          String(error)
+        )}
+      </p>
+
     </div>
+
   `;
 
-  document.getElementById("cancelProductBtn").addEventListener(
-    "click",
-    () => area.innerHTML = ""
-  );
-
-  document.getElementById("productForm").addEventListener(
-    "submit",
-    function (event) {
-      event.preventDefault();
-
-      const row = {
-        id: Date.now(),
-        name: document.getElementById("pName").value.trim(),
-        type: document.getElementById("pType").value,
-        price: Number(document.getElementById("pPrice").value),
-        dp: Number(document.getElementById("pDp").value || 0),
-        status: document.getElementById("pStatus").value,
-        deadlineList: document.getElementById("pDeadlineList").value,
-        deadlinePayment: document.getElementById("pDeadlinePayment").value
-      };
-
-      if (!row.name) return;
-
-      const rows = getLocalProducts();
-      rows.push(row);
-      saveLocalProducts(rows);
-
-      area.innerHTML = "";
-      renderLocalProducts();
-    }
-  );
 }
 
-// --------------------------------------------
-// ORDERS
-// --------------------------------------------
+/* ============================================
+   DASHBOARD
+   ============================================ */
 
-async function loadOrders() {
-  setContent(`
-    <div class="panel">
-      <h2>Pesanan</h2>
-      <p class="muted">Data pesanan dari rekap GO.</p>
-      <div id="ordersArea">Memuat data...</div>
-    </div>
-  `);
+async function loadDashboard() {
 
-  try {
-    const result = await db
-      .from("go_rekap_public")
-      .select("*");
+  pageContent.innerHTML = `
 
-    if (result.error) throw result.error;
+    <div class="dashboard-stats">
 
-    const rows = result.data || [];
+      <div class="stat-card">
 
-    if (!rows.length) {
-      document.getElementById("ordersArea").innerHTML =
-        `<div class="empty">Belum ada pesanan.</div>`;
-      return;
-    }
-
-    document.getElementById("ordersArea").innerHTML = `
-      <div class="table-wrap" style="margin-top:16px">
-        <table>
-          <thead>
-            <tr>
-              <th>Kode</th>
-              <th>Produk</th>
-              <th>Customer</th>
-              <th>Versi</th>
-              <th>Harga</th>
-              <th>DP</th>
-              <th>Pelunasan</th>
-              <th>Status Barang</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(row => `
-              <tr>
-                <td>${escapeHtml(row.product_code || "-")}</td>
-                <td>${escapeHtml(row.product_name || "-")}</td>
-                <td>${escapeHtml(row.customer_name || "-")}</td>
-                <td>${escapeHtml(row.product_version || "-")}</td>
-                <td>${rupiah(row.price)}</td>
-                <td>${rupiah(row.dp)}</td>
-                <td>${rupiah(row.pelunasan)}</td>
-                <td>${escapeHtml(row.item_status || "-")}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-  } catch (error) {
-    showContentError(error);
-  }
-}
-
-// --------------------------------------------
-// PAYMENTS
-// --------------------------------------------
-
-async function loadPayments() {
-  setContent(`
-    <div class="toolbar">
-      <div>
-        <h2>Pembayaran</h2>
-        <p class="muted">
-          Bukti pembayaran yang dikirim customer tanpa login.
+        <p>
+          Total Pesanan
         </p>
+
+        <h2 id="dashboardOrders">
+          ...
+        </h2>
+
       </div>
+
+
+      <div class="stat-card">
+
+        <p>
+          Total Pembayaran
+        </p>
+
+        <h2 id="dashboardPayments">
+          ...
+        </h2>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <p>
+          Pembayaran Menunggu
+        </p>
+
+        <h2 id="dashboardPending">
+          ...
+        </h2>
+
+      </div>
+
     </div>
 
-    <div id="paymentsArea">
-      <div class="panel">Memuat pembayaran...</div>
+
+    <div class="welcome-card">
+
+      <h2>
+        Selamat datang di Dear Nadiya Admin ♥
+      </h2>
+
+      <p>
+        Kelola produk, Group Order, pesanan,
+        pembayaran, dan rekap dari satu dashboard.
+      </p>
+
     </div>
-  `);
+
+  `;
+
 
   try {
-    const result = await db
-      .from("dn_payment_submissions")
-      .select("*")
-      .order("id", { ascending: false });
 
-    if (result.error) throw result.error;
+    const ordersResult =
+      await db
+        .from("go_rekap_public")
+        .select("*");
 
-    const rows = result.data || [];
 
-    if (!rows.length) {
-      document.getElementById("paymentsArea").innerHTML = `
-        <div class="panel empty">
-          <h3>Belum ada pembayaran</h3>
-          <p>Pembayaran dari Customer Portal akan muncul di sini.</p>
-        </div>
-      `;
-      return;
+    if (
+      ordersResult.error
+    ) {
+
+      throw ordersResult.error;
+
     }
 
-    document.getElementById("paymentsArea").innerHTML = `
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>WA</th>
-              <th>Kode Produk</th>
-              <th>Versi</th>
-              <th>Nominal</th>
-              <th>Tanggal</th>
-              <th>Status</th>
-              <th>Bukti</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
 
-          <tbody>
-            ${rows.map(row => `
-              <tr>
-                <td>${escapeHtml(row.customer_name || "-")}</td>
-                <td>${escapeHtml(row.whatsapp_last4 || "-")}</td>
-                <td>${escapeHtml(row.product_code || "-")}</td>
-                <td>${escapeHtml(row.product_version || "-")}</td>
-                <td>${rupiah(row.amount)}</td>
-                <td>${escapeHtml(row.payment_date || "-")}</td>
-                <td>${statusBadge(row.status)}</td>
+    const paymentsResult =
+      await db
+        .from("dn_payment_submissions")
+        .select("amount,status");
 
-                <td>
-                  <button
-                    class="small-btn"
-                    data-proof="${escapeHtml(row.proof_path || "")}"
-                  >
-                    👁 Lihat
-                  </button>
-                </td>
 
-                <td>
-                  <div class="actions">
-                    <button
-                      class="small-btn"
-                      data-verify="${row.id}"
-                    >
-                      ✅ Verifikasi
-                    </button>
+    if (
+      paymentsResult.error
+    ) {
 
-                    <button
-                      class="danger-btn"
-                      data-reject="${row.id}"
-                    >
-                      ❌ Tolak
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
+      throw paymentsResult.error;
 
-    document.querySelectorAll("[data-proof]").forEach(
-      function (button) {
-        button.addEventListener("click", function () {
-          openProof(button.dataset.proof);
-        });
-      }
+    }
+
+
+    const orders =
+      ordersResult.data || [];
+
+
+    const payments =
+      paymentsResult.data || [];
+
+
+    const totalPayment =
+      payments.reduce(
+        function (
+          total,
+          payment
+        ) {
+
+          return total +
+            Number(
+              payment.amount || 0
+            );
+
+        },
+        0
+      );
+
+
+    const pending =
+      payments.filter(
+        function (
+          payment
+        ) {
+
+          return String(
+            payment.status ||
+            "pending"
+          ).toLowerCase() ===
+            "pending";
+
+        }
+      ).length;
+
+
+    const orderElement =
+      document.getElementById(
+        "dashboardOrders"
+      );
+
+
+    const paymentElement =
+      document.getElementById(
+        "dashboardPayments"
+      );
+
+
+    const pendingElement =
+      document.getElementById(
+        "dashboardPending"
+      );
+
+
+    if (orderElement) {
+
+      orderElement.textContent =
+        orders.length;
+
+    }
+
+
+    if (paymentElement) {
+
+      paymentElement.textContent =
+        rupiah(
+          totalPayment
+        );
+
+    }
+
+
+    if (pendingElement) {
+
+      pendingElement.textContent =
+        pending;
+
+    }
+
+
+  } catch (
+    error
+  ) {
+
+    showError(
+      error
     );
 
-    document.querySelectorAll("[data-verify]").forEach(
-      function (button) {
-        button.addEventListener("click", function () {
-          updatePayment(
-            Number(button.dataset.verify),
-            "verified"
-          );
-        });
-      }
-    );
-
-    document.querySelectorAll("[data-reject]").forEach(
-      function (button) {
-        button.addEventListener("click", function () {
-          updatePayment(
-            Number(button.dataset.reject),
-            "rejected"
-          );
-        });
-      }
-    );
-
-  } catch (error) {
-    showContentError(error);
   }
+
 }
 
-async function openProof(path) {
-  if (!path) {
-    alert("Bukti pembayaran tidak tersedia.");
+
+/* ============================================
+   PRODUK & GROUP ORDER
+   ============================================ */
+
+async function loadProducts() {
+
+  pageContent.innerHTML = `
+
+    <div class="toolbar">
+
+      <div>
+
+        <h2>
+          Produk & GO
+        </h2>
+
+        <p>
+          Kelola produk dan Group Order
+          Dear Nadiya.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn"
+        id="addProductButton"
+      >
+        ➕ Tambah Produk
+      </button>
+
+    </div>
+
+
+    <div
+      id="productFormArea"
+    ></div>
+
+
+    <div
+      id="productList"
+      class="product-list"
+    >
+
+      <div class="loading-state">
+        Memuat produk...
+      </div>
+
+    </div>
+
+  `;
+
+
+  document
+    .getElementById(
+      "addProductButton"
+    )
+    .addEventListener(
+      "click",
+      function () {
+
+        showProductForm();
+
+      }
+    );
+
+
+  /*
+    Untuk tahap fondasi,
+    data produk sementara disimpan
+    di browser.
+
+    Setelah semua halaman stabil,
+    kita hubungkan produk langsung
+    ke Supabase.
+  */
+
+
+  renderProducts();
+
+}
+
+
+/* ============================================
+   DATA PRODUK SEMENTARA
+   ============================================ */
+
+function getProducts() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        "dearNadiyaProducts"
+      ) || "[]"
+    );
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      error
+    );
+
+    return [];
+
+  }
+
+}
+
+
+function saveProducts(
+  products
+) {
+
+  localStorage.setItem(
+    "dearNadiyaProducts",
+    JSON.stringify(
+      products
+    )
+  );
+
+}
+
+/* ============================================
+   FORM TAMBAH PRODUK
+   ============================================ */
+
+function showProductForm() {
+
+  const area =
+    document.getElementById(
+      "productFormArea"
+    );
+
+
+  if (!area) {
     return;
   }
 
-  try {
-    const result = await db.storage
-      .from("payment-proofs")
-      .createSignedUrl(path, 600);
 
-    if (result.error) throw result.error;
+  area.innerHTML = `
 
-    if (!result.data?.signedUrl) {
-      throw new Error("URL bukti tidak tersedia.");
-    }
+    <div
+      class="panel"
+      style="margin-bottom:20px"
+    >
 
-    window.open(result.data.signedUrl, "_blank");
-  } catch (error) {
-    alert("Gagal membuka bukti pembayaran:\n\n" + error.message);
-  }
-}
+      <h2>
+        Tambah Produk / GO
+      </h2>
 
-async function updatePayment(id, status) {
-  const question = status === "verified"
-    ? "Verifikasi pembayaran ini?"
-    : "Tolak pembayaran ini?";
 
-  if (!confirm(question)) return;
+      <form
+        id="productForm"
+      >
 
-  try {
-    const result = await db
-      .from("dn_payment_submissions")
-      .update({ status })
-      .eq("id", id);
+        <div class="form-grid">
 
-    if (result.error) throw result.error;
 
-    alert(
-      status === "verified"
-        ? "Pembayaran berhasil diverifikasi."
-        : "Pembayaran berhasil ditolak."
+          <div class="form-group">
+
+            <label>
+              Kode Produk
+            </label>
+
+            <input
+              id="productCode"
+              type="text"
+              placeholder="Contoh: TRS-001"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Nama Produk / GO
+            </label>
+
+            <input
+              id="productName"
+              type="text"
+              placeholder="Contoh: TREASURE Album Baru"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Jenis
+            </label>
+
+            <select
+              id="productType"
+            >
+
+              <option value="Group Order">
+                Group Order
+              </option>
+
+              <option value="Pre Order">
+                Pre Order
+              </option>
+
+              <option value="Ready Stock">
+                Ready Stock
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Harga
+            </label>
+
+            <input
+              id="productPrice"
+              type="number"
+              min="0"
+              placeholder="Contoh: 350000"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              DP
+            </label>
+
+            <input
+              id="productDp"
+              type="number"
+              min="0"
+              placeholder="Contoh: 100000"
+              value="0"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Status GO
+            </label>
+
+            <select
+              id="productStatus"
+            >
+
+              <option value="Open">
+                Open
+              </option>
+
+              <option value="Closed">
+                Closed
+              </option>
+
+              <option value="Selesai">
+                Selesai
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Deadline List
+            </label>
+
+            <input
+              id="productDeadlineList"
+              type="date"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Deadline Pembayaran
+            </label>
+
+            <input
+              id="productDeadlinePayment"
+              type="date"
+            >
+
+          </div>
+
+
+        </div>
+
+
+        <label
+          class="website-check"
+        >
+
+          <input
+            id="productShowWebsite"
+            type="checkbox"
+            checked
+          >
+
+          Tampilkan produk di Website Customer
+
+        </label>
+
+
+        <div
+          class="form-actions"
+        >
+
+          <button
+            type="submit"
+            class="btn"
+          >
+            💾 Simpan Produk
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-secondary"
+            id="cancelProductButton"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     TOMBOL BATAL
+     ========================================== */
+
+  const cancelButton =
+    document.getElementById(
+      "cancelProductButton"
     );
 
-    await loadPayments();
-  } catch (error) {
-    alert("Gagal mengubah status:\n\n" + error.message);
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function () {
+
+        area.innerHTML = "";
+
+      }
+    );
+
   }
+
+
+  /* ==========================================
+     SUBMIT FORM
+     ========================================== */
+
+  const form =
+    document.getElementById(
+      "productForm"
+    );
+
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      function (event) {
+
+        event.preventDefault();
+
+        addProduct();
+
+      }
+    );
+
+  }
+
 }
 
-// --------------------------------------------
-// RECAP
-// --------------------------------------------
 
-async function loadRecap() {
-  setContent(`
-    <div class="panel">
-      <h2>Rekap Group Order</h2>
-      <p class="muted">Data rekap yang tersedia untuk admin.</p>
-      <div id="recapArea">Memuat data...</div>
+/* ============================================
+   TAMBAH PRODUK
+   ============================================ */
+
+function addProduct() {
+
+  const code =
+    document
+      .getElementById(
+        "productCode"
+      )
+      .value
+      .trim();
+
+
+  const name =
+    document
+      .getElementById(
+        "productName"
+      )
+      .value
+      .trim();
+
+
+  const type =
+    document
+      .getElementById(
+        "productType"
+      )
+      .value;
+
+
+  const price =
+    Number(
+      document
+        .getElementById(
+          "productPrice"
+        )
+        .value
+    );
+
+
+  const dp =
+    Number(
+      document
+        .getElementById(
+          "productDp"
+        )
+        .value ||
+        0
+    );
+
+
+  const status =
+    document
+      .getElementById(
+        "productStatus"
+      )
+      .value;
+
+
+  const deadlineList =
+    document
+      .getElementById(
+        "productDeadlineList"
+      )
+      .value;
+
+
+  const deadlinePayment =
+    document
+      .getElementById(
+        "productDeadlinePayment"
+      )
+      .value;
+
+
+  const showWebsite =
+    document
+      .getElementById(
+        "productShowWebsite"
+      )
+      .checked;
+
+
+  /* ==========================================
+     VALIDASI
+     ========================================== */
+
+  if (
+    !code ||
+    !name ||
+    !price
+  ) {
+
+    alert(
+      "Kode produk, nama produk, dan harga wajib diisi."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     AMBIL DATA
+     ========================================== */
+
+  const products =
+    getProducts();
+
+
+  /* ==========================================
+     CEK KODE PRODUK
+     ========================================== */
+
+  const duplicate =
+    products.some(
+      function (product) {
+
+        return String(
+          product.code || ""
+        ).toLowerCase() ===
+          code.toLowerCase();
+
+      }
+    );
+
+
+  if (duplicate) {
+
+    alert(
+      "Kode produk tersebut sudah digunakan."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     DATA PRODUK BARU
+     ========================================== */
+
+  const newProduct = {
+
+    id:
+      Date.now(),
+
+    code:
+      code,
+
+    name:
+      name,
+
+    type:
+      type,
+
+    price:
+      price,
+
+    dp:
+      dp,
+
+    status:
+      status,
+
+    deadlineList:
+      deadlineList,
+
+    deadlinePayment:
+      deadlinePayment,
+
+    showWebsite:
+      showWebsite
+
+  };
+
+
+  /* ==========================================
+     SIMPAN
+     ========================================== */
+
+  products.push(
+    newProduct
+  );
+
+
+  saveProducts(
+    products
+  );
+
+
+  /* ==========================================
+     REFRESH TAMPILAN
+     ========================================== */
+
+  renderProducts();
+
+
+  const area =
+    document.getElementById(
+      "productFormArea"
+    );
+
+
+  if (area) {
+
+    area.innerHTML = "";
+
+  }
+
+
+  alert(
+    "Produk berhasil ditambahkan."
+  );
+
+}
+
+
+/* ============================================
+   TAMPILKAN DAFTAR PRODUK
+   ============================================ */
+
+function renderProducts() {
+
+  const list =
+    document.getElementById(
+      "productList"
+    );
+
+
+  if (!list) {
+    return;
+  }
+
+
+  const products =
+    getProducts();
+
+
+  /* ==========================================
+     BELUM ADA PRODUK
+     ========================================== */
+
+  if (
+    products.length === 0
+  ) {
+
+    list.innerHTML = `
+
+      <div
+        class="panel empty-state"
+      >
+
+        <h3>
+          Belum ada produk
+        </h3>
+
+        <p>
+          Klik
+          <b>Tambah Produk</b>
+          untuk membuat Group Order baru.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+/* ============================================
+   RENDER PRODUK
+   ============================================ */
+
+function renderProducts() {
+
+  const list =
+    document.getElementById("productList");
+
+  if (!list) {
+    return;
+  }
+
+
+  const products =
+    getProducts();
+
+
+  /* ==========================================
+     BELUM ADA PRODUK
+     ========================================== */
+
+  if (products.length === 0) {
+
+    list.innerHTML = `
+
+      <div class="panel empty-state">
+
+        <h3>
+          Belum ada produk
+        </h3>
+
+        <p>
+          Klik
+          <b>Tambah Produk</b>
+          untuk membuat Group Order baru.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  /* ==========================================
+     TAMPILKAN PRODUK
+     ========================================== */
+
+  list.innerHTML =
+    products
+      .map(function (product) {
+
+        return `
+
+          <div class="product-card">
+
+            <div>
+
+              <h3>
+                ${escapeHtml(
+                  product.name || "-"
+                )}
+              </h3>
+
+
+              <p>
+                📌 Kode Produk:
+                <b>
+                  ${escapeHtml(
+                    product.code || "-"
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                📦 Jenis:
+                <b>
+                  ${escapeHtml(
+                    product.type || "-"
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                💰 Harga:
+                <b>
+                  ${rupiah(
+                    product.price
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                💵 DP:
+                <b>
+                  ${rupiah(
+                    product.dp
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                📊 Status GO:
+                <b>
+                  ${escapeHtml(
+                    product.status || "-"
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                📅 Deadline List:
+                <b>
+                  ${escapeHtml(
+                    product.deadlineList || "-"
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                💳 Deadline Pembayaran:
+                <b>
+                  ${escapeHtml(
+                    product.deadlinePayment || "-"
+                  )}
+                </b>
+              </p>
+
+
+              <p>
+                🌐 Website Customer:
+                <b>
+                  ${
+                    product.showWebsite
+                      ? "Tampil"
+                      : "Tidak tampil"
+                  }
+                </b>
+              </p>
+
+            </div>
+
+
+            <div class="product-actions">
+
+              <button
+                type="button"
+                class="btn-edit-product"
+                data-id="${product.id}"
+              >
+                ✏️ Edit
+              </button>
+
+
+              <button
+                type="button"
+                class="btn-delete-product"
+                data-id="${product.id}"
+              >
+                🗑️ Hapus
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+
+  /* ==========================================
+     TOMBOL EDIT
+     ========================================== */
+
+  document
+    .querySelectorAll(
+      ".btn-edit-product"
+    )
+    .forEach(function (button) {
+
+      button.addEventListener(
+        "click",
+        function () {
+
+          const id =
+            Number(
+              button.dataset.id
+            );
+
+          editProduct(id);
+
+        }
+      );
+
+    });
+
+
+  /* ==========================================
+     TOMBOL HAPUS
+     ========================================== */
+
+  document
+    .querySelectorAll(
+      ".btn-delete-product"
+    )
+    .forEach(function (button) {
+
+      button.addEventListener(
+        "click",
+        function () {
+
+          const id =
+            Number(
+              button.dataset.id
+            );
+
+          deleteProduct(id);
+
+        }
+      );
+
+    });
+
+}
+
+
+/* ============================================
+   EDIT PRODUK
+   ============================================ */
+
+function editProduct(id) {
+
+  const products =
+    getProducts();
+
+
+  const product =
+    products.find(function (item) {
+
+      return item.id === id;
+
+    });
+
+
+  if (!product) {
+
+    alert(
+      "Produk tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  const area =
+    document.getElementById(
+      "productFormArea"
+    );
+
+
+  if (!area) {
+    return;
+  }
+
+
+  area.innerHTML = `
+
+    <div
+      class="panel"
+      style="margin-bottom:20px"
+    >
+
+      <h2>
+        Edit Produk / GO
+      </h2>
+
+
+      <form
+        id="editProductForm"
+      >
+
+
+        <div class="form-grid">
+
+
+          <div class="form-group">
+
+            <label>
+              Kode Produk
+            </label>
+
+            <input
+              id="editProductCode"
+              type="text"
+              value="${escapeHtml(
+                product.code || ""
+              )}"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Nama Produk / GO
+            </label>
+
+            <input
+              id="editProductName"
+              type="text"
+              value="${escapeHtml(
+                product.name || ""
+              )}"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Jenis
+            </label>
+
+            <select
+              id="editProductType"
+            >
+
+              <option value="Group Order">
+                Group Order
+              </option>
+
+              <option value="Pre Order">
+                Pre Order
+              </option>
+
+              <option value="Ready Stock">
+                Ready Stock
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Harga
+            </label>
+
+            <input
+              id="editProductPrice"
+              type="number"
+              min="0"
+              value="${Number(
+                product.price || 0
+              )}"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              DP
+            </label>
+
+            <input
+              id="editProductDp"
+              type="number"
+              min="0"
+              value="${Number(
+                product.dp || 0
+              )}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Status GO
+            </label>
+
+            <select
+              id="editProductStatus"
+            >
+
+              <option value="Open">
+                Open
+              </option>
+
+              <option value="Closed">
+                Closed
+              </option>
+
+              <option value="Selesai">
+                Selesai
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Deadline List
+            </label>
+
+            <input
+              id="editProductDeadlineList"
+              type="date"
+              value="${escapeHtml(
+                product.deadlineList || ""
+              )}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Deadline Pembayaran
+            </label>
+
+            <input
+              id="editProductDeadlinePayment"
+              type="date"
+              value="${escapeHtml(
+                product.deadlinePayment || ""
+              )}"
+            >
+
+          </div>
+
+
+        </div>
+
+
+        <label class="website-check">
+
+          <input
+            id="editProductShowWebsite"
+            type="checkbox"
+            ${
+              product.showWebsite
+                ? "checked"
+                : ""
+            }
+          >
+
+          Tampilkan produk di Website Customer
+
+        </label>
+
+
+        <div class="form-actions">
+
+          <button
+            type="submit"
+            class="btn"
+          >
+            💾 Simpan Perubahan
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-secondary"
+            id="cancelEditProduct"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+      </form>
+
     </div>
-  `);
+
+  `;
+
+
+  /* ==========================================
+     SET VALUE SELECT
+     ========================================== */
+
+  const typeSelect =
+    document.getElementById(
+      "editProductType"
+    );
+
+
+  const statusSelect =
+    document.getElementById(
+      "editProductStatus"
+    );
+
+
+  if (typeSelect) {
+
+    typeSelect.value =
+      product.type ||
+      "Group Order";
+
+  }
+
+
+  if (statusSelect) {
+
+    statusSelect.value =
+      product.status ||
+      "Open";
+
+  }
+
+
+  /* ==========================================
+     BATAL EDIT
+     ========================================== */
+
+  document
+    .getElementById(
+      "cancelEditProduct"
+    )
+    .addEventListener(
+      "click",
+      function () {
+
+        area.innerHTML = "";
+
+      }
+    );
+
+
+  /* ==========================================
+     SIMPAN EDIT
+     ========================================== */
+
+  document
+    .getElementById(
+      "editProductForm"
+    )
+    .addEventListener(
+      "submit",
+      function (event) {
+
+        event.preventDefault();
+
+
+        saveEditedProduct(
+          id
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================
+   SIMPAN EDIT PRODUK
+   ============================================ */
+
+function saveEditedProduct(id) {
+
+  const products =
+    getProducts();
+
+
+  const product =
+    products.find(function (item) {
+
+      return item.id === id;
+
+    });
+
+
+  if (!product) {
+
+    alert(
+      "Produk tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  const code =
+    document
+      .getElementById(
+        "editProductCode"
+      )
+      .value
+      .trim();
+
+
+  const name =
+    document
+      .getElementById(
+        "editProductName"
+      )
+      .value
+      .trim();
+
+
+  const type =
+    document
+      .getElementById(
+        "editProductType"
+      )
+      .value;
+
+
+  const price =
+    Number(
+      document
+        .getElementById(
+          "editProductPrice"
+        )
+        .value
+    );
+
+
+  const dp =
+    Number(
+      document
+        .getElementById(
+          "editProductDp"
+        )
+        .value ||
+        0
+    );
+
+
+  const status =
+    document
+      .getElementById(
+        "editProductStatus"
+      )
+      .value;
+
+
+  const deadlineList =
+    document
+      .getElementById(
+        "editProductDeadlineList"
+      )
+      .value;
+
+
+  const deadlinePayment =
+    document
+      .getElementById(
+        "editProductDeadlinePayment"
+      )
+      .value;
+
+
+  const showWebsite =
+    document
+      .getElementById(
+        "editProductShowWebsite"
+      )
+      .checked;
+
+
+  if (
+    !code ||
+    !name ||
+    !price
+  ) {
+
+    alert(
+      "Kode produk, nama produk, dan harga wajib diisi."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     CEK KODE DUPLIKAT
+     ========================================== */
+
+  const duplicate =
+    products.some(
+      function (item) {
+
+        return (
+          item.id !== id &&
+          String(
+            item.code || ""
+          ).toLowerCase() ===
+          code.toLowerCase()
+        );
+
+      }
+    );
+
+
+  if (duplicate) {
+
+    alert(
+      "Kode produk tersebut sudah digunakan."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     UPDATE DATA
+     ========================================== */
+
+  product.code =
+    code;
+
+  product.name =
+    name;
+
+  product.type =
+    type;
+
+  product.price =
+    price;
+
+  product.dp =
+    dp;
+
+  product.status =
+    status;
+
+  product.deadlineList =
+    deadlineList;
+
+  product.deadlinePayment =
+    deadlinePayment;
+
+  product.showWebsite =
+    showWebsite;
+
+
+  saveProducts(
+    products
+  );
+
+
+  const area =
+    document.getElementById(
+      "productFormArea"
+    );
+
+
+  if (area) {
+
+    area.innerHTML = "";
+
+  }
+
+
+  renderProducts();
+
+
+  alert(
+    "Produk berhasil diperbarui."
+  );
+
+}
+
+
+/* ============================================
+   HAPUS PRODUK
+   ============================================ */
+
+function deleteProduct(id) {
+
+  const products =
+    getProducts();
+
+
+  const product =
+    products.find(function (item) {
+
+      return item.id === id;
+
+    });
+
+
+  if (!product) {
+
+    alert(
+      "Produk tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  const confirmed =
+    confirm(
+      `Hapus produk "${product.name}"?`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const updatedProducts =
+    products.filter(
+      function (item) {
+
+        return item.id !== id;
+
+      }
+    );
+
+
+  saveProducts(
+    updatedProducts
+  );
+
+
+  renderProducts();
+
+}
+
+
+/* ============================================
+   PESANAN
+   ============================================ */
+
+async function loadOrders() {
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <h2>
+        Pesanan
+      </h2>
+
+      <p>
+        Data pesanan Group Order
+        Dear Nadiya.
+      </p>
+
+
+      <div
+        id="ordersArea"
+        class="loading-state"
+      >
+        Memuat data pesanan...
+      </div>
+
+    </div>
+
+  `;
+
 
   try {
-    const result = await db
-      .from("go_rekap_public")
-      .select("*");
 
-    if (result.error) throw result.error;
+    const result =
+      await db
+        .from(
+          "go_rekap_public"
+        )
+        .select("*");
 
-    const rows = result.data || [];
+
+    if (result.error) {
+
+      throw result.error;
+
+    }
+
+
+    const rows =
+      result.data || [];
+
+
+    const area =
+      document.getElementById(
+        "ordersArea"
+      );
+
 
     if (!rows.length) {
-      document.getElementById("recapArea").innerHTML =
-        `<div class="empty">Belum ada data rekap.</div>`;
+
+      area.innerHTML = `
+
+        <div class="empty-state">
+
+          Belum ada pesanan.
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    area.innerHTML = `
+
+      <div class="table-wrapper">
+
+        <table class="data-table">
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Kode Produk
+              </th>
+
+              <th>
+                Nama Produk
+              </th>
+
+              <th>
+                Customer
+              </th>
+
+              <th>
+                Versi
+              </th>
+
+              <th>
+                Harga
+              </th>
+
+              <th>
+                DP
+              </th>
+
+              <th>
+                Pelunasan
+              </th>
+
+              <th>
+                Status Barang
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${rows.map(
+              function (row) {
+
+                return `
+
+                  <tr>
+
+                    <td>
+                      ${escapeHtml(
+                        row.product_code ||
+                        "-"
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.product_name ||
+                        "-"
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.customer_name ||
+                        "-"
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.product_version ||
+                        "-"
+                      )}
+                    </td>
+
+                    <td>
+                      ${rupiah(
+                        row.price
+                      )}
+                    </td>
+
+                    <td>
+                      ${rupiah(
+                        row.dp
+                      )}
+                    </td>
+
+                    <td>
+                      ${rupiah(
+                        row.pelunasan
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.item_status ||
+                        "-"
+                      )}
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+  } catch (error) {
+
+    showError(
+      error
+    );
+
+  }
+
+}
+
+/* ============================================
+   PEMBAYARAN
+   ============================================ */
+
+async function loadPayments() {
+
+  pageContent.innerHTML = `
+
+    <div class="toolbar">
+
+      <div>
+
+        <h2>
+          Pembayaran
+        </h2>
+
+        <p>
+          Bukti pembayaran dari Customer Portal.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div id="paymentsArea">
+
+      <div class="panel loading-state">
+        Memuat pembayaran...
+      </div>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    const result =
+      await db
+        .from("dn_payment_submissions")
+        .select("*")
+        .order("id", {
+          ascending: false
+        });
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    const rows =
+      result.data || [];
+
+
+    const area =
+      document.getElementById("paymentsArea");
+
+
+    /* ========================================
+       BELUM ADA PEMBAYARAN
+       ======================================== */
+
+    if (rows.length === 0) {
+
+      area.innerHTML = `
+
+        <div class="panel empty-state">
+
+          <h3>
+            Belum ada pembayaran
+          </h3>
+
+          <p>
+            Bukti pembayaran dari Customer
+            akan muncul di sini.
+          </p>
+
+        </div>
+
+      `;
+
       return;
     }
 
-    document.getElementById("recapArea").innerHTML = `
-      <div class="table-wrap" style="margin-top:16px">
-        <table>
+
+    /* ========================================
+       TABEL PEMBAYARAN
+       ======================================== */
+
+    area.innerHTML = `
+
+      <div class="table-wrapper">
+
+        <table class="data-table">
+
           <thead>
+
             <tr>
-              <th>Kode</th>
-              <th>Produk</th>
-              <th>Customer</th>
-              <th>Versi</th>
-              <th>Harga</th>
-              <th>DP</th>
-              <th>Pelunasan</th>
-              <th>Status</th>
+
+              <th>
+                Customer
+              </th>
+
+              <th>
+                4 Digit WhatsApp
+              </th>
+
+              <th>
+                Kode Produk
+              </th>
+
+              <th>
+                Versi Produk
+              </th>
+
+              <th>
+                Nominal
+              </th>
+
+              <th>
+                Tanggal Transfer
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                Bukti Pembayaran
+              </th>
+
+              <th>
+                Aksi
+              </th>
+
             </tr>
+
           </thead>
+
+
           <tbody>
-            ${rows.map(row => `
-              <tr>
-                <td>${escapeHtml(row.product_code || "-")}</td>
-                <td>${escapeHtml(row.product_name || "-")}</td>
-                <td>${escapeHtml(row.customer_name || "-")}</td>
-                <td>${escapeHtml(row.product_version || "-")}</td>
-                <td>${rupiah(row.price)}</td>
-                <td>${rupiah(row.dp)}</td>
-                <td>${rupiah(row.pelunasan)}</td>
-                <td>${escapeHtml(row.item_status || "-")}</td>
-              </tr>
-            `).join("")}
+
+            ${rows.map(function (row) {
+
+              const status =
+                String(
+                  row.status || "pending"
+                ).toLowerCase();
+
+
+              let statusClass =
+                "status-pending";
+
+
+              let statusText =
+                "Menunggu";
+
+
+              if (
+                status === "verified" ||
+                status === "approved"
+              ) {
+
+                statusClass =
+                  "status-approved";
+
+                statusText =
+                  "Disetujui";
+
+              }
+
+
+              if (
+                status === "rejected"
+              ) {
+
+                statusClass =
+                  "status-rejected";
+
+                statusText =
+                  "Ditolak";
+
+              }
+
+
+              return `
+
+                <tr>
+
+                  <td>
+                    ${escapeHtml(
+                      row.customer_name || "-"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHtml(
+                      row.whatsapp_last4 || "-"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHtml(
+                      row.product_code || "-"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHtml(
+                      row.product_version || "-"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${rupiah(
+                      row.amount
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHtml(
+                      row.payment_date || "-"
+                    )}
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="status ${statusClass}"
+                    >
+                      ${statusText}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <button
+                      type="button"
+                      class="btn-secondary"
+                      data-proof-path="${escapeHtml(
+                        row.proof_path || ""
+                      )}"
+                    >
+                      👁 Lihat Bukti
+                    </button>
+
+                  </td>
+
+
+                  <td>
+
+                    ${
+                      status === "pending"
+                        ? `
+
+                          <div
+                            class="product-actions"
+                          >
+
+                            <button
+                              type="button"
+                              class="btn-edit-product"
+                              data-verify-id="${row.id}"
+                            >
+                              ✅ Setujui
+                            </button>
+
+
+                            <button
+                              type="button"
+                              class="btn-delete-product"
+                              data-reject-id="${row.id}"
+                            >
+                              ❌ Tolak
+                            </button>
+
+                          </div>
+
+                        `
+                        : `
+
+                          <span>
+                            -
+                          </span>
+
+                        `
+                    }
+
+                  </td>
+
+                </tr>
+
+              `;
+
+            }).join("")}
+
           </tbody>
+
         </table>
+
       </div>
+
     `;
+
+
+    /* ========================================
+       TOMBOL LIHAT BUKTI
+       ======================================== */
+
+    document
+      .querySelectorAll(
+        "[data-proof-path]"
+      )
+      .forEach(function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            openPaymentProof(
+              button.dataset.proofPath
+            );
+
+          }
+        );
+
+      });
+
+
+    /* ========================================
+       TOMBOL SETUJUI
+       ======================================== */
+
+    document
+      .querySelectorAll(
+        "[data-verify-id]"
+      )
+      .forEach(function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const id =
+              Number(
+                button.dataset.verifyId
+              );
+
+
+            updatePaymentStatus(
+              id,
+              "verified"
+            );
+
+          }
+        );
+
+      });
+
+
+    /* ========================================
+       TOMBOL TOLAK
+       ======================================== */
+
+    document
+      .querySelectorAll(
+        "[data-reject-id]"
+      )
+      .forEach(function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const id =
+              Number(
+                button.dataset.rejectId
+              );
+
+
+            updatePaymentStatus(
+              id,
+              "rejected"
+            );
+
+          }
+        );
+
+      });
+
+
   } catch (error) {
-    showContentError(error);
-  }
-}
 
-// --------------------------------------------
-// ERROR
-// --------------------------------------------
+    console.error(
+      "Gagal memuat pembayaran:",
+      error
+    );
 
-function showContentError(error) {
-  console.error(error);
 
-  setContent(`
-    <div class="panel">
-      <h2>Terjadi masalah</h2>
-      <p class="muted">
-        Website berhasil dibuka, tetapi data belum dapat dimuat.
-      </p>
-      <div class="message error">
-        ${escapeHtml(error.message || String(error))}
+    pageContent.innerHTML = `
+
+      <div class="panel">
+
+        <h2>
+          Gagal Memuat Pembayaran
+        </h2>
+
+        <p>
+          ${escapeHtml(
+            error.message ||
+            String(error)
+          )}
+        </p>
+
       </div>
-    </div>
-  `);
+
+    `;
+
+  }
+
 }
+
+
+/* ============================================
+   BUKA BUKTI PEMBAYARAN
+   ============================================ */
+
+async function openPaymentProof(
+  path
+) {
+
+  if (!path) {
+
+    alert(
+      "Bukti pembayaran tidak tersedia."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    const result =
+      await db.storage
+        .from("payment-proofs")
+        .createSignedUrl(
+          path,
+          600
+        );
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    const signedUrl =
+      result.data?.signedUrl;
+
+
+    if (!signedUrl) {
+
+      throw new Error(
+        "URL bukti pembayaran tidak tersedia."
+      );
+
+    }
+
+
+    window.open(
+      signedUrl,
+      "_blank"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Gagal membuka bukti:",
+      error
+    );
+
+
+    alert(
+      "Gagal membuka bukti pembayaran:\n\n" +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   UPDATE STATUS PEMBAYARAN
+   ============================================ */
+
+async function updatePaymentStatus(
+  id,
+  newStatus
+) {
+
+  const isVerified =
+    newStatus === "verified";
+
+
+  const question =
+    isVerified
+      ? "Apakah pembayaran ini sudah benar dan ingin disetujui?"
+      : "Apakah kamu yakin ingin menolak pembayaran ini?";
+
+
+  if (
+    !confirm(question)
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const result =
+      await db
+        .from("dn_payment_submissions")
+        .update({
+
+          status:
+            newStatus
+
+        })
+        .eq(
+          "id",
+          id
+        );
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    alert(
+      isVerified
+        ? "✅ Pembayaran berhasil disetujui."
+        : "❌ Pembayaran berhasil ditolak."
+    );
+
+
+    await loadPayments();
+
+
+  } catch (error) {
+
+    console.error(
+      "Gagal mengubah status pembayaran:",
+      error
+    );
+
+
+    alert(
+      "Gagal mengubah status pembayaran:\n\n" +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   REKAP GO
+   ============================================ */
+
+async function loadRecap() {
+
+  pageContent.innerHTML = `
+
+    <div class="toolbar">
+
+      <div>
+
+        <h2>
+          Rekap GO
+        </h2>
+
+        <p>
+          Rekap keseluruhan pesanan
+          Group Order Dear Nadiya.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div id="recapArea">
+
+      <div class="panel loading-state">
+        Memuat rekap...
+      </div>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    const result =
+      await db
+        .from("go_rekap_public")
+        .select("*");
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    const rows =
+      result.data || [];
+
+
+    const area =
+      document.getElementById(
+        "recapArea"
+      );
+
+
+    /* ========================================
+       KOSONG
+       ======================================== */
+
+    if (rows.length === 0) {
+
+      area.innerHTML = `
+
+        <div class="panel empty-state">
+
+          <h3>
+            Belum ada data rekap
+          </h3>
+
+          <p>
+            Data pesanan akan muncul
+            di sini setelah tersedia.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+  /* ========================================
+   TABEL REKAP
+   ======================================== */
+
+area.innerHTML = `
+
+  <div class="table-wrapper">
+
+    <table class="data-table">
+
+      <thead>
+
+        <tr>
+
+          <th>
+            Kode Produk
+          </th>
+
+          <th>
+            Nama Produk
+          </th>
+
+          <th>
+            Customer
+          </th>
+
+          <th>
+            Versi
+          </th>
+
+          <th>
+            Harga
+          </th>
+
+          <th>
+            DP
+          </th>
+
+          <th>
+            Pelunasan
+          </th>
+
+          <th>
+            Status Barang
+          </th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        ${rows.map(function (row) {
+
+          return `
+
+            <tr>
+
+              <td>
+                ${escapeHtml(
+                  row.product_code || "-"
+                )}
+              </td>
+
+
+              <td>
+                ${escapeHtml(
+                  row.product_name || "-"
+                )}
+              </td>
+
+
+              <td>
+                ${escapeHtml(
+                  row.customer_name || "-"
+                )}
+              </td>
+
+
+              <td>
+                ${escapeHtml(
+                  row.product_version || "-"
+                )}
+              </td>
+
+
+              <td>
+                ${rupiah(
+                  row.price
+                )}
+              </td>
+
+
+              <td>
+                ${rupiah(
+                  row.dp
+                )}
+              </td>
+
+
+              <td>
+                ${rupiah(
+                  row.pelunasan
+                )}
+              </td>
+
+
+              <td>
+                ${escapeHtml(
+                  row.item_status || "-"
+                )}
+              </td>
+
+            </tr>
+
+          `;
+
+        }).join("")}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+`;
+
+
+/* ============================================
+   SELESAI
+   ============================================ */
