@@ -1,78 +1,275 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>Dear Nadiya Admin</title>
-  <link rel="stylesheet" href="admin.css">
+
+  <link
+    rel="stylesheet"
+    href="admin.css"
+  >
 </head>
+
+
 <body>
 
+
+  <!-- ============================= -->
   <!-- LOGIN -->
-  <section id="loginScreen" class="login-screen">
+  <!-- ============================= -->
+
+  <section
+    id="loginPage"
+    class="login-page"
+  >
+
     <div class="login-card">
-      <img src="mascot.png" alt="Dear Nadiya" class="login-mascot">
-      <p class="eyebrow">DEAR NADIYA</p>
-      <h1>Admin Panel ♥</h1>
-      <p class="muted">Masuk untuk mengelola Group Order.</p>
+
+      <img
+        src="mascot.png"
+        alt="Dear Nadiya Admin"
+        class="login-mascot"
+      >
+
+      <p class="login-label">
+        DEAR NADIYA ADMIN
+      </p>
+
+      <h1>
+        Admin Panel ♥
+      </h1>
+
+      <p class="login-description">
+        Masuk untuk mengelola Group Order.
+      </p>
+
 
       <form id="loginForm">
+
+
         <label>
           Username
-          <input id="username" type="text" autocomplete="username" value="admin" required>
         </label>
+
+        <input
+          id="username"
+          type="text"
+          placeholder="Username"
+          autocomplete="username"
+          required
+        >
+
 
         <label>
           Password
-          <input id="password" type="password" autocomplete="current-password" value="180322" required>
         </label>
 
-        <button class="primary-btn" type="submit">Masuk Admin</button>
-        <div id="loginMessage" class="message hidden"></div>
+        <input
+          id="password"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
+
+
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Masuk Admin
+        </button>
+
+
+        <p
+          id="loginError"
+          class="login-error"
+        ></p>
+
+
       </form>
+
     </div>
+
   </section>
 
-  <!-- APP -->
-  <section id="app" class="app hidden">
+
+
+  <!-- ============================= -->
+  <!-- ADMIN APP -->
+  <!-- ============================= -->
+
+  <div
+    id="adminApp"
+    class="admin-app hidden"
+  >
+
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
-      <div class="brand">
-        <img src="mascot.png" alt="Dear Nadiya">
-        <div>
-          <strong>Dear Nadiya</strong>
-          <small>ADMIN PANEL</small>
-        </div>
+
+
+      <div class="sidebar-brand">
+
+        <img
+          src="mascot.png"
+          alt="Dear Nadiya"
+        >
+
+        <h2>
+          Dear Nadiya
+        </h2>
+
+        <small>
+          ADMIN PANEL
+        </small>
+
       </div>
 
-      <nav>
-        <button data-page="dashboard" class="nav-btn active">🏠 Dashboard</button>
-        <button data-page="products" class="nav-btn">📦 Produk & GO</button>
-        <button data-page="orders" class="nav-btn">📝 Pesanan</button>
-        <button data-page="payments" class="nav-btn">💳 Pembayaran</button>
-        <button data-page="recap" class="nav-btn">📈 Rekap GO</button>
+
+      <nav class="sidebar-menu">
+
+
+        <button
+          type="button"
+          data-page="dashboard"
+          class="menu-button active"
+        >
+          🏠 Dashboard
+        </button>
+
+
+        <button
+          type="button"
+          data-page="products"
+          class="menu-button"
+        >
+          📦 Produk & GO
+        </button>
+
+
+        <button
+          type="button"
+          data-page="orders"
+          class="menu-button"
+        >
+          📝 Pesanan
+        </button>
+
+
+        <button
+          type="button"
+          data-page="payments"
+          class="menu-button"
+        >
+          💳 Pembayaran
+        </button>
+
+
+        <button
+          type="button"
+          data-page="recap"
+          class="menu-button"
+        >
+          📈 Rekap GO
+        </button>
+
+
       </nav>
 
+
       <div class="sidebar-bottom">
-        <a href="https://dearnadiya.github.io/Dear-nadiya-website/" target="_blank">← Website Customer</a>
-        <button id="logoutBtn" class="logout-btn">Keluar</button>
+
+
+        <a
+          href="https://dearnadiya.github.io/Dear-nadiya-website/"
+          target="_blank"
+        >
+          ← Website Customer
+        </a>
+
+
+        <button
+          type="button"
+          id="logoutButton"
+          class="logout-button"
+        >
+          Keluar
+        </button>
+
+
       </div>
+
+
     </aside>
 
-    <main class="main">
+
+
+    <!-- MAIN -->
+
+    <main class="main-content">
+
+
       <header class="topbar">
+
         <div>
-          <p class="eyebrow">DEAR NADIYA ADMIN</p>
-          <h1 id="pageTitle">Dashboard</h1>
+
+          <small>
+            DEAR NADIYA ADMIN
+          </small>
+
+          <h1 id="pageTitle">
+            Dashboard
+          </h1>
+
         </div>
-        <button id="refreshBtn" class="secondary-btn">↻ Refresh</button>
+
+
+        <button
+          type="button"
+          id="refreshButton"
+          class="refresh-button"
+        >
+          ↻ Refresh
+        </button>
+
       </header>
 
-      <div id="pageContent"></div>
-    </main>
-  </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <!-- CONTENT -->
+
+      <section
+        id="pageContent"
+        class="page-content"
+      >
+
+        <!-- Dashboard akan dimuat melalui admin.js -->
+
+      </section>
+
+
+    </main>
+
+
+  </div>
+
+
+
+  <!-- ============================= -->
+  <!-- JAVASCRIPT -->
+  <!-- ============================= -->
+
   <script src="admin.js"></script>
+
+
 </body>
+
 </html>
