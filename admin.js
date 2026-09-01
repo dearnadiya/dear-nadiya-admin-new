@@ -824,147 +824,129 @@ async function loadProducts() {
 
   }
 
+/* ============================================
+   TAMPILKAN DAFTAR PRODUK
+   ============================================ */
 
-  /* ============================================
-     TAMPILKAN DAFTAR PRODUK
-     ============================================ */
+async function loadProductList() {
 
-  async function loadProductList() {
+  productListContainer.innerHTML =
+    "<p>Memuat produk...</p>";
 
-    productListContainer.innerHTML =
-      "<p>Memuat produk...</p>";
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("products")
+    .select("*");
 
+  console.log("DATA PRODUCTS:", data);
+  console.log("ERROR PRODUCTS:", error);
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("products")
-        .select("*")
-        .order("id", {
-          ascending: false
-        });
-
-
-    if (error) {
-
-      productListContainer.innerHTML =
-        `<p>Gagal memuat produk: ${error.message}</p>`;
-
-      return;
-
-    }
-
-     if (!data || data.length === 0) {
-
-  productListContainer.innerHTML = `
-    <div class="panel">
-      <h3>Belum ada produk</h3>
-      <p>Supabase berhasil dihubungi, tetapi tidak mengembalikan data.</p>
-      <pre>${JSON.stringify(data, null, 2)}</pre>
-    </div>
-  `;
-
-  return;
-
-     }
+  if (error) {
 
     productListContainer.innerHTML = `
+      <div class="panel">
+        <h3>Gagal memuat produk</h3>
+        <p>${error.message}</p>
+      </div>
+    `;
 
-      <div class="product-table-wrapper">
+    return;
+  }
 
-        <table class="product-table">
+  if (!data || data.length === 0) {
 
-          <thead>
+    productListContainer.innerHTML = `
+      <div class="panel">
+        <h3>Belum ada produk</h3>
+        <p>Supabase terhubung, tetapi data products kosong.</p>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      </div>
+    `;
+
+    return;
+  }
+
+  productListContainer.innerHTML = `
+
+    <div class="product-table-wrapper">
+
+      <table class="product-table">
+
+        <thead>
+
+          <tr>
+            <th>Kode</th>
+            <th>Produk</th>
+            <th>Jenis</th>
+            <th>Harga</th>
+            <th>DP</th>
+            <th>Status</th>
+            <th>Member</th>
+            <th>Website</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${data.map(product => `
 
             <tr>
 
-              <th>Kode</th>
+              <td>
+                ${product.product_code || "-"}
+              </td>
 
-              <th>Produk</th>
+              <td>
+                ${product.name || "-"}
+              </td>
 
-              <th>Jenis</th>
+              <td>
+                ${product.type || "-"}
+              </td>
 
-              <th>Harga</th>
+              <td>
+                Rp${Number(
+                  product.price || 0
+                ).toLocaleString("id-ID")}
+              </td>
 
-              <th>DP</th>
+              <td>
+                Rp${Number(
+                  product.dp || 0
+                ).toLocaleString("id-ID")}
+              </td>
 
-              <th>Status</th>
+              <td>
+                ${product.status || "-"}
+              </td>
 
-              <th>Member</th>
+              <td>
+                ${product.members || 0}
+              </td>
 
-              <th>Website</th>
+              <td>
+                ${
+                  product.show_website
+                    ? "✓"
+                    : "-"
+                }
+              </td>
 
             </tr>
 
-          </thead>
+          `).join("")}
 
-          <tbody>
+        </tbody>
 
-            ${data.map(product => `
+      </table>
 
-              <tr>
+    </div>
 
-                <td>
-                  ${product.product_code || "-"}
-                </td>
-
-                <td>
-                  ${product.name || "-"}
-                </td>
-
-                <td>
-                  ${product.type || "-"}
-                </td>
-
-                <td>
-                  Rp${Number(
-                    product.price || 0
-                  ).toLocaleString("id-ID")}
-                </td>
-
-                <td>
-                  Rp${Number(
-                    product.dp || 0
-                  ).toLocaleString("id-ID")}
-                </td>
-
-                <td>
-                  ${product.status || "-"}
-                </td>
-
-                <td>
-                  ${product.members || 0}
-                </td>
-
-                <td>
-                  ${
-                    product.show_website
-                      ? "✓"
-                      : "—"
-                  }
-                </td>
-
-              </tr>
-
-            `).join("")}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-    `;
-
-  }
-
-
-  await loadProductList();
-
+  `;
 }
-
 
 /* ============================================
    PESANAN
