@@ -90,7 +90,16 @@ googleLoginButton.addEventListener(
 
 
 /* ============================================
-   CEK SESSION GOOGLE
+   ADMIN EMAIL
+   ============================================ */
+
+const ADMIN_EMAILS = [
+  "dearnadiya6@gmail.com"
+];
+
+
+/* ============================================
+   CEK SESSION + AKSES ADMIN
    ============================================ */
 
 async function checkGoogleSession() {
@@ -101,18 +110,43 @@ async function checkGoogleSession() {
     await supabaseClient.auth.getSession();
 
 
-  if (session) {
+  if (!session) {
+
+    showLogin();
+
+    return;
+
+  }
+
+
+  const userEmail =
+    session.user.email
+      ?.toLowerCase()
+      .trim();
+
+
+  const isAdmin =
+    ADMIN_EMAILS
+      .map(email => email.toLowerCase().trim())
+      .includes(userEmail);
+
+
+  if (isAdmin) {
 
     showAdmin();
 
   } else {
+
+    await supabaseClient.auth.signOut();
+
+    loginError.textContent =
+      "Akun Google ini tidak memiliki akses Admin.";
 
     showLogin();
 
   }
 
 }
-
 
 /* ============================================
    LOGOUT GOOGLE
@@ -135,13 +169,39 @@ logoutButton.addEventListener(
    ============================================ */
 
 supabaseClient.auth.onAuthStateChange(
-  function (event, session) {
+  async function (event, session) {
 
-    if (session) {
+    if (!session) {
+
+      showLogin();
+
+      return;
+
+    }
+
+
+    const userEmail =
+      session.user.email
+        ?.toLowerCase()
+        .trim();
+
+
+    const isAdmin =
+      ADMIN_EMAILS
+        .map(email => email.toLowerCase().trim())
+        .includes(userEmail);
+
+
+    if (isAdmin) {
 
       showAdmin();
 
     } else {
+
+      await supabaseClient.auth.signOut();
+
+      loginError.textContent =
+        "Akun Google ini tidak memiliki akses Admin.";
 
       showLogin();
 
