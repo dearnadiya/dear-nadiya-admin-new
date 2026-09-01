@@ -2424,111 +2424,414 @@ async function saveBatchRecap(
    TAMPILKAN DAFTAR REKAP
    ============================================ */
 
-async function loadRecapList(
-  category
-) {
+async function loadRecapList(category) {
 
   const container =
-    document.getElementById(
-      "recapListContainer"
-    );
+    document.getElementById("recapListContainer");
 
+  if (!container) return;
 
-  if (!container) {
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    "<p>Memuat rekap...</p>";
-
+  container.innerHTML = "<p>Memuat rekap...</p>";
 
   try {
 
-    const {
-      data,
-      error
-    } =
+    const { data, error } =
       await supabaseClient
         .from("purchase_recap")
         .select("*")
-        .eq(
-          "category",
-          category
-        )
-        .order(
-          "batch_code",
-          {
-            ascending: true
-          }
-        )
-        .order(
-          "id",
-          {
-            ascending: true
-          }
-        );
+        .eq("category", category)
+        .order("batch_code", { ascending: true })
+        .order("id", { ascending: true });
 
 
     if (error) {
 
-      console.error(
-        "ERROR REKAP:",
-        error
-      );
-
+      console.error("ERROR REKAP:", error);
 
       container.innerHTML = `
-
         <div class="panel">
-
-          <h3>
-            Gagal memuat rekap
-          </h3>
-
-          <p>
-            ${error.message}
-          </p>
-
+          <h3>Gagal memuat rekap</h3>
+          <p>${error.message}</p>
         </div>
-
       `;
 
       return;
-
     }
 
 
-    if (
-      !data ||
-      data.length === 0
-    ) {
+    if (!data || data.length === 0) {
 
       container.innerHTML = `
-
         <div class="panel">
-
-          <h3>
-            Belum ada data
-          </h3>
-
+          <h3>Belum ada data</h3>
           <p>
             Belum ada rekapan untuk
-            <strong>
-              ${category}
-            </strong>.
+            <strong>${category}</strong>.
           </p>
-
         </div>
-
       `;
 
       return;
+    }
+
+
+    /* ========================================
+       KELOMPOKKAN BERDASARKAN BATCH
+       ======================================== */
+
+    const batches = {};
+
+    data.forEach(function(item) {
+
+      const batch =
+        item.batch_code || "Tanpa Batch";
+
+      if (!batches[batch]) {
+
+        batches[batch] = {
+          batch_code: batch,
+          item_name:
+            item.item_name || "—",
+          items: []
+        };
+
+      }
+
+      batches[batch].items.push(item);
+
+    });
+
+
+    /* ========================================
+       FORMAT RUPIAH
+       ======================================== */
+
+    function rupiah(value) {
+
+      return "Rp" +
+        Number(value || 0)
+          .toLocaleString("id-ID");
 
     }
 
+
+    /* ========================================
+       STATUS
+       ======================================== */
+
+    function dpStatus(item) {
+
+      if (item.dp_status === "paid") {
+
+        return `
+          <span class="status-paid">
+            ✓ Sudah Dibayar
+          </span>
+        `;
+
+      }
+
+      return `
+        <span class="status-unpaid">
+          Belum Dibayar
+        </span>
+      `;
+
+    }
+
+
+    function paymentStatus(item) {
+
+      if (
+        item.payment_status === "paid"
+      ) {
+
+        return `
+          <span class="status-paid">
+            ✓ Sudah Lunas
+          </span>
+        `;
+
+      }
+
+      return `
+        <span class="status-unpaid">
+          Belum Lunas
+        </span>
+      `;
+
+    }
+
+
+    /* ========================================
+       BUAT HTML SETIAP BATCH
+       ======================================== */
+
+    const batchHTML =
+      Object.values(batches)
+        .map(function(batch) {
+
+          return `
+
+            <div class="recap-batch-card">
+
+              <!-- ==========================
+                   HEADER BATCH
+                   ========================== -->
+
+              <div class="recap-batch-header">
+
+                <div>
+
+                  <div class="recap-batch-code">
+                    ${batch.batch_code}
+                  </div>
+
+                  <div class="recap-batch-name">
+                    ${batch.item_name}
+                  </div>
+
+                </div>
+
+                <div class="recap-batch-count">
+                  ${batch.items.length} item
+                </div>
+
+              </div>
+
+
+              <!-- ==========================
+                   TABEL MEMBER / VERSI
+                   ========================== -->
+
+              <div class="product-table-wrapper">
+
+                <table class="product-table recap-table">
+
+                  <thead>
+
+                    <tr>
+
+                      <th>Versi / Member</th>
+
+                      <th>Customer</th>
+
+                      <th>Qty</th>
+
+                      <th>Harga</th>
+
+                      <th>DP</th>
+
+                      <th>Status DP</th>
+
+                      <th>Pelunasan</th>
+
+                      <th>Status Pelunasan</th>
+
+                      <th>Tracking</th>
+
+                      <th>Note</th>
+
+                      <th>Batas CO</th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    ${batch.items
+                      .map(function(item) {
+
+                        const customer =
+                          item.customer_name ||
+                          "AVAILABLE";
+
+
+                        const version =
+                          item.version ||
+                          "AVAILABLE";
+
+
+                        const customerHTML =
+                          customer
+                            .toUpperCase()
+                            .trim() ===
+                          "AVAILABLE"
+
+                            ? `
+                              <span
+                                class="available-member"
+                              >
+                                AVAILABLE
+                              </span>
+                            `
+
+                            : customer;
+
+
+                        const versionHTML =
+                          version
+                            .toUpperCase()
+                            .trim() ===
+                          "AVAILABLE"
+
+                            ? `
+                              <span
+                                class="available-member"
+                              >
+                                AVAILABLE
+                              </span>
+                            `
+
+                            : version;
+
+
+                        const deadline =
+                          item.co_deadline
+
+                            ? new Date(
+                                item.co_deadline
+                              ).toLocaleDateString(
+                                "id-ID"
+                              )
+
+                            : "—";
+
+
+                        return `
+
+                          <tr>
+
+                            <td>
+                              ${versionHTML}
+                            </td>
+
+                            <td>
+                              ${customerHTML}
+                            </td>
+
+                            <td>
+                              ${item.quantity || 1}
+                            </td>
+
+                            <td>
+                              ${rupiah(
+                                item.item_price
+                              )}
+                            </td>
+
+                            <td>
+                              ${rupiah(
+                                item.dp_amount
+                              )}
+                            </td>
+
+                            <td>
+                              ${dpStatus(item)}
+                            </td>
+
+                            <td>
+                              ${rupiah(
+                                item.remaining_amount
+                              )}
+                            </td>
+
+                            <td>
+                              ${paymentStatus(item)}
+                            </td>
+
+                            <td>
+                              ${
+                                item.tracking_status ||
+                                "—"
+                              }
+                            </td>
+
+                            <td>
+                              ${
+                                item.note ||
+                                "—"
+                              }
+                            </td>
+
+                            <td>
+                              ${deadline}
+                            </td>
+
+                          </tr>
+
+                        `;
+
+                      })
+                      .join("")}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          `;
+
+        })
+        .join("");
+
+
+    /* ========================================
+       TAMPILKAN
+       ======================================== */
+
+    container.innerHTML = `
+
+      <div class="recap-category-title">
+
+        <h3>
+          ${category}
+        </h3>
+
+        <p>
+          ${Object.keys(batches).length}
+          kode batch
+        </p>
+
+      </div>
+
+      ${batchHTML}
+
+    `;
+
+
+  } catch (error) {
+
+    console.error(
+      "Kesalahan loadRecapList:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat rekap
+        </h3>
+
+        <p>
+          ${error.message}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
 
     /* ======================================
        TABEL
