@@ -1182,3 +1182,145 @@ a {
   }
 
 }
+
+/* ============================================
+   FORM ADMIN - PERBAIKAN LAYOUT
+   ============================================ */
+
+.product-form form,
+#recapForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-form label,
+#recapForm label {
+  display: block;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.product-form input,
+.product-form select,
+.product-form textarea,
+#recapForm input,
+#recapForm select,
+#recapForm textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #d8d8e0;
+  border-radius: 10px;
+  font-size: 15px;
+  background: #fff;
+}
+
+.product-form textarea,
+#recapForm textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.product-form .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.product-form .checkbox-label input {
+  width: auto;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.form-actions .primary-button {
+  flex: 1;
+}
+
+.form-actions button {
+  min-height: 45px;
+  border-radius: 10px;
+}
+
+
+/* ============================================
+   TABEL REKAP
+   ============================================ */
+
+.product-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.recap-table {
+  min-width: 1300px;
+}
+
+.recap-table th,
+.recap-table td {
+  white-space: nowrap;
+  padding: 10px 12px;
+}
+
+
+/* ============================================
+   AVAILABLE
+   ============================================ */
+
+.available-member {
+  font-weight: 700;
+  color: #c02672;
+  background: #fde7f1;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+
+/* ============================================
+   STATUS
+   ============================================ */
+
+.status-paid {
+  font-weight: 600;
+}
+
+.status-unpaid {
+  font-weight: 600;
+}
+
+.status-delivered {
+  font-weight: 600;
+}
+
+
+/* ============================================
+   KATEGORI REKAP
+   ============================================ */
+
+.recap-category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.recap-category-buttons button {
+  padding: 9px 14px;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  background: white;
+  cursor: pointer;
+}
+
+.recap-category-buttons button.active {
+  font-weight: 700;
+}
