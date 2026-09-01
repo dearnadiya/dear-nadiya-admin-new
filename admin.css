@@ -1324,3 +1324,315 @@ a {
 .recap-category-buttons button.active {
   font-weight: 700;
 }
+
+/* ============================================
+   REKAP GO - FORM BATCH
+   ============================================ */
+
+.recap-form {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* ============================================
+   FORM BATCH - LABEL
+   ============================================ */
+
+.recap-form label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #29283f;
+}
+
+
+/* ============================================
+   FORM BATCH - INPUT
+   ============================================ */
+
+.recap-form input,
+.recap-form select,
+.recap-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d9d6df;
+  border-radius: 10px;
+  background: #fff;
+  color: #29283f;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+
+/* TEXTAREA */
+
+.recap-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+
+/* FOCUS */
+
+.recap-form input:focus,
+.recap-form select:focus,
+.recap-form textarea:focus {
+  outline: none;
+  border-color: #c9789f;
+  box-shadow: 0 0 0 3px rgba(201, 120, 159, 0.12);
+}
+
+
+/* ============================================
+   INFORMASI BATCH
+   ============================================ */
+
+.recap-form > h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+
+/* ============================================
+   ITEM BATCH
+   ============================================ */
+
+.batch-item {
+  position: relative;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e5e0e7;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(40, 35, 55, 0.05);
+}
+
+
+/* ============================================
+   HEADER ITEM
+   ============================================ */
+
+.batch-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+
+.batch-item-header h4 {
+  margin: 0;
+  font-size: 17px;
+  color: #29283f;
+}
+
+
+/* ============================================
+   HAPUS ITEM
+   ============================================ */
+
+.remove-batch-item {
+  border: 1px solid #e3b9c9;
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: #fff;
+  color: #a94e76;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+.remove-batch-item:hover {
+  background: #fdf0f5;
+}
+
+
+/* ============================================
+   PEMISAH ITEM
+   ============================================ */
+
+.batch-item hr {
+  border: 0;
+  border-top: 1px solid #eee8ee;
+  margin: 22px 0 0;
+}
+
+
+/* ============================================
+   TOMBOL TAMBAH VERSI
+   ============================================ */
+
+#addBatchItemButton {
+  width: 100%;
+  margin-top: 20px;
+}
+
+
+/* ============================================
+   TOMBOL SIMPAN & BATAL
+   ============================================ */
+
+.recap-form .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+
+.recap-form .form-actions .primary-button {
+  flex: 1;
+}
+
+
+.recap-form .form-actions button[type="button"] {
+  min-width: 90px;
+}
+
+
+/* ============================================
+   AVAILABLE
+   ============================================ */
+
+.available-member {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: #fff1a8;
+  color: #8a6500;
+  font-weight: 700;
+}
+
+
+/* ============================================
+   STATUS PEMBAYARAN
+   ============================================ */
+
+.status-paid {
+  color: #2e8b57;
+  font-weight: 700;
+}
+
+
+.status-unpaid {
+  color: #b25c78;
+  font-weight: 600;
+}
+
+
+/* ============================================
+   TABEL REKAP
+   ============================================ */
+
+.product-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.recap-table {
+  min-width: 1250px;
+  border-collapse: collapse;
+}
+
+
+.recap-table th,
+.recap-table td {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+
+/* ============================================
+   BUTTON KATEGORI
+   ============================================ */
+
+.recap-category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+
+.recap-category-buttons button {
+  border: 1px solid #ddd6df;
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: #fff;
+  color: #29283f;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+.recap-category-buttons button.active {
+  background: #f7e6ef;
+  border-color: #e3b5cc;
+  color: #ad527c;
+}
+
+
+/* ============================================
+   MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  .batch-item {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+
+  .batch-item-header {
+    align-items: flex-start;
+  }
+
+
+  .batch-item-header h4 {
+    font-size: 16px;
+  }
+
+
+  .remove-batch-item {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+
+  .recap-form input,
+  .recap-form select,
+  .recap-form textarea {
+    font-size: 16px;
+  }
+
+
+  .recap-form .form-actions {
+    flex-direction: column;
+  }
+
+
+  .recap-form .form-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+
+  .recap-category-buttons {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 5px;
+  }
+
+
+  .recap-category-buttons button {
+    flex-shrink: 0;
+  }
+
+}
