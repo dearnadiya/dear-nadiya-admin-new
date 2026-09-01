@@ -830,122 +830,259 @@ async function loadProducts() {
 
 async function loadProductList() {
 
-  productListContainer.innerHTML =
+  const container =
+    document.getElementById(
+      "productListContainer"
+    );
+
+
+  /* Cegah error jika container belum tersedia */
+
+  if (!container) {
+
+    console.error(
+      "productListContainer tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  /* Tampilan awal */
+
+  container.innerHTML =
     "<p>Memuat produk...</p>";
 
-  const {
-    data,
-    error
-  } = await supabaseClient
-    .from("products")
-    .select("*");
 
-  console.log("DATA PRODUCTS:", data);
-  console.log("ERROR PRODUCTS:", error);
+  try {
 
-  if (error) {
+    /* Ambil data dari Supabase */
 
-    productListContainer.innerHTML = `
-      <div class="panel">
-        <h3>Gagal memuat produk</h3>
-        <p>${error.message}</p>
-      </div>
-    `;
+    const result =
+      await supabaseClient
+        .from("products")
+        .select("*")
+        .order("id", {
+          ascending: false
+        });
 
-    return;
-  }
 
-  if (!data || data.length === 0) {
+    const data =
+      result.data;
 
-    productListContainer.innerHTML = `
-      <div class="panel">
-        <h3>Belum ada produk</h3>
-        <p>Supabase terhubung, tetapi data products kosong.</p>
-        <pre>${JSON.stringify(data, null, 2)}</pre>
-      </div>
-    `;
+    const error =
+      result.error;
 
-    return;
-  }
 
-  productListContainer.innerHTML = `
+    console.log(
+      "DATA PRODUCTS:",
+      data
+    );
 
-    <div class="product-table-wrapper">
+    console.log(
+      "ERROR PRODUCTS:",
+      error
+    );
 
-      <table class="product-table">
 
-        <thead>
+    /* Jika ada error */
 
-          <tr>
-            <th>Kode</th>
-            <th>Produk</th>
-            <th>Jenis</th>
-            <th>Harga</th>
-            <th>DP</th>
-            <th>Status</th>
-            <th>Member</th>
-            <th>Website</th>
-          </tr>
+    if (error) {
 
-        </thead>
+      container.innerHTML = `
 
-        <tbody>
+        <div class="panel">
 
-          ${data.map(product => `
+          <h3>
+            Gagal memuat produk
+          </h3>
+
+          <p>
+            ${error.message}
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    /* Jika belum ada data */
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Belum ada produk
+          </h3>
+
+          <p>
+            Supabase terhubung,
+            tetapi belum ada data produk.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    /* ========================================
+       TABEL PRODUK
+       ======================================== */
+
+    container.innerHTML = `
+
+      <div class="product-table-wrapper">
+
+        <table class="product-table">
+
+          <thead>
 
             <tr>
 
-              <td>
-                ${product.product_code || "-"}
-              </td>
+              <th>Kode</th>
 
-              <td>
-                ${product.name || "-"}
-              </td>
+              <th>Produk</th>
 
-              <td>
-                ${product.type || "-"}
-              </td>
+              <th>Jenis</th>
 
-              <td>
-                Rp${Number(
-                  product.price || 0
-                ).toLocaleString("id-ID")}
-              </td>
+              <th>Harga</th>
 
-              <td>
-                Rp${Number(
-                  product.dp || 0
-                ).toLocaleString("id-ID")}
-              </td>
+              <th>DP</th>
 
-              <td>
-                ${product.status || "-"}
-              </td>
+              <th>Status</th>
 
-              <td>
-                ${product.members || 0}
-              </td>
+              <th>Member</th>
 
-              <td>
-                ${
-                  product.show_website
-                    ? "✓"
-                    : "-"
-                }
-              </td>
+              <th>Website</th>
 
             </tr>
 
-          `).join("")}
+          </thead>
 
-        </tbody>
 
-      </table>
+          <tbody>
 
-    </div>
+            ${data.map(function(product) {
 
-  `;
+              const price =
+                Number(
+                  product.price || 0
+                ).toLocaleString(
+                  "id-ID"
+                );
+
+
+              const dp =
+                Number(
+                  product.dp || 0
+                ).toLocaleString(
+                  "id-ID"
+                );
+
+
+              return `
+
+                <tr>
+
+                  <td>
+                    ${product.product_code || "-"}
+                  </td>
+
+
+                  <td>
+                    ${product.name || "-"}
+                  </td>
+
+
+                  <td>
+                    ${product.type || "-"}
+                  </td>
+
+
+                  <td>
+                    Rp${price}
+                  </td>
+
+
+                  <td>
+                    Rp${dp}
+                  </td>
+
+
+                  <td>
+                    ${product.status || "-"}
+                  </td>
+
+
+                  <td>
+                    ${product.members || 0}
+                  </td>
+
+
+                  <td>
+                    ${
+                      product.show_website
+                        ? "✓"
+                        : "-"
+                    }
+                  </td>
+
+                </tr>
+
+              `;
+
+            }).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+
+  } catch (error) {
+
+    console.error(
+      "Kesalahan loadProductList:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat produk
+        </h3>
+
+        <p>
+          Terjadi kesalahan saat mengambil data produk.
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
 }
 
 /* ============================================
