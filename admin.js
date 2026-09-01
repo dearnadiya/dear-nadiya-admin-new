@@ -803,7 +803,10 @@ async function loadProducts() {
 
     if (error) {
 
-      console.error(error);
+      console.error(
+        "Gagal menyimpan produk:",
+        error
+      );
 
       message.textContent =
         "Gagal menyimpan produk: " +
@@ -820,77 +823,195 @@ async function loadProducts() {
 
     productFormContainer.innerHTML = "";
 
+
+    /* Muat ulang daftar produk */
+
     await loadProductList();
 
   }
 
-/* ============================================
-   TAMPILKAN DAFTAR PRODUK
-   ============================================ */
 
-async function loadProductList() {
+  /* ============================================
+     TAMPILKAN DAFTAR PRODUK
+     ============================================ */
 
-  const container =
-    document.getElementById(
-      "productListContainer"
-    );
+  async function loadProductList() {
 
-
-  /* Cegah error jika container belum tersedia */
-
-  if (!container) {
-
-    console.error(
-      "productListContainer tidak ditemukan."
-    );
-
-    return;
-
-  }
+    productListContainer.innerHTML =
+      "<p>Memuat produk...</p>";
 
 
-  /* Tampilan awal */
+    try {
 
-  container.innerHTML =
-    "<p>Memuat produk...</p>";
-
-
-  try {
-
-    /* Ambil data dari Supabase */
-
-    const result =
-      await supabaseClient
-        .from("products")
-        .select("*")
-        .order("id", {
-          ascending: false
-        });
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("products")
+          .select("*")
+          .order("id", {
+            ascending: false
+          });
 
 
-    const data =
-      result.data;
+      console.log(
+        "DATA PRODUCTS:",
+        data
+      );
 
-    const error =
-      result.error;
-
-
-    console.log(
-      "DATA PRODUCTS:",
-      data
-    );
-
-    console.log(
-      "ERROR PRODUCTS:",
-      error
-    );
+      console.log(
+        "ERROR PRODUCTS:",
+        error
+      );
 
 
-    /* Jika ada error */
+      if (error) {
 
-    if (error) {
+        productListContainer.innerHTML = `
 
-      container.innerHTML = `
+          <div class="panel">
+
+            <h3>
+              Gagal memuat produk
+            </h3>
+
+            <p>
+              ${error.message}
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      if (
+        !data ||
+        data.length === 0
+      ) {
+
+        productListContainer.innerHTML = `
+
+          <div class="panel">
+
+            <h3>
+              Belum ada produk
+            </h3>
+
+            <p>
+              Belum ada produk yang tersimpan.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      productListContainer.innerHTML = `
+
+        <div class="product-table-wrapper">
+
+          <table class="product-table">
+
+            <thead>
+
+              <tr>
+
+                <th>Kode</th>
+                <th>Produk</th>
+                <th>Jenis</th>
+                <th>Harga</th>
+                <th>DP</th>
+                <th>Status</th>
+                <th>Member</th>
+                <th>Website</th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${data.map(
+                function(product) {
+
+                  return `
+
+                    <tr>
+
+                      <td>
+                        ${product.product_code || "-"}
+                      </td>
+
+                      <td>
+                        ${product.name || "-"}
+                      </td>
+
+                      <td>
+                        ${product.type || "-"}
+                      </td>
+
+                      <td>
+                        Rp${Number(
+                          product.price || 0
+                        ).toLocaleString("id-ID")}
+                      </td>
+
+                      <td>
+                        Rp${Number(
+                          product.dp || 0
+                        ).toLocaleString("id-ID")}
+                      </td>
+
+                      <td>
+                        ${product.status || "-"}
+                      </td>
+
+                      <td>
+                        ${product.members || 0}
+                      </td>
+
+                      <td>
+                        ${
+                          product.show_website
+                            ? "✓"
+                            : "-"
+                        }
+                      </td>
+
+                    </tr>
+
+                  `;
+
+                }
+              ).join("")}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      `;
+
+    } catch (error) {
+
+      console.error(
+        "Kesalahan loadProductList:",
+        error
+      );
+
+
+      productListContainer.innerHTML = `
 
         <div class="panel">
 
@@ -906,185 +1027,20 @@ async function loadProductList() {
 
       `;
 
-      return;
-
     }
-
-
-    /* Jika belum ada data */
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
-      container.innerHTML = `
-
-        <div class="panel">
-
-          <h3>
-            Belum ada produk
-          </h3>
-
-          <p>
-            Supabase terhubung,
-            tetapi belum ada data produk.
-          </p>
-
-        </div>
-
-      `;
-
-      return;
-
-    }
-
-
-    /* ========================================
-       TABEL PRODUK
-       ======================================== */
-
-    container.innerHTML = `
-
-      <div class="product-table-wrapper">
-
-        <table class="product-table">
-
-          <thead>
-
-            <tr>
-
-              <th>Kode</th>
-
-              <th>Produk</th>
-
-              <th>Jenis</th>
-
-              <th>Harga</th>
-
-              <th>DP</th>
-
-              <th>Status</th>
-
-              <th>Member</th>
-
-              <th>Website</th>
-
-            </tr>
-
-          </thead>
-
-
-          <tbody>
-
-            ${data.map(function(product) {
-
-              const price =
-                Number(
-                  product.price || 0
-                ).toLocaleString(
-                  "id-ID"
-                );
-
-
-              const dp =
-                Number(
-                  product.dp || 0
-                ).toLocaleString(
-                  "id-ID"
-                );
-
-
-              return `
-
-                <tr>
-
-                  <td>
-                    ${product.product_code || "-"}
-                  </td>
-
-
-                  <td>
-                    ${product.name || "-"}
-                  </td>
-
-
-                  <td>
-                    ${product.type || "-"}
-                  </td>
-
-
-                  <td>
-                    Rp${price}
-                  </td>
-
-
-                  <td>
-                    Rp${dp}
-                  </td>
-
-
-                  <td>
-                    ${product.status || "-"}
-                  </td>
-
-
-                  <td>
-                    ${product.members || 0}
-                  </td>
-
-
-                  <td>
-                    ${
-                      product.show_website
-                        ? "✓"
-                        : "-"
-                    }
-                  </td>
-
-                </tr>
-
-              `;
-
-            }).join("")}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-    `;
-
-
-  } catch (error) {
-
-    console.error(
-      "Kesalahan loadProductList:",
-      error
-    );
-
-
-    container.innerHTML = `
-
-      <div class="panel">
-
-        <h3>
-          Gagal memuat produk
-        </h3>
-
-        <p>
-          Terjadi kesalahan saat mengambil data produk.
-        </p>
-
-      </div>
-
-    `;
 
   }
 
-}
 
+  /* ============================================
+     PENTING:
+     MUAT DATA PRODUK SAAT HALAMAN DIBUKA
+     ============================================ */
+
+  await loadProductList();
+
+}
+          
 /* ============================================
    PESANAN
    ============================================ */
