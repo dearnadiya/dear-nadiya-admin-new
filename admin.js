@@ -1,6 +1,6 @@
 /* ============================================
    DEAR NADIYA ADMIN
-   LOGIN + NAVIGASI
+   LOGIN + NAVIGASI + REKAP PEMBELIAN
    ============================================ */
 
 
@@ -32,6 +32,7 @@ const pageTitle =
 const pageContent =
   document.getElementById("pageContent");
 
+
 /* ============================================
    SUPABASE
    ============================================ */
@@ -54,39 +55,61 @@ const supabaseClient =
    ============================================ */
 
 const googleLoginButton =
-  document.getElementById("googleLoginButton");
+  document.getElementById(
+    "googleLoginButton"
+  );
 
 
-googleLoginButton.addEventListener(
-  "click",
-  async function () {
+if (googleLoginButton) {
 
-    loginError.textContent = "";
+  googleLoginButton.addEventListener(
+    "click",
+    async function () {
 
-
-    const { error } =
-      await supabaseClient.auth.signInWithOAuth({
-
-        provider: "google",
-
-        options: {
-  redirectTo:
-    "https://dearnadiya.github.io/dear-nadiya-admin-new/"
-}
-
-      });
+      if (loginError) {
+        loginError.textContent = "";
+      }
 
 
-    if (error) {
+      const {
+        error
+      } =
+        await supabaseClient.auth.signInWithOAuth({
 
-      loginError.textContent =
-        "Login Google gagal: " +
-        error.message;
+          provider: "google",
+
+          options: {
+
+            redirectTo:
+              "https://dearnadiya.github.io/dear-nadiya-admin-new/"
+
+          }
+
+        });
+
+
+      if (error) {
+
+        console.error(
+          "Login Google gagal:",
+          error
+        );
+
+
+        if (loginError) {
+
+          loginError.textContent =
+            "Login Google gagal: " +
+            error.message;
+
+        }
+
+      }
 
     }
+  );
 
-  }
-);
+}
 
 
 /* ============================================
@@ -94,7 +117,9 @@ googleLoginButton.addEventListener(
    ============================================ */
 
 const ADMIN_EMAILS = [
+
   "dearnadiya6@gmail.com"
+
 ];
 
 
@@ -104,43 +129,69 @@ const ADMIN_EMAILS = [
 
 async function checkGoogleSession() {
 
-  const {
-    data: { session }
-  } =
-    await supabaseClient.auth.getSession();
+  try {
+
+    const {
+      data: {
+        session
+      }
+    } =
+      await supabaseClient.auth.getSession();
 
 
-  if (!session) {
+    if (!session) {
 
-    showLogin();
+      showLogin();
 
-    return;
+      return;
 
-  }
-
-
-  const userEmail =
-    session.user.email
-      ?.toLowerCase()
-      .trim();
+    }
 
 
-  const isAdmin =
-    ADMIN_EMAILS
-      .map(email => email.toLowerCase().trim())
-      .includes(userEmail);
+    const userEmail =
+      session.user.email
+        ?.toLowerCase()
+        .trim();
 
 
-  if (isAdmin) {
+    const isAdmin =
+      ADMIN_EMAILS
+        .map(
+          email =>
+            email
+              .toLowerCase()
+              .trim()
+        )
+        .includes(userEmail);
 
-    showAdmin();
 
-  } else {
+    if (isAdmin) {
 
-    await supabaseClient.auth.signOut();
+      showAdmin();
 
-    loginError.textContent =
-      "Akun Google ini tidak memiliki akses Admin.";
+    } else {
+
+      await supabaseClient.auth.signOut();
+
+
+      if (loginError) {
+
+        loginError.textContent =
+          "Akun Google ini tidak memiliki akses Admin.";
+
+      }
+
+
+      showLogin();
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Session check error:",
+      error
+    );
 
     showLogin();
 
@@ -148,20 +199,25 @@ async function checkGoogleSession() {
 
 }
 
+
 /* ============================================
    LOGOUT GOOGLE
    ============================================ */
 
-logoutButton.addEventListener(
-  "click",
-  async function () {
+if (logoutButton) {
 
-    await supabaseClient.auth.signOut();
+  logoutButton.addEventListener(
+    "click",
+    async function () {
 
-    showLogin();
+      await supabaseClient.auth.signOut();
 
-  }
-);
+      showLogin();
+
+    }
+  );
+
+}
 
 
 /* ============================================
@@ -188,7 +244,12 @@ supabaseClient.auth.onAuthStateChange(
 
     const isAdmin =
       ADMIN_EMAILS
-        .map(email => email.toLowerCase().trim())
+        .map(
+          email =>
+            email
+              .toLowerCase()
+              .trim()
+        )
         .includes(userEmail);
 
 
@@ -200,8 +261,14 @@ supabaseClient.auth.onAuthStateChange(
 
       await supabaseClient.auth.signOut();
 
-      loginError.textContent =
-        "Akun Google ini tidak memiliki akses Admin.";
+
+      if (loginError) {
+
+        loginError.textContent =
+          "Akun Google ini tidak memiliki akses Admin.";
+
+      }
+
 
       showLogin();
 
@@ -210,20 +277,29 @@ supabaseClient.auth.onAuthStateChange(
   }
 );
 
+
 /* ============================================
    TAMPILKAN ADMIN
    ============================================ */
 
 function showAdmin() {
 
-  loginPage.classList.add(
-    "hidden"
-  );
+  if (loginPage) {
+
+    loginPage.classList.add(
+      "hidden"
+    );
+
+  }
 
 
-  adminApp.classList.remove(
-    "hidden"
-  );
+  if (adminApp) {
+
+    adminApp.classList.remove(
+      "hidden"
+    );
+
+  }
 
 
   loadDashboard();
@@ -237,16 +313,25 @@ function showAdmin() {
 
 function showLogin() {
 
-  adminApp.classList.add(
-    "hidden"
-  );
+  if (adminApp) {
+
+    adminApp.classList.add(
+      "hidden"
+    );
+
+  }
 
 
-  loginPage.classList.remove(
-    "hidden"
-  );
+  if (loginPage) {
+
+    loginPage.classList.remove(
+      "hidden"
+    );
+
+  }
 
 }
+
 
 /* ============================================
    SIDEBAR
@@ -270,7 +355,9 @@ menuButtons.forEach(
 
 
         if (!page) {
+
           return;
+
         }
 
 
@@ -368,7 +455,7 @@ function showPage(page) {
    DASHBOARD
    ============================================ */
 
-function loadDashboard() {
+async function loadDashboard() {
 
   pageTitle.textContent =
     "Dashboard";
@@ -384,8 +471,8 @@ function loadDashboard() {
           Total Pesanan
         </p>
 
-        <h2>
-          0
+        <h2 id="dashboardOrderCount">
+          ...
         </h2>
 
       </div>
@@ -397,8 +484,8 @@ function loadDashboard() {
           Total Pembayaran
         </p>
 
-        <h2>
-          Rp0
+        <h2 id="dashboardPaymentTotal">
+          ...
         </h2>
 
       </div>
@@ -410,8 +497,8 @@ function loadDashboard() {
           GO Aktif
         </p>
 
-        <h2>
-          0
+        <h2 id="dashboardActiveCount">
+          ...
         </h2>
 
       </div>
@@ -426,24 +513,186 @@ function loadDashboard() {
       </h2>
 
       <p>
-        Kelola produk, Group Order,
-        pesanan, pembayaran, dan rekap
-        dari satu dashboard.
+        Kelola rekapan pembelian,
+        pembayaran, tracking barang,
+        dan Group Order dari satu dashboard.
+      </p>
+
+    </div>
+
+
+    <div class="panel">
+
+      <h3>
+        Sistem Rekap Dear Nadiya
+      </h3>
+
+      <p>
+        Pemesanan barang dan war photocard
+        tetap dilakukan melalui WhatsApp.
+      </p>
+
+      <p>
+        Website digunakan untuk melihat
+        rekapan pembelian, pembayaran,
+        tracking barang, dan hasil war
+        photocard.
       </p>
 
     </div>
 
   `;
 
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(
+          "id, payment_status, remaining_amount, tracking_status"
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Dashboard error:",
+        error
+      );
+
+      return;
+
+    }
+
+
+    const totalOrders =
+      data?.length || 0;
+
+
+    const totalRemaining =
+      (data || []).reduce(
+        function (
+          total,
+          item
+        ) {
+
+          return (
+            total +
+            Number(
+              item.remaining_amount || 0
+            )
+          );
+
+        },
+        0
+      );
+
+
+    const activeStatuses = [
+
+      "CO Web / Seller",
+      "CO Seller",
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai",
+      "Shipping to INA",
+      "Arrived WH INA",
+      "Arrived Admin"
+
+    ];
+
+
+    const activeCount =
+      (data || []).filter(
+        item =>
+          activeStatuses.includes(
+            item.tracking_status
+          )
+      ).length;
+
+
+    const orderCountElement =
+      document.getElementById(
+        "dashboardOrderCount"
+      );
+
+
+    const paymentTotalElement =
+      document.getElementById(
+        "dashboardPaymentTotal"
+      );
+
+
+    const activeCountElement =
+      document.getElementById(
+        "dashboardActiveCount"
+      );
+
+
+    if (orderCountElement) {
+
+      orderCountElement.textContent =
+        totalOrders;
+
+    }
+
+
+    if (paymentTotalElement) {
+
+      paymentTotalElement.textContent =
+        "Rp" +
+        totalRemaining.toLocaleString(
+          "id-ID"
+        );
+
+    }
+
+
+    if (activeCountElement) {
+
+      activeCountElement.textContent =
+        activeCount;
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Dashboard exception:",
+      error
+    );
+
+  }
+
 }
+
 
 /* ============================================
    PRODUK & GO
    ============================================ */
 
-async function loadProducts() {
+/*
+   SISTEM FINAL:
+   Admin tidak perlu membuat master produk
+   satu per satu.
 
-  pageTitle.textContent = "Produk & GO";
+   Rekap pembelian diinput manual melalui
+   menu Rekap GO berdasarkan kategori.
+
+   Halaman Produk & GO tetap dipertahankan
+   agar navigasi lama tidak rusak.
+*/
+
+function loadProducts() {
+
+  pageTitle.textContent =
+    "Produk & GO";
+
 
   pageContent.innerHTML = `
 
@@ -452,24 +701,175 @@ async function loadProducts() {
       <div class="panel-header">
 
         <div>
-          <h2>Produk & Group Order</h2>
-          <p>Kelola produk dan Group Order Dear Nadiya.</p>
+
+          <h2>
+            Produk & Group Order
+          </h2>
+
+          <p>
+            Rekap pembelian dikelola secara
+            manual berdasarkan kategori.
+          </p>
+
         </div>
+
+      </div>
+
+
+      <div class="dashboard-stats">
+
+        <div class="stat-card">
+
+          <p>
+            Truz
+          </p>
+
+          <h2>
+            1
+          </h2>
+
+          <small>
+            Kategori Doll / Character
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure KR
+          </p>
+
+          <h2>
+            2
+          </h2>
+
+          <small>
+            Pembelian Korea
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure JP
+          </p>
+
+          <h2>
+            3
+          </h2>
+
+          <small>
+            Pembelian Jepang
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure CH
+          </p>
+
+          <h2>
+            4
+          </h2>
+
+          <small>
+            Pembelian China
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure Thai
+          </p>
+
+          <h2>
+            5
+          </h2>
+
+          <small>
+            Pembelian Thailand
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure Album
+          </p>
+
+          <h2>
+            6
+          </h2>
+
+          <small>
+            Album Treasure
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Treasure INA
+          </p>
+
+          <h2>
+            7
+          </h2>
+
+          <small>
+            Pembelian Indonesia
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="panel">
+
+        <h3>
+          Cara Penggunaan
+        </h3>
+
+        <p>
+          Gunakan menu
+          <strong>Rekap GO</strong>
+          untuk memasukkan setiap pembelian.
+        </p>
+
+        <p>
+          Pemesanan barang tetap dilakukan
+          melalui WhatsApp.
+        </p>
+
+        <p>
+          War photocard juga tetap dilakukan
+          melalui WhatsApp. Hasil war kemudian
+          dimasukkan ke dalam rekapan pembelian.
+        </p>
 
         <button
           type="button"
           class="primary-button"
-          id="addProductButton"
+          id="openRecapFromProducts"
         >
-          ➕ Tambah Produk
+          Buka Rekap GO
         </button>
 
-      </div>
-
-      <div id="productFormContainer"></div>
-
-      <div id="productListContainer">
-        <p>Memuat produk...</p>
       </div>
 
     </div>
@@ -477,570 +877,28 @@ async function loadProducts() {
   `;
 
 
-  const addProductButton =
-    document.getElementById("addProductButton");
+  const openButton =
+    document.getElementById(
+      "openRecapFromProducts"
+    );
 
-  const productFormContainer =
-    document.getElementById("productFormContainer");
 
-  const productListContainer =
-    document.getElementById("productListContainer");
+  if (openButton) {
 
+    openButton.addEventListener(
+      "click",
+      function () {
 
-  /* ============================================
-     TOMBOL TAMBAH PRODUK
-     ============================================ */
-
-  addProductButton.addEventListener(
-    "click",
-    function () {
-
-      productFormContainer.innerHTML = `
-
-        <div class="panel product-form">
-
-          <h3>Tambah Produk / GO</h3>
-
-          <form id="productForm">
-
-            <label>
-              Kode Produk
-            </label>
-
-            <input
-              id="productCode"
-              type="text"
-              placeholder="Contoh: TRS-001"
-              required
-            >
-
-
-            <label>
-              Nama Produk
-            </label>
-
-            <input
-              id="productName"
-              type="text"
-              placeholder="Nama produk / Group Order"
-              required
-            >
-
-
-            <label>
-              Jenis
-            </label>
-
-            <select id="productType">
-
-              <option value="GO">
-                Group Order
-              </option>
-
-              <option value="Pre Order">
-                Pre Order
-              </option>
-
-              <option value="Ready Stock">
-                Ready Stock
-              </option>
-
-            </select>
-
-
-            <label>
-              Harga
-            </label>
-
-            <input
-              id="productPrice"
-              type="number"
-              min="0"
-              placeholder="115000"
-              required
-            >
-
-
-            <label>
-              DP
-            </label>
-
-            <input
-              id="productDp"
-              type="number"
-              min="0"
-              placeholder="50000"
-              value="0"
-            >
-
-
-            <label>
-              Deadline List
-            </label>
-
-            <input
-              id="deadlineList"
-              type="date"
-            >
-
-
-            <label>
-              Deadline Pembayaran
-            </label>
-
-            <input
-              id="deadlinePayment"
-              type="date"
-            >
-
-
-            <label>
-              Status
-            </label>
-
-            <select id="productStatus">
-
-              <option value="active">
-                Active
-              </option>
-
-              <option value="closed">
-                Closed
-              </option>
-
-              <option value="completed">
-                Completed
-              </option>
-
-            </select>
-
-
-            <label>
-              Deskripsi
-            </label>
-
-            <textarea
-              id="productDescription"
-              rows="4"
-              placeholder="Deskripsi produk..."
-            ></textarea>
-
-
-            <label>
-              Jumlah Member
-            </label>
-
-            <input
-              id="productMembers"
-              type="number"
-              min="0"
-              value="0"
-            >
-
-
-            <label class="checkbox-label">
-
-              <input
-                id="showWebsite"
-                type="checkbox"
-                checked
-              >
-
-              Tampilkan di website customer
-
-            </label>
-
-
-            <div class="form-actions">
-
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                Simpan Produk
-              </button>
-
-              <button
-                type="button"
-                id="cancelProductButton"
-              >
-                Batal
-              </button>
-
-            </div>
-
-
-            <p
-              id="productFormMessage"
-              class="login-error"
-            ></p>
-
-          </form>
-
-        </div>
-
-      `;
-
-
-      document
-        .getElementById("cancelProductButton")
-        .addEventListener(
-          "click",
-          function () {
-
-            productFormContainer.innerHTML = "";
-
-          }
-        );
-
-
-      document
-        .getElementById("productForm")
-        .addEventListener(
-          "submit",
-          saveProduct
-        );
-
-    }
-  );
-
-
-  /* ============================================
-     SIMPAN PRODUK
-     ============================================ */
-
-  async function saveProduct(event) {
-
-    event.preventDefault();
-
-
-    const message =
-      document.getElementById(
-        "productFormMessage"
-      );
-
-
-    message.textContent =
-      "Menyimpan produk...";
-
-
-    const product = {
-
-      product_code:
-        document
-          .getElementById("productCode")
-          .value
-          .trim(),
-
-      name:
-        document
-          .getElementById("productName")
-          .value
-          .trim(),
-
-      type:
-        document
-          .getElementById("productType")
-          .value,
-
-      price:
-        Number(
-          document
-            .getElementById("productPrice")
-            .value
-        ),
-
-      dp:
-        Number(
-          document
-            .getElementById("productDp")
-            .value
-        ),
-
-      deadline_list:
-        document
-          .getElementById("deadlineList")
-          .value || null,
-
-      deadline_payment:
-        document
-          .getElementById("deadlinePayment")
-          .value || null,
-
-      status:
-        document
-          .getElementById("productStatus")
-          .value,
-
-      description:
-        document
-          .getElementById("productDescription")
-          .value
-          .trim(),
-
-      members:
-        Number(
-          document
-            .getElementById("productMembers")
-            .value
-        ),
-
-      show_website:
-        document
-          .getElementById("showWebsite")
-          .checked
-
-    };
-
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("products")
-        .insert(product);
-
-
-    if (error) {
-
-      console.error(
-        "Gagal menyimpan produk:",
-        error
-      );
-
-      message.textContent =
-        "Gagal menyimpan produk: " +
-        error.message;
-
-      return;
-
-    }
-
-
-    message.textContent =
-      "Produk berhasil disimpan. ♥";
-
-
-    productFormContainer.innerHTML = "";
-
-
-    /* Muat ulang daftar produk */
-
-    await loadProductList();
-
-  }
-
-
-  /* ============================================
-     TAMPILKAN DAFTAR PRODUK
-     ============================================ */
-
-  async function loadProductList() {
-
-    productListContainer.innerHTML =
-      "<p>Memuat produk...</p>";
-
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient
-          .from("products")
-          .select("*")
-          .order("id", {
-            ascending: false
-          });
-
-
-      console.log(
-        "DATA PRODUCTS:",
-        data
-      );
-
-      console.log(
-        "ERROR PRODUCTS:",
-        error
-      );
-
-
-      if (error) {
-
-        productListContainer.innerHTML = `
-
-          <div class="panel">
-
-            <h3>
-              Gagal memuat produk
-            </h3>
-
-            <p>
-              ${error.message}
-            </p>
-
-          </div>
-
-        `;
-
-        return;
+        loadRecap();
 
       }
-
-
-      if (
-        !data ||
-        data.length === 0
-      ) {
-
-        productListContainer.innerHTML = `
-
-          <div class="panel">
-
-            <h3>
-              Belum ada produk
-            </h3>
-
-            <p>
-              Belum ada produk yang tersimpan.
-            </p>
-
-          </div>
-
-        `;
-
-        return;
-
-      }
-
-
-      productListContainer.innerHTML = `
-
-        <div class="product-table-wrapper">
-
-          <table class="product-table">
-
-            <thead>
-
-              <tr>
-
-                <th>Kode</th>
-                <th>Produk</th>
-                <th>Jenis</th>
-                <th>Harga</th>
-                <th>DP</th>
-                <th>Status</th>
-                <th>Member</th>
-                <th>Website</th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              ${data.map(
-                function(product) {
-
-                  return `
-
-                    <tr>
-
-                      <td>
-                        ${product.product_code || "-"}
-                      </td>
-
-                      <td>
-                        ${product.name || "-"}
-                      </td>
-
-                      <td>
-                        ${product.type || "-"}
-                      </td>
-
-                      <td>
-                        Rp${Number(
-                          product.price || 0
-                        ).toLocaleString("id-ID")}
-                      </td>
-
-                      <td>
-                        Rp${Number(
-                          product.dp || 0
-                        ).toLocaleString("id-ID")}
-                      </td>
-
-                      <td>
-                        ${product.status || "-"}
-                      </td>
-
-                      <td>
-                        ${product.members || 0}
-                      </td>
-
-                      <td>
-                        ${
-                          product.show_website
-                            ? "✓"
-                            : "-"
-                        }
-                      </td>
-
-                    </tr>
-
-                  `;
-
-                }
-              ).join("")}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      `;
-
-    } catch (error) {
-
-      console.error(
-        "Kesalahan loadProductList:",
-        error
-      );
-
-
-      productListContainer.innerHTML = `
-
-        <div class="panel">
-
-          <h3>
-            Gagal memuat produk
-          </h3>
-
-          <p>
-            ${error.message}
-          </p>
-
-        </div>
-
-      `;
-
-    }
+    );
 
   }
-
-
-  /* ============================================
-     PENTING:
-     MUAT DATA PRODUK SAAT HALAMAN DIBUKA
-     ============================================ */
-
-  await loadProductList();
 
 }
-          
+
+
 /* ============================================
    PESANAN
    ============================================ */
@@ -1060,12 +918,43 @@ function loadOrders() {
       </h2>
 
       <p>
-        Halaman Pesanan berhasil dibuka.
+        Pemesanan barang tetap dilakukan
+        melalui WhatsApp.
       </p>
+
+      <p>
+        Data pembelian yang sedang berjalan
+        dikelola melalui menu
+        <strong>Rekap GO</strong>.
+      </p>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="openRecapOrders"
+      >
+        Buka Rekap GO
+      </button>
 
     </div>
 
   `;
+
+
+  const button =
+    document.getElementById(
+      "openRecapOrders"
+    );
+
+
+  if (button) {
+
+    button.addEventListener(
+      "click",
+      loadRecap
+    );
+
+  }
 
 }
 
@@ -1074,7 +963,7 @@ function loadOrders() {
    PEMBAYARAN
    ============================================ */
 
-function loadPayments() {
+async function loadPayments() {
 
   pageTitle.textContent =
     "Pembayaran";
@@ -1089,14 +978,298 @@ function loadPayments() {
       </h2>
 
       <p>
-        Halaman Pembayaran berhasil dibuka.
+        Data pembayaran berdasarkan
+        rekapan pembelian.
       </p>
+
+
+      <div
+        id="paymentListContainer"
+      >
+
+        <p>
+          Memuat data pembayaran...
+        </p>
+
+      </div>
 
     </div>
 
   `;
 
+
+  const container =
+    document.getElementById(
+      "paymentListContainer"
+    );
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          *,
+          customers (
+            name,
+            whatsapp_last4
+          )
+        `)
+        .order(
+          "id",
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Gagal memuat pembayaran
+          </h3>
+
+          <p>
+            ${error.message}
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Belum ada data pembayaran
+          </h3>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    const unpaid =
+      data.filter(
+        item =>
+          item.payment_status !== "paid"
+      );
+
+
+    container.innerHTML = `
+
+      <div class="dashboard-stats">
+
+        <div class="stat-card">
+
+          <p>
+            Belum Lunas
+          </p>
+
+          <h2>
+            ${unpaid.length}
+          </h2>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <p>
+            Total Sisa Pembayaran
+          </p>
+
+          <h2>
+
+            Rp${unpaid
+              .reduce(
+                (total, item) =>
+                  total +
+                  Number(
+                    item.remaining_amount || 0
+                  ),
+                0
+              )
+              .toLocaleString("id-ID")}
+
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="product-table-wrapper">
+
+        <table class="product-table">
+
+          <thead>
+
+            <tr>
+
+              <th>Batch</th>
+
+              <th>Customer</th>
+
+              <th>Barang</th>
+
+              <th>Versi</th>
+
+              <th>DP</th>
+
+              <th>Status DP</th>
+
+              <th>Sisa</th>
+
+              <th>Status</th>
+
+              <th>Tracking</th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${data.map(
+              function(item) {
+
+                const customer =
+                  item.customers;
+
+
+                const customerName =
+                  customer
+                    ? customer.name
+                    : "AVAILABLE";
+
+
+                const last4 =
+                  customer &&
+                  customer.whatsapp_last4
+                    ? ` (••••${customer.whatsapp_last4})`
+                    : "";
+
+
+                return `
+
+                  <tr>
+
+                    <td>
+                      ${item.batch_code || "—"}
+                    </td>
+
+                    <td>
+                      ${customerName}${last4}
+                    </td>
+
+                    <td>
+                      ${item.item_name || "—"}
+                    </td>
+
+                    <td>
+                      ${item.version || "—"}
+                    </td>
+
+                    <td>
+                      Rp${Number(
+                        item.dp_amount || 0
+                      ).toLocaleString("id-ID")}
+                    </td>
+
+                    <td>
+                      ${
+                        item.dp_status === "paid"
+                          ? "✓ Sudah Bayar"
+                          : "Belum Bayar"
+                      }
+                    </td>
+
+                    <td>
+                      Rp${Number(
+                        item.remaining_amount || 0
+                      ).toLocaleString("id-ID")}
+                    </td>
+
+                    <td>
+                      ${
+                        item.payment_status === "paid"
+                          ? "✓ Lunas"
+                          : "Belum Lunas"
+                      }
+                    </td>
+
+                    <td>
+                      ${item.tracking_status || "—"}
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+  } catch (error) {
+
+    console.error(
+      "Payment error:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Terjadi kesalahan
+        </h3>
+
+        <p>
+          ${error.message}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
 }
+
 
 /* ============================================
    REKAP GO
@@ -1121,7 +1294,8 @@ async function loadRecap() {
           </h2>
 
           <p>
-            Kelola seluruh rekapan pembelian Dear Nadiya.
+            Kelola seluruh rekapan pembelian
+            Dear Nadiya.
           </p>
 
         </div>
@@ -1138,7 +1312,9 @@ async function loadRecap() {
       </div>
 
 
-      <!-- KATEGORI -->
+      <!-- ==================================
+           KATEGORI REKAP
+           ================================== -->
 
       <div
         id="recapCategoryButtons"
@@ -1153,6 +1329,7 @@ async function loadRecap() {
           Truz
         </button>
 
+
         <button
           type="button"
           class="recap-category-button"
@@ -1160,6 +1337,7 @@ async function loadRecap() {
         >
           Treasure KR
         </button>
+
 
         <button
           type="button"
@@ -1169,6 +1347,7 @@ async function loadRecap() {
           Treasure JP
         </button>
 
+
         <button
           type="button"
           class="recap-category-button"
@@ -1176,6 +1355,7 @@ async function loadRecap() {
         >
           Treasure CH
         </button>
+
 
         <button
           type="button"
@@ -1185,6 +1365,7 @@ async function loadRecap() {
           Treasure Thai
         </button>
 
+
         <button
           type="button"
           class="recap-category-button"
@@ -1192,6 +1373,7 @@ async function loadRecap() {
         >
           Treasure Album
         </button>
+
 
         <button
           type="button"
@@ -1204,14 +1386,18 @@ async function loadRecap() {
       </div>
 
 
-      <!-- FORM -->
+      <!-- ==================================
+           FORM TAMBAH REKAP
+           ================================== -->
 
       <div
         id="recapFormContainer"
       ></div>
 
 
-      <!-- LIST -->
+      <!-- ==================================
+           DAFTAR REKAP
+           ================================== -->
 
       <div
         id="recapListContainer"
@@ -1303,12 +1489,17 @@ async function loadRecap() {
 
 
   /* ============================================
-     TRACKING SESUAI KATEGORI
+     PILIHAN TRACKING
      ============================================ */
 
   function getTrackingOptions(
     category
   ) {
+
+
+    /* ==================================
+       TREASURE INA
+       ================================== */
 
     if (
       category === "Treasure INA"
@@ -1326,6 +1517,10 @@ async function loadRecap() {
 
     }
 
+
+    /* ==================================
+       TREASURE KR
+       ================================== */
 
     if (
       category === "Treasure KR"
@@ -1350,6 +1545,10 @@ async function loadRecap() {
     }
 
 
+    /* ==================================
+       TREASURE JP
+       ================================== */
+
     if (
       category === "Treasure JP"
     ) {
@@ -1372,6 +1571,10 @@ async function loadRecap() {
 
     }
 
+
+    /* ==================================
+       TREASURE CH
+       ================================== */
 
     if (
       category === "Treasure CH"
@@ -1396,6 +1599,10 @@ async function loadRecap() {
     }
 
 
+    /* ==================================
+       TREASURE THAI
+       ================================== */
+
     if (
       category === "Treasure Thai"
     ) {
@@ -1418,6 +1625,10 @@ async function loadRecap() {
 
     }
 
+
+    /* ==================================
+       TRUZ
+       ================================== */
 
     if (
       category === "Truz"
@@ -1448,7 +1659,9 @@ async function loadRecap() {
     }
 
 
-    /* Treasure Album */
+    /* ==================================
+       TREASURE ALBUM
+       ================================== */
 
     return [
 
@@ -1476,366 +1689,426 @@ async function loadRecap() {
 
 
   /* ============================================
-     TAMBAH REKAP
+     TOMBOL TAMBAH REKAP
      ============================================ */
 
   addRecapButton.addEventListener(
     "click",
     function() {
 
-      const trackingOptions =
-        getTrackingOptions(
-          selectedCategory
-        );
+      showRecapForm(
+        selectedCategory
+      );
 
+    }
+  );
 
-      recapFormContainer.innerHTML = `
 
-        <div class="panel">
+  /* ============================================
+     FORM TAMBAH REKAP
+     ============================================ */
 
-          <h3>
-            Tambah Rekap Pembelian
-          </h3>
+  function showRecapForm(
+    category
+  ) {
 
+    const trackingOptions =
+      getTrackingOptions(
+        category
+      );
 
-          <form id="recapForm">
 
+    recapFormContainer.innerHTML = `
 
-            <label>
-              Kategori
-            </label>
+      <div class="panel product-form">
 
-            <select
-              id="recapCategory"
-              required
-            >
+        <h3>
+          Tambah Rekap Pembelian
+        </h3>
 
-              <option value="Truz">
-                Truz
-              </option>
 
-              <option value="Treasure KR">
-                Treasure KR
-              </option>
+        <form id="recapForm">
 
-              <option value="Treasure JP">
-                Treasure JP
-              </option>
 
-              <option value="Treasure CH">
-                Treasure CH
-              </option>
+          <!-- KATEGORI -->
 
-              <option value="Treasure Thai">
-                Treasure Thai
-              </option>
+          <label>
+            Kategori
+          </label>
 
-              <option value="Treasure Album">
-                Treasure Album
-              </option>
+          <select
+            id="recapCategory"
+            required
+          >
 
-              <option value="Treasure INA">
-                Treasure INA
-              </option>
+            <option value="Truz">
+              Truz
+            </option>
 
-            </select>
+            <option value="Treasure KR">
+              Treasure KR
+            </option>
 
+            <option value="Treasure JP">
+              Treasure JP
+            </option>
 
-            <label>
-              Kode Batch
-            </label>
+            <option value="Treasure CH">
+              Treasure CH
+            </option>
 
-            <input
-              id="recapBatchCode"
-              type="text"
-              placeholder="Contoh: CH-001"
-              required
-            >
+            <option value="Treasure Thai">
+              Treasure Thai
+            </option>
 
+            <option value="Treasure Album">
+              Treasure Album
+            </option>
 
-            <label>
-              Nama Barang
-            </label>
+            <option value="Treasure INA">
+              Treasure INA
+            </option>
 
-            <input
-              id="recapItemName"
-              type="text"
-              placeholder="Contoh: FS Knpops"
-              required
-            >
+          </select>
 
 
-            <label>
-              Customer
-            </label>
+          <!-- KODE BATCH -->
 
-            <select
-              id="recapCustomer"
-            >
+          <label>
+            Kode Batch
+          </label>
 
-              <option value="">
-                -- Belum ada customer / AVAILABLE --
-              </option>
+          <input
+            id="recapBatchCode"
+            type="text"
+            placeholder="Contoh: CH-001 / BATCH 1"
+            required
+          >
 
-            </select>
 
+          <!-- NAMA BARANG -->
 
-            <label>
-              Versi / Member / Character
-            </label>
+          <label>
+            Nama Barang
+          </label>
 
-            <input
-              id="recapVersion"
-              type="text"
-              placeholder="Contoh: Hyunsuk / RURU / Version A"
-            >
+          <input
+            id="recapItemName"
+            type="text"
+            placeholder="Contoh: FS Knpops"
+            required
+          >
 
 
-            <label>
-              Qty
-            </label>
+          <!-- CUSTOMER -->
 
-            <input
-              id="recapQuantity"
-              type="number"
-              min="1"
-              value="1"
-              required
-            >
+          <label>
+            Customer
+          </label>
 
+          <select
+            id="recapCustomer"
+          >
 
-            <label>
-              Harga Barang
-            </label>
+            <option value="">
+              AVAILABLE / Belum ada customer
+            </option>
 
-            <input
-              id="recapPrice"
-              type="number"
-              min="0"
-              value="0"
-              required
-            >
+          </select>
 
 
-            <label>
-              DP
-            </label>
+          <!-- VERSI / MEMBER -->
 
-            <input
-              id="recapDp"
-              type="number"
-              min="0"
-              value="0"
-            >
+          <label>
+            Versi / Member / Character
+          </label>
 
+          <input
+            id="recapVersion"
+            type="text"
+            placeholder="Contoh: Hyunsuk / RURU / Version A"
+          >
 
-            <label>
-              Status DP
-            </label>
 
-            <select
-              id="recapDpStatus"
-            >
+          <!-- QTY -->
 
-              <option value="unpaid">
-                Belum Dibayar
-              </option>
+          <label>
+            Qty
+          </label>
 
-              <option value="paid">
-                Sudah Dibayar
-              </option>
+          <input
+            id="recapQuantity"
+            type="number"
+            min="1"
+            value="1"
+            required
+          >
 
-            </select>
 
+          <!-- HARGA -->
 
-            <label>
-              Pelunasan / Sisa Pembayaran
-            </label>
+          <label>
+            Harga Barang
+          </label>
 
-            <input
-              id="recapRemaining"
-              type="number"
-              min="0"
-              value="0"
-            >
+          <input
+            id="recapPrice"
+            type="number"
+            min="0"
+            value="0"
+            required
+          >
 
 
-            <label>
-              Status Pelunasan
-            </label>
+          <!-- DP -->
 
-            <select
-              id="recapPaymentStatus"
-            >
+          <label>
+            DP
+          </label>
 
-              <option value="unpaid">
-                Belum Lunas
-              </option>
+          <input
+            id="recapDp"
+            type="number"
+            min="0"
+            value="0"
+          >
 
-              <option value="paid">
-                Sudah Lunas
-              </option>
 
-            </select>
+          <!-- STATUS DP -->
 
+          <label>
+            Status DP
+          </label>
 
-            <label>
-              Tracking
-            </label>
+          <select
+            id="recapDpStatus"
+          >
 
-            <select
-              id="recapTracking"
-              required
-            >
+            <option value="unpaid">
+              Belum Dibayar
+            </option>
 
-              ${trackingOptions.map(
-                function(option) {
+            <option value="paid">
+              Sudah Dibayar
+            </option>
 
-                  return `
+          </select>
 
-                    <option value="${option}">
-                      ${option}
-                    </option>
 
-                  `;
+          <!-- PELUNASAN -->
 
-                }
-              ).join("")}
+          <label>
+            Pelunasan / Sisa Pembayaran
+          </label>
 
-            </select>
+          <input
+            id="recapRemaining"
+            type="number"
+            min="0"
+            value="0"
+          >
 
 
-            <label>
-              Note
-            </label>
+          <!-- STATUS PELUNASAN -->
 
-            <textarea
-              id="recapNote"
-              rows="3"
-              placeholder="Catatan..."
-            ></textarea>
+          <label>
+            Status Pelunasan
+          </label>
 
+          <select
+            id="recapPaymentStatus"
+          >
 
-            <label>
-              Batas CO
-            </label>
+            <option value="unpaid">
+              Belum Lunas
+            </option>
 
-            <input
-              id="recapCoDeadline"
-              type="date"
-            >
+            <option value="paid">
+              Sudah Lunas
+            </option>
 
+          </select>
 
-            <div class="form-actions">
 
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                Simpan Rekap
-              </button>
+          <!-- TRACKING -->
 
+          <label>
+            Tracking
+          </label>
 
-              <button
-                type="button"
-                id="cancelRecapButton"
-              >
-                Batal
-              </button>
+          <select
+            id="recapTracking"
+            required
+          >
 
-            </div>
-
-
-            <p
-              id="recapFormMessage"
-              class="login-error"
-            ></p>
-
-          </form>
-
-        </div>
-
-      `;
-
-
-      loadRecapCustomers();
-
-
-      const recapCategory =
-        document.getElementById(
-          "recapCategory"
-        );
-
-
-      recapCategory.value =
-        selectedCategory;
-
-
-      recapCategory.addEventListener(
-        "change",
-        function() {
-
-          selectedCategory =
-            this.value;
-
-
-          const trackingSelect =
-            document.getElementById(
-              "recapTracking"
-            );
-
-
-          const options =
-            getTrackingOptions(
-              selectedCategory
-            );
-
-
-          trackingSelect.innerHTML =
-            options.map(
+            ${trackingOptions.map(
               function(option) {
 
                 return `
 
-                  <option value="${option}">
+                  <option
+                    value="${option}"
+                  >
                     ${option}
                   </option>
 
                 `;
 
               }
-            ).join("");
+            ).join("")}
+
+          </select>
+
+
+          <!-- NOTE -->
+
+          <label>
+            Note
+          </label>
+
+          <textarea
+            id="recapNote"
+            rows="3"
+            placeholder="Catatan..."
+          ></textarea>
+
+
+          <!-- BATAS CO -->
+
+          <label>
+            Batas CO / Checkout
+          </label>
+
+          <input
+            id="recapCoDeadline"
+            type="date"
+          >
+
+
+          <div class="form-actions">
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Simpan Rekap
+            </button>
+
+
+            <button
+              type="button"
+              id="cancelRecapButton"
+            >
+              Batal
+            </button>
+
+          </div>
+
+
+          <p
+            id="recapFormMessage"
+            class="login-error"
+          ></p>
+
+
+        </form>
+
+      </div>
+
+    `;
+
+
+    loadRecapCustomers();
+
+
+    const recapCategory =
+      document.getElementById(
+        "recapCategory"
+      );
+
+
+    recapCategory.value =
+      category;
+
+
+    /* ==================================
+       GANTI KATEGORI DI FORM
+       ================================== */
+
+    recapCategory.addEventListener(
+      "change",
+      function() {
+
+        selectedCategory =
+          this.value;
+
+
+        const trackingSelect =
+          document.getElementById(
+            "recapTracking"
+          );
+
+
+        const options =
+          getTrackingOptions(
+            selectedCategory
+          );
+
+
+        trackingSelect.innerHTML =
+          options.map(
+            function(option) {
+
+              return `
+
+                <option
+                  value="${option}"
+                >
+                  ${option}
+                </option>
+
+              `;
+
+            }
+          ).join("");
+
+      }
+    );
+
+
+    /* ==================================
+       BATAL
+       ================================== */
+
+    document
+      .getElementById(
+        "cancelRecapButton"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          recapFormContainer.innerHTML =
+            "";
 
         }
       );
 
 
-      document
-        .getElementById(
-          "cancelRecapButton"
-        )
-        .addEventListener(
-          "click",
-          function() {
+    /* ==================================
+       SUBMIT
+       ================================== */
 
-            recapFormContainer.innerHTML =
-              "";
+    document
+      .getElementById(
+        "recapForm"
+      )
+      .addEventListener(
+        "submit",
+        saveRecap
+      );
 
-          }
-        );
-
-
-      document
-        .getElementById(
-          "recapForm"
-        )
-        .addEventListener(
-          "submit",
-          saveRecap
-        );
-
-    }
-  );
+  }
 
 
   /* ============================================
@@ -1851,77 +2124,84 @@ async function loadRecap() {
 
 
     if (!customerSelect) {
+
       return;
+
     }
 
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("customers")
-        .select(
-          "id, name, whatsapp"
-        )
-        .order(
-          "name",
-          {
-            ascending: true
-          }
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("customers")
+          .select(
+            "id, name, whatsapp_last4"
+          )
+          .order(
+            "name",
+            {
+              ascending: true
+            }
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Gagal memuat customer:",
+          error
         );
 
+        return;
 
-    if (error) {
+      }
+
+
+      (data || []).forEach(
+        function(customer) {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            customer.id;
+
+
+          const lastFour =
+            customer.whatsapp_last4 || "";
+
+
+          option.textContent =
+            customer.name +
+            (
+              lastFour
+                ? " (••••" + lastFour + ")"
+                : ""
+            );
+
+
+          customerSelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+    } catch (error) {
 
       console.error(
-        "Gagal memuat customer:",
+        "Customer exception:",
         error
       );
 
-      return;
-
     }
-
-
-    data.forEach(
-      function(customer) {
-
-        const whatsapp =
-          customer.whatsapp || "";
-
-
-        const lastFour =
-          whatsapp
-            .replace(/\D/g, "")
-            .slice(-4);
-
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          customer.id;
-
-
-        option.textContent =
-          customer.name +
-          (
-            lastFour
-              ? " (••••" + lastFour + ")"
-              : ""
-          );
-
-
-        customerSelect.appendChild(
-          option
-        );
-
-      }
-    );
 
   }
 
@@ -1930,7 +2210,9 @@ async function loadRecap() {
      SIMPAN REKAP
      ============================================ */
 
-  async function saveRecap(event) {
+  async function saveRecap(
+    event
+  ) {
 
     event.preventDefault();
 
@@ -1945,175 +2227,311 @@ async function loadRecap() {
       "Menyimpan rekap...";
 
 
-    const category =
-      document.getElementById(
-        "recapCategory"
-      ).value;
+    try {
+
+      const recap = {
+
+        category:
+          document.getElementById(
+            "recapCategory"
+          ).value,
 
 
-    const batchCode =
-      document.getElementById(
-        "recapBatchCode"
-      ).value.trim();
+        batch_code:
+          document.getElementById(
+            "recapBatchCode"
+          ).value.trim(),
 
 
-    const itemName =
-      document.getElementById(
-        "recapItemName"
-      ).value.trim();
+        item_name:
+          document.getElementById(
+            "recapItemName"
+          ).value.trim(),
 
 
-    const customerId =
-      document.getElementById(
-        "recapCustomer"
-      ).value;
+        customer_id:
+          document.getElementById(
+            "recapCustomer"
+          ).value
+            ? Number(
+                document.getElementById(
+                  "recapCustomer"
+                ).value
+              )
+            : null,
 
 
-    const quantity =
-      Number(
-        document.getElementById(
-          "recapQuantity"
-        ).value
+        version:
+          document.getElementById(
+            "recapVersion"
+          ).value.trim(),
+
+
+        /*
+          Setiap member photocard
+          menggunakan Qty 1.
+        */
+
+        quantity:
+          Number(
+            document.getElementById(
+              "recapQuantity"
+            ).value
+          ) || 1,
+
+
+        item_price:
+          Number(
+            document.getElementById(
+              "recapPrice"
+            ).value
+          ) || 0,
+
+
+        dp_amount:
+          Number(
+            document.getElementById(
+              "recapDp"
+            ).value
+          ) || 0,
+
+
+        dp_status:
+          document.getElementById(
+            "recapDpStatus"
+          ).value,
+
+
+        remaining_amount:
+          Number(
+            document.getElementById(
+              "recapRemaining"
+            ).value
+          ) || 0,
+
+
+        payment_status:
+          document.getElementById(
+            "recapPaymentStatus"
+          ).value,
+
+
+        tracking_status:
+          document.getElementById(
+            "recapTracking"
+          ).value,
+
+
+        note:
+          document.getElementById(
+            "recapNote"
+          ).value.trim(),
+
+
+        co_deadline:
+          document.getElementById(
+            "recapCoDeadline"
+          ).value || null
+
+      };
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .insert(
+            recap
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Gagal menyimpan rekap:",
+          error
+        );
+
+
+        message.textContent =
+          "Gagal menyimpan rekap: " +
+          error.message;
+
+
+        return;
+
+      }
+
+
+      message.textContent =
+        "Rekap berhasil disimpan. ♥";
+
+
+      recapFormContainer.innerHTML =
+        "";
+
+
+      await loadRecapList(
+        selectedCategory
       );
 
 
-    const price =
-      Number(
-        document.getElementById(
-          "recapPrice"
-        ).value
-      );
-
-
-    const dp =
-      Number(
-        document.getElementById(
-          "recapDp"
-        ).value
-      );
-
-
-    const remaining =
-      Number(
-        document.getElementById(
-          "recapRemaining"
-        ).value
-      );
-
-
-    const recap = {
-
-      category:
-        category,
-
-      batch_code:
-        batchCode,
-
-      item_name:
-        itemName,
-
-      customer_id:
-        customerId
-          ? Number(customerId)
-          : null,
-
-      version:
-        document.getElementById(
-          "recapVersion"
-        ).value.trim(),
-
-      quantity:
-        quantity,
-
-      item_price:
-        price,
-
-      dp_amount:
-        dp,
-
-      dp_status:
-        document.getElementById(
-          "recapDpStatus"
-        ).value,
-
-      remaining_amount:
-        remaining,
-
-      payment_status:
-        document.getElementById(
-          "recapPaymentStatus"
-        ).value,
-
-      tracking_status:
-        document.getElementById(
-          "recapTracking"
-        ).value,
-
-      note:
-        document.getElementById(
-          "recapNote"
-        ).value.trim(),
-
-      co_deadline:
-        document.getElementById(
-          "recapCoDeadline"
-        ).value || null
-
-    };
-
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .insert(recap);
-
-
-    if (error) {
+    } catch (error) {
 
       console.error(
-        "Gagal menyimpan rekap:",
+        "Save recap exception:",
         error
       );
 
 
       message.textContent =
-        "Gagal menyimpan rekap: " +
+        "Terjadi kesalahan: " +
         error.message;
 
-
-      return;
-
     }
-
-
-    message.textContent =
-      "Rekap berhasil disimpan. ♥";
-
-
-    recapFormContainer.innerHTML =
-      "";
-
-
-    await loadRecapList(
-      selectedCategory
-    );
 
   }
 
 
   /* ============================================
-     TAMPILKAN REKAP
+     FORMAT CUSTOMER
      ============================================ */
 
-  async function loadRecapList(
-    category
+  function formatCustomer(
+    customer
   ) {
 
-    recapListContainer.innerHTML =
-      "<p>Memuat rekap...</p>";
+    if (!customer) {
 
+      return `
+
+        <span class="available">
+          AVAILABLE
+        </span>
+
+      `;
+
+    }
+
+
+    const lastFour =
+      customer.whatsapp_last4 || "";
+
+
+    return `
+
+      <span class="customer-name">
+
+        ${customer.name || "—"}
+
+        ${
+          lastFour
+            ? `<small>(••••${lastFour})</small>`
+            : ""
+        }
+
+      </span>
+
+    `;
+
+  }
+
+
+  /* ============================================
+     FORMAT MEMBER / VERSION
+     ============================================ */
+
+  function formatVersion(
+    version
+  ) {
+
+    if (!version) {
+
+      return "—";
+
+    }
+
+
+    if (
+      typeof version === "string" &&
+      version
+        .toLowerCase()
+        .trim() === "available"
+    ) {
+
+      return `
+
+        <span class="available-member">
+          available
+        </span>
+
+      `;
+
+    }
+
+
+    return version;
+
+  }
+
+
+  /* ============================================
+     FORMAT TRACKING
+     ============================================ */
+
+  function formatTracking(
+    tracking
+  ) {
+
+    if (!tracking) {
+
+      return "—";
+
+    }
+
+
+    /*
+      Tidak menggunakan "Sudah CO".
+
+      Status terakhir:
+      Delivered
+      = barang sudah sampai/customer.
+    */
+
+    if (
+      tracking === "Delivered"
+    ) {
+
+      return `
+
+        <span class="status-delivered">
+          Goods Arrive at Customer
+        </span>
+
+      `;
+
+    }
+
+
+    return tracking;
+
+  }
+
+
+/* ============================================
+   TAMPILKAN DAFTAR REKAP
+   ============================================ */
+
+async function loadRecapList(
+  category
+) {
+
+  recapListContainer.innerHTML =
+    "<p>Memuat rekap...</p>";
+
+
+  try {
 
     const {
       data,
@@ -2124,8 +2542,9 @@ async function loadRecap() {
         .select(`
           *,
           customers (
+            id,
             name,
-            whatsapp
+            whatsapp_last4
           )
         `)
         .eq(
@@ -2146,13 +2565,23 @@ async function loadRecap() {
         );
 
 
+    console.log(
+      "DATA REKAP:",
+      data
+    );
+
+
+    console.log(
+      "ERROR REKAP:",
+      error
+    );
+
+
+    /* ========================================
+       JIKA ERROR
+       ======================================== */
+
     if (error) {
-
-      console.error(
-        "Gagal memuat rekap:",
-        error
-      );
-
 
       recapListContainer.innerHTML = `
 
@@ -2170,11 +2599,14 @@ async function loadRecap() {
 
       `;
 
-
       return;
 
     }
 
+
+    /* ========================================
+       JIKA BELUM ADA DATA
+       ======================================== */
 
     if (
       !data ||
@@ -2191,13 +2623,14 @@ async function loadRecap() {
 
           <p>
             Belum ada rekapan untuk kategori
-            <strong>${category}</strong>.
+            <strong>
+              ${category}
+            </strong>.
           </p>
 
         </div>
 
       `;
-
 
       return;
 
@@ -2205,47 +2638,49 @@ async function loadRecap() {
 
 
     /* ========================================
-       FORMAT NOMOR WA
+       FORMAT CUSTOMER
        ======================================== */
 
     function formatCustomer(
       customer
     ) {
 
+      /* CUSTOMER KOSONG */
+
       if (!customer) {
 
         return `
+
           <span class="available">
             AVAILABLE
           </span>
+
         `;
 
       }
 
 
-      const whatsapp =
-        (
-          customer.whatsapp || ""
-        )
-          .replace(
-            /\D/g,
-            ""
-          );
+      const name =
+        customer.name || "—";
 
 
       const lastFour =
-        whatsapp.slice(-4);
+        customer.whatsapp_last4 || "";
 
 
       return `
 
         <span class="customer-name">
 
-          ${customer.name}
+          ${name}
 
           ${
             lastFour
-              ? `<small>(••••${lastFour})</small>`
+              ? `
+                <small>
+                  (••••${lastFour})
+                </small>
+              `
               : ""
           }
 
@@ -2255,269 +2690,596 @@ async function loadRecap() {
 
     }
 
-/* ============================================
-   TABEL REKAP PEMBELIAN
-   ============================================ */
 
-container.innerHTML = `
+    /* ========================================
+       FORMAT MEMBER / VERSION
+       ======================================== */
 
-  <div class="product-table-wrapper">
+    function formatVersion(
+      version
+    ) {
 
-    <table class="product-table">
+      if (!version) {
 
-      <thead>
+        return "—";
 
-        <tr>
-
-          <th>Batch</th>
-
-          <th>Nama Barang</th>
-
-          <th>Customer</th>
-
-          <th>Versi</th>
-
-          <th>Qty</th>
-
-          <th>Harga</th>
-
-          <th>DP</th>
-
-          <th>Status DP</th>
-
-          <th>Pelunasan</th>
-
-          <th>Status Pelunasan</th>
-
-          <th>Tracking</th>
-
-          <th>Note</th>
-
-          <th>Batas CO</th>
-
-        </tr>
-
-      </thead>
+      }
 
 
-      <tbody>
+      if (
+        typeof version === "string" &&
+        version
+          .toLowerCase()
+          .trim() === "available"
+      ) {
 
-        ${data.map(function(item) {
+        return `
 
-          const harga =
-            Number(
-              item.item_price || 0
-            ).toLocaleString("id-ID");
+          <span class="available-member">
+            available
+          </span>
 
+        `;
 
-          const dp =
-            Number(
-              item.dp_amount || 0
-            ).toLocaleString("id-ID");
-
-
-          const pelunasan =
-            Number(
-              item.remaining_amount || 0
-            ).toLocaleString("id-ID");
+      }
 
 
-          /* ================================
-             STATUS DP
-             ================================ */
+      return version;
 
-          const statusDP =
-            item.dp_status === "paid"
-              ? "✓ Sudah Bayar"
-              : "Belum Bayar";
+    }
 
 
-          /* ================================
-             STATUS PELUNASAN
-             ================================ */
+    /* ========================================
+       FORMAT TRACKING
+       ======================================== */
 
-          const statusPelunasan =
-            item.payment_status === "paid"
-              ? "✓ Lunas"
-              : "Belum Lunas";
+    function formatTracking(
+      tracking
+    ) {
 
+      if (!tracking) {
 
-          /* ================================
-             CUSTOMER
-             ================================ */
+        return "—";
 
-          let customerName = "—";
-
-          if (item.customer) {
-
-            customerName =
-              item.customer.name || "—";
-
-            if (
-              item.customer.whatsapp_last4
-            ) {
-
-              customerName +=
-                ` (${item.customer.whatsapp_last4})`;
-
-            }
-
-          }
+      }
 
 
-          /* ================================
-             AVAILABLE
-             ================================ */
+      /*
+        Status terakhir tidak menggunakan
+        "Sudah di CO".
 
-          let versionHTML =
-            item.version || "—";
+        Delivered ditampilkan sebagai:
+        Goods Arrive at Customer
+      */
 
+      if (
+        tracking === "Delivered"
+      ) {
 
-          if (
-            typeof item.version === "string" &&
-            item.version.toLowerCase() ===
-            "available"
-          ) {
+        return `
 
-            versionHTML = `
-              <span class="available-member">
-                available
-              </span>
-            `;
+          <span class="status-delivered">
+            Goods Arrive at Customer
+          </span>
 
-          }
+        `;
 
-
-          /* ================================
-             TRACKING
-             ================================ */
-
-          let trackingText =
-            item.tracking_status || "—";
+      }
 
 
-          return `
+      return tracking;
+
+    }
+
+
+    /* ========================================
+       TABEL REKAP
+       ======================================== */
+
+    recapListContainer.innerHTML = `
+
+      <div class="product-table-wrapper">
+
+        <table class="product-table recap-table">
+
+          <thead>
 
             <tr>
 
-              <td>
-                ${item.batch_code || "—"}
-              </td>
+              <th>
+                Kode Batch
+              </th>
+
+              <th>
+                Nama Barang
+              </th>
+
+              <th>
+                Customer
+              </th>
+
+              <th>
+                Versi / Member
+              </th>
+
+              <th>
+                Qty
+              </th>
+
+              <th>
+                Harga
+              </th>
+
+              <th>
+                DP
+              </th>
+
+              <th>
+                Status DP
+              </th>
+
+              <th>
+                Pelunasan
+              </th>
+
+              <th>
+                Status Pelunasan
+              </th>
+
+              <th>
+                Tracking
+              </th>
+
+              <th>
+                Note
+              </th>
+
+              <th>
+                Batas CO
+              </th>
+
+            </tr>
+
+          </thead>
 
 
-              <td>
-                ${item.item_name || "—"}
-              </td>
+          <tbody>
+
+            ${data.map(
+              function(item) {
+
+                /* ==========================
+                   HARGA
+                   ========================== */
+
+                const harga =
+                  Number(
+                    item.item_price || 0
+                  ).toLocaleString(
+                    "id-ID"
+                  );
 
 
-              <td>
-                ${customerName}
-              </td>
+                /* ==========================
+                   DP
+                   ========================== */
+
+                const dp =
+                  Number(
+                    item.dp_amount || 0
+                  ).toLocaleString(
+                    "id-ID"
+                  );
 
 
-              <td>
-                ${versionHTML}
-              </td>
+                /* ==========================
+                   PELUNASAN
+                   ========================== */
+
+                const pelunasan =
+                  Number(
+                    item.remaining_amount || 0
+                  ).toLocaleString(
+                    "id-ID"
+                  );
 
 
-              <td>
-                ${item.quantity || 1}
-              </td>
+                /* ==========================
+                   STATUS DP
+                   ========================== */
+
+                const statusDP =
+                  item.dp_status === "paid"
+
+                    ? `
+
+                      <span class="status-paid">
+                        ✓ Sudah Bayar
+                      </span>
+
+                    `
+
+                    : `
+
+                      <span class="status-unpaid">
+                        Belum Bayar
+                      </span>
+
+                    `;
 
 
-              <td>
-                Rp${harga}
-              </td>
+                /* ==========================
+                   STATUS PELUNASAN
+                   ========================== */
+
+                const statusPelunasan =
+                  item.payment_status === "paid"
+
+                    ? `
+
+                      <span class="status-paid">
+                        ✓ Lunas
+                      </span>
+
+                    `
+
+                    : `
+
+                      <span class="status-unpaid">
+                        Belum Lunas
+                      </span>
+
+                    `;
 
 
-              <td>
-                Rp${dp}
-              </td>
+                /* ==========================
+                   CUSTOMER
+                   ========================== */
+
+                const customerHTML =
+                  formatCustomer(
+                    item.customers
+                  );
 
 
-              <td>
-                ${statusDP}
-              </td>
+                /* ==========================
+                   VERSION / MEMBER
+                   ========================== */
+
+                const versionHTML =
+                  formatVersion(
+                    item.version
+                  );
 
 
-              <td>
-                Rp${pelunasan}
-              </td>
+                /* ==========================
+                   TRACKING
+                   ========================== */
+
+                const trackingHTML =
+                  formatTracking(
+                    item.tracking_status
+                  );
 
 
-              <td>
-                ${statusPelunasan}
-              </td>
+                /* ==========================
+                   BATAS CO
+                   ========================== */
 
-
-              <td>
-                ${trackingText}
-              </td>
-
-
-              <td>
-                ${item.note || "—"}
-              </td>
-
-
-              <td>
-                ${
+                const coDeadline =
                   item.co_deadline
+
                     ? new Date(
                         item.co_deadline
                       ).toLocaleDateString(
                         "id-ID"
                       )
-                    : "—"
-                }
-              </td>
 
-            </tr>
+                    : "—";
 
-          `;
 
-        }).join("")}
+                /* ==========================
+                   BARIS DATA
+                   ========================== */
 
-      </tbody>
+                return `
 
-    </table>
+                  <tr>
 
-  </div>
+                    <td>
+                      ${item.batch_code || "—"}
+                    </td>
 
-`;
-   
+
+                    <td>
+                      ${item.item_name || "—"}
+                    </td>
+
+
+                    <td>
+                      ${customerHTML}
+                    </td>
+
+
+                    <td>
+                      ${versionHTML}
+                    </td>
+
+
+                    <td>
+                      ${item.quantity || 1}
+                    </td>
+
+
+                    <td>
+                      Rp${harga}
+                    </td>
+
+
+                    <td>
+                      Rp${dp}
+                    </td>
+
+
+                    <td>
+                      ${statusDP}
+                    </td>
+
+
+                    <td>
+                      Rp${pelunasan}
+                    </td>
+
+
+                    <td>
+                      ${statusPelunasan}
+                    </td>
+
+
+                    <td>
+                      ${trackingHTML}
+                    </td>
+
+
+                    <td>
+                      ${item.note || "—"}
+                    </td>
+
+
+                    <td>
+                      ${coDeadline}
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+
+  } catch (error) {
+
+    /* ========================================
+       ERROR SISTEM
+       ======================================== */
+
+    console.error(
+      "Kesalahan loadRecapList:",
+      error
+    );
+
+
+    recapListContainer.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat rekap
+        </h3>
+
+        <p>
+          Terjadi kesalahan saat mengambil
+          data rekap pembelian.
+        </p>
+
+        <p>
+          ${error.message || ""}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+/* ============================================
+   MUAT DATA REKAP AWAL
+   ============================================ */
+
+await loadRecapList(
+  selectedCategory
+);
+
+}
+
+
+/* ============================================
+   RINGKASAN REKAP
+   ============================================ */
+
+async function loadRecapSummary() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          category,
+          item_price,
+          dp_amount,
+          remaining_amount,
+          payment_status,
+          tracking_status
+        `);
+
+
+    if (error) {
+
+      console.error(
+        "Gagal memuat ringkasan:",
+        error
+      );
+
+      return null;
+
+    }
+
+
+    const summary = {};
+
+
+    (data || []).forEach(
+      function(item) {
+
+        const category =
+          item.category || "Lainnya";
+
+
+        if (
+          !summary[category]
+        ) {
+
+          summary[category] = {
+
+            quantity: 0,
+
+            totalPrice: 0,
+
+            totalDP: 0,
+
+            totalRemaining: 0,
+
+            unpaid: 0,
+
+            delivered: 0
+
+          };
+
+        }
+
+
+        summary[category].quantity += 1;
+
+
+        summary[category].totalPrice +=
+          Number(
+            item.item_price || 0
+          );
+
+
+        summary[category].totalDP +=
+          Number(
+            item.dp_amount || 0
+          );
+
+
+        summary[category].totalRemaining +=
+          Number(
+            item.remaining_amount || 0
+          );
+
+
+        if (
+          item.payment_status !== "paid"
+        ) {
+
+          summary[category].unpaid += 1;
+
+        }
+
+
+        if (
+          item.tracking_status ===
+          "Delivered"
+        ) {
+
+          summary[category].delivered += 1;
+
+        }
+
+      }
+    );
+
+
+    return summary;
+
+
+  } catch (error) {
+
+    console.error(
+      "Summary exception:",
+      error
+    );
+
+
+    return null;
+
+  }
+
+}
+
 
 /* ============================================
    REFRESH
    ============================================ */
 
-refreshButton.addEventListener(
-  "click",
-  function () {
+if (refreshButton) {
 
-    const activeButton =
-      document.querySelector(
-        ".menu-button.active"
-      );
+  refreshButton.addEventListener(
+    "click",
+    function() {
+
+      const activeButton =
+        document.querySelector(
+          ".menu-button.active"
+        );
 
 
-    if (
-      activeButton &&
-      activeButton.dataset.page
-    ) {
-
-      showPage(
+      if (
+        activeButton &&
         activeButton.dataset.page
-      );
+      ) {
 
-    } else {
+        showPage(
+          activeButton.dataset.page
+        );
 
-      loadDashboard();
+      } else {
+
+        loadDashboard();
+
+      }
 
     }
+  );
 
-  }
-);
+}
 
 
 /* ============================================
