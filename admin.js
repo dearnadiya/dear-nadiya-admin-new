@@ -437,57 +437,528 @@ function loadDashboard() {
 
 }
 
-
 /* ============================================
-   PRODUK
+   PRODUK & GO
    ============================================ */
 
-function loadProducts() {
+async function loadProducts() {
 
-  pageTitle.textContent =
-    "Produk & GO";
-
+  pageTitle.textContent = "Produk & GO";
 
   pageContent.innerHTML = `
 
     <div class="panel">
 
-      <h2>
-        Produk & Group Order
-      </h2>
+      <div class="panel-header">
 
-      <p>
-        Halaman Produk & GO siap digunakan.
-      </p>
+        <div>
+          <h2>Produk & Group Order</h2>
+          <p>Kelola produk dan Group Order Dear Nadiya.</p>
+        </div>
 
+        <button
+          type="button"
+          class="primary-button"
+          id="addProductButton"
+        >
+          ➕ Tambah Produk
+        </button>
 
-      <button
-        type="button"
-        class="primary-button"
-        id="testProductButton"
-      >
-        ➕ Tambah Produk
-      </button>
+      </div>
+
+      <div id="productFormContainer"></div>
+
+      <div id="productListContainer">
+        <p>Memuat produk...</p>
+      </div>
 
     </div>
 
   `;
 
 
-  document
-    .getElementById(
-      "testProductButton"
-    )
-    .addEventListener(
-      "click",
-      function () {
+  const addProductButton =
+    document.getElementById("addProductButton");
 
-        alert(
-          "Tombol Produk berhasil berfungsi."
+  const productFormContainer =
+    document.getElementById("productFormContainer");
+
+  const productListContainer =
+    document.getElementById("productListContainer");
+
+
+  /* ============================================
+     TOMBOL TAMBAH PRODUK
+     ============================================ */
+
+  addProductButton.addEventListener(
+    "click",
+    function () {
+
+      productFormContainer.innerHTML = `
+
+        <div class="panel product-form">
+
+          <h3>Tambah Produk / GO</h3>
+
+          <form id="productForm">
+
+            <label>
+              Kode Produk
+            </label>
+
+            <input
+              id="productCode"
+              type="text"
+              placeholder="Contoh: TRS-001"
+              required
+            >
+
+
+            <label>
+              Nama Produk
+            </label>
+
+            <input
+              id="productName"
+              type="text"
+              placeholder="Nama produk / Group Order"
+              required
+            >
+
+
+            <label>
+              Jenis
+            </label>
+
+            <select id="productType">
+
+              <option value="GO">
+                Group Order
+              </option>
+
+              <option value="Pre Order">
+                Pre Order
+              </option>
+
+              <option value="Ready Stock">
+                Ready Stock
+              </option>
+
+            </select>
+
+
+            <label>
+              Harga
+            </label>
+
+            <input
+              id="productPrice"
+              type="number"
+              min="0"
+              placeholder="115000"
+              required
+            >
+
+
+            <label>
+              DP
+            </label>
+
+            <input
+              id="productDp"
+              type="number"
+              min="0"
+              placeholder="50000"
+              value="0"
+            >
+
+
+            <label>
+              Deadline List
+            </label>
+
+            <input
+              id="deadlineList"
+              type="date"
+            >
+
+
+            <label>
+              Deadline Pembayaran
+            </label>
+
+            <input
+              id="deadlinePayment"
+              type="date"
+            >
+
+
+            <label>
+              Status
+            </label>
+
+            <select id="productStatus">
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="closed">
+                Closed
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+
+            </select>
+
+
+            <label>
+              Deskripsi
+            </label>
+
+            <textarea
+              id="productDescription"
+              rows="4"
+              placeholder="Deskripsi produk..."
+            ></textarea>
+
+
+            <label>
+              Jumlah Member
+            </label>
+
+            <input
+              id="productMembers"
+              type="number"
+              min="0"
+              value="0"
+            >
+
+
+            <label class="checkbox-label">
+
+              <input
+                id="showWebsite"
+                type="checkbox"
+                checked
+              >
+
+              Tampilkan di website customer
+
+            </label>
+
+
+            <div class="form-actions">
+
+              <button
+                type="submit"
+                class="primary-button"
+              >
+                Simpan Produk
+              </button>
+
+              <button
+                type="button"
+                id="cancelProductButton"
+              >
+                Batal
+              </button>
+
+            </div>
+
+
+            <p
+              id="productFormMessage"
+              class="login-error"
+            ></p>
+
+          </form>
+
+        </div>
+
+      `;
+
+
+      document
+        .getElementById("cancelProductButton")
+        .addEventListener(
+          "click",
+          function () {
+
+            productFormContainer.innerHTML = "";
+
+          }
         );
 
-      }
-    );
+
+      document
+        .getElementById("productForm")
+        .addEventListener(
+          "submit",
+          saveProduct
+        );
+
+    }
+  );
+
+
+  /* ============================================
+     SIMPAN PRODUK
+     ============================================ */
+
+  async function saveProduct(event) {
+
+    event.preventDefault();
+
+
+    const message =
+      document.getElementById(
+        "productFormMessage"
+      );
+
+
+    message.textContent =
+      "Menyimpan produk...";
+
+
+    const product = {
+
+      product_code:
+        document
+          .getElementById("productCode")
+          .value
+          .trim(),
+
+      name:
+        document
+          .getElementById("productName")
+          .value
+          .trim(),
+
+      type:
+        document
+          .getElementById("productType")
+          .value,
+
+      price:
+        Number(
+          document
+            .getElementById("productPrice")
+            .value
+        ),
+
+      dp:
+        Number(
+          document
+            .getElementById("productDp")
+            .value
+        ),
+
+      deadline_list:
+        document
+          .getElementById("deadlineList")
+          .value || null,
+
+      deadline_payment:
+        document
+          .getElementById("deadlinePayment")
+          .value || null,
+
+      status:
+        document
+          .getElementById("productStatus")
+          .value,
+
+      description:
+        document
+          .getElementById("productDescription")
+          .value
+          .trim(),
+
+      members:
+        Number(
+          document
+            .getElementById("productMembers")
+            .value
+        ),
+
+      show_website:
+        document
+          .getElementById("showWebsite")
+          .checked
+
+    };
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("products")
+        .insert(product);
+
+
+    if (error) {
+
+      console.error(error);
+
+      message.textContent =
+        "Gagal menyimpan produk: " +
+        error.message;
+
+      return;
+
+    }
+
+
+    message.textContent =
+      "Produk berhasil disimpan. ♥";
+
+
+    productFormContainer.innerHTML = "";
+
+    await loadProductList();
+
+  }
+
+
+  /* ============================================
+     TAMPILKAN DAFTAR PRODUK
+     ============================================ */
+
+  async function loadProductList() {
+
+    productListContainer.innerHTML =
+      "<p>Memuat produk...</p>";
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("products")
+        .select("*")
+        .order("id", {
+          ascending: false
+        });
+
+
+    if (error) {
+
+      productListContainer.innerHTML =
+        `<p>Gagal memuat produk: ${error.message}</p>`;
+
+      return;
+
+    }
+
+
+    if (!data || data.length === 0) {
+
+      productListContainer.innerHTML =
+        "<p>Belum ada produk.</p>";
+
+      return;
+
+    }
+
+
+    productListContainer.innerHTML = `
+
+      <div class="product-table-wrapper">
+
+        <table class="product-table">
+
+          <thead>
+
+            <tr>
+
+              <th>Kode</th>
+
+              <th>Produk</th>
+
+              <th>Jenis</th>
+
+              <th>Harga</th>
+
+              <th>DP</th>
+
+              <th>Status</th>
+
+              <th>Member</th>
+
+              <th>Website</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            ${data.map(product => `
+
+              <tr>
+
+                <td>
+                  ${product.product_code || "-"}
+                </td>
+
+                <td>
+                  ${product.name || "-"}
+                </td>
+
+                <td>
+                  ${product.type || "-"}
+                </td>
+
+                <td>
+                  Rp${Number(
+                    product.price || 0
+                  ).toLocaleString("id-ID")}
+                </td>
+
+                <td>
+                  Rp${Number(
+                    product.dp || 0
+                  ).toLocaleString("id-ID")}
+                </td>
+
+                <td>
+                  ${product.status || "-"}
+                </td>
+
+                <td>
+                  ${product.members || 0}
+                </td>
+
+                <td>
+                  ${
+                    product.show_website
+                      ? "✓"
+                      : "—"
+                  }
+                </td>
+
+              </tr>
+
+            `).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+  }
+
+
+  await loadProductList();
 
 }
 
