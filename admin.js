@@ -70,10 +70,9 @@ googleLoginButton.addEventListener(
         provider: "google",
 
         options: {
-          redirectTo:
-            window.location.origin +
-            window.location.pathname
-        }
+  redirectTo:
+    "https://dearnadiya.github.io/dear-nadiya-admin-new/"
+}
 
       });
 
