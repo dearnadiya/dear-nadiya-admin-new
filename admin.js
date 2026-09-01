@@ -32,57 +32,124 @@ const pageTitle =
 const pageContent =
   document.getElementById("pageContent");
 
-
 /* ============================================
-   LOGIN
+   SUPABASE
    ============================================ */
 
-loginForm.addEventListener(
-  "submit",
-  function (event) {
+const SUPABASE_URL =
+  "https://cwwzsbqfznzwfclajwnw.supabase.co";
 
-    event.preventDefault();
+const SUPABASE_KEY =
+  "sb_publishable_ADa_gyMfyBZ1ZcdUO8FRfw_iELzOmbQ";
 
-
-    const username =
-      document
-        .getElementById("username")
-        .value
-        .trim();
-
-
-    const password =
-      document
-        .getElementById("password")
-        .value;
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-    if (
-      username === "admin" &&
-      password === "180322"
-    ) {
+/* ============================================
+   LOGIN GOOGLE
+   ============================================ */
 
-      sessionStorage.setItem(
-        "dearNadiyaAdmin",
-        "true"
-      );
+const googleLoginButton =
+  document.getElementById("googleLoginButton");
 
 
-      loginError.textContent = "";
+googleLoginButton.addEventListener(
+  "click",
+  async function () {
+
+    loginError.textContent = "";
 
 
-      showAdmin();
+    const { error } =
+      await supabaseClient.auth.signInWithOAuth({
 
-    } else {
+        provider: "google",
+
+        options: {
+          redirectTo:
+            window.location.origin +
+            window.location.pathname
+        }
+
+      });
+
+
+    if (error) {
 
       loginError.textContent =
-        "Username atau password salah.";
+        "Login Google gagal: " +
+        error.message;
 
     }
 
   }
 );
 
+
+/* ============================================
+   CEK SESSION GOOGLE
+   ============================================ */
+
+async function checkGoogleSession() {
+
+  const {
+    data: { session }
+  } =
+    await supabaseClient.auth.getSession();
+
+
+  if (session) {
+
+    showAdmin();
+
+  } else {
+
+    showLogin();
+
+  }
+
+}
+
+
+/* ============================================
+   LOGOUT GOOGLE
+   ============================================ */
+
+logoutButton.addEventListener(
+  "click",
+  async function () {
+
+    await supabaseClient.auth.signOut();
+
+    showLogin();
+
+  }
+);
+
+
+/* ============================================
+   SESSION BERUBAH
+   ============================================ */
+
+supabaseClient.auth.onAuthStateChange(
+  function (event, session) {
+
+    if (session) {
+
+      showAdmin();
+
+    } else {
+
+      showLogin();
+
+    }
+
+  }
+);
 
 /* ============================================
    TAMPILKAN ADMIN
@@ -121,26 +188,6 @@ function showLogin() {
   );
 
 }
-
-
-/* ============================================
-   LOGOUT
-   ============================================ */
-
-logoutButton.addEventListener(
-  "click",
-  function () {
-
-    sessionStorage.removeItem(
-      "dearNadiyaAdmin"
-    );
-
-
-    showLogin();
-
-  }
-);
-
 
 /* ============================================
    SIDEBAR
@@ -510,16 +557,4 @@ refreshButton.addEventListener(
    SESSION CHECK
    ============================================ */
 
-if (
-  sessionStorage.getItem(
-    "dearNadiyaAdmin"
-  ) === "true"
-) {
-
-  showAdmin();
-
-} else {
-
-  showLogin();
-
-     }
+checkGoogleSession();
