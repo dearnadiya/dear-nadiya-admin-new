@@ -1270,16 +1270,13 @@ async function loadPayments() {
 
 }
 
-
 /* ============================================
    REKAP GO
    ============================================ */
 
-async function loadRecap() {
+function loadRecap() {
 
-  pageTitle.textContent =
-    "Rekap GO";
-
+  pageTitle.textContent = "Rekap GO";
 
   pageContent.innerHTML = `
 
@@ -1288,38 +1285,21 @@ async function loadRecap() {
       <div class="panel-header">
 
         <div>
-
-          <h2>
-            Rekap Pembelian
-          </h2>
+          <h2>Rekap Pembelian</h2>
 
           <p>
-            Kelola seluruh rekapan pembelian
-            Dear Nadiya.
+            Kelola seluruh rekapan pembelian Dear Nadiya.
           </p>
-
         </div>
-
-
-        <button
-          type="button"
-          class="primary-button"
-          id="addRecapButton"
-        >
-          ➕ Tambah Rekap
-        </button>
 
       </div>
 
 
-      <!-- ==================================
-           KATEGORI REKAP
-           ================================== -->
+      <!-- ================================
+           TOMBOL KATEGORI
+           ================================ -->
 
-      <div
-        id="recapCategoryButtons"
-        class="recap-category-buttons"
-      >
+      <div class="recap-category-buttons">
 
         <button
           type="button"
@@ -1329,7 +1309,6 @@ async function loadRecap() {
           Truz
         </button>
 
-
         <button
           type="button"
           class="recap-category-button"
@@ -1337,7 +1316,6 @@ async function loadRecap() {
         >
           Treasure KR
         </button>
-
 
         <button
           type="button"
@@ -1347,7 +1325,6 @@ async function loadRecap() {
           Treasure JP
         </button>
 
-
         <button
           type="button"
           class="recap-category-button"
@@ -1355,7 +1332,6 @@ async function loadRecap() {
         >
           Treasure CH
         </button>
-
 
         <button
           type="button"
@@ -1365,7 +1341,6 @@ async function loadRecap() {
           Treasure Thai
         </button>
 
-
         <button
           type="button"
           class="recap-category-button"
@@ -1373,7 +1348,6 @@ async function loadRecap() {
         >
           Treasure Album
         </button>
-
 
         <button
           type="button"
@@ -1386,22 +1360,18 @@ async function loadRecap() {
       </div>
 
 
-      <!-- ==================================
-           FORM TAMBAH REKAP
-           ================================== -->
+      <!-- ================================
+           FORM
+           ================================ -->
 
-      <div
-        id="recapFormContainer"
-      ></div>
+      <div id="recapFormContainer"></div>
 
 
-      <!-- ==================================
-           DAFTAR REKAP
-           ================================== -->
+      <!-- ================================
+           LIST
+           ================================ -->
 
-      <div
-        id="recapListContainer"
-      >
+      <div id="recapListContainer">
 
         <p>
           Memuat rekap...
@@ -1412,12 +1382,6 @@ async function loadRecap() {
     </div>
 
   `;
-
-
-  const addRecapButton =
-    document.getElementById(
-      "addRecapButton"
-    );
 
 
   const recapFormContainer =
@@ -1438,289 +1402,318 @@ async function loadRecap() {
     );
 
 
-  let selectedCategory =
-    "Truz";
+  let selectedCategory = "Truz";
 
 
-  /* ============================================
-     PILIH KATEGORI
-     ============================================ */
-
-  categoryButtons.forEach(
-    function(button) {
-
-      button.addEventListener(
-        "click",
-        async function() {
-
-          categoryButtons.forEach(
-            function(item) {
-
-              item.classList.remove(
-                "active"
-              );
-
-            }
-          );
-
-
-          button.classList.add(
-            "active"
-          );
-
-
-          selectedCategory =
-            button.dataset.category;
-
-
-          recapFormContainer.innerHTML =
-            "";
-
-
-          await loadRecapList(
-            selectedCategory
-          );
-
-        }
-      );
-
-    }
-  );
-
-
-  /* ============================================
-     PILIHAN TRACKING
-     ============================================ */
+  /* ========================================
+     KONFIGURASI TRACKING
+     ======================================== */
 
   function getTrackingOptions(
     category
   ) {
 
-
-    /* ==================================
-       TREASURE INA
-       ================================== */
-
-    if (
-      category === "Treasure INA"
-    ) {
-
-      return [
-
-        "CO Seller",
-
-        "Arrived Admin",
-
-        "Delivered"
-
-      ];
-
-    }
-
-
-    /* ==================================
-       TREASURE KR
-       ================================== */
-
-    if (
-      category === "Treasure KR"
-    ) {
-
-      return [
-
-        "CO Web / Seller",
-
-        "Arrived WH KR",
-
-        "Shipping to INA",
-
-        "Arrived WH INA",
-
-        "Arrived Admin",
-
-        "Delivered"
-
-      ];
-
-    }
-
-
-    /* ==================================
-       TREASURE JP
-       ================================== */
-
-    if (
-      category === "Treasure JP"
-    ) {
-
-      return [
-
-        "CO Web / Seller",
-
-        "Arrived WH JP",
-
-        "Shipping to INA",
-
-        "Arrived WH INA",
-
-        "Arrived Admin",
-
-        "Delivered"
-
-      ];
-
-    }
-
-
-    /* ==================================
-       TREASURE CH
-       ================================== */
-
-    if (
-      category === "Treasure CH"
-    ) {
-
-      return [
-
-        "CO Web / Seller",
-
-        "Arrived WH CH",
-
-        "Shipping to INA",
-
-        "Arrived WH INA",
-
-        "Arrived Admin",
-
-        "Delivered"
-
-      ];
-
-    }
-
-
-    /* ==================================
-       TREASURE THAI
-       ================================== */
-
-    if (
-      category === "Treasure Thai"
-    ) {
-
-      return [
-
-        "CO Web / Seller",
-
-        "Arrived WH Thai",
-
-        "Shipping to INA",
-
-        "Arrived WH INA",
-
-        "Arrived Admin",
-
-        "Delivered"
-
-      ];
-
-    }
-
-
-    /* ==================================
+    /* ==============================
        TRUZ
-       ================================== */
+       ============================== */
 
     if (
       category === "Truz"
     ) {
 
-      return [
+      return `
 
-        "CO Web / Seller",
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
 
-        "Arrived WH KR",
+        <option value="Arrived WH KR">
+          Arrived WH KR
+        </option>
 
-        "Arrived WH JP",
+        <option value="Arrived WH JP">
+          Arrived WH JP
+        </option>
 
-        "Arrived WH CH",
+        <option value="Arrived WH CH">
+          Arrived WH CH
+        </option>
 
-        "Arrived WH Thai",
+        <option value="Arrived WH Thai">
+          Arrived WH Thai
+        </option>
 
-        "Shipping to INA",
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
 
-        "Arrived WH INA",
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
 
-        "Arrived Admin",
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
 
-        "Delivered"
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
 
-      ];
+      `;
 
     }
 
 
-    /* ==================================
+    /* ==============================
+       TREASURE KR
+       ============================== */
+
+    if (
+      category === "Treasure KR"
+    ) {
+
+      return `
+
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
+
+        <option value="Arrived WH KR">
+          Arrived WH KR
+        </option>
+
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
+
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
+
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
+
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    /* ==============================
+       TREASURE JP
+       ============================== */
+
+    if (
+      category === "Treasure JP"
+    ) {
+
+      return `
+
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
+
+        <option value="Arrived WH JP">
+          Arrived WH JP
+        </option>
+
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
+
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
+
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
+
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    /* ==============================
+       TREASURE CH
+       ============================== */
+
+    if (
+      category === "Treasure CH"
+    ) {
+
+      return `
+
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
+
+        <option value="Arrived WH CH">
+          Arrived WH CH
+        </option>
+
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
+
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
+
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
+
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    /* ==============================
+       TREASURE THAI
+       ============================== */
+
+    if (
+      category === "Treasure Thai"
+    ) {
+
+      return `
+
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
+
+        <option value="Arrived WH Thai">
+          Arrived WH Thai
+        </option>
+
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
+
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
+
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
+
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    /* ==============================
        TREASURE ALBUM
-       ================================== */
+       ============================== */
 
-    return [
+    if (
+      category === "Treasure Album"
+    ) {
 
-      "CO Web / Seller",
+      return `
 
-      "Arrived WH KR",
+        <option value="Co Web / Seller">
+          Co Web / Seller
+        </option>
 
-      "Arrived WH JP",
+        <option value="Arrived WH KR">
+          Arrived WH KR
+        </option>
 
-      "Arrived WH CH",
+        <option value="Arrived WH JP">
+          Arrived WH JP
+        </option>
 
-      "Arrived WH Thai",
+        <option value="Arrived WH CH">
+          Arrived WH CH
+        </option>
 
-      "Shipping to INA",
+        <option value="Arrived WH Thai">
+          Arrived WH Thai
+        </option>
 
-      "Arrived WH INA",
+        <option value="Shipping INA">
+          Shipping INA
+        </option>
 
-      "Arrived Admin",
+        <option value="Arrived WH INA">
+          Arrived WH INA
+        </option>
 
-      "Delivered"
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
 
-    ];
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    /* ==============================
+       TREASURE INA
+       ============================== */
+
+    if (
+      category === "Treasure INA"
+    ) {
+
+      return `
+
+        <option value="Co Seller">
+          Co Seller
+        </option>
+
+        <option value="Arrived Admin">
+          Arrived Admin
+        </option>
+
+        <option value="Goods Arrive at Customer">
+          Goods Arrive at Customer
+        </option>
+
+      `;
+
+    }
+
+
+    return "";
 
   }
 
 
-  /* ============================================
-     TOMBOL TAMBAH REKAP
-     ============================================ */
-
-  addRecapButton.addEventListener(
-    "click",
-    function() {
-
-      showRecapForm(
-        selectedCategory
-      );
-
-    }
-  );
-
-
-  /* ============================================
-     FORM TAMBAH REKAP
-     ============================================ */
+  /* ========================================
+     TAMPILKAN FORM
+     ======================================== */
 
   function showRecapForm(
     category
   ) {
 
-    const trackingOptions =
-      getTrackingOptions(
-        category
-      );
-
-
     recapFormContainer.innerHTML = `
 
-      <div class="panel product-form">
+      <div class="panel recap-form">
 
         <h3>
           Tambah Rekap Pembelian
@@ -1730,7 +1723,9 @@ async function loadRecap() {
         <form id="recapForm">
 
 
-          <!-- KATEGORI -->
+          <!-- ==========================
+               KATEGORI
+               ========================== -->
 
           <label>
             Kategori
@@ -1738,55 +1733,79 @@ async function loadRecap() {
 
           <select
             id="recapCategory"
-            required
           >
 
-            <option value="Truz">
+            <option
+              value="Truz"
+              ${category === "Truz" ? "selected" : ""}
+            >
               Truz
             </option>
 
-            <option value="Treasure KR">
+            <option
+              value="Treasure KR"
+              ${category === "Treasure KR" ? "selected" : ""}
+            >
               Treasure KR
             </option>
 
-            <option value="Treasure JP">
+            <option
+              value="Treasure JP"
+              ${category === "Treasure JP" ? "selected" : ""}
+            >
               Treasure JP
             </option>
 
-            <option value="Treasure CH">
+            <option
+              value="Treasure CH"
+              ${category === "Treasure CH" ? "selected" : ""}
+            >
               Treasure CH
             </option>
 
-            <option value="Treasure Thai">
+            <option
+              value="Treasure Thai"
+              ${category === "Treasure Thai" ? "selected" : ""}
+            >
               Treasure Thai
             </option>
 
-            <option value="Treasure Album">
+            <option
+              value="Treasure Album"
+              ${category === "Treasure Album" ? "selected" : ""}
+            >
               Treasure Album
             </option>
 
-            <option value="Treasure INA">
+            <option
+              value="Treasure INA"
+              ${category === "Treasure INA" ? "selected" : ""}
+            >
               Treasure INA
             </option>
 
           </select>
 
 
-          <!-- KODE BATCH -->
+          <!-- ==========================
+               BATCH
+               ========================== -->
 
           <label>
             Kode Batch
           </label>
 
           <input
-            id="recapBatchCode"
+            id="recapBatch"
             type="text"
             placeholder="Contoh: CH-001 / BATCH 1"
             required
           >
 
 
-          <!-- NAMA BARANG -->
+          <!-- ==========================
+               NAMA BARANG
+               ========================== -->
 
           <label>
             Nama Barang
@@ -1795,29 +1814,29 @@ async function loadRecap() {
           <input
             id="recapItemName"
             type="text"
-            placeholder="Contoh: FS Knpops"
+            placeholder="Contoh: FS Knppops"
             required
           >
 
 
-          <!-- CUSTOMER -->
+          <!-- ==========================
+               CUSTOMER
+               ========================== -->
 
           <label>
             Customer
           </label>
 
-          <select
+          <input
             id="recapCustomer"
+            type="text"
+            placeholder="Nama Customer (4 nomor terakhir WA)"
           >
 
-            <option value="">
-              AVAILABLE / Belum ada customer
-            </option>
 
-          </select>
-
-
-          <!-- VERSI / MEMBER -->
+          <!-- ==========================
+               VERSION / MEMBER
+               ========================== -->
 
           <label>
             Versi / Member / Character
@@ -1826,18 +1845,20 @@ async function loadRecap() {
           <input
             id="recapVersion"
             type="text"
-            placeholder="Contoh: Hyunsuk / RURU / Version A"
+            placeholder="Contoh: Hyunsuk / Version A / RURU"
           >
 
 
-          <!-- QTY -->
+          <!-- ==========================
+               QTY
+               ========================== -->
 
           <label>
             Qty
           </label>
 
           <input
-            id="recapQuantity"
+            id="recapQty"
             type="number"
             min="1"
             value="1"
@@ -1845,7 +1866,9 @@ async function loadRecap() {
           >
 
 
-          <!-- HARGA -->
+          <!-- ==========================
+               HARGA
+               ========================== -->
 
           <label>
             Harga Barang
@@ -1860,28 +1883,32 @@ async function loadRecap() {
           >
 
 
-          <!-- DP -->
+          <!-- ==========================
+               DP
+               ========================== -->
 
           <label>
             DP
           </label>
 
           <input
-            id="recapDp"
+            id="recapDP"
             type="number"
             min="0"
             value="0"
           >
 
 
-          <!-- STATUS DP -->
+          <!-- ==========================
+               STATUS DP
+               ========================== -->
 
           <label>
             Status DP
           </label>
 
           <select
-            id="recapDpStatus"
+            id="recapDPStatus"
           >
 
             <option value="unpaid">
@@ -1895,7 +1922,9 @@ async function loadRecap() {
           </select>
 
 
-          <!-- PELUNASAN -->
+          <!-- ==========================
+               PELUNASAN
+               ========================== -->
 
           <label>
             Pelunasan / Sisa Pembayaran
@@ -1909,7 +1938,9 @@ async function loadRecap() {
           >
 
 
-          <!-- STATUS PELUNASAN -->
+          <!-- ==========================
+               STATUS PELUNASAN
+               ========================== -->
 
           <label>
             Status Pelunasan
@@ -1930,7 +1961,9 @@ async function loadRecap() {
           </select>
 
 
-          <!-- TRACKING -->
+          <!-- ==========================
+               TRACKING
+               ========================== -->
 
           <label>
             Tracking
@@ -1938,29 +1971,16 @@ async function loadRecap() {
 
           <select
             id="recapTracking"
-            required
           >
 
-            ${trackingOptions.map(
-              function(option) {
-
-                return `
-
-                  <option
-                    value="${option}"
-                  >
-                    ${option}
-                  </option>
-
-                `;
-
-              }
-            ).join("")}
+            ${getTrackingOptions(category)}
 
           </select>
 
 
-          <!-- NOTE -->
+          <!-- ==========================
+               NOTE
+               ========================== -->
 
           <label>
             Note
@@ -1968,22 +1988,28 @@ async function loadRecap() {
 
           <textarea
             id="recapNote"
-            rows="3"
+            rows="4"
             placeholder="Catatan..."
           ></textarea>
 
 
-          <!-- BATAS CO -->
+          <!-- ==========================
+               BATAS CO
+               ========================== -->
 
           <label>
             Batas CO / Checkout
           </label>
 
           <input
-            id="recapCoDeadline"
+            id="recapCODedline"
             type="date"
           >
 
+
+          <!-- ==========================
+               BUTTON
+               ========================== -->
 
           <div class="form-actions">
 
@@ -2018,72 +2044,33 @@ async function loadRecap() {
     `;
 
 
-    loadRecapCustomers();
+    /* ======================================
+       GANTI KATEGORI DARI DALAM FORM
+       ====================================== */
 
+    document
+      .getElementById("recapCategory")
+      .addEventListener(
+        "change",
+        function() {
 
-    const recapCategory =
-      document.getElementById(
-        "recapCategory"
-      );
+          selectedCategory =
+            this.value;
 
-
-    recapCategory.value =
-      category;
-
-
-    /* ==================================
-       GANTI KATEGORI DI FORM
-       ================================== */
-
-    recapCategory.addEventListener(
-      "change",
-      function() {
-
-        selectedCategory =
-          this.value;
-
-
-        const trackingSelect =
-          document.getElementById(
-            "recapTracking"
-          );
-
-
-        const options =
-          getTrackingOptions(
+          showRecapForm(
             selectedCategory
           );
 
-
-        trackingSelect.innerHTML =
-          options.map(
-            function(option) {
-
-              return `
-
-                <option
-                  value="${option}"
-                >
-                  ${option}
-                </option>
-
-              `;
-
-            }
-          ).join("");
-
-      }
-    );
+        }
+      );
 
 
-    /* ==================================
+    /* ======================================
        BATAL
-       ================================== */
+       ====================================== */
 
     document
-      .getElementById(
-        "cancelRecapButton"
-      )
+      .getElementById("cancelRecapButton")
       .addEventListener(
         "click",
         function() {
@@ -2095,14 +2082,12 @@ async function loadRecap() {
       );
 
 
-    /* ==================================
+    /* ======================================
        SUBMIT
-       ================================== */
+       ====================================== */
 
     document
-      .getElementById(
-        "recapForm"
-      )
+      .getElementById("recapForm")
       .addEventListener(
         "submit",
         saveRecap
@@ -2111,412 +2096,654 @@ async function loadRecap() {
   }
 
 
-  /* ============================================
-     CUSTOMER
-     ============================================ */
+  /* ========================================
+     TOMBOL KATEGORI
+     ======================================== */
 
-  async function loadRecapCustomers() {
+  categoryButtons.forEach(
+    function(button) {
 
-    const customerSelect =
-      document.getElementById(
-        "recapCustomer"
-      );
+      button.addEventListener(
+        "click",
+        function() {
 
+          categoryButtons.forEach(
+            function(item) {
 
-    if (!customerSelect) {
+              item.classList.remove(
+                "active"
+              );
 
-      return;
-
-    }
-
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient
-          .from("customers")
-          .select(
-            "id, name, whatsapp_last4"
-          )
-          .order(
-            "name",
-            {
-              ascending: true
             }
           );
 
 
-      if (error) {
-
-        console.error(
-          "Gagal memuat customer:",
-          error
-        );
-
-        return;
-
-      }
+          button.classList.add(
+            "active"
+          );
 
 
-      (data || []).forEach(
-        function(customer) {
-
-          const option =
-            document.createElement(
-              "option"
-            );
+          selectedCategory =
+            button.dataset.category;
 
 
-          option.value =
-            customer.id;
+          /*
+             Form selalu tersedia
+             untuk SEMUA kategori.
+          */
+
+          showRecapForm(
+            selectedCategory
+          );
 
 
-          const lastFour =
-            customer.whatsapp_last4 || "";
-
-
-          option.textContent =
-            customer.name +
-            (
-              lastFour
-                ? " (••••" + lastFour + ")"
-                : ""
-            );
-
-
-          customerSelect.appendChild(
-            option
+          loadRecapList(
+            selectedCategory
           );
 
         }
       );
 
-    } catch (error) {
-
-      console.error(
-        "Customer exception:",
-        error
-      );
-
     }
-
-  }
-
-
-  /* ============================================
-     SIMPAN REKAP
-     ============================================ */
-
-  async function saveRecap(
-    event
-  ) {
-
-    event.preventDefault();
+  );
 
 
-    const message =
-      document.getElementById(
-        "recapFormMessage"
-      );
+  /* ========================================
+     TOMBOL TAMBAH REKAP
+     ======================================== */
+
+  const addRecapButton =
+    document.createElement(
+      "button"
+    );
 
 
-    message.textContent =
-      "Menyimpan rekap...";
+  addRecapButton.type =
+    "button";
 
 
-    try {
-
-      const recap = {
-
-        category:
-          document.getElementById(
-            "recapCategory"
-          ).value,
+  addRecapButton.className =
+    "primary-button";
 
 
-        batch_code:
-          document.getElementById(
-            "recapBatchCode"
-          ).value.trim(),
+  addRecapButton.textContent =
+    "＋ Tambah Rekap";
 
 
-        item_name:
-          document.getElementById(
-            "recapItemName"
-          ).value.trim(),
+  addRecapButton.style.marginBottom =
+    "15px";
 
 
-        customer_id:
-          document.getElementById(
-            "recapCustomer"
-          ).value
-            ? Number(
-                document.getElementById(
-                  "recapCustomer"
-                ).value
-              )
-            : null,
+  addRecapButton.addEventListener(
+    "click",
+    function() {
 
-
-        version:
-          document.getElementById(
-            "recapVersion"
-          ).value.trim(),
-
-
-        /*
-          Setiap member photocard
-          menggunakan Qty 1.
-        */
-
-        quantity:
-          Number(
-            document.getElementById(
-              "recapQuantity"
-            ).value
-          ) || 1,
-
-
-        item_price:
-          Number(
-            document.getElementById(
-              "recapPrice"
-            ).value
-          ) || 0,
-
-
-        dp_amount:
-          Number(
-            document.getElementById(
-              "recapDp"
-            ).value
-          ) || 0,
-
-
-        dp_status:
-          document.getElementById(
-            "recapDpStatus"
-          ).value,
-
-
-        remaining_amount:
-          Number(
-            document.getElementById(
-              "recapRemaining"
-            ).value
-          ) || 0,
-
-
-        payment_status:
-          document.getElementById(
-            "recapPaymentStatus"
-          ).value,
-
-
-        tracking_status:
-          document.getElementById(
-            "recapTracking"
-          ).value,
-
-
-        note:
-          document.getElementById(
-            "recapNote"
-          ).value.trim(),
-
-
-        co_deadline:
-          document.getElementById(
-            "recapCoDeadline"
-          ).value || null
-
-      };
-
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("purchase_recap")
-          .insert(
-            recap
-          );
-
-
-      if (error) {
-
-        console.error(
-          "Gagal menyimpan rekap:",
-          error
-        );
-
-
-        message.textContent =
-          "Gagal menyimpan rekap: " +
-          error.message;
-
-
-        return;
-
-      }
-
-
-      message.textContent =
-        "Rekap berhasil disimpan. ♥";
-
-
-      recapFormContainer.innerHTML =
-        "";
-
-
-      await loadRecapList(
+      showRecapForm(
         selectedCategory
       );
 
-
-    } catch (error) {
-
-      console.error(
-        "Save recap exception:",
-        error
-      );
-
-
-      message.textContent =
-        "Terjadi kesalahan: " +
-        error.message;
-
     }
+  );
 
-  }
+
+  /*
+     Masukkan tombol setelah
+     panel-header.
+  */
+
+  const panelHeader =
+    pageContent.querySelector(
+      ".panel-header"
+    );
+
+
+  panelHeader.insertAdjacentElement(
+    "afterend",
+    addRecapButton
+  );
+
+
+  /* ========================================
+     TAMPILKAN FORM AWAL
+     ======================================== */
+
+  showRecapForm(
+    selectedCategory
+  );
+
+
+  /* ========================================
+     LOAD DATA AWAL
+     ======================================== */
+
+  loadRecapList(
+    selectedCategory
+  );
+
+}
+
+
+/* ============================================
+   SIMPAN REKAP
+   ============================================ */
+
+async function saveRecap(
+  event
+) {
+
+  event.preventDefault();
+
+
+  const message =
+    document.getElementById(
+      "recapFormMessage"
+    );
+
+
+  message.textContent =
+    "Menyimpan rekap...";
+
+
+  /* ========================================
+     AMBIL DATA FORM
+     ======================================== */
+
+  const category =
+    document
+      .getElementById("recapCategory")
+      .value;
+
+
+  const batchCode =
+    document
+      .getElementById("recapBatch")
+      .value
+      .trim();
+
+
+  const itemName =
+    document
+      .getElementById("recapItemName")
+      .value
+      .trim();
+
+
+  const customerName =
+    document
+      .getElementById("recapCustomer")
+      .value
+      .trim();
+
+
+  const version =
+    document
+      .getElementById("recapVersion")
+      .value
+      .trim();
+
+
+  const quantity =
+    Number(
+      document
+        .getElementById("recapQty")
+        .value
+    );
+
+
+  const itemPrice =
+    Number(
+      document
+        .getElementById("recapPrice")
+        .value
+    );
+
+
+  const dpAmount =
+    Number(
+      document
+        .getElementById("recapDP")
+        .value
+    );
+
+
+  const dpStatus =
+    document
+      .getElementById("recapDPStatus")
+      .value;
+
+
+  const remainingAmount =
+    Number(
+      document
+        .getElementById("recapRemaining")
+        .value
+    );
+
+
+  const paymentStatus =
+    document
+      .getElementById("recapPaymentStatus")
+      .value;
+
+
+  const trackingStatus =
+    document
+      .getElementById("recapTracking")
+      .value;
+
+
+  const note =
+    document
+      .getElementById("recapNote")
+      .value
+      .trim();
+
+
+  const coDeadline =
+    document
+      .getElementById("recapCODedline")
+      .value || null;
+
+
+  /* ========================================
+     DATA REKAP
+     ======================================== */
+
+  const recap = {
+
+    category:
+      category,
+
+    batch_code:
+      batchCode,
+
+    item_name:
+      itemName,
+
+    customer_name:
+      customerName || "AVAILABLE",
+
+    version:
+      version || "AVAILABLE",
+
+    quantity:
+      quantity || 1,
+
+    item_price:
+      itemPrice || 0,
+
+    dp_amount:
+      dpAmount || 0,
+
+    dp_status:
+      dpStatus,
+
+    remaining_amount:
+      remainingAmount || 0,
+
+    payment_status:
+      paymentStatus,
+
+    tracking_status:
+      trackingStatus,
+
+    note:
+      note || null,
+
+    co_deadline:
+      coDeadline
+
+  };
 
 
   /* ============================================
-     FORMAT CUSTOMER
-     ============================================ */
+   SIMPAN KE SUPABASE
+   ============================================ */
 
-  function formatCustomer(
-    customer
-  ) {
+async function saveRecap(event) {
 
-    if (!customer) {
+  event.preventDefault();
 
-      return `
+  const message =
+    document.getElementById(
+      "recapFormMessage"
+    );
 
-        <span class="available">
-          AVAILABLE
-        </span>
-
-      `;
-
-    }
+  message.textContent =
+    "Menyimpan rekap...";
 
 
-    const lastFour =
-      customer.whatsapp_last4 || "";
+  /* ========================================
+     AMBIL DATA FORM
+     ======================================== */
+
+  const category =
+    document
+      .getElementById("recapCategory")
+      .value;
 
 
-    return `
+  const batchCode =
+    document
+      .getElementById("recapBatch")
+      .value
+      .trim();
 
-      <span class="customer-name">
 
-        ${customer.name || "—"}
+  const itemName =
+    document
+      .getElementById("recapItemName")
+      .value
+      .trim();
 
-        ${
-          lastFour
-            ? `<small>(••••${lastFour})</small>`
-            : ""
-        }
 
-      </span>
+  const customerName =
+    document
+      .getElementById("recapCustomer")
+      .value
+      .trim();
 
-    `;
+
+  const version =
+    document
+      .getElementById("recapVersion")
+      .value
+      .trim();
+
+
+  const quantity =
+    Number(
+      document
+        .getElementById("recapQty")
+        .value
+    );
+
+
+  const itemPrice =
+    Number(
+      document
+        .getElementById("recapPrice")
+        .value
+    );
+
+
+  const dpAmount =
+    Number(
+      document
+        .getElementById("recapDP")
+        .value
+    );
+
+
+  const dpStatus =
+    document
+      .getElementById("recapDPStatus")
+      .value;
+
+
+  const remainingAmount =
+    Number(
+      document
+        .getElementById("recapRemaining")
+        .value
+    );
+
+
+  const paymentStatus =
+    document
+      .getElementById("recapPaymentStatus")
+      .value;
+
+
+  const trackingStatus =
+    document
+      .getElementById("recapTracking")
+      .value;
+
+
+  const note =
+    document
+      .getElementById("recapNote")
+      .value
+      .trim();
+
+
+  const coDeadline =
+    document
+      .getElementById("recapCODedline")
+      .value || null;
+
+
+  /* ========================================
+     VALIDASI
+     ======================================== */
+
+  if (!category) {
+
+    message.textContent =
+      "Kategori belum dipilih.";
+
+    return;
 
   }
 
 
-  /* ============================================
-     FORMAT MEMBER / VERSION
-     ============================================ */
+  if (!batchCode) {
 
-  function formatVersion(
-    version
-  ) {
+    message.textContent =
+      "Kode batch wajib diisi.";
 
-    if (!version) {
-
-      return "—";
-
-    }
-
-
-    if (
-      typeof version === "string" &&
-      version
-        .toLowerCase()
-        .trim() === "available"
-    ) {
-
-      return `
-
-        <span class="available-member">
-          available
-        </span>
-
-      `;
-
-    }
-
-
-    return version;
+    return;
 
   }
 
 
-  /* ============================================
-     FORMAT TRACKING
-     ============================================ */
+  if (!itemName) {
 
-  function formatTracking(
-    tracking
-  ) {
+    message.textContent =
+      "Nama barang wajib diisi.";
 
-    if (!tracking) {
-
-      return "—";
-
-    }
-
-
-    /*
-      Tidak menggunakan "Sudah CO".
-
-      Status terakhir:
-      Delivered
-      = barang sudah sampai/customer.
-    */
-
-    if (
-      tracking === "Delivered"
-    ) {
-
-      return `
-
-        <span class="status-delivered">
-          Goods Arrive at Customer
-        </span>
-
-      `;
-
-    }
-
-
-    return tracking;
+    return;
 
   }
+
+
+  /* ========================================
+     DATA REKAP
+     ======================================== */
+
+  /*
+     Customer TIDAK menggunakan
+     tabel customers.
+
+     Cukup simpan:
+     Nama + 4 nomor terakhir WA.
+
+     Contoh:
+     Euis (1234)
+
+     Jika kosong:
+     AVAILABLE
+  */
+
+  const recap = {
+
+    category:
+      category,
+
+    batch_code:
+      batchCode,
+
+    item_name:
+      itemName,
+
+    customer_name:
+      customerName || "AVAILABLE",
+
+    version:
+      version || "AVAILABLE",
+
+    quantity:
+      quantity || 1,
+
+    item_price:
+      itemPrice || 0,
+
+    dp_amount:
+      dpAmount || 0,
+
+    dp_status:
+      dpStatus,
+
+    remaining_amount:
+      remainingAmount || 0,
+
+    payment_status:
+      paymentStatus,
+
+    tracking_status:
+      trackingStatus,
+
+    note:
+      note || null,
+
+    co_deadline:
+      coDeadline
+
+  };
+
+
+  console.log(
+    "DATA YANG AKAN DISIMPAN:",
+    recap
+  );
+
+
+  /* ========================================
+     SIMPAN KE SUPABASE
+     ======================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .insert(
+        recap
+      )
+      .select();
+
+
+  console.log(
+    "HASIL INSERT:",
+    data
+  );
+
+
+  console.log(
+    "ERROR INSERT:",
+    error
+  );
+
+
+  /* ========================================
+     JIKA ERROR
+     ======================================== */
+
+  if (error) {
+
+    console.error(
+      "ERROR SIMPAN REKAP:",
+      error
+    );
+
+
+    message.textContent =
+      "Gagal menyimpan rekap: " +
+      error.message;
+
+    return;
+
+  }
+
+
+  /* ========================================
+     BERHASIL
+     ======================================== */
+
+  message.textContent =
+    "Rekap berhasil disimpan. ♥";
+
+
+  /* ========================================
+     REFRESH DATA
+     ======================================== */
+
+  await loadRecapList(
+    category
+  );
+
+
+  /* ========================================
+     KOSONGKAN FORM
+     ======================================== */
+
+  document
+    .getElementById(
+      "recapForm"
+    )
+    .reset();
+
+
+  /*
+     Kategori tetap menggunakan
+     kategori yang sedang dipilih.
+  */
+
+  document
+    .getElementById(
+      "recapCategory"
+    )
+    .value =
+      category;
+
+
+  /*
+     Qty kembali menjadi 1.
+  */
+
+  document
+    .getElementById(
+      "recapQty"
+    )
+    .value = 1;
+
+
+  /*
+     Tracking kembali ke
+     pilihan pertama.
+  */
+
+  const trackingSelect =
+    document.getElementById(
+      "recapTracking"
+    );
+
+
+  if (
+    trackingSelect &&
+    trackingSelect.options.length > 0
+  ) {
+
+    trackingSelect.value =
+      trackingSelect
+        .options[0]
+        .value;
+
+  }
+
+}
 
 
 /* ============================================
@@ -2527,11 +2754,35 @@ async function loadRecapList(
   category
 ) {
 
-  recapListContainer.innerHTML =
+  const container =
+    document.getElementById(
+      "recapListContainer"
+    );
+
+
+  if (!container) {
+
+    console.error(
+      "recapListContainer tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  container.innerHTML =
     "<p>Memuat rekap...</p>";
 
 
   try {
+
+    /*
+       TIDAK ADA JOIN KE CUSTOMERS.
+
+       Customer langsung diambil dari
+       purchase_recap.customer_name.
+    */
 
     const {
       data,
@@ -2539,23 +2790,10 @@ async function loadRecapList(
     } =
       await supabaseClient
         .from("purchase_recap")
-        .select(`
-          *,
-          customers (
-            id,
-            name,
-            whatsapp_last4
-          )
-        `)
+        .select("*")
         .eq(
           "category",
           category
-        )
-        .order(
-          "batch_code",
-          {
-            ascending: true
-          }
         )
         .order(
           "id",
@@ -2577,13 +2815,13 @@ async function loadRecapList(
     );
 
 
-    /* ========================================
-       JIKA ERROR
-       ======================================== */
+    /* ======================================
+       ERROR
+       ====================================== */
 
     if (error) {
 
-      recapListContainer.innerHTML = `
+      container.innerHTML = `
 
         <div class="panel">
 
@@ -2604,16 +2842,16 @@ async function loadRecapList(
     }
 
 
-    /* ========================================
-       JIKA BELUM ADA DATA
-       ======================================== */
+    /* ======================================
+       BELUM ADA DATA
+       ====================================== */
 
     if (
       !data ||
       data.length === 0
     ) {
 
-      recapListContainer.innerHTML = `
+      container.innerHTML = `
 
         <div class="panel">
 
@@ -2622,7 +2860,7 @@ async function loadRecapList(
           </h3>
 
           <p>
-            Belum ada rekapan untuk kategori
+            Belum ada rekapan untuk
             <strong>
               ${category}
             </strong>.
@@ -2637,146 +2875,11 @@ async function loadRecapList(
     }
 
 
-    /* ========================================
-       FORMAT CUSTOMER
-       ======================================== */
-
-    function formatCustomer(
-      customer
-    ) {
-
-      /* CUSTOMER KOSONG */
-
-      if (!customer) {
-
-        return `
-
-          <span class="available">
-            AVAILABLE
-          </span>
-
-        `;
-
-      }
-
-
-      const name =
-        customer.name || "—";
-
-
-      const lastFour =
-        customer.whatsapp_last4 || "";
-
-
-      return `
-
-        <span class="customer-name">
-
-          ${name}
-
-          ${
-            lastFour
-              ? `
-                <small>
-                  (••••${lastFour})
-                </small>
-              `
-              : ""
-          }
-
-        </span>
-
-      `;
-
-    }
-
-
-    /* ========================================
-       FORMAT MEMBER / VERSION
-       ======================================== */
-
-    function formatVersion(
-      version
-    ) {
-
-      if (!version) {
-
-        return "—";
-
-      }
-
-
-      if (
-        typeof version === "string" &&
-        version
-          .toLowerCase()
-          .trim() === "available"
-      ) {
-
-        return `
-
-          <span class="available-member">
-            available
-          </span>
-
-        `;
-
-      }
-
-
-      return version;
-
-    }
-
-
-    /* ========================================
-       FORMAT TRACKING
-       ======================================== */
-
-    function formatTracking(
-      tracking
-    ) {
-
-      if (!tracking) {
-
-        return "—";
-
-      }
-
-
-      /*
-        Status terakhir tidak menggunakan
-        "Sudah di CO".
-
-        Delivered ditampilkan sebagai:
-        Goods Arrive at Customer
-      */
-
-      if (
-        tracking === "Delivered"
-      ) {
-
-        return `
-
-          <span class="status-delivered">
-            Goods Arrive at Customer
-          </span>
-
-        `;
-
-      }
-
-
-      return tracking;
-
-    }
-
-
-    /* ========================================
+    /* ======================================
        TABEL REKAP
-       ======================================== */
+       ====================================== */
 
-    recapListContainer.innerHTML = `
+    container.innerHTML = `
 
       <div class="product-table-wrapper">
 
@@ -2787,7 +2890,7 @@ async function loadRecapList(
             <tr>
 
               <th>
-                Kode Batch
+                Batch
               </th>
 
               <th>
@@ -2799,7 +2902,7 @@ async function loadRecapList(
               </th>
 
               <th>
-                Versi / Member
+                Versi / Member / Character
               </th>
 
               <th>
@@ -2848,21 +2951,13 @@ async function loadRecapList(
             ${data.map(
               function(item) {
 
-                /* ==========================
-                   HARGA
-                   ========================== */
-
-                const harga =
+                const price =
                   Number(
                     item.item_price || 0
                   ).toLocaleString(
                     "id-ID"
                   );
 
-
-                /* ==========================
-                   DP
-                   ========================== */
 
                 const dp =
                   Number(
@@ -2872,11 +2967,7 @@ async function loadRecapList(
                   );
 
 
-                /* ==========================
-                   PELUNASAN
-                   ========================== */
-
-                const pelunasan =
+                const remaining =
                   Number(
                     item.remaining_amount || 0
                   ).toLocaleString(
@@ -2885,24 +2976,85 @@ async function loadRecapList(
 
 
                 /* ==========================
-                   STATUS DP
+                   CUSTOMER
                    ========================== */
 
-                const statusDP =
-                  item.dp_status === "paid"
+                const customer =
+                  item.customer_name ||
+                  "AVAILABLE";
+
+
+                const customerHTML =
+                  customer
+                    .toUpperCase()
+                    .trim() ===
+                  "AVAILABLE"
 
                     ? `
 
-                      <span class="status-paid">
-                        ✓ Sudah Bayar
+                      <span
+                        class="available-member"
+                      >
+                        AVAILABLE
+                      </span>
+
+                    `
+
+                    : customer;
+
+
+                /* ==========================
+                   VERSION / MEMBER
+                   ========================== */
+
+                const version =
+                  item.version ||
+                  "AVAILABLE";
+
+
+                const versionHTML =
+                  version
+                    .toUpperCase()
+                    .trim() ===
+                  "AVAILABLE"
+
+                    ? `
+
+                      <span
+                        class="available-member"
+                      >
+                        AVAILABLE
+                      </span>
+
+                    `
+
+                    : version;
+
+
+                /* ==========================
+                   STATUS DP
+                   ========================== */
+
+                const dpStatus =
+                  item.dp_status ===
+                  "paid"
+
+                    ? `
+
+                      <span
+                        class="status-paid"
+                      >
+                        ✓ Sudah Dibayar
                       </span>
 
                     `
 
                     : `
 
-                      <span class="status-unpaid">
-                        Belum Bayar
+                      <span
+                        class="status-unpaid"
+                      >
+                        Belum Dibayar
                       </span>
 
                     `;
@@ -2912,20 +3064,25 @@ async function loadRecapList(
                    STATUS PELUNASAN
                    ========================== */
 
-                const statusPelunasan =
-                  item.payment_status === "paid"
+                const paymentStatus =
+                  item.payment_status ===
+                  "paid"
 
                     ? `
 
-                      <span class="status-paid">
-                        ✓ Lunas
+                      <span
+                        class="status-paid"
+                      >
+                        ✓ Sudah Lunas
                       </span>
 
                     `
 
                     : `
 
-                      <span class="status-unpaid">
+                      <span
+                        class="status-unpaid"
+                      >
                         Belum Lunas
                       </span>
 
@@ -2933,33 +3090,29 @@ async function loadRecapList(
 
 
                 /* ==========================
-                   CUSTOMER
-                   ========================== */
-
-                const customerHTML =
-                  formatCustomer(
-                    item.customers
-                  );
-
-
-                /* ==========================
-                   VERSION / MEMBER
-                   ========================== */
-
-                const versionHTML =
-                  formatVersion(
-                    item.version
-                  );
-
-
-                /* ==========================
                    TRACKING
                    ========================== */
 
+                const tracking =
+                  item.tracking_status ||
+                  "—";
+
+
                 const trackingHTML =
-                  formatTracking(
-                    item.tracking_status
-                  );
+                  tracking ===
+                  "Goods Arrive at Customer"
+
+                    ? `
+
+                      <span
+                        class="status-delivered"
+                      >
+                        Goods Arrive at Customer
+                      </span>
+
+                    `
+
+                    : tracking;
 
 
                 /* ==========================
@@ -2979,7 +3132,7 @@ async function loadRecapList(
 
 
                 /* ==========================
-                   BARIS DATA
+                   BARIS
                    ========================== */
 
                 return `
@@ -3012,7 +3165,7 @@ async function loadRecapList(
 
 
                     <td>
-                      Rp${harga}
+                      Rp${price}
                     </td>
 
 
@@ -3022,17 +3175,17 @@ async function loadRecapList(
 
 
                     <td>
-                      ${statusDP}
+                      ${dpStatus}
                     </td>
 
 
                     <td>
-                      Rp${pelunasan}
+                      Rp${remaining}
                     </td>
 
 
                     <td>
-                      ${statusPelunasan}
+                      ${paymentStatus}
                     </td>
 
 
@@ -3068,17 +3221,13 @@ async function loadRecapList(
 
   } catch (error) {
 
-    /* ========================================
-       ERROR SISTEM
-       ======================================== */
-
     console.error(
       "Kesalahan loadRecapList:",
       error
     );
 
 
-    recapListContainer.innerHTML = `
+    container.innerHTML = `
 
       <div class="panel">
 
@@ -3087,12 +3236,7 @@ async function loadRecapList(
         </h3>
 
         <p>
-          Terjadi kesalahan saat mengambil
-          data rekap pembelian.
-        </p>
-
-        <p>
-          ${error.message || ""}
+          ${error.message}
         </p>
 
       </div>
@@ -3105,142 +3249,59 @@ async function loadRecapList(
 
 
 /* ============================================
-   MUAT DATA REKAP AWAL
+   PESANAN
    ============================================ */
 
-await loadRecapList(
-  selectedCategory
-);
+function loadOrders() {
+
+  pageTitle.textContent =
+    "Pesanan";
+
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <h2>
+        Pesanan
+      </h2>
+
+      <p>
+        Halaman Pesanan berhasil dibuka.
+      </p>
+
+    </div>
+
+  `;
 
 }
 
 
 /* ============================================
-   RINGKASAN REKAP
+   PEMBAYARAN
    ============================================ */
 
-async function loadRecapSummary() {
+function loadPayments() {
 
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select(`
-          category,
-          item_price,
-          dp_amount,
-          remaining_amount,
-          payment_status,
-          tracking_status
-        `);
+  pageTitle.textContent =
+    "Pembayaran";
 
 
-    if (error) {
+  pageContent.innerHTML = `
 
-      console.error(
-        "Gagal memuat ringkasan:",
-        error
-      );
+    <div class="panel">
 
-      return null;
+      <h2>
+        Pembayaran
+      </h2>
 
-    }
+      <p>
+        Halaman Pembayaran berhasil dibuka.
+      </p>
 
+    </div>
 
-    const summary = {};
-
-
-    (data || []).forEach(
-      function(item) {
-
-        const category =
-          item.category || "Lainnya";
-
-
-        if (
-          !summary[category]
-        ) {
-
-          summary[category] = {
-
-            quantity: 0,
-
-            totalPrice: 0,
-
-            totalDP: 0,
-
-            totalRemaining: 0,
-
-            unpaid: 0,
-
-            delivered: 0
-
-          };
-
-        }
-
-
-        summary[category].quantity += 1;
-
-
-        summary[category].totalPrice +=
-          Number(
-            item.item_price || 0
-          );
-
-
-        summary[category].totalDP +=
-          Number(
-            item.dp_amount || 0
-          );
-
-
-        summary[category].totalRemaining +=
-          Number(
-            item.remaining_amount || 0
-          );
-
-
-        if (
-          item.payment_status !== "paid"
-        ) {
-
-          summary[category].unpaid += 1;
-
-        }
-
-
-        if (
-          item.tracking_status ===
-          "Delivered"
-        ) {
-
-          summary[category].delivered += 1;
-
-        }
-
-      }
-    );
-
-
-    return summary;
-
-
-  } catch (error) {
-
-    console.error(
-      "Summary exception:",
-      error
-    );
-
-
-    return null;
-
-  }
+  `;
 
 }
 
