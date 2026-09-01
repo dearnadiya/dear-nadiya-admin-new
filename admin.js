@@ -856,16 +856,19 @@ async function loadProducts() {
 
     }
 
+     if (!data || data.length === 0) {
 
-    if (!data || data.length === 0) {
+  productListContainer.innerHTML = `
+    <div class="panel">
+      <h3>Belum ada produk</h3>
+      <p>Supabase berhasil dihubungi, tetapi tidak mengembalikan data.</p>
+      <pre>${JSON.stringify(data, null, 2)}</pre>
+    </div>
+  `;
 
-      productListContainer.innerHTML =
-        "<p>Belum ada produk.</p>";
+  return;
 
-      return;
-
-    }
-
+     }
 
     productListContainer.innerHTML = `
 
