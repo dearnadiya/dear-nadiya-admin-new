@@ -1151,8 +1151,8 @@ function loadRecap() {
           </h2>
 
           <p>
-            Kelola seluruh rekapan pembelian
-            Dear Nadiya.
+            Kelola rekapan pembelian berdasarkan
+            kategori dan kode batch.
           </p>
 
         </div>
@@ -1169,6 +1169,10 @@ function loadRecap() {
       </div>
 
 
+      <!-- ==================================
+           KATEGORI
+           ================================== -->
+
       <div
         class="recap-category-buttons"
         id="recapCategoryButtons"
@@ -1176,6 +1180,7 @@ function loadRecap() {
 
         <button
           type="button"
+          class="active"
           data-category="Truz"
         >
           Truz
@@ -1226,10 +1231,18 @@ function loadRecap() {
       </div>
 
 
+      <!-- ==================================
+           FORM
+           ================================== -->
+
       <div
         id="recapFormContainer"
       ></div>
 
+
+      <!-- ==================================
+           LIST
+           ================================== -->
 
       <div
         id="recapListContainer"
@@ -1246,11 +1259,19 @@ function loadRecap() {
   `;
 
 
+  let selectedCategory =
+    "Truz";
+
+
   const categoryButtons =
     document.querySelectorAll(
       "#recapCategoryButtons button"
     );
 
+
+  /* ========================================
+     KATEGORI
+     ======================================== */
 
   categoryButtons.forEach(
     function(button) {
@@ -1275,12 +1296,12 @@ function loadRecap() {
           );
 
 
-          const category =
+          selectedCategory =
             button.dataset.category;
 
 
           loadRecapList(
-            category
+            selectedCategory
           );
 
         }
@@ -1290,6 +1311,10 @@ function loadRecap() {
   );
 
 
+  /* ========================================
+     TOMBOL TAMBAH REKAP
+     ======================================== */
+
   document
     .getElementById(
       "addRecapButton"
@@ -1298,16 +1323,27 @@ function loadRecap() {
       "click",
       function() {
 
-        showRecapForm();
+        showRecapBatchForm(
+          selectedCategory
+        );
 
       }
     );
+
+
+  /* ========================================
+     LOAD DATA AWAL
+     ======================================== */
+
+  loadRecapList(
+    selectedCategory
+  );
 
 }
 
 
 /* ============================================
-   PILIHAN TRACKING
+   TRACKING
    ============================================ */
 
 function getTrackingOptions(
@@ -1321,32 +1357,11 @@ function getTrackingOptions(
 
     return [
 
-      {
-        value:
-          "Co Seller",
+      "Co Seller",
 
-        label:
-          "Co Seller"
+      "Arrived Admin",
 
-      },
-
-      {
-        value:
-          "Arrived Admin",
-
-        label:
-          "Arrived Admin"
-
-      },
-
-      {
-        value:
-          "Delivered",
-
-        label:
-          "Delivered"
-
-      }
+      "Goods Arrive at Customer"
 
     ];
 
@@ -1360,85 +1375,51 @@ function getTrackingOptions(
 
     return [
 
-      {
-        value:
-          "Co Web / Seller",
+      "Co Web / Seller",
 
-        label:
-          "Co Web / Seller"
+      "Arrived WH KR",
 
-      },
+      "Arrived WH JP",
 
-      {
-        value:
-          "Arrived WH KR",
+      "Arrived WH CH",
 
-        label:
-          "Arrived WH KR"
+      "Arrived WH Thai",
 
-      },
+      "Shipping INA",
 
-      {
-        value:
-          "Arrived WH JP",
+      "Arrived WH INA",
 
-        label:
-          "Arrived WH JP"
+      "Arrived Admin",
 
-      },
-
-      {
-        value:
-          "Arrived WH CH",
-
-        label:
-          "Arrived WH CH"
-
-      },
-
-      {
-        value:
-          "Arrived WH Thai",
-
-        label:
-          "Arrived WH Thai"
-
-      },
-
-      {
-        value:
-          "Shipping INA",
-
-        label:
-          "Shipping INA"
-
-      },
-
-      {
-        value:
-          "Arrived Admin",
-
-        label:
-          "Arrived Admin"
-
-      },
-
-      {
-        value:
-          "Goods Arrive at Customer",
-
-        label:
-          "Goods Arrive at Customer"
-
-      }
+      "Goods Arrive at Customer"
 
     ];
 
   }
 
 
-  let warehouse =
-    "KR";
+  if (
+    category ===
+    "Treasure KR"
+  ) {
+
+    return [
+
+      "Co Web / Seller",
+
+      "Arrived WH KR",
+
+      "Shipping INA",
+
+      "Arrived WH INA",
+
+      "Arrived Admin",
+
+      "Goods Arrive at Customer"
+
+    ];
+
+  }
 
 
   if (
@@ -1446,8 +1427,21 @@ function getTrackingOptions(
     "Treasure JP"
   ) {
 
-    warehouse =
-      "JP";
+    return [
+
+      "Co Web / Seller",
+
+      "Arrived WH JP",
+
+      "Shipping INA",
+
+      "Arrived WH INA",
+
+      "Arrived Admin",
+
+      "Goods Arrive at Customer"
+
+    ];
 
   }
 
@@ -1457,8 +1451,21 @@ function getTrackingOptions(
     "Treasure CH"
   ) {
 
-    warehouse =
-      "CH";
+    return [
+
+      "Co Web / Seller",
+
+      "Arrived WH CH",
+
+      "Shipping INA",
+
+      "Arrived WH INA",
+
+      "Arrived Admin",
+
+      "Goods Arrive at Customer"
+
+    ];
 
   }
 
@@ -1468,60 +1475,66 @@ function getTrackingOptions(
     "Treasure Thai"
   ) {
 
-    warehouse =
-      "Thai";
+    return [
+
+      "Co Web / Seller",
+
+      "Arrived WH Thai",
+
+      "Shipping INA",
+
+      "Arrived WH INA",
+
+      "Arrived Admin",
+
+      "Goods Arrive at Customer"
+
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure Album"
+  ) {
+
+    return [
+
+      "Co Web / Seller",
+
+      "Arrived WH KR",
+
+      "Arrived WH JP",
+
+      "Arrived WH CH",
+
+      "Arrived WH Thai",
+
+      "Shipping INA",
+
+      "Arrived WH INA",
+
+      "Arrived Admin",
+
+      "Goods Arrive at Customer"
+
+    ];
 
   }
 
 
   return [
 
-    {
-      value:
-        "Co Web / Seller",
+    "Co Web / Seller",
 
-      label:
-        "Co Web / Seller"
+    "Shipping INA",
 
-    },
+    "Arrived WH INA",
 
-    {
-      value:
-        "Arrived WH " +
-        warehouse,
+    "Arrived Admin",
 
-      label:
-        "Arrived WH " +
-        warehouse
-
-    },
-
-    {
-      value:
-        "Shipping INA",
-
-      label:
-        "Shipping INA"
-
-    },
-
-    {
-      value:
-        "Arrived Admin",
-
-      label:
-        "Arrived Admin"
-
-    },
-
-    {
-      value:
-        "Goods Arrive at Customer",
-
-      label:
-        "Goods Arrive at Customer"
-
-    }
+    "Goods Arrive at Customer"
 
   ];
 
@@ -1529,10 +1542,12 @@ function getTrackingOptions(
 
 
 /* ============================================
-   TAMPILKAN FORM REKAP
+   TAMPILKAN FORM BATCH
    ============================================ */
 
-function showRecapForm() {
+function showRecapBatchForm(
+  category
+) {
 
   const container =
     document.getElementById(
@@ -1542,213 +1557,147 @@ function showRecapForm() {
 
   container.innerHTML = `
 
-    <div class="panel">
+    <div class="panel recap-form">
 
       <h3>
         Tambah Rekap Pembelian
       </h3>
 
 
-      <form id="recapForm">
+      <form id="recapBatchForm">
+
+
+        <!-- ==========================
+             KATEGORI
+             ========================== -->
 
         <label>
           Kategori
         </label>
 
         <select
-          id="recapCategory"
+          id="batchCategory"
           required
         >
 
-          <option value="Truz">
+          <option
+            value="Truz"
+            ${category === "Truz" ? "selected" : ""}
+          >
             Truz
           </option>
 
-          <option value="Treasure KR">
+          <option
+            value="Treasure KR"
+            ${category === "Treasure KR" ? "selected" : ""}
+          >
             Treasure KR
           </option>
 
-          <option value="Treasure JP">
+          <option
+            value="Treasure JP"
+            ${category === "Treasure JP" ? "selected" : ""}
+          >
             Treasure JP
           </option>
 
-          <option value="Treasure CH">
+          <option
+            value="Treasure CH"
+            ${category === "Treasure CH" ? "selected" : ""}
+          >
             Treasure CH
           </option>
 
-          <option value="Treasure Thai">
+          <option
+            value="Treasure Thai"
+            ${category === "Treasure Thai" ? "selected" : ""}
+          >
             Treasure Thai
           </option>
 
-          <option value="Treasure Album">
+          <option
+            value="Treasure Album"
+            ${category === "Treasure Album" ? "selected" : ""}
+          >
             Treasure Album
           </option>
 
-          <option value="Treasure INA">
+          <option
+            value="Treasure INA"
+            ${category === "Treasure INA" ? "selected" : ""}
+          >
             Treasure INA
           </option>
 
         </select>
 
 
+        <!-- ==========================
+             KODE BATCH
+             ========================== -->
+
         <label>
           Kode Batch
         </label>
 
         <input
-          id="recapBatch"
+          id="batchCode"
           type="text"
-          placeholder="Contoh: CH-001 / BATCH 1"
+          placeholder="Contoh: CH-169"
           required
         >
 
+
+        <!-- ==========================
+             NAMA BARANG
+             ========================== -->
 
         <label>
           Nama Barang
         </label>
 
         <input
-          id="recapItemName"
+          id="batchItemName"
           type="text"
-          placeholder="Contoh: FS KnPops"
+          placeholder="Contoh: FS Knpops"
           required
         >
 
 
-        <label>
-          Customer
-        </label>
+        <hr>
 
-        <input
-          id="recapCustomer"
-          type="text"
-          placeholder="Nama customer (4 nomor terakhir WA)"
+
+        <h3>
+          Versi / Member
+        </h3>
+
+
+        <p>
+          Tambahkan versi atau member sesuai
+          kebutuhan batch.
+        </p>
+
+
+        <!-- ==========================
+             ITEM LIST
+             ========================== -->
+
+        <div
+          id="batchItemsContainer"
+        ></div>
+
+
+        <!-- ==========================
+             TAMBAH ITEM
+             ========================== -->
+
+        <button
+          type="button"
+          id="addBatchItemButton"
+          class="primary-button"
         >
-
-
-        <label>
-          Versi / Member / Character
-        </label>
-
-        <input
-          id="recapVersion"
-          type="text"
-          placeholder="Contoh: Hyunsuk / Version A / RURU"
-        >
-
-
-        <label>
-          Qty
-        </label>
-
-        <input
-          id="recapQty"
-          type="number"
-          min="1"
-          value="1"
-          required
-        >
-
-
-        <label>
-          Harga Barang
-        </label>
-
-        <input
-          id="recapPrice"
-          type="number"
-          min="0"
-          value="0"
-          required
-        >
-
-
-        <label>
-          DP
-        </label>
-
-        <input
-          id="recapDP"
-          type="number"
-          min="0"
-          value="0"
-        >
-
-
-        <label>
-          Status DP
-        </label>
-
-        <select id="recapDPStatus">
-
-          <option value="unpaid">
-            Belum Dibayar
-          </option>
-
-          <option value="paid">
-            Sudah Dibayar
-          </option>
-
-        </select>
-
-
-        <label>
-          Pelunasan / Sisa Pembayaran
-        </label>
-
-        <input
-          id="recapRemaining"
-          type="number"
-          min="0"
-          value="0"
-        >
-
-
-        <label>
-          Status Pelunasan
-        </label>
-
-        <select id="recapPaymentStatus">
-
-          <option value="unpaid">
-            Belum Lunas
-          </option>
-
-          <option value="paid">
-            Sudah Lunas
-          </option>
-
-        </select>
-
-
-        <label>
-          Tracking
-        </label>
-
-        <select
-          id="recapTracking"
-        ></select>
-
-
-        <label>
-          Note
-        </label>
-
-        <textarea
-          id="recapNote"
-          rows="4"
-          placeholder="Catatan..."
-        ></textarea>
-
-
-        <label>
-          Batas CO / Checkout
-        </label>
-
-        <input
-          id="recapCODedline"
-          type="date"
-        >
+          ＋ Tambah Versi / Member
+        </button>
 
 
         <div class="form-actions">
@@ -1757,13 +1706,13 @@ function showRecapForm() {
             type="submit"
             class="primary-button"
           >
-            Simpan Rekap
+            Simpan Batch
           </button>
 
 
           <button
             type="button"
-            id="cancelRecapButton"
+            id="cancelBatchButton"
           >
             Batal
           </button>
@@ -1772,9 +1721,10 @@ function showRecapForm() {
 
 
         <p
-          id="recapFormMessage"
+          id="batchFormMessage"
           class="login-error"
         ></p>
+
 
       </form>
 
@@ -1783,61 +1733,340 @@ function showRecapForm() {
   `;
 
 
-  const categorySelect =
+  const itemsContainer =
     document.getElementById(
-      "recapCategory"
-    );
-
-  const trackingSelect =
-    document.getElementById(
-      "recapTracking"
+      "batchItemsContainer"
     );
 
 
-  function updateTracking() {
-
-    const category =
-      categorySelect.value;
+  let itemNumber = 0;
 
 
-    const options =
+  /* ========================================
+     BUAT BARIS ITEM
+     ======================================== */
+
+  function addBatchItem() {
+
+    itemNumber++;
+
+
+    const itemId =
+      itemNumber;
+
+
+    const trackingOptions =
       getTrackingOptions(
-        category
+        document
+          .getElementById(
+            "batchCategory"
+          )
+          .value
       );
 
 
-    trackingSelect.innerHTML =
-      options.map(
-        function(option) {
+    const item = document.createElement(
+      "div"
+    );
 
-          return `
 
-            <option
-              value="${option.value}"
-            >
-              ${option.label}
-            </option>
+    item.className =
+      "batch-item";
 
-          `;
+
+    item.dataset.item =
+      itemId;
+
+
+    item.innerHTML = `
+
+      <div
+        class="batch-item-header"
+      >
+
+        <h4>
+          Versi / Member ${itemNumber}
+        </h4>
+
+
+        <button
+          type="button"
+          class="remove-batch-item"
+        >
+          ✕ Hapus
+        </button>
+
+      </div>
+
+
+      <label>
+        Versi / Member / Character
+      </label>
+
+      <input
+        type="text"
+        class="batch-version"
+        placeholder="Contoh: Hyunsuk / Version A / RURU"
+      >
+
+
+      <label>
+        Customer
+      </label>
+
+      <input
+        type="text"
+        class="batch-customer"
+        placeholder="Nama Customer (4 nomor terakhir WA)"
+      >
+
+
+      <label>
+        Qty
+      </label>
+
+      <input
+        type="number"
+        class="batch-quantity"
+        min="1"
+        value="1"
+      >
+
+
+      <label>
+        Harga Barang
+      </label>
+
+      <input
+        type="number"
+        class="batch-price"
+        min="0"
+        value="0"
+      >
+
+
+      <label>
+        DP
+      </label>
+
+      <input
+        type="number"
+        class="batch-dp"
+        min="0"
+        value="0"
+      >
+
+
+      <label>
+        Status DP
+      </label>
+
+      <select
+        class="batch-dp-status"
+      >
+
+        <option value="unpaid">
+          Belum Dibayar
+        </option>
+
+        <option value="paid">
+          Sudah Dibayar
+        </option>
+
+      </select>
+
+
+      <label>
+        Pelunasan / Sisa Pembayaran
+      </label>
+
+      <input
+        type="number"
+        class="batch-remaining"
+        min="0"
+        value="0"
+      >
+
+
+      <label>
+        Status Pelunasan
+      </label>
+
+      <select
+        class="batch-payment-status"
+      >
+
+        <option value="unpaid">
+          Belum Lunas
+        </option>
+
+        <option value="paid">
+          Sudah Lunas
+        </option>
+
+      </select>
+
+
+      <label>
+        Tracking
+      </label>
+
+      <select
+        class="batch-tracking"
+      >
+
+        ${trackingOptions.map(
+          function(option) {
+
+            return `
+
+              <option
+                value="${option}"
+              >
+                ${option}
+              </option>
+
+            `;
+
+          }
+        ).join("")}
+
+      </select>
+
+
+      <label>
+        Note
+      </label>
+
+      <textarea
+        class="batch-note"
+        rows="3"
+        placeholder="Catatan..."
+      ></textarea>
+
+
+      <label>
+        Batas CO / Checkout
+      </label>
+
+      <input
+        type="date"
+        class="batch-co-deadline"
+      >
+
+
+      <hr>
+
+    `;
+
+
+    itemsContainer.appendChild(
+      item
+    );
+
+
+    /* ======================================
+       HAPUS ITEM
+       ====================================== */
+
+    item
+      .querySelector(
+        ".remove-batch-item"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          item.remove();
 
         }
-      ).join("");
+      );
 
   }
 
 
-  categorySelect.addEventListener(
-    "change",
-    updateTracking
-  );
+  /* ========================================
+     ITEM PERTAMA
+     ======================================== */
+
+  addBatchItem();
 
 
-  updateTracking();
-
+  /* ========================================
+     TAMBAH ITEM
+     ======================================== */
 
   document
     .getElementById(
-      "cancelRecapButton"
+      "addBatchItemButton"
+    )
+    .addEventListener(
+      "click",
+      addBatchItem
+    );
+
+
+  /* ========================================
+     GANTI KATEGORI
+     ======================================== */
+
+  document
+    .getElementById(
+      "batchCategory"
+    )
+    .addEventListener(
+      "change",
+      function() {
+
+        /*
+           Tracking setiap item diperbarui
+           sesuai kategori.
+        */
+
+        const options =
+          getTrackingOptions(
+            this.value
+          );
+
+
+        document
+          .querySelectorAll(
+            ".batch-tracking"
+          )
+          .forEach(
+            function(select) {
+
+              select.innerHTML =
+                options.map(
+                  function(option) {
+
+                    return `
+
+                      <option
+                        value="${option}"
+                      >
+                        ${option}
+                      </option>
+
+                    `;
+
+                  }
+                ).join("");
+
+            }
+          );
+
+      }
+    );
+
+
+  /* ========================================
+     BATAL
+     ======================================== */
+
+  document
+    .getElementById(
+      "cancelBatchButton"
     )
     .addEventListener(
       "click",
@@ -1850,23 +2079,27 @@ function showRecapForm() {
     );
 
 
+  /* ========================================
+     SIMPAN BATCH
+     ======================================== */
+
   document
     .getElementById(
-      "recapForm"
+      "recapBatchForm"
     )
     .addEventListener(
       "submit",
-      saveRecap
+      saveBatchRecap
     );
 
 }
 
 
 /* ============================================
-   SIMPAN REKAP KE SUPABASE
+   SIMPAN BATCH REKAP
    ============================================ */
 
-async function saveRecap(
+async function saveBatchRecap(
   event
 ) {
 
@@ -1875,18 +2108,18 @@ async function saveRecap(
 
   const message =
     document.getElementById(
-      "recapFormMessage"
+      "batchFormMessage"
     );
 
 
   message.textContent =
-    "Menyimpan rekap...";
+    "Menyimpan batch...";
 
 
   const category =
     document
       .getElementById(
-        "recapCategory"
+        "batchCategory"
       )
       .value;
 
@@ -1894,7 +2127,7 @@ async function saveRecap(
   const batchCode =
     document
       .getElementById(
-        "recapBatch"
+        "batchCode"
       )
       .value
       .trim();
@@ -1903,109 +2136,10 @@ async function saveRecap(
   const itemName =
     document
       .getElementById(
-        "recapItemName"
+        "batchItemName"
       )
       .value
       .trim();
-
-
-  const customerName =
-    document
-      .getElementById(
-        "recapCustomer"
-      )
-      .value
-      .trim();
-
-
-  const version =
-    document
-      .getElementById(
-        "recapVersion"
-      )
-      .value
-      .trim();
-
-
-  const quantity =
-    Number(
-      document
-        .getElementById(
-          "recapQty"
-        )
-        .value
-    );
-
-
-  const itemPrice =
-    Number(
-      document
-        .getElementById(
-          "recapPrice"
-        )
-        .value
-    );
-
-
-  const dpAmount =
-    Number(
-      document
-        .getElementById(
-          "recapDP"
-        )
-        .value
-    );
-
-
-  const dpStatus =
-    document
-      .getElementById(
-        "recapDPStatus"
-      )
-      .value;
-
-
-  const remainingAmount =
-    Number(
-      document
-        .getElementById(
-          "recapRemaining"
-        )
-        .value
-    );
-
-
-  const paymentStatus =
-    document
-      .getElementById(
-        "recapPaymentStatus"
-      )
-      .value;
-
-
-  const trackingStatus =
-    document
-      .getElementById(
-        "recapTracking"
-      )
-      .value;
-
-
-  const note =
-    document
-      .getElementById(
-        "recapNote"
-      )
-      .value
-      .trim();
-
-
-  const coDeadline =
-    document
-      .getElementById(
-        "recapCODedline"
-      )
-      .value || null;
 
 
   if (!batchCode) {
@@ -2028,60 +2162,192 @@ async function saveRecap(
   }
 
 
-  const recap = {
+  const itemElements =
+    document.querySelectorAll(
+      "#batchItemsContainer .batch-item"
+    );
 
-    category:
-      category,
 
-    batch_code:
-      batchCode,
+  if (
+    itemElements.length === 0
+  ) {
 
-    item_name:
-      itemName,
+    message.textContent =
+      "Minimal harus ada 1 versi/member.";
 
-    customer_name:
-      customerName ||
-      "AVAILABLE",
+    return;
 
-    version:
-      version ||
-      "AVAILABLE",
+  }
 
-    quantity:
-      quantity || 1,
 
-    item_price:
-      itemPrice || 0,
+  const records = [];
 
-    dp_amount:
-      dpAmount || 0,
 
-    dp_status:
-      dpStatus,
+  itemElements.forEach(
+    function(item) {
 
-    remaining_amount:
-      remainingAmount || 0,
+      const version =
+        item
+          .querySelector(
+            ".batch-version"
+          )
+          .value
+          .trim();
 
-    payment_status:
-      paymentStatus,
 
-    tracking_status:
-      trackingStatus,
+      const customer =
+        item
+          .querySelector(
+            ".batch-customer"
+          )
+          .value
+          .trim();
 
-    note:
-      note || null,
 
-    co_deadline:
-      coDeadline
+      const quantity =
+        Number(
+          item
+            .querySelector(
+              ".batch-quantity"
+            )
+            .value
+        ) || 1;
 
-  };
+
+      const price =
+        Number(
+          item
+            .querySelector(
+              ".batch-price"
+            )
+            .value
+        ) || 0;
+
+
+      const dp =
+        Number(
+          item
+            .querySelector(
+              ".batch-dp"
+            )
+            .value
+        ) || 0;
+
+
+      const dpStatus =
+        item
+          .querySelector(
+            ".batch-dp-status"
+          )
+          .value;
+
+
+      const remaining =
+        Number(
+          item
+            .querySelector(
+              ".batch-remaining"
+            )
+            .value
+        ) || 0;
+
+
+      const paymentStatus =
+        item
+          .querySelector(
+            ".batch-payment-status"
+          )
+          .value;
+
+
+      const tracking =
+        item
+          .querySelector(
+            ".batch-tracking"
+          )
+          .value;
+
+
+      const note =
+        item
+          .querySelector(
+            ".batch-note"
+          )
+          .value
+          .trim();
+
+
+      const coDeadline =
+        item
+          .querySelector(
+            ".batch-co-deadline"
+          )
+          .value ||
+        null;
+
+
+      records.push({
+
+        category:
+          category,
+
+        batch_code:
+          batchCode,
+
+        item_name:
+          itemName,
+
+        customer_name:
+          customer ||
+          "AVAILABLE",
+
+        version:
+          version ||
+          "AVAILABLE",
+
+        quantity:
+          quantity,
+
+        item_price:
+          price,
+
+        dp_amount:
+          dp,
+
+        dp_status:
+          dpStatus,
+
+        remaining_amount:
+          remaining,
+
+        payment_status:
+          paymentStatus,
+
+        tracking_status:
+          tracking,
+
+        note:
+          note ||
+          null,
+
+        co_deadline:
+          coDeadline
+
+      });
+
+    }
+  );
 
 
   console.log(
-    "DATA REKAP:",
-    recap
+    "DATA BATCH:",
+    records
   );
 
+
+  /* ========================================
+     SIMPAN SEMUA BARIS SEKALIGUS
+     ======================================== */
 
   const {
     data,
@@ -2090,13 +2356,13 @@ async function saveRecap(
     await supabaseClient
       .from("purchase_recap")
       .insert(
-        recap
+        records
       )
       .select();
 
 
   console.log(
-    "HASIL:",
+    "HASIL INSERT:",
     data
   );
 
@@ -2104,13 +2370,13 @@ async function saveRecap(
   if (error) {
 
     console.error(
-      "ERROR SIMPAN REKAP:",
+      "ERROR SIMPAN BATCH:",
       error
     );
 
 
     message.textContent =
-      "Gagal menyimpan rekap: " +
+      "Gagal menyimpan batch: " +
       error.message;
 
     return;
@@ -2118,8 +2384,12 @@ async function saveRecap(
   }
 
 
+  /* ========================================
+     BERHASIL
+     ======================================== */
+
   message.textContent =
-    "Rekap berhasil disimpan. ♥";
+    "Batch berhasil disimpan. ♥";
 
 
   await loadRecapList(
@@ -2135,6 +2405,7 @@ async function saveRecap(
           "recapFormContainer"
         );
 
+
       if (formContainer) {
 
         formContainer.innerHTML =
@@ -2143,7 +2414,7 @@ async function saveRecap(
       }
 
     },
-    500
+    700
   );
 
 }
@@ -2174,37 +2445,351 @@ async function loadRecapList(
     "<p>Memuat rekap...</p>";
 
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("purchase_recap")
-      .select("*")
-      .eq(
-        "category",
-        category
-      )
-      .order(
-        "id",
-        {
-          ascending: true
-        }
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select("*")
+        .eq(
+          "category",
+          category
+        )
+        .order(
+          "batch_code",
+          {
+            ascending: true
+          }
+        )
+        .order(
+          "id",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "ERROR REKAP:",
+        error
       );
 
 
-  console.log(
-    "REKAP " +
-      category +
-      ":",
-    data
-  );
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Gagal memuat rekap
+          </h3>
+
+          <p>
+            ${error.message}
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
 
 
-  if (error) {
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Belum ada data
+          </h3>
+
+          <p>
+            Belum ada rekapan untuk
+            <strong>
+              ${category}
+            </strong>.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    /* ======================================
+       TABEL
+       ====================================== */
+
+    container.innerHTML = `
+
+      <div class="product-table-wrapper">
+
+        <table class="product-table recap-table">
+
+          <thead>
+
+            <tr>
+
+              <th>Batch</th>
+
+              <th>Nama Barang</th>
+
+              <th>Versi / Member</th>
+
+              <th>Customer</th>
+
+              <th>Qty</th>
+
+              <th>Harga</th>
+
+              <th>DP</th>
+
+              <th>Status DP</th>
+
+              <th>Pelunasan</th>
+
+              <th>Status Pelunasan</th>
+
+              <th>Tracking</th>
+
+              <th>Note</th>
+
+              <th>Batas CO</th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${data.map(
+              function(item) {
+
+                const customer =
+                  item.customer_name ||
+                  "AVAILABLE";
+
+
+                const version =
+                  item.version ||
+                  "AVAILABLE";
+
+
+                const customerHTML =
+                  customer
+                    .toUpperCase()
+                    .trim() ===
+                  "AVAILABLE"
+
+                    ? `
+
+                      <span
+                        class="available-member"
+                      >
+                        AVAILABLE
+                      </span>
+
+                    `
+
+                    : customer;
+
+
+                const versionHTML =
+                  version
+                    .toUpperCase()
+                    .trim() ===
+                  "AVAILABLE"
+
+                    ? `
+
+                      <span
+                        class="available-member"
+                      >
+                        AVAILABLE
+                      </span>
+
+                    `
+
+                    : version;
+
+
+                const dpStatusHTML =
+                  item.dp_status ===
+                  "paid"
+
+                    ? `
+
+                      <span
+                        class="status-paid"
+                      >
+                        ✓ Sudah Dibayar
+                      </span>
+
+                    `
+
+                    : `
+
+                      <span
+                        class="status-unpaid"
+                      >
+                        Belum Dibayar
+                      </span>
+
+                    `;
+
+
+                const paymentStatusHTML =
+                  item.payment_status ===
+                  "paid"
+
+                    ? `
+
+                      <span
+                        class="status-paid"
+                      >
+                        ✓ Sudah Lunas
+                      </span>
+
+                    `
+
+                    : `
+
+                      <span
+                        class="status-unpaid"
+                      >
+                        Belum Lunas
+                      </span>
+
+                    `;
+
+
+                const deadline =
+                  item.co_deadline
+
+                    ? new Date(
+                        item.co_deadline
+                      ).toLocaleDateString(
+                        "id-ID"
+                      )
+
+                    : "—";
+
+
+                return `
+
+                  <tr>
+
+                    <td>
+                      ${item.batch_code || "—"}
+                    </td>
+
+
+                    <td>
+                      ${item.item_name || "—"}
+                    </td>
+
+
+                    <td>
+                      ${versionHTML}
+                    </td>
+
+
+                    <td>
+                      ${customerHTML}
+                    </td>
+
+
+                    <td>
+                      ${item.quantity || 1}
+                    </td>
+
+
+                    <td>
+                      Rp${Number(
+                        item.item_price || 0
+                      ).toLocaleString(
+                        "id-ID"
+                      )}
+                    </td>
+
+
+                    <td>
+                      Rp${Number(
+                        item.dp_amount || 0
+                      ).toLocaleString(
+                        "id-ID"
+                      )}
+                    </td>
+
+
+                    <td>
+                      ${dpStatusHTML}
+                    </td>
+
+
+                    <td>
+                      Rp${Number(
+                        item.remaining_amount || 0
+                      ).toLocaleString(
+                        "id-ID"
+                      )}
+                    </td>
+
+
+                    <td>
+                      ${paymentStatusHTML}
+                    </td>
+
+
+                    <td>
+                      ${item.tracking_status || "—"}
+                    </td>
+
+
+                    <td>
+                      ${item.note || "—"}
+                    </td>
+
+
+                    <td>
+                      ${deadline}
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+
+  } catch (error) {
 
     console.error(
-      "ERROR REKAP:",
+      "Kesalahan loadRecapList:",
       error
     );
 
@@ -2225,308 +2810,9 @@ async function loadRecapList(
 
     `;
 
-    return;
-
   }
-
-
-  if (
-    !data ||
-    data.length === 0
-  ) {
-
-    container.innerHTML = `
-
-      <div class="panel">
-
-        <h3>
-          Belum ada data
-        </h3>
-
-        <p>
-          Belum ada rekapan untuk
-          <strong>
-            ${category}
-          </strong>.
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = `
-
-    <div class="product-table-wrapper">
-
-      <table class="product-table recap-table">
-
-        <thead>
-
-          <tr>
-
-            <th>Batch</th>
-
-            <th>Nama Barang</th>
-
-            <th>Customer</th>
-
-            <th>
-              Versi / Member / Character
-            </th>
-
-            <th>Qty</th>
-
-            <th>Harga</th>
-
-            <th>DP</th>
-
-            <th>Status DP</th>
-
-            <th>Pelunasan</th>
-
-            <th>Status Pelunasan</th>
-
-            <th>Tracking</th>
-
-            <th>Note</th>
-
-            <th>Batas CO</th>
-
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          ${data.map(
-            function(item) {
-
-              const customer =
-                item.customer_name ||
-                "AVAILABLE";
-
-
-              const version =
-                item.version ||
-                "AVAILABLE";
-
-
-              const isAvailable =
-                customer
-                  .toUpperCase()
-                  .trim() ===
-                  "AVAILABLE";
-
-
-              const isVersionAvailable =
-                version
-                  .toUpperCase()
-                  .trim() ===
-                  "AVAILABLE";
-
-
-              const customerHTML =
-                isAvailable
-
-                  ? `
-
-                    <span
-                      class="available-member"
-                    >
-                      AVAILABLE
-                    </span>
-
-                  `
-
-                  : customer;
-
-
-              const versionHTML =
-                isVersionAvailable
-
-                  ? `
-
-                    <span
-                      class="available-member"
-                    >
-                      AVAILABLE
-                    </span>
-
-                  `
-
-                  : version;
-
-
-              const dpStatusHTML =
-                item.dp_status ===
-                "paid"
-
-                  ? `
-
-                    <span
-                      class="status-paid"
-                    >
-                      ✓ Sudah Dibayar
-                    </span>
-
-                  `
-
-                  : `
-
-                    <span
-                      class="status-unpaid"
-                    >
-                      Belum Dibayar
-                    </span>
-
-                  `;
-
-
-              const paymentStatusHTML =
-                item.payment_status ===
-                "paid"
-
-                  ? `
-
-                    <span
-                      class="status-paid"
-                    >
-                      ✓ Sudah Lunas
-                    </span>
-
-                  `
-
-                  : `
-
-                    <span
-                      class="status-unpaid"
-                    >
-                      Belum Lunas
-                    </span>
-
-                  `;
-
-
-              const tracking =
-                item.tracking_status ||
-                "—";
-
-
-              const coDeadline =
-                item.co_deadline
-
-                  ? new Date(
-                      item.co_deadline
-                    ).toLocaleDateString(
-                      "id-ID"
-                    )
-
-                  : "—";
-
-
-              return `
-
-                <tr>
-
-                  <td>
-                    ${item.batch_code || "—"}
-                  </td>
-
-
-                  <td>
-                    ${item.item_name || "—"}
-                  </td>
-
-
-                  <td>
-                    ${customerHTML}
-                  </td>
-
-
-                  <td>
-                    ${versionHTML}
-                  </td>
-
-
-                  <td>
-                    ${item.quantity || 1}
-                  </td>
-
-
-                  <td>
-                    Rp${Number(
-                      item.item_price || 0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-
-                  <td>
-                    Rp${Number(
-                      item.dp_amount || 0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-
-                  <td>
-                    ${dpStatusHTML}
-                  </td>
-
-
-                  <td>
-                    Rp${Number(
-                      item.remaining_amount || 0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-
-                  <td>
-                    ${paymentStatusHTML}
-                  </td>
-
-
-                  <td>
-                    ${tracking}
-                  </td>
-
-
-                  <td>
-                    ${item.note || "—"}
-                  </td>
-
-
-                  <td>
-                    ${coDeadline}
-                  </td>
-
-                </tr>
-
-              `;
-
-            }
-          ).join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
 
 }
-
 
 /* ============================================
    PESANAN
