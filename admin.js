@@ -3199,6 +3199,11 @@ async function loadRecapList(
           ".recap-batch-card"
         );
 
+      const resultInfo =
+        container.querySelector("#recapSearchResult");
+
+      let matchCount = 0;
+
       batchCards.forEach(
         function(card) {
 
@@ -3212,15 +3217,35 @@ async function loadRecapList(
           ) {
 
             card.style.display = "";
+            matchCount++;
 
-          } else {
+         } else {
 
-            card.style.display = "none";
+           card.style.display = "none";
 
-          }
-
+         }
         }
       );
+
+   if (resultInfo) {
+
+       if (keyword === "") {
+
+          resultInfo.textContent = "";
+
+        } else if (matchCount === 0) {
+
+          resultInfo.textContent =
+            `🔎 Tidak ditemukan data yang cocok dengan "${this.value}"`;
+
+        } else {
+
+          resultInfo.textContent =
+            `🔎 Menampilkan ${matchCount} batch yang cocok dengan "${this.value}"`;
+
+        }
+
+      }
 
     }
   );
