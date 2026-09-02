@@ -1223,6 +1223,73 @@ async function updatePaymentStatus(
 }
 
 /* ============================================
+   LIHAT BUKTI PEMBAYARAN
+   ============================================ */
+
+async function viewPaymentProof(
+  proofPath
+) {
+
+  if (!proofPath) {
+
+    alert(
+      "Bukti pembayaran tidak tersedia."
+    );
+
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .storage
+      .from("payment-proofs")
+      .createSignedUrl(
+        proofPath,
+        600
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR VIEW PAYMENT PROOF:",
+      error
+    );
+
+    alert(
+      "Gagal membuka bukti pembayaran: " +
+      error.message
+    );
+
+    return;
+  }
+
+
+  if (
+    !data ||
+    !data.signedUrl
+  ) {
+
+    alert(
+      "Link bukti pembayaran tidak tersedia."
+    );
+
+    return;
+  }
+
+
+  window.open(
+    data.signedUrl,
+    "_blank"
+  );
+
+}
+
+/* ============================================
    REKAP GO
    ============================================ */
 
@@ -4433,11 +4500,21 @@ async function loadPayments() {
 
                   <td>
 
-                    ${
-                      payment.proof_path
-                        ? "📎 Tersedia"
-                        : "—"
-                    }
+                   ${
+  payment.proof_path
+    ? `
+      <button
+        type="button"
+        class="primary-button"
+        onclick='viewPaymentProof(${JSON.stringify(
+          payment.proof_path
+        )})'
+      >
+        👁️ Lihat Bukti
+      </button>
+    `
+    : "—"
+}
 
                   </td>
 
