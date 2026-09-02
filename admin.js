@@ -4129,7 +4129,6 @@ async function loadOrders() {
 
 }
 
-
 /* ============================================
    PEMBAYARAN
    ============================================ */
@@ -4153,7 +4152,7 @@ async function loadPayments() {
           </h2>
 
           <p>
-            Kelola pembayaran customer.
+            Kelola bukti pembayaran customer.
           </p>
 
         </div>
@@ -4192,8 +4191,13 @@ async function loadPayments() {
     error
   } =
     await supabaseClient
-      .from("dn_payment_submissions")
+
+      .from(
+        "dn_payment_submissions"
+      )
+
       .select("*")
+
       .order(
         "id",
         {
@@ -4227,7 +4231,6 @@ async function loadPayments() {
     `;
 
     return;
-
   }
 
 
@@ -4249,7 +4252,6 @@ async function loadPayments() {
     `;
 
     return;
-
   }
 
 
@@ -4276,19 +4278,31 @@ async function loadPayments() {
             </th>
 
             <th>
-              Jumlah
+              WhatsApp
             </th>
 
             <th>
-              Metode
+              Kode Produk
+            </th>
+
+            <th>
+              Versi
+            </th>
+
+            <th>
+              Nominal
+            </th>
+
+            <th>
+              Tanggal Transfer
+            </th>
+
+            <th>
+              Bukti
             </th>
 
             <th>
               Status
-            </th>
-
-            <th>
-              Tanggal
             </th>
 
           </tr>
@@ -4312,12 +4326,38 @@ async function loadPayments() {
                     }
                   </td>
 
+
                   <td>
                     ${
                       payment.customer_name ||
                       "—"
                     }
                   </td>
+
+
+                  <td>
+                    ${
+                      payment.whatsapp_last4 ||
+                      "—"
+                    }
+                  </td>
+
+
+                  <td>
+                    ${
+                      payment.product_code ||
+                      "—"
+                    }
+                  </td>
+
+
+                  <td>
+                    ${
+                      payment.product_version ||
+                      "—"
+                    }
+                  </td>
+
 
                   <td>
                     Rp${Number(
@@ -4328,25 +4368,12 @@ async function loadPayments() {
                     )}
                   </td>
 
-                  <td>
-                    ${
-                      payment.method ||
-                      "—"
-                    }
-                  </td>
 
                   <td>
                     ${
-                      payment.status ||
-                      "—"
-                    }
-                  </td>
-
-                  <td>
-                    ${
-                      payment.created_at
+                      payment.payment_date
                         ? new Date(
-                            payment.created_at
+                            payment.payment_date
                           ).toLocaleDateString(
                             "id-ID"
                           )
@@ -4354,11 +4381,39 @@ async function loadPayments() {
                     }
                   </td>
 
+
+                  <td>
+
+                    ${
+                      payment.proof_path
+                        ? "📎 Tersedia"
+                        : "—"
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="status"
+                    >
+
+                      ${
+                        payment.status ||
+                        "—"
+                      }
+
+                    </span>
+
+                  </td>
+
                 </tr>
 
               `;
 
             }
+
           ).join("")}
 
         </tbody>
