@@ -1671,3 +1671,16 @@ a {
   box-shadow:
     0 0 0 3px rgba(201, 120, 159, 0.12);
 }
+
+/* ============================================
+   INDIKATOR HASIL PENCARIAN REKAP GO
+   ============================================ */
+
+.recap-search-result {
+  margin-top: 8px;
+  padding-left: 4px;
+  min-height: 20px;
+  color: #8b7180;
+  font-size: 13px;
+  font-weight: 600;
+}
