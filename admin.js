@@ -3448,13 +3448,13 @@ async function editRecap(id) {
           </button>
 
           <button
-            type="button"
-            class="primary-button"
-            disabled
-          >
-            Simpan Perubahan
-          </button>
-
+           type="button"
+           class="primary-button"
+           onclick="saveEditedRecap('${data.id}', '${data.category}')"
+         >
+           Simpan Perubahan
+         </button>
+         
         </div>
 
       </div>
@@ -3470,6 +3470,141 @@ async function editRecap(id) {
 
     alert(
       "Gagal membuka data: " +
+      error.message
+    );
+
+  }
+
+}
+
+/* ============================================
+   SIMPAN EDIT REKAP GO
+   ============================================ */
+
+async function saveEditedRecap(id, category) {
+
+  try {
+
+    const updatedData = {
+
+      item_name:
+        document
+          .getElementById("editItemName")
+          .value
+          .trim(),
+
+      version:
+        document
+          .getElementById("editVersion")
+          .value
+          .trim(),
+
+      customer_name:
+        document
+          .getElementById("editCustomerName")
+          .value
+          .trim(),
+
+      quantity:
+        Number(
+          document
+            .getElementById("editQuantity")
+            .value
+        ) || 1,
+
+      item_price:
+        Number(
+          document
+            .getElementById("editItemPrice")
+            .value
+        ) || 0,
+
+      dp_amount:
+        Number(
+          document
+            .getElementById("editDpAmount")
+            .value
+        ) || 0,
+
+      dp_status:
+        document
+          .getElementById("editDpStatus")
+          .value,
+
+      remaining_amount:
+        Number(
+          document
+            .getElementById("editRemainingAmount")
+            .value
+        ) || 0,
+
+      payment_status:
+        document
+          .getElementById("editPaymentStatus")
+          .value,
+
+      tracking_status:
+        document
+          .getElementById("editTrackingStatus")
+          .value
+          .trim(),
+
+      co_deadline:
+        document
+          .getElementById("editCoDeadline")
+          .value || null,
+
+      note:
+        document
+          .getElementById("editNote")
+          .value
+          .trim() || null
+
+    };
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .update(updatedData)
+        .eq("id", id);
+
+
+    if (error) {
+
+      console.error(
+        "ERROR UPDATE REKAP:",
+        error
+      );
+
+      alert(
+        "Gagal menyimpan perubahan: " +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    alert(
+      "Perubahan berhasil disimpan. ♥"
+    );
+
+
+    await loadRecapList(category);
+
+  } catch (error) {
+
+    console.error(
+      "ERROR SAVE EDIT REKAP:",
+      error
+    );
+
+    alert(
+      "Terjadi kesalahan: " +
       error.message
     );
 
