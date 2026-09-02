@@ -2898,6 +2898,10 @@ async function loadRecapList(
                         Batas CO
                       </th>
 
+                      <th>
+                        Aksi
+                      </th>
+
                     </tr>
 
                   </thead>
@@ -3046,6 +3050,16 @@ async function loadRecapList(
                             <td>
                               ${deadline}
                             </td>
+
+                            <td>
+                             <button
+                              type="button"
+                              class="edit-recap-button"
+                              data-id="${item.id}"
+                           >
+                               ✏️ Edit
+                              </button>
+                           </td>
 
                           </tr>
 
