@@ -4191,38 +4191,27 @@ async function loadOrders() {
               placeholder="Tulis keterangan PO di sini..."
             ></textarea>
 
-
             <label>
-              List / Batch / Customer
-            </label>
+  Data Batch / Item / Customer
+</label>
 
-            <textarea
-              id="poList"
-              rows="15"
-              placeholder="Contoh:
+<div
+  id="poBatchContainer"
+  style="
+    margin-top:10px;
+  "
+></div>
 
-Batch 1
-Hyunsuk : Ivana 5614
-Jihoon : Tatas yita 0135
-Yoshi : Annisa 5771
-
-Batch 2
-Hyunsuk :
-Jihoon : Naf 2985
-Yoshi : noir 9407
-
-Atau untuk album:
-
-Version A
-Euis × 2
-Nadiya × 1
-Eka × 3
-
-Version B
-Euis × 1
-Riri × 2"
-            ></textarea>
-
+<button
+  type="button"
+  class="secondary-button"
+  id="addBatchButton"
+  style="
+    margin-top:12px;
+  "
+>
+  ➕ Tambah Batch
+</button>
 
             <div
               style="
@@ -4283,6 +4272,246 @@ Riri × 2"
           "poFormMessage"
         );
 
+       const poBatchContainer =
+  document.getElementById(
+    "poBatchContainer"
+  );
+
+const addBatchButton =
+  document.getElementById(
+    "addBatchButton"
+  );
+
+
+let batchCounter = 0;
+
+
+function addBatch() {
+
+  batchCounter++;
+
+  const batchId =
+    "batch-" +
+    batchCounter;
+
+
+  const batchDiv =
+    document.createElement(
+      "div"
+    );
+
+
+  batchDiv.className =
+    "panel";
+
+
+  batchDiv.style.marginTop =
+    "15px";
+
+
+  batchDiv.innerHTML = `
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        margin-bottom:15px;
+      "
+    >
+
+      <h3
+        style="
+          margin:0;
+        "
+      >
+        Batch ${batchCounter}
+      </h3>
+
+
+      <button
+        type="button"
+        class="secondary-button"
+        data-remove-batch="${batchId}"
+      >
+        🗑️ Hapus Batch
+      </button>
+
+    </div>
+
+
+    <label>
+      Nama Batch
+    </label>
+
+    <input
+      type="text"
+      class="batch-name"
+      placeholder="Contoh: Batch 1"
+      value="Batch ${batchCounter}"
+    >
+
+
+    <label
+      style="
+        margin-top:15px;
+        display:block;
+      "
+    >
+      Item / Member / Version
+    </label>
+
+    <div
+      class="batch-items"
+    ></div>
+
+
+    <button
+      type="button"
+      class="secondary-button add-item-button"
+      style="
+        margin-top:12px;
+      "
+    >
+      ➕ Tambah Item
+    </button>
+
+  `;
+
+
+  poBatchContainer.appendChild(
+    batchDiv
+  );
+
+
+  const itemsContainer =
+    batchDiv.querySelector(
+      ".batch-items"
+    );
+
+
+  const addItemButton =
+    batchDiv.querySelector(
+      ".add-item-button"
+    );
+
+
+  function addItem() {
+
+    const itemDiv =
+      document.createElement(
+        "div"
+      );
+
+
+    itemDiv.style.display =
+      "grid";
+
+    itemDiv.style.gridTemplateColumns =
+      "1fr 1fr 100px auto";
+
+    itemDiv.style.gap =
+      "8px";
+
+    itemDiv.style.marginTop =
+      "10px";
+
+
+    itemDiv.innerHTML = `
+
+      <input
+        type="text"
+        class="po-item-name"
+        placeholder="Item / Member / Version"
+      >
+
+
+      <input
+        type="text"
+        class="po-customer-name"
+        placeholder="Nama Customer"
+      >
+
+
+      <input
+        type="number"
+        class="po-item-qty"
+        min="1"
+        value="1"
+        placeholder="Qty"
+      >
+
+
+      <button
+        type="button"
+        class="secondary-button remove-item-button"
+      >
+        ✕
+      </button>
+
+    `;
+
+
+    itemsContainer.appendChild(
+      itemDiv
+    );
+
+
+    itemDiv
+      .querySelector(
+        ".remove-item-button"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          itemDiv.remove();
+
+        }
+      );
+
+  }
+
+
+  addItemButton.addEventListener(
+    "click",
+    addItem
+  );
+
+
+  batchDiv
+    .querySelector(
+      `[data-remove-batch="${batchId}"]`
+    )
+    .addEventListener(
+      "click",
+      function() {
+
+        batchDiv.remove();
+
+      }
+    );
+
+
+  /* Baris pertama otomatis */
+
+  addItem();
+
+}
+
+
+/* Tambah Batch */
+
+addBatchButton.addEventListener(
+  "click",
+  addBatch
+);
+
+
+/* Batch pertama otomatis */
+
+addBatch();
 
       /* ============================================
          BATAL
