@@ -1,6 +1,13 @@
 /* ============================================
    DEAR NADIYA ADMIN
-   LOGIN + NAVIGASI + PRODUK + REKAP GO
+   CLEAN VERSION
+
+   Login
+   Dashboard
+   Produk & GO
+   Pesanan / PO
+   Pembayaran
+   Rekap GO
    ============================================ */
 
 
@@ -13,9 +20,6 @@ const loginPage =
 
 const adminApp =
   document.getElementById("adminApp");
-
-const loginForm =
-  document.getElementById("loginForm");
 
 const loginError =
   document.getElementById("loginError");
@@ -63,6 +67,111 @@ const ADMIN_EMAILS = [
 
 
 /* ============================================
+   UTILITAS
+   ============================================ */
+
+function showLogin(message = "") {
+
+  if (adminApp) {
+    adminApp.classList.add("hidden");
+  }
+
+  if (loginPage) {
+    loginPage.classList.remove("hidden");
+  }
+
+  if (loginError) {
+    loginError.textContent = message;
+  }
+
+}
+
+
+function showAdmin() {
+
+  if (loginPage) {
+    loginPage.classList.add("hidden");
+  }
+
+  if (adminApp) {
+    adminApp.classList.remove("hidden");
+  }
+
+  loadDashboard();
+
+}
+
+
+function formatRupiah(value) {
+
+  return (
+    "Rp" +
+    Number(value || 0)
+      .toLocaleString("id-ID")
+  );
+
+}
+
+
+function formatDate(value) {
+
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return date.toLocaleDateString(
+    "id-ID",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    }
+  );
+
+}
+
+
+function escapeHTML(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/* ============================================
    LOGIN GOOGLE
    ============================================ */
 
@@ -76,23 +185,24 @@ if (googleLoginButton) {
         loginError.textContent = "";
       }
 
-
       const {
         error
       } =
-        await supabaseClient.auth.signInWithOAuth({
+        await supabaseClient
+          .auth
+          .signInWithOAuth({
 
-          provider: "google",
+            provider:
+              "google",
 
-          options: {
+            options: {
 
-            redirectTo:
-              "https://dearnadiya.github.io/dear-nadiya-admin-new/"
+              redirectTo:
+                "https://dearnadiya.github.io/dear-nadiya-admin-new/"
 
-          }
+            }
 
-        });
-
+          });
 
       if (error) {
 
@@ -100,7 +210,6 @@ if (googleLoginButton) {
           "LOGIN GOOGLE ERROR:",
           error
         );
-
 
         if (loginError) {
 
@@ -119,6 +228,58 @@ if (googleLoginButton) {
 
 
 /* ============================================
+   CEK ADMIN
+   ============================================ */
+
+async function checkAdminAccess(
+  session
+) {
+
+  const email =
+    session
+      ?.user
+      ?.email
+      ?.toLowerCase()
+      ?.trim();
+
+  const allowed =
+    ADMIN_EMAILS.some(
+      function (item) {
+
+        return (
+          item
+            .toLowerCase()
+            .trim() ===
+          email
+        );
+
+      }
+    );
+
+  if (allowed) {
+
+    showAdmin();
+
+    return true;
+
+  }
+
+
+  await supabaseClient
+    .auth
+    .signOut();
+
+
+  showLogin(
+    "Akun Google ini tidak memiliki akses Admin."
+  );
+
+  return false;
+
+}
+
+
+/* ============================================
    CEK SESSION
    ============================================ */
 
@@ -128,7 +289,9 @@ async function checkGoogleSession() {
     data,
     error
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient
+      .auth
+      .getSession();
 
 
   if (error) {
@@ -138,19 +301,17 @@ async function checkGoogleSession() {
       error
     );
 
-
-    showLogin();
+    showLogin(
+      "Gagal memeriksa sesi: " +
+      error.message
+    );
 
     return;
 
   }
 
 
-  const session =
-    data?.session;
-
-
-  if (!session) {
+  if (!data?.session) {
 
     showLogin();
 
@@ -160,63 +321,8 @@ async function checkGoogleSession() {
 
 
   await checkAdminAccess(
-    session
+    data.session
   );
-
-}
-
-
-/* ============================================
-   CEK AKSES ADMIN
-   ============================================ */
-
-async function checkAdminAccess(
-  session
-) {
-
-  const userEmail =
-    session?.user?.email
-      ?.toLowerCase()
-      .trim();
-
-
-  const isAdmin =
-    ADMIN_EMAILS
-      .map(
-        function (email) {
-
-          return email
-            .toLowerCase()
-            .trim();
-
-        }
-      )
-      .includes(
-        userEmail
-      );
-
-
-  if (isAdmin) {
-
-    showAdmin();
-
-    return;
-
-  }
-
-
-  await supabaseClient.auth.signOut();
-
-
-  if (loginError) {
-
-    loginError.textContent =
-      "Akun Google ini tidak memiliki akses Admin.";
-
-  }
-
-
-  showLogin();
 
 }
 
@@ -231,7 +337,9 @@ if (logoutButton) {
     "click",
     async function () {
 
-      await supabaseClient.auth.signOut();
+      await supabaseClient
+        .auth
+        .signOut();
 
       showLogin();
 
@@ -245,82 +353,28 @@ if (logoutButton) {
    SESSION BERUBAH
    ============================================ */
 
-supabaseClient.auth.onAuthStateChange(
-  async function (
-    event,
-    session
-  ) {
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    function (
+      event,
+      session
+    ) {
 
-    if (!session) {
+      if (!session) {
 
-      showLogin();
+        showLogin();
 
-      return;
+        return;
+
+      }
+
+      checkAdminAccess(
+        session
+      );
 
     }
-
-
-    await checkAdminAccess(
-      session
-    );
-
-  }
-);
-
-
-/* ============================================
-   TAMPILKAN ADMIN
-   ============================================ */
-
-function showAdmin() {
-
-  if (loginPage) {
-
-    loginPage.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (adminApp) {
-
-    adminApp.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  loadDashboard();
-
-}
-
-
-/* ============================================
-   TAMPILKAN LOGIN
-   ============================================ */
-
-function showLogin() {
-
-  if (adminApp) {
-
-    adminApp.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (loginPage) {
-
-    loginPage.classList.remove(
-      "hidden"
-    );
-
-  }
-
-}
+  );
 
 
 /* ============================================
@@ -343,7 +397,6 @@ menuButtons.forEach(
         const page =
           button.dataset.page;
 
-
         if (!page) {
           return;
         }
@@ -365,9 +418,7 @@ menuButtons.forEach(
         );
 
 
-        showPage(
-          page
-        );
+        showPage(page);
 
       }
     );
@@ -380,9 +431,7 @@ menuButtons.forEach(
    PINDAH HALAMAN
    ============================================ */
 
-function showPage(
-  page
-) {
+function showPage(page) {
 
   if (
     page ===
@@ -467,7 +516,7 @@ function loadDashboard() {
         </p>
 
         <h2>
-          0
+          —
         </h2>
 
       </div>
@@ -480,7 +529,7 @@ function loadDashboard() {
         </p>
 
         <h2>
-          Rp0
+          —
         </h2>
 
       </div>
@@ -493,7 +542,7 @@ function loadDashboard() {
         </p>
 
         <h2>
-          0
+          —
         </h2>
 
       </div>
@@ -504,12 +553,16 @@ function loadDashboard() {
     <div class="welcome-card">
 
       <h2>
-        Selamat datang di Dear Nadiya Admin ♥
+        Selamat datang di
+        Dear Nadiya Admin ♥
       </h2>
 
       <p>
-        Kelola produk, Group Order,
-        pesanan, pembayaran, dan rekap
+        Kelola produk,
+        Group Order,
+        pesanan,
+        pembayaran,
+        dan rekap
         dari satu dashboard.
       </p>
 
@@ -543,8 +596,8 @@ async function loadProducts() {
           </h2>
 
           <p>
-            Kelola produk dan Group Order
-            Dear Nadiya.
+            Kelola produk dan
+            Group Order Dear Nadiya.
           </p>
 
         </div>
@@ -581,241 +634,275 @@ async function loadProducts() {
   `;
 
 
-  const addProductButton =
-    document.getElementById(
+  document
+    .getElementById(
       "addProductButton"
+    )
+    .addEventListener(
+      "click",
+      showProductForm
     );
 
 
-  const productFormContainer =
+  await loadProductList();
+
+}
+
+
+/* ============================================
+   FORM PRODUK
+   ============================================ */
+
+function showProductForm() {
+
+  const container =
     document.getElementById(
       "productFormContainer"
     );
 
 
-  addProductButton.addEventListener(
-    "click",
-    function () {
-
-      productFormContainer.innerHTML = `
-
-        <div class="panel product-form">
-
-          <h3>
-            Tambah Produk / GO
-          </h3>
+  if (!container) {
+    return;
+  }
 
 
-          <form id="productForm">
+  container.innerHTML = `
 
-            <label>
-              Kode Produk
-            </label>
+    <div
+      class="panel product-form"
+    >
 
-            <input
-              id="productCode"
-              type="text"
-              placeholder="Contoh: TRS-001"
-              required
-            >
+      <h3>
+        Tambah Produk / GO
+      </h3>
 
 
-            <label>
-              Nama Produk
-            </label>
+      <form
+        id="productForm"
+      >
 
-            <input
-              id="productName"
-              type="text"
-              placeholder="Nama produk / Group Order"
-              required
-            >
+        <label>
+          Kode Produk
+        </label>
 
-
-            <label>
-              Jenis
-            </label>
-
-            <select id="productType">
-
-              <option value="GO">
-                Group Order
-              </option>
-
-              <option value="Pre Order">
-                Pre Order
-              </option>
-
-              <option value="Ready Stock">
-                Ready Stock
-              </option>
-
-            </select>
+        <input
+          id="productCode"
+          type="text"
+          placeholder="Contoh: TRS-001"
+          required
+        >
 
 
-            <label>
-              Harga
-            </label>
+        <label>
+          Nama Produk
+        </label>
 
-            <input
-              id="productPrice"
-              type="number"
-              min="0"
-              placeholder="115000"
-              required
-            >
-
-
-            <label>
-              DP
-            </label>
-
-            <input
-              id="productDp"
-              type="number"
-              min="0"
-              value="0"
-            >
+        <input
+          id="productName"
+          type="text"
+          placeholder="Nama produk / Group Order"
+          required
+        >
 
 
-            <label>
-              Deadline List
-            </label>
+        <label>
+          Jenis
+        </label>
 
-            <input
-              id="deadlineList"
-              type="date"
-            >
+        <select
+          id="productType"
+        >
 
+          <option
+            value="GO"
+          >
+            Group Order
+          </option>
 
-            <label>
-              Deadline Pembayaran
-            </label>
+          <option
+            value="Pre Order"
+          >
+            Pre Order
+          </option>
 
-            <input
-              id="deadlinePayment"
-              type="date"
-            >
+          <option
+            value="Ready Stock"
+          >
+            Ready Stock
+          </option>
 
-
-            <label>
-              Status
-            </label>
-
-            <select id="productStatus">
-
-              <option value="active">
-                Active
-              </option>
-
-              <option value="closed">
-                Closed
-              </option>
-
-              <option value="completed">
-                Completed
-              </option>
-
-            </select>
+        </select>
 
 
-            <label>
-              Deskripsi
-            </label>
+        <label>
+          Harga
+        </label>
 
-            <textarea
-              id="productDescription"
-              rows="4"
-              placeholder="Deskripsi produk..."
-            ></textarea>
-
-
-            <label>
-              Jumlah Member
-            </label>
-
-            <input
-              id="productMembers"
-              type="number"
-              min="0"
-              value="0"
-            >
+        <input
+          id="productPrice"
+          type="number"
+          min="0"
+          placeholder="115000"
+          required
+        >
 
 
-            <label class="checkbox-label">
+        <label>
+          DP
+        </label>
 
-              <input
-                id="showWebsite"
-                type="checkbox"
-                checked
-              >
-
-              Tampilkan di website customer
-
-            </label>
-
-
-            <div class="form-actions">
-
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                Simpan Produk
-              </button>
+        <input
+          id="productDp"
+          type="number"
+          min="0"
+          value="0"
+        >
 
 
-              <button
-                type="button"
-                id="cancelProductButton"
-              >
-                Batal
-              </button>
+        <label>
+          Deadline List
+        </label>
 
-            </div>
+        <input
+          id="deadlineList"
+          type="date"
+        >
 
 
-            <p
-              id="productFormMessage"
-              class="login-error"
-            ></p>
+        <label>
+          Deadline Pembayaran
+        </label>
 
-          </form>
+        <input
+          id="deadlinePayment"
+          type="date"
+        >
+
+
+        <label>
+          Status
+        </label>
+
+        <select
+          id="productStatus"
+        >
+
+          <option
+            value="active"
+          >
+            Active
+          </option>
+
+          <option
+            value="closed"
+          >
+            Closed
+          </option>
+
+          <option
+            value="completed"
+          >
+            Completed
+          </option>
+
+        </select>
+
+
+        <label>
+          Deskripsi
+        </label>
+
+        <textarea
+          id="productDescription"
+          rows="4"
+          placeholder="Deskripsi produk..."
+        ></textarea>
+
+
+        <label>
+          Jumlah Member
+        </label>
+
+        <input
+          id="productMembers"
+          type="number"
+          min="0"
+          value="0"
+        >
+
+
+        <label
+          class="checkbox-label"
+        >
+
+          <input
+            id="showWebsite"
+            type="checkbox"
+            checked
+          >
+
+          Tampilkan di website customer
+
+        </label>
+
+
+        <div
+          class="form-actions"
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            Simpan Produk
+          </button>
+
+
+          <button
+            type="button"
+            id="cancelProductButton"
+          >
+            Batal
+          </button>
 
         </div>
 
-      `;
+
+        <p
+          id="productFormMessage"
+          class="login-error"
+        ></p>
+
+      </form>
+
+    </div>
+
+  `;
 
 
-      document
-        .getElementById(
-          "cancelProductButton"
-        )
-        .addEventListener(
-          "click",
-          function () {
+  document
+    .getElementById(
+      "cancelProductButton"
+    )
+    .addEventListener(
+      "click",
+      function () {
 
-            productFormContainer.innerHTML =
-              "";
+        container.innerHTML =
+          "";
 
-          }
-        );
-
-
-      document
-        .getElementById(
-          "productForm"
-        )
-        .addEventListener(
-          "submit",
-          saveProduct
-        );
-
-    }
-  );
+      }
+    );
 
 
-  await loadProductList();
+  document
+    .getElementById(
+      "productForm"
+    )
+    .addEventListener(
+      "submit",
+      saveProduct
+    );
 
 }
 
@@ -873,7 +960,7 @@ async function saveProduct(
             "productPrice"
           )
           .value
-      ),
+      ) || 0,
 
     dp:
       Number(
@@ -882,7 +969,7 @@ async function saveProduct(
             "productDp"
           )
           .value
-      ),
+      ) || 0,
 
     deadline_list:
       document
@@ -922,7 +1009,7 @@ async function saveProduct(
             "productMembers"
           )
           .value
-      ),
+      ) || 0,
 
     show_website:
       document
@@ -947,9 +1034,9 @@ async function saveProduct(
   if (error) {
 
     console.error(
+      "ERROR SAVE PRODUCT:",
       error
     );
-
 
     message.textContent =
       "Gagal menyimpan produk: " +
@@ -978,7 +1065,7 @@ async function saveProduct(
 
 
 /* ============================================
-   TAMPILKAN DAFTAR PRODUK
+   DAFTAR PRODUK
    ============================================ */
 
 async function loadProductList() {
@@ -994,10 +1081,6 @@ async function loadProductList() {
   }
 
 
-  container.innerHTML =
-    "<p>Memuat produk...</p>";
-
-
   const {
     data,
     error
@@ -1008,17 +1091,13 @@ async function loadProductList() {
       .order(
         "id",
         {
-          ascending: false
+          ascending:
+            false
         }
       );
 
 
   if (error) {
-
-    console.error(
-      error
-    );
-
 
     container.innerHTML = `
 
@@ -1029,7 +1108,9 @@ async function loadProductList() {
         </h3>
 
         <p>
-          ${error.message}
+          ${escapeHTML(
+            error.message
+          )}
         </p>
 
       </div>
@@ -1055,8 +1136,8 @@ async function loadProductList() {
         </h3>
 
         <p>
-          Tambahkan produk atau Group Order
-          pertama Anda.
+          Tambahkan produk atau
+          Group Order pertama Anda.
         </p>
 
       </div>
@@ -1070,9 +1151,13 @@ async function loadProductList() {
 
   container.innerHTML = `
 
-    <div class="product-table-wrapper">
+    <div
+      class="product-table-wrapper"
+    >
 
-      <table class="product-table">
+      <table
+        class="product-table"
+      >
 
         <thead>
 
@@ -1114,42 +1199,50 @@ async function loadProductList() {
         <tbody>
 
           ${data.map(
-            function(item) {
+            function (item) {
 
               return `
 
                 <tr>
 
                   <td>
-                    ${item.product_code || "—"}
-                  </td>
-
-                  <td>
-                    ${item.name || "—"}
-                  </td>
-
-                  <td>
-                    ${item.type || "—"}
-                  </td>
-
-                  <td>
-                    Rp${Number(
-                      item.price || 0
-                    ).toLocaleString(
-                      "id-ID"
+                    ${escapeHTML(
+                      item.product_code ||
+                      "—"
                     )}
                   </td>
 
                   <td>
-                    Rp${Number(
-                      item.dp || 0
-                    ).toLocaleString(
-                      "id-ID"
+                    ${escapeHTML(
+                      item.name ||
+                      "—"
                     )}
                   </td>
 
                   <td>
-                    ${item.status || "—"}
+                    ${escapeHTML(
+                      item.type ||
+                      "—"
+                    )}
+                  </td>
+
+                  <td>
+                    ${formatRupiah(
+                      item.price
+                    )}
+                  </td>
+
+                  <td>
+                    ${formatRupiah(
+                      item.dp
+                    )}
+                  </td>
+
+                  <td>
+                    ${escapeHTML(
+                      item.status ||
+                      "—"
+                    )}
                   </td>
 
                   <td>
@@ -1178,6 +1271,469 @@ async function loadProductList() {
 }
 
 /* ============================================
+   BAGIAN 2
+   PEMBAYARAN + REKAP GO
+   ============================================ */
+
+
+/* ============================================
+   PEMBAYARAN
+   ============================================ */
+
+async function loadPayments() {
+
+  pageTitle.textContent =
+    "Pembayaran";
+
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            Pembayaran
+          </h2>
+
+          <p>
+            Kelola bukti pembayaran customer.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div id="paymentsContainer">
+
+        <p>
+          Memuat pembayaran...
+        </p>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  const container =
+    document.getElementById(
+      "paymentsContainer"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "dn_payment_submissions"
+      )
+      .select("*")
+      .order(
+        "id",
+        {
+          ascending:
+            false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD PAYMENTS:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat pembayaran
+        </h3>
+
+        <p>
+          ${escapeHTML(
+            error.message
+          )}
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Belum ada pembayaran
+        </h3>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div
+      class="product-table-wrapper"
+    >
+
+      <table
+        class="product-table"
+      >
+
+        <thead>
+
+          <tr>
+
+            <th>
+              ID
+            </th>
+
+            <th>
+              Customer
+            </th>
+
+            <th>
+              WhatsApp
+            </th>
+
+            <th>
+              Kode Produk
+            </th>
+
+            <th>
+              Versi
+            </th>
+
+            <th>
+              Nominal
+            </th>
+
+            <th>
+              Tanggal Transfer
+            </th>
+
+            <th>
+              Bukti
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Aksi
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          ${data.map(
+            function (
+              payment
+            ) {
+
+              return `
+
+                <tr>
+
+                  <td>
+                    ${
+                      payment.id ||
+                      "—"
+                    }
+                  </td>
+
+
+                  <td>
+                    ${escapeHTML(
+                      payment.customer_name ||
+                      "—"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHTML(
+                      payment.whatsapp_last4 ||
+                      "—"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHTML(
+                      payment.product_code ||
+                      "—"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${escapeHTML(
+                      payment.product_version ||
+                      "—"
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${formatRupiah(
+                      payment.amount
+                    )}
+                  </td>
+
+
+                  <td>
+                    ${
+                      payment.payment_date
+                        ? formatDate(
+                            payment.payment_date
+                          )
+                        : "—"
+                    }
+                  </td>
+
+
+                  <td>
+
+                    ${
+                      payment.proof_path
+                        ? `
+
+                          <button
+                            type="button"
+                            class="primary-button payment-proof-button"
+                            data-proof="${escapeHTML(
+                              payment.proof_path
+                            )}"
+                          >
+                            👁️ Lihat Bukti
+                          </button>
+
+                        `
+                        : "—"
+                    }
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="status"
+                    >
+                      ${escapeHTML(
+                        payment.status ||
+                        "—"
+                      )}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    ${
+                      payment.status ===
+                      "pending"
+
+                        ? `
+
+                          <button
+                            type="button"
+                            class="primary-button confirm-payment-button"
+                            data-id="${payment.id}"
+                          >
+                            ✓ Konfirmasi
+                          </button>
+
+
+                          <button
+                            type="button"
+                            class="delete-button reject-payment-button"
+                            data-id="${payment.id}"
+                          >
+                            ✕ Tolak
+                          </button>
+
+                        `
+
+                        : payment.status ===
+                          "confirmed"
+
+                          ? "✓ Pembayaran dikonfirmasi"
+
+                          : payment.status ===
+                            "rejected"
+
+                            ? "✕ Pembayaran ditolak"
+
+                            : "—"
+
+                    }
+
+                  </td>
+
+                </tr>
+
+              `;
+
+            }
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     TOMBOL LIHAT BUKTI
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".payment-proof-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const path =
+              this.dataset.proof;
+
+            viewPaymentProof(
+              path
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     TOMBOL KONFIRMASI
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".confirm-payment-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          async function () {
+
+            const id =
+              this.dataset.id;
+
+            if (
+              !confirm(
+                "Konfirmasi pembayaran ini?"
+              )
+            ) {
+              return;
+            }
+
+            await updatePaymentStatus(
+              id,
+              "confirmed"
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     TOMBOL TOLAK
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".reject-payment-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          async function () {
+
+            const id =
+              this.dataset.id;
+
+            if (
+              !confirm(
+                "Tolak pembayaran ini?"
+              )
+            ) {
+              return;
+            }
+
+            await updatePaymentStatus(
+              id,
+              "rejected"
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================
    UPDATE STATUS PEMBAYARAN
    ============================================ */
 
@@ -1186,13 +1742,21 @@ async function updatePaymentStatus(
   newStatus
 ) {
 
-  const { error } =
+  const {
+    error
+  } =
     await supabaseClient
-      .from("dn_payment_submissions")
+      .from(
+        "dn_payment_submissions"
+      )
       .update({
-        status: newStatus
+        status:
+          newStatus
       })
-      .eq("id", id);
+      .eq(
+        "id",
+        id
+      );
 
 
   if (error) {
@@ -1202,18 +1766,23 @@ async function updatePaymentStatus(
       error
     );
 
+
     alert(
       "Gagal mengubah status pembayaran: " +
       error.message
     );
 
     return;
+
   }
 
 
   alert(
-    newStatus === "confirmed"
+    newStatus ===
+      "confirmed"
+
       ? "Pembayaran berhasil dikonfirmasi."
+
       : "Pembayaran ditolak."
   );
 
@@ -1221,6 +1790,7 @@ async function updatePaymentStatus(
   await loadPayments();
 
 }
+
 
 /* ============================================
    LIHAT BUKTI PEMBAYARAN
@@ -1237,6 +1807,7 @@ async function viewPaymentProof(
     );
 
     return;
+
   }
 
 
@@ -1246,7 +1817,9 @@ async function viewPaymentProof(
   } =
     await supabaseClient
       .storage
-      .from("payment-proofs")
+      .from(
+        "payment-proofs"
+      )
       .createSignedUrl(
         proofPath,
         600
@@ -1260,12 +1833,14 @@ async function viewPaymentProof(
       error
     );
 
+
     alert(
       "Gagal membuka bukti pembayaran: " +
       error.message
     );
 
     return;
+
   }
 
 
@@ -1279,6 +1854,7 @@ async function viewPaymentProof(
     );
 
     return;
+
   }
 
 
@@ -1288,6 +1864,7 @@ async function viewPaymentProof(
   );
 
 }
+
 
 /* ============================================
    REKAP GO
@@ -1312,8 +1889,9 @@ function loadRecap() {
           </h2>
 
           <p>
-            Kelola rekapan pembelian berdasarkan
-            kategori dan kode batch.
+            Kelola rekapan pembelian
+            berdasarkan kategori
+            dan kode batch.
           </p>
 
         </div>
@@ -1329,10 +1907,6 @@ function loadRecap() {
 
       </div>
 
-
-      <!-- ==================================
-           KATEGORI REKAP
-           ================================== -->
 
       <div
         class="recap-category-buttons"
@@ -1408,7 +1982,7 @@ function loadRecap() {
       >
 
         <p>
-          Pilih kategori untuk melihat rekap.
+          Memuat rekap...
         </p>
 
       </div>
@@ -1428,19 +2002,15 @@ function loadRecap() {
     );
 
 
-  /* ========================================
-     PILIH KATEGORI
-     ======================================== */
-
   categoryButtons.forEach(
-    function(button) {
+    function (button) {
 
       button.addEventListener(
         "click",
-        function() {
+        function () {
 
           categoryButtons.forEach(
-            function(item) {
+            function (item) {
 
               item.classList.remove(
                 "active"
@@ -1470,17 +2040,13 @@ function loadRecap() {
   );
 
 
-  /* ========================================
-     TAMBAH REKAP
-     ======================================== */
-
   document
     .getElementById(
       "addRecapButton"
     )
     .addEventListener(
       "click",
-      function() {
+      function () {
 
         showRecapBatchForm(
           selectedCategory
@@ -1490,10 +2056,6 @@ function loadRecap() {
     );
 
 
-  /* ========================================
-     LOAD KATEGORI AWAL
-     ======================================== */
-
   loadRecapList(
     selectedCategory
   );
@@ -1502,16 +2064,12 @@ function loadRecap() {
 
 
 /* ============================================
-   PILIHAN TRACKING
+   TRACKING OPTIONS
    ============================================ */
 
 function getTrackingOptions(
   category
 ) {
-
-  /* ----------------------------------------
-     TREASURE INA
-     ---------------------------------------- */
 
   if (
     category ===
@@ -1530,10 +2088,6 @@ function getTrackingOptions(
 
   }
 
-
-  /* ----------------------------------------
-     TRUZ
-     ---------------------------------------- */
 
   if (
     category ===
@@ -1565,10 +2119,6 @@ function getTrackingOptions(
   }
 
 
-  /* ----------------------------------------
-     TREASURE KR
-     ---------------------------------------- */
-
   if (
     category ===
     "Treasure KR"
@@ -1592,10 +2142,6 @@ function getTrackingOptions(
 
   }
 
-
-  /* ----------------------------------------
-     TREASURE JP
-     ---------------------------------------- */
 
   if (
     category ===
@@ -1621,10 +2167,6 @@ function getTrackingOptions(
   }
 
 
-  /* ----------------------------------------
-     TREASURE CH
-     ---------------------------------------- */
-
   if (
     category ===
     "Treasure CH"
@@ -1649,10 +2191,6 @@ function getTrackingOptions(
   }
 
 
-  /* ----------------------------------------
-     TREASURE THAI
-     ---------------------------------------- */
-
   if (
     category ===
     "Treasure Thai"
@@ -1676,10 +2214,6 @@ function getTrackingOptions(
 
   }
 
-
-  /* ----------------------------------------
-     TREASURE ALBUM
-     ---------------------------------------- */
 
   if (
     category ===
@@ -1711,10 +2245,6 @@ function getTrackingOptions(
   }
 
 
-  /* ----------------------------------------
-     DEFAULT
-     ---------------------------------------- */
-
   return [
 
     "Co Web / Seller",
@@ -1733,7 +2263,7 @@ function getTrackingOptions(
 
 
 /* ============================================
-   FORM TAMBAH REKAP BATCH
+   FORM TAMBAH REKAP
    ============================================ */
 
 function showRecapBatchForm(
@@ -1748,19 +2278,18 @@ function showRecapBatchForm(
 
   container.innerHTML = `
 
-    <div class="panel recap-form">
+    <div
+      class="panel recap-form"
+    >
 
       <h3>
         Tambah Rekap Pembelian
       </h3>
 
 
-      <form id="recapBatchForm">
-
-
-        <!-- ==================================
-             KATEGORI
-             ================================== -->
+      <form
+        id="recapBatchForm"
+      >
 
         <label>
           Kategori
@@ -1773,7 +2302,9 @@ function showRecapBatchForm(
 
           <option
             value="Truz"
-            ${category === "Truz" ? "selected" : ""}
+            ${category === "Truz"
+              ? "selected"
+              : ""}
           >
             Truz
           </option>
@@ -1781,7 +2312,9 @@ function showRecapBatchForm(
 
           <option
             value="Treasure KR"
-            ${category === "Treasure KR" ? "selected" : ""}
+            ${category === "Treasure KR"
+              ? "selected"
+              : ""}
           >
             Treasure KR
           </option>
@@ -1789,7 +2322,9 @@ function showRecapBatchForm(
 
           <option
             value="Treasure JP"
-            ${category === "Treasure JP" ? "selected" : ""}
+            ${category === "Treasure JP"
+              ? "selected"
+              : ""}
           >
             Treasure JP
           </option>
@@ -1797,7 +2332,9 @@ function showRecapBatchForm(
 
           <option
             value="Treasure CH"
-            ${category === "Treasure CH" ? "selected" : ""}
+            ${category === "Treasure CH"
+              ? "selected"
+              : ""}
           >
             Treasure CH
           </option>
@@ -1805,7 +2342,9 @@ function showRecapBatchForm(
 
           <option
             value="Treasure Thai"
-            ${category === "Treasure Thai" ? "selected" : ""}
+            ${category === "Treasure Thai"
+              ? "selected"
+              : ""}
           >
             Treasure Thai
           </option>
@@ -1813,7 +2352,9 @@ function showRecapBatchForm(
 
           <option
             value="Treasure Album"
-            ${category === "Treasure Album" ? "selected" : ""}
+            ${category === "Treasure Album"
+              ? "selected"
+              : ""}
           >
             Treasure Album
           </option>
@@ -1821,17 +2362,15 @@ function showRecapBatchForm(
 
           <option
             value="Treasure INA"
-            ${category === "Treasure INA" ? "selected" : ""}
+            ${category === "Treasure INA"
+              ? "selected"
+              : ""}
           >
             Treasure INA
           </option>
 
         </select>
 
-
-        <!-- ==================================
-             KODE BATCH
-             ================================== -->
 
         <label>
           Kode Batch
@@ -1844,10 +2383,6 @@ function showRecapBatchForm(
           required
         >
 
-
-        <!-- ==================================
-             NAMA BARANG
-             ================================== -->
 
         <label>
           Nama Barang
@@ -1870,8 +2405,9 @@ function showRecapBatchForm(
 
 
         <p>
-          Tambahkan versi, member, atau
-          character sesuai kebutuhan batch.
+          Tambahkan versi,
+          member, atau character
+          sesuai kebutuhan batch.
         </p>
 
 
@@ -1889,7 +2425,9 @@ function showRecapBatchForm(
         </button>
 
 
-        <div class="form-actions">
+        <div
+          class="form-actions"
+        >
 
           <button
             type="submit"
@@ -1914,7 +2452,6 @@ function showRecapBatchForm(
           class="login-error"
         ></p>
 
-
       </form>
 
     </div>
@@ -1928,12 +2465,9 @@ function showRecapBatchForm(
     );
 
 
-  let itemNumber = 0;
+  let itemNumber =
+    0;
 
-
-  /* ========================================
-     TAMBAH BARIS VERSI / MEMBER
-     ======================================== */
 
   function addBatchItem() {
 
@@ -1960,10 +2494,6 @@ function showRecapBatchForm(
       "batch-item";
 
 
-    item.dataset.item =
-      itemNumber;
-
-
     item.innerHTML = `
 
       <div
@@ -1971,7 +2501,8 @@ function showRecapBatchForm(
       >
 
         <h4>
-          Versi / Member ${itemNumber}
+          Versi / Member
+          ${itemNumber}
         </h4>
 
 
@@ -2102,14 +2633,20 @@ function showRecapBatchForm(
       >
 
         ${trackingOptions.map(
-          function(option) {
+          function (
+            option
+          ) {
 
             return `
 
               <option
-                value="${option}"
+                value="${escapeHTML(
+                  option
+                )}"
               >
-                ${option}
+                ${escapeHTML(
+                  option
+                )}
               </option>
 
             `;
@@ -2140,9 +2677,6 @@ function showRecapBatchForm(
         class="batch-co-deadline"
       >
 
-
-      <hr>
-
     `;
 
 
@@ -2151,17 +2685,13 @@ function showRecapBatchForm(
     );
 
 
-    /* ======================================
-       HAPUS BARIS
-       ====================================== */
-
     item
       .querySelector(
         ".remove-batch-item"
       )
       .addEventListener(
         "click",
-        function() {
+        function () {
 
           item.remove();
 
@@ -2171,16 +2701,8 @@ function showRecapBatchForm(
   }
 
 
-  /* ========================================
-     BARIS PERTAMA
-     ======================================== */
-
   addBatchItem();
 
-
-  /* ========================================
-     TAMBAH BARIS
-     ======================================== */
 
   document
     .getElementById(
@@ -2192,17 +2714,13 @@ function showRecapBatchForm(
     );
 
 
-  /* ========================================
-     PERUBAHAN KATEGORI
-     ======================================== */
-
   document
     .getElementById(
       "batchCategory"
     )
     .addEventListener(
       "change",
-      function() {
+      function () {
 
         const options =
           getTrackingOptions(
@@ -2215,18 +2733,26 @@ function showRecapBatchForm(
             ".batch-tracking"
           )
           .forEach(
-            function(select) {
+            function (
+              select
+            ) {
 
               select.innerHTML =
                 options.map(
-                  function(option) {
+                  function (
+                    option
+                  ) {
 
                     return `
 
                       <option
-                        value="${option}"
+                        value="${escapeHTML(
+                          option
+                        )}"
                       >
-                        ${option}
+                        ${escapeHTML(
+                          option
+                        )}
                       </option>
 
                     `;
@@ -2241,17 +2767,13 @@ function showRecapBatchForm(
     );
 
 
-  /* ========================================
-     BATAL
-     ======================================== */
-
   document
     .getElementById(
       "cancelBatchButton"
     )
     .addEventListener(
       "click",
-      function() {
+      function () {
 
         container.innerHTML =
           "";
@@ -2259,10 +2781,6 @@ function showRecapBatchForm(
       }
     );
 
-
-  /* ========================================
-     SUBMIT
-     ======================================== */
 
   document
     .getElementById(
@@ -2277,7 +2795,7 @@ function showRecapBatchForm(
 
 
 /* ============================================
-   SIMPAN BATCH KE SUPABASE
+   SIMPAN BATCH REKAP
    ============================================ */
 
 async function saveBatchRecap(
@@ -2365,7 +2883,7 @@ async function saveBatchRecap(
 
 
   itemElements.forEach(
-    function(item) {
+    function (item) {
 
       const version =
         item
@@ -2520,28 +3038,16 @@ async function saveBatchRecap(
   );
 
 
-  console.log(
-    "DATA BATCH:",
-    records
-  );
-
-
   const {
-    data,
     error
   } =
     await supabaseClient
-      .from("purchase_recap")
+      .from(
+        "purchase_recap"
+      )
       .insert(
         records
-      )
-      .select();
-
-
-  console.log(
-    "HASIL INSERT:",
-    data
-  );
+      );
 
 
   if (error) {
@@ -2571,7 +3077,7 @@ async function saveBatchRecap(
 
 
   setTimeout(
-    function() {
+    function () {
 
       const formContainer =
         document.getElementById(
@@ -2592,8 +3098,9 @@ async function saveBatchRecap(
 
 }
 
+
 /* ============================================
-   TAMPILKAN DAFTAR REKAP
+   LOAD REKAP
    ============================================ */
 
 async function loadRecapList(
@@ -2624,859 +3131,39 @@ async function loadRecapList(
   `;
 
 
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select("*")
-        .eq(
-          "category",
-          category
-        )
-        .order(
-          "batch_code",
-          {
-            ascending: true
-          }
-        )
-        .order(
-          "id",
-          {
-            ascending: true
-          }
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    if (
-      !data ||
-      data.length === 0
-    ) {
-
-      container.innerHTML = `
-
-        <div class="panel">
-
-          <h3>
-            Belum ada rekap
-          </h3>
-
-          <p>
-            Belum terdapat data pada kategori
-            ${category}.
-          </p>
-
-        </div>
-
-      `;
-
-      return;
-
-    }
-
-
-    /* ========================================
-       GROUPING BERDASARKAN KODE BATCH
-       ======================================== */
-
-    const grouped = {};
-
-
-    data.forEach(
-      function(item) {
-
-        const batchCode =
-          item.batch_code ||
-          "Tanpa Kode Batch";
-
-
-        if (
-          !grouped[batchCode]
-        ) {
-
-          grouped[batchCode] = [];
-
-        }
-
-
-        grouped[batchCode].push(
-          item
-        );
-
-      }
-    );
-
-
-    /* ========================================
-       FORMAT RUPIAH
-       ======================================== */
-
-    function formatRupiah(
-      value
-    ) {
-
-      return (
-        "Rp" +
-        Number(
-          value || 0
-        ).toLocaleString(
-          "id-ID"
-        )
-      );
-
-    }
-
-
-    /* ========================================
-       STATUS DP
-       ======================================== */
-
-    function dpStatusHTML(
-      status
-    ) {
-
-      if (
-        status === "paid"
-      ) {
-
-        return `
-
-          <span
-            class="status-badge success"
-          >
-            ✓ Sudah Dibayar
-          </span>
-
-        `;
-
-      }
-
-
-      return `
-
-        <span
-          class="status-badge warning"
-        >
-          Belum Dibayar
-        </span>
-
-      `;
-
-    }
-
-
-    /* ========================================
-       STATUS PELUNASAN
-       ======================================== */
-
-    function paymentStatusHTML(
-      status
-    ) {
-
-      if (
-        status === "paid"
-      ) {
-
-        return `
-
-          <span
-            class="status-badge success"
-          >
-            ✓ Sudah Lunas
-          </span>
-
-        `;
-
-      }
-
-
-      return `
-
-        <span
-          class="status-badge warning"
-        >
-          Belum Lunas
-        </span>
-
-      `;
-
-    }
-
-
-    /* ========================================
-       TRACKING
-       ======================================== */
-
-    function trackingHTML(
-      status
-    ) {
-
-      if (!status) {
-
-        return "—";
-
-      }
-
-
-      return `
-
-        <span
-          class="tracking-badge"
-        >
-          ${status}
-        </span>
-
-      `;
-
-    }
-
-
-    /* ========================================
-       TANGGAL
-       ======================================== */
-
-    function formatDate(
-      value
-    ) {
-
-      if (!value) {
-
-        return "—";
-
-      }
-
-
-      const date =
-        new Date(
-          value
-        );
-
-
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-
-        return value;
-
-      }
-
-
-      return date.toLocaleDateString(
-        "id-ID",
-        {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric"
-        }
-      );
-
-    }
-
-
-    /* ========================================
-       BUAT TAMPILAN SETIAP BATCH
-       ======================================== */
-
-    const batchHTML =
-      Object.entries(
-        grouped
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
       )
-      .map(
-        function(
-          [
-            batchCode,
-            items
-          ]
-        ) {
-
-          const firstItem =
-            items[0];
-
-
-          return `
-
-            <div
-              class="recap-batch-card"
-            >
-
-              <!-- ==========================
-                   HEADER BATCH
-                   ========================== -->
-
-              <div
-                class="recap-batch-header"
-              >
-
-                <div>
-
-                  <div
-                    class="recap-batch-code"
-                  >
-                    ${batchCode}
-                  </div>
-
-
-                  <div
-                    class="recap-batch-name"
-                  >
-                    ${
-                      firstItem.item_name ||
-                      "—"
-                    }
-                  </div>
-
-                </div>
-
-
-                <div
-                  class="recap-batch-count"
-                >
-                  ${items.length}
-                  data
-                </div>
-
-              </div>
-
-
-              <!-- ==========================
-                   TABEL BATCH
-                   ========================== -->
-
-              <div
-                class="product-table-wrapper"
-              >
-
-                <table
-                  class="product-table recap-table"
-                >
-
-                  <thead>
-
-                    <tr>
-
-                      <th>
-                        Versi / Member
-                      </th>
-
-                      <th>
-                        Customer
-                      </th>
-
-                      <th>
-                        Qty
-                      </th>
-
-                      <th>
-                        Harga Barang
-                      </th>
-
-                      <th>
-                        DP
-                      </th>
-
-                      <th>
-                        Status DP
-                      </th>
-
-                      <th>
-                        Pelunasan
-                      </th>
-
-                      <th>
-                        Status Pelunasan
-                      </th>
-
-                      <th>
-                        Tracking
-                      </th>
-
-                      <th>
-                        Note
-                      </th>
-
-                      <th>
-                        Batas CO
-                      </th>
-
-                      <th>
-                        Aksi
-                      </th>
-
-                    </tr>
-
-                  </thead>
-
-
-                  <tbody>
-
-                    ${items.map(
-                      function(item) {
-
-                        const version =
-                          item.version ||
-                          "AVAILABLE";
-
-
-                        const customer =
-                          item.customer_name ||
-                          "AVAILABLE";
-
-
-                        const versionHTML =
-                          version
-                            .toUpperCase()
-                            .trim() ===
-                          "AVAILABLE"
-
-                            ? `
-
-                              <span
-                                class="available-member"
-                              >
-                                AVAILABLE
-                              </span>
-
-                            `
-
-                            : version;
-
-
-                        const customerHTML =
-                          customer
-                            .toUpperCase()
-                            .trim() ===
-                          "AVAILABLE"
-
-                            ? `
-
-                              <span
-                                class="available-member"
-                              >
-                                AVAILABLE
-                              </span>
-
-                            `
-
-                            : customer;
-
-
-                        const dpStatus =
-                          dpStatusHTML(
-                            item.dp_status
-                          );
-
-
-                        const paymentStatus =
-                          paymentStatusHTML(
-                            item.payment_status
-                          );
-
-
-                        const tracking =
-                          trackingHTML(
-                            item.tracking_status
-                          );
-
-
-                        const deadline =
-                          formatDate(
-                            item.co_deadline
-                          );
-
-
-                        return `
-
-                          <tr>
-
-                            <td>
-                              ${versionHTML}
-                            </td>
-
-
-                            <td>
-                              ${customerHTML}
-                            </td>
-
-
-                            <td>
-                              ${item.quantity || 1}
-                            </td>
-
-
-                            <td>
-                              ${formatRupiah(
-                                item.item_price
-                              )}
-                            </td>
-
-
-                            <td>
-                              ${formatRupiah(
-                                item.dp_amount
-                              )}
-                            </td>
-
-
-                            <td>
-                              ${dpStatus}
-                            </td>
-
-
-                            <td>
-                              ${formatRupiah(
-                                item.remaining_amount
-                              )}
-                            </td>
-
-
-                            <td>
-                              ${paymentStatus}
-                            </td>
-
-
-                            <td>
-                              ${tracking}
-                            </td>
-
-
-                            <td>
-                              ${
-                                item.note ||
-                                "—"
-                              }
-                            </td>
-
-
-                            <td>
-                              ${deadline}
-                            </td>
-
-                            <td>
-                             <button
-                              type="button"
-                              class="edit-recap-button"
-                              data-id="${item.id}"
-                           >
-                               ✏️ Edit
-                              </button>
-
-                              <button
-                               type="button"
-                               class="delete-recap-button"
-                               data-id="${item.id}"
-                           >
-                               🗑️ Hapus
-                              </button>
-                           </td>
-
-                          </tr>
-
-                        `;
-
-                      }
-                    ).join("")}
-
-                  </tbody>
-
-                </table>
-
-              </div>
-
-            </div>
-
-          `;
-
-        }
-      )
-      .join("");
-
-
-    /* ========================================
-       TAMPILKAN KE HALAMAN
-       ======================================== */
-
-    container.innerHTML = `
-
-      <div
-        class="recap-list"
-      >
-
-        <div
-          class="recap-list-header"
-        >
-
-        <div class="recap-search">
-
-        <input
-          type="text"
-          id="recapSearchInput"
-          placeholder="🔍 Cari kode batch, customer, barang, member..."
-        />
-
-        <div
-          id="recapSearchResult"
-          class="recap-search-result"
-        ></div>
-
-      </div>
-
-      <button
-       type="button"
-       id="exportRecapButton"
-       class="export-recap-button"
-      >
-       📥 Export Excel
-   </button>
-      
-          <div>
-
-            <h2>
-              ${category}
-            </h2>
-
-            <p>
-              ${data.length}
-              data pembelian dari
-              ${Object.keys(grouped).length}
-              kode batch
-            </p>
-
-          </div>
-
-        </div>
-
-
-        ${batchHTML}
-
-      </div>
-
-    `;
-
-         container
-      .querySelectorAll(".edit-recap-button")
-      .forEach(function(button) {
-
-        button.addEventListener(
-          "click",
-          function() {
-
-            const id =
-              this.getAttribute("data-id");
-
-            editRecap(id);
-
-          }
-        );
-
-      });
-
-     container
-        .querySelectorAll(".delete-recap-button")
-        .forEach(function(button) {
-
-          button.addEventListener(
-            "click",
-            function() {
-
-              const id =
-                this.getAttribute("data-id");
-
-              deleteRecap(id, category);
-
-            }
-          );
-
-      });
-
-  const searchInput =
-     container.querySelector("#recapSearchInput");
-
-  if (searchInput) {
-
-     searchInput.addEventListener(
-       "input",
-       function() {
-
-      const keyword =
-        this.value
-          .toLowerCase()
-          .trim();
-
-      const batchCards =
-        container.querySelectorAll(
-          ".recap-batch-card"
-        );
-
-      const resultInfo =
-        container.querySelector("#recapSearchResult");
-
-      let matchCount = 0;
-
-      batchCards.forEach(
-        function(card) {
-
-          const text =
-            card.innerText
-              .toLowerCase();
-
-          if (
-            keyword === "" ||
-            text.includes(keyword)
-          ) {
-
-            card.style.display = "";
-            matchCount++;
-
-         } else {
-
-           card.style.display = "none";
-
-         }
-        }
-      );
-
-   if (resultInfo) {
-
-       if (keyword === "") {
-
-          resultInfo.textContent = "";
-
-        } else if (matchCount === 0) {
-
-          resultInfo.textContent =
-            `🔎 Tidak ditemukan data yang cocok dengan "${this.value}"`;
-
-        } else {
-
-          resultInfo.textContent =
-            `🔎 Menampilkan ${matchCount} batch yang cocok dengan "${this.value}"`;
-
-        }
-
-      }
-
-    }
-  );
-
-}
-
-     const exportButton =
-  container.querySelector("#exportRecapButton");
-
-if (exportButton) {
-
-  exportButton.addEventListener(
-    "click",
-    function() {
-
-      if (
-        !data ||
-        data.length === 0
-      ) {
-
-        alert(
-          "Tidak ada data Rekap GO untuk diexport."
-        );
-
-        return;
-      }
-
-      const exportData =
-        data.map(function(item) {
-
-          return {
-
-            "Kategori":
-              item.category || "—",
-
-            "Kode Batch":
-              item.batch_code || "—",
-
-            "Nama Barang":
-              item.item_name || "—",
-
-            "Customer":
-              item.customer_name || "—",
-
-            "Versi / Member":
-              item.version || "—",
-
-            "Quantity":
-              item.quantity || 0,
-
-            "Harga":
-              item.item_price || 0,
-
-            "DP":
-              item.dp_amount || 0,
-
-            "Status DP":
-              item.dp_status || "—",
-
-            "Sisa Pembayaran":
-              item.remaining_amount || 0,
-
-            "Status Pembayaran":
-              item.payment_status || "—",
-
-            "Tracking":
-              item.tracking_status || "—",
-
-            "Catatan":
-              item.note || "—",
-
-            "Deadline CO":
-              item.co_deadline || "—"
-
-          };
-
-        });
-
-      const worksheet =
-        XLSX.utils.json_to_sheet(
-          exportData
-        );
-
-      const workbook =
-        XLSX.utils.book_new();
-
-      XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        "Rekap GO"
-      );
-
-      const safeCategory =
+      .select("*")
+      .eq(
+        "category",
         category
-          .replace(/[^a-z0-9]+/gi, "-")
-          .replace(/^-+|-+$/g, "");
-
-      XLSX.writeFile(
-        workbook,
-        `Rekap-GO-${safeCategory}.xlsx`
+      )
+      .order(
+        "batch_code",
+        {
+          ascending:
+            true
+        }
+      )
+      .order(
+        "id",
+        {
+          ascending:
+            true
+        }
       );
 
-    }
-  );
 
-}
-
-  } catch (error) {
+  if (error) {
 
     console.error(
-      "Kesalahan loadRecapList:",
+      "ERROR LOAD RECAP:",
       error
     );
 
@@ -3490,513 +3177,1489 @@ if (exportButton) {
         </h3>
 
         <p>
-          ${error.message}
+          ${escapeHTML(
+            error.message
+          )}
         </p>
 
       </div>
 
     `;
 
+    return;
+
   }
 
-}
 
-/* ============================================
-   EDIT REKAP GO - TAHAP 2
-   ============================================ */
-
-async function editRecap(id) {
-
-  try {
-
-    const {
-      data,
-      error
-    } = await supabaseClient
-      .from("purchase_recap")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (!data) {
-      alert("Data rekap tidak ditemukan.");
-      return;
-    }
-
-
-    const container =
-      document.getElementById(
-        "recapListContainer"
-      );
-
-
-    if (!container) {
-      return;
-    }
-
+  if (
+    !data ||
+    data.length === 0
+  ) {
 
     container.innerHTML = `
 
       <div class="panel">
 
-        <h2>
-          ✏️ Edit Rekap GO
-        </h2>
+        <h3>
+          Belum ada rekap
+        </h3>
 
         <p>
-          Batch: <strong>
-            ${data.batch_code || "—"}
-          </strong>
+          Belum terdapat data
+          pada kategori
+          ${escapeHTML(
+            category
+          )}.
         </p>
-
-
-        <div class="form-grid">
-
-          <div class="form-group">
-
-            <label>
-              Nama Barang
-            </label>
-
-            <input
-              type="text"
-              id="editItemName"
-              value="${data.item_name || ""}"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Versi / Member
-            </label>
-
-            <input
-              type="text"
-              id="editVersion"
-              value="${data.version || ""}"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Customer
-            </label>
-
-            <input
-              type="text"
-              id="editCustomerName"
-              value="${data.customer_name || ""}"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Quantity
-            </label>
-
-            <input
-              type="number"
-              id="editQuantity"
-              value="${data.quantity || 1}"
-              min="1"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Harga Barang
-            </label>
-
-            <input
-              type="number"
-              id="editItemPrice"
-              value="${data.item_price || 0}"
-              min="0"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              DP
-            </label>
-
-            <input
-              type="number"
-              id="editDpAmount"
-              value="${data.dp_amount || 0}"
-              min="0"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Status DP
-            </label>
-
-            <select id="editDpStatus">
-
-              <option
-                value="unpaid"
-                ${data.dp_status === "unpaid" ? "selected" : ""}
-              >
-                Belum Dibayar
-              </option>
-
-              <option
-                value="paid"
-                ${data.dp_status === "paid" ? "selected" : ""}
-              >
-                Sudah Dibayar
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Pelunasan
-            </label>
-
-            <input
-              type="number"
-              id="editRemainingAmount"
-              value="${data.remaining_amount || 0}"
-              min="0"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Status Pelunasan
-            </label>
-
-            <select id="editPaymentStatus">
-
-              <option
-                value="unpaid"
-                ${data.payment_status === "unpaid" ? "selected" : ""}
-              >
-                Belum Lunas
-              </option>
-
-              <option
-                value="paid"
-                ${data.payment_status === "paid" ? "selected" : ""}
-              >
-                Sudah Lunas
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Tracking
-            </label>
-
-            <input
-              type="text"
-              id="editTrackingStatus"
-              value="${data.tracking_status || ""}"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Batas CO
-            </label>
-
-            <input
-              type="date"
-              id="editCoDeadline"
-              value="${
-                data.co_deadline
-                  ? data.co_deadline.substring(0, 10)
-                  : ""
-              }"
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label>
-              Note
-            </label>
-
-            <textarea
-              id="editNote"
-              rows="3"
-            >${data.note || ""}</textarea>
-
-          </div>
-
-        </div>
-
-
-        <div class="form-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="loadRecap()"
-          >
-            ← Kembali
-          </button>
-
-          <button
-           type="button"
-           class="primary-button"
-           onclick="saveEditedRecap('${data.id}', '${data.category}')"
-         >
-           Simpan Perubahan
-         </button>
-         
-        </div>
 
       </div>
 
     `;
 
-  } catch (error) {
+    return;
+
+  }
+
+
+  const grouped = {};
+
+
+  data.forEach(
+    function (item) {
+
+      const code =
+        item.batch_code ||
+        "Tanpa Kode Batch";
+
+
+      if (
+        !grouped[code]
+      ) {
+
+        grouped[code] = [];
+
+      }
+
+
+      grouped[code].push(
+        item
+      );
+
+    }
+  );
+
+
+  function dpStatusHTML(
+    status
+  ) {
+
+    if (
+      status ===
+      "paid"
+    ) {
+
+      return `
+
+        <span
+          class="status-badge success"
+        >
+          ✓ Sudah Dibayar
+        </span>
+
+      `;
+
+    }
+
+
+    return `
+
+      <span
+        class="status-badge warning"
+      >
+        Belum Dibayar
+      </span>
+
+    `;
+
+  }
+
+
+  function paymentStatusHTML(
+    status
+  ) {
+
+    if (
+      status ===
+      "paid"
+    ) {
+
+      return `
+
+        <span
+          class="status-badge success"
+        >
+          ✓ Sudah Lunas
+        </span>
+
+      `;
+
+    }
+
+
+    return `
+
+      <span
+        class="status-badge warning"
+      >
+        Belum Lunas
+      </span>
+
+    `;
+
+  }
+
+
+  function trackingHTML(
+    status
+  ) {
+
+    if (!status) {
+      return "—";
+    }
+
+
+    return `
+
+      <span
+        class="tracking-badge"
+      >
+        ${escapeHTML(
+          status
+        )}
+      </span>
+
+    `;
+
+  }
+
+
+  const batchHTML =
+    Object.entries(
+      grouped
+    )
+    .map(
+      function ([
+        batchCode,
+        items
+      ]) {
+
+        const firstItem =
+          items[0];
+
+
+        return `
+
+          <div
+            class="recap-batch-card"
+          >
+
+            <div
+              class="recap-batch-header"
+            >
+
+              <div>
+
+                <div
+                  class="recap-batch-code"
+                >
+                  ${escapeHTML(
+                    batchCode
+                  )}
+                </div>
+
+
+                <div
+                  class="recap-batch-name"
+                >
+                  ${escapeHTML(
+                    firstItem.item_name ||
+                    "—"
+                  )}
+                </div>
+
+              </div>
+
+
+              <div
+                class="recap-batch-count"
+              >
+                ${items.length}
+                data
+              </div>
+
+            </div>
+
+
+            <div
+              class="product-table-wrapper"
+            >
+
+              <table
+                class="product-table recap-table"
+              >
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+                      Versi / Member
+                    </th>
+
+                    <th>
+                      Customer
+                    </th>
+
+                    <th>
+                      Qty
+                    </th>
+
+                    <th>
+                      Harga Barang
+                    </th>
+
+                    <th>
+                      DP
+                    </th>
+
+                    <th>
+                      Status DP
+                    </th>
+
+                    <th>
+                      Sisa
+                    </th>
+
+                    <th>
+                      Status Pelunasan
+                    </th>
+
+                    <th>
+                      Tracking
+                    </th>
+
+                    <th>
+                      Note
+                    </th>
+
+                    <th>
+                      Batas CO
+                    </th>
+
+                    <th>
+                      Aksi
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  ${items.map(
+                    function (
+                      item
+                    ) {
+
+                      const version =
+                        item.version ||
+                        "AVAILABLE";
+
+
+                      const customer =
+                        item.customer_name ||
+                        "AVAILABLE";
+
+
+                      return `
+
+                        <tr>
+
+                          <td>
+                            ${escapeHTML(
+                              version
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${escapeHTML(
+                              customer
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${
+                              item.quantity ||
+                              1
+                            }
+                          </td>
+
+
+                          <td>
+                            ${formatRupiah(
+                              item.item_price
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${formatRupiah(
+                              item.dp_amount
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${dpStatusHTML(
+                              item.dp_status
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${formatRupiah(
+                              item.remaining_amount
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${paymentStatusHTML(
+                              item.payment_status
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${trackingHTML(
+                              item.tracking_status
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${escapeHTML(
+                              item.note ||
+                              "—"
+                            )}
+                          </td>
+
+
+                          <td>
+                            ${formatDate(
+                              item.co_deadline
+                            )}
+                          </td>
+
+
+                          <td>
+
+                            <button
+                              type="button"
+                              class="edit-recap-button"
+                              data-id="${item.id}"
+                            >
+                              ✏️ Edit
+                            </button>
+
+
+                            <button
+                              type="button"
+                              class="delete-recap-button"
+                              data-id="${item.id}"
+                            >
+                              🗑️ Hapus
+                            </button>
+
+                          </td>
+
+                        </tr>
+
+                      `;
+
+                    }
+                  ).join("")}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    )
+    .join("");
+
+
+  container.innerHTML = `
+
+    <div
+      class="recap-list"
+    >
+
+      <div
+        class="recap-list-header"
+      >
+
+        <div>
+
+          <h2>
+            ${escapeHTML(
+              category
+            )}
+          </h2>
+
+          <p>
+            ${data.length}
+            data pembelian dari
+            ${
+              Object.keys(
+                grouped
+              ).length
+            }
+            kode batch
+          </p>
+
+        </div>
+
+
+        <div
+          class="recap-search"
+        >
+
+          <input
+            type="text"
+            id="recapSearchInput"
+            placeholder="🔍 Cari kode batch, customer, barang, member..."
+          >
+
+          <div
+            id="recapSearchResult"
+            class="recap-search-result"
+          ></div>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="exportRecapButton"
+          class="export-recap-button"
+        >
+          📥 Export Excel
+        </button>
+
+      </div>
+
+
+      ${batchHTML}
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     EDIT
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".edit-recap-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            editRecap(
+              this.dataset.id
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     DELETE
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".delete-recap-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            deleteRecap(
+              this.dataset.id,
+              category
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     SEARCH
+     ========================================== */
+
+  const searchInput =
+    container.querySelector(
+      "#recapSearchInput"
+    );
+
+
+  if (searchInput) {
+
+    searchInput.addEventListener(
+      "input",
+      function () {
+
+        const keyword =
+          this.value
+            .toLowerCase()
+            .trim();
+
+
+        const cards =
+          container.querySelectorAll(
+            ".recap-batch-card"
+          );
+
+
+        const resultInfo =
+          container.querySelector(
+            "#recapSearchResult"
+          );
+
+
+        let matchCount =
+          0;
+
+
+        cards.forEach(
+          function (card) {
+
+            const text =
+              card.innerText
+                .toLowerCase();
+
+
+            if (
+              keyword === "" ||
+              text.includes(
+                keyword
+              )
+            ) {
+
+              card.style.display =
+                "";
+
+              matchCount++;
+
+            } else {
+
+              card.style.display =
+                "none";
+
+            }
+
+          }
+        );
+
+
+        if (!resultInfo) {
+          return;
+        }
+
+
+        if (
+          keyword === ""
+        ) {
+
+          resultInfo.textContent =
+            "";
+
+        } else if (
+          matchCount === 0
+        ) {
+
+          resultInfo.textContent =
+            `🔎 Tidak ditemukan data yang cocok dengan "${this.value}"`;
+
+        } else {
+
+          resultInfo.textContent =
+            `🔎 Menampilkan ${matchCount} batch yang cocok dengan "${this.value}"`;
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     EXPORT EXCEL
+     ========================================== */
+
+  const exportButton =
+    container.querySelector(
+      "#exportRecapButton"
+    );
+
+
+  if (exportButton) {
+
+    exportButton.addEventListener(
+      "click",
+      function () {
+
+        if (
+          typeof XLSX ===
+          "undefined"
+        ) {
+
+          alert(
+            "Library Excel belum tersedia."
+          );
+
+          return;
+
+        }
+
+
+        const exportData =
+          data.map(
+            function (
+              item
+            ) {
+
+              return {
+
+                "Kategori":
+                  item.category ||
+                  "—",
+
+                "Kode Batch":
+                  item.batch_code ||
+                  "—",
+
+                "Nama Barang":
+                  item.item_name ||
+                  "—",
+
+                "Customer":
+                  item.customer_name ||
+                  "—",
+
+                "Versi / Member":
+                  item.version ||
+                  "—",
+
+                "Quantity":
+                  item.quantity ||
+                  0,
+
+                "Harga":
+                  item.item_price ||
+                  0,
+
+                "DP":
+                  item.dp_amount ||
+                  0,
+
+                "Status DP":
+                  item.dp_status ||
+                  "—",
+
+                "Sisa Pembayaran":
+                  item.remaining_amount ||
+                  0,
+
+                "Status Pembayaran":
+                  item.payment_status ||
+                  "—",
+
+                "Tracking":
+                  item.tracking_status ||
+                  "—",
+
+                "Catatan":
+                  item.note ||
+                  "—",
+
+                "Deadline CO":
+                  item.co_deadline ||
+                  "—"
+
+              };
+
+            }
+          );
+
+
+        const worksheet =
+          XLSX.utils.json_to_sheet(
+            exportData
+          );
+
+
+        const workbook =
+          XLSX.utils.book_new();
+
+
+        XLSX.utils.book_append_sheet(
+          workbook,
+          worksheet,
+          "Rekap GO"
+        );
+
+
+        const safeCategory =
+          category
+            .replace(
+              /[^a-z0-9]+/gi,
+              "-"
+            )
+            .replace(
+              /^-+|-+$/g,
+              ""
+            );
+
+
+        XLSX.writeFile(
+          workbook,
+          `Rekap-GO-${safeCategory}.xlsx`
+        );
+
+      }
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   EDIT REKAP GO
+   ============================================ */
+
+async function editRecap(
+  id
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .select("*")
+      .eq(
+        "id",
+        id
+      )
+      .single();
+
+
+  if (error) {
 
     console.error(
-      "Kesalahan editRecap:",
+      "ERROR EDIT REKAP:",
       error
     );
+
 
     alert(
       "Gagal membuka data: " +
       error.message
     );
 
+    return;
+
   }
+
+
+  if (!data) {
+
+    alert(
+      "Data rekap tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "recapListContainer"
+    );
+
+
+  container.innerHTML = `
+
+    <div class="panel">
+
+      <h2>
+        ✏️ Edit Rekap GO
+      </h2>
+
+
+      <p>
+        Batch:
+        <strong>
+          ${escapeHTML(
+            data.batch_code ||
+            "—"
+          )}
+        </strong>
+      </p>
+
+
+      <div
+        class="form-grid"
+      >
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Nama Barang
+          </label>
+
+          <input
+            id="editItemName"
+            type="text"
+            value="${escapeHTML(
+              data.item_name ||
+              ""
+            )}"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Versi / Member
+          </label>
+
+          <input
+            id="editVersion"
+            type="text"
+            value="${escapeHTML(
+              data.version ||
+              ""
+            )}"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Customer
+          </label>
+
+          <input
+            id="editCustomerName"
+            type="text"
+            value="${escapeHTML(
+              data.customer_name ||
+              ""
+            )}"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Quantity
+          </label>
+
+          <input
+            id="editQuantity"
+            type="number"
+            min="1"
+            value="${
+              data.quantity ||
+              1
+            }"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Harga Barang
+          </label>
+
+          <input
+            id="editItemPrice"
+            type="number"
+            min="0"
+            value="${
+              data.item_price ||
+              0
+            }"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            DP
+          </label>
+
+          <input
+            id="editDpAmount"
+            type="number"
+            min="0"
+            value="${
+              data.dp_amount ||
+              0
+            }"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Status DP
+          </label>
+
+          <select
+            id="editDpStatus"
+          >
+
+            <option
+              value="unpaid"
+              ${
+                data.dp_status ===
+                "unpaid"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Belum Dibayar
+            </option>
+
+
+            <option
+              value="paid"
+              ${
+                data.dp_status ===
+                "paid"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Sudah Dibayar
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Pelunasan
+          </label>
+
+          <input
+            id="editRemainingAmount"
+            type="number"
+            min="0"
+            value="${
+              data.remaining_amount ||
+              0
+            }"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Status Pelunasan
+          </label>
+
+          <select
+            id="editPaymentStatus"
+          >
+
+            <option
+              value="unpaid"
+              ${
+                data.payment_status ===
+                "unpaid"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Belum Lunas
+            </option>
+
+
+            <option
+              value="paid"
+              ${
+                data.payment_status ===
+                "paid"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Sudah Lunas
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Tracking
+          </label>
+
+          <input
+            id="editTrackingStatus"
+            type="text"
+            value="${escapeHTML(
+              data.tracking_status ||
+              ""
+            )}"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Batas CO
+          </label>
+
+          <input
+            id="editCoDeadline"
+            type="date"
+            value="${
+              data.co_deadline
+                ? data.co_deadline.substring(
+                    0,
+                    10
+                  )
+                : ""
+            }"
+          >
+
+        </div>
+
+
+        <div
+          class="form-group"
+        >
+
+          <label>
+            Note
+          </label>
+
+          <textarea
+            id="editNote"
+            rows="3"
+          >${escapeHTML(
+            data.note ||
+            ""
+          )}</textarea>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="form-actions"
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="backFromEditButton"
+        >
+          ← Kembali
+        </button>
+
+
+        <button
+          type="button"
+          class="primary-button"
+          id="saveEditRecapButton"
+        >
+          Simpan Perubahan
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document
+    .getElementById(
+      "backFromEditButton"
+    )
+    .addEventListener(
+      "click",
+      function () {
+
+        loadRecap();
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "saveEditRecapButton"
+    )
+    .addEventListener(
+      "click",
+      function () {
+
+        saveEditedRecap(
+          id,
+          data.category
+        );
+
+      }
+    );
 
 }
 
+
 /* ============================================
-   SIMPAN EDIT REKAP GO
+   SIMPAN EDIT REKAP
    ============================================ */
 
-async function saveEditedRecap(id, category) {
+async function saveEditedRecap(
+  id,
+  category
+) {
 
-  try {
+  const updatedData = {
 
-    const updatedData = {
+    item_name:
+      document
+        .getElementById(
+          "editItemName"
+        )
+        .value
+        .trim(),
 
-      item_name:
+    version:
+      document
+        .getElementById(
+          "editVersion"
+        )
+        .value
+        .trim(),
+
+    customer_name:
+      document
+        .getElementById(
+          "editCustomerName"
+        )
+        .value
+        .trim(),
+
+    quantity:
+      Number(
         document
-          .getElementById("editItemName")
+          .getElementById(
+            "editQuantity"
+          )
           .value
-          .trim(),
+      ) || 1,
 
-      version:
+    item_price:
+      Number(
         document
-          .getElementById("editVersion")
+          .getElementById(
+            "editItemPrice"
+          )
           .value
-          .trim(),
+      ) || 0,
 
-      customer_name:
+    dp_amount:
+      Number(
         document
-          .getElementById("editCustomerName")
+          .getElementById(
+            "editDpAmount"
+          )
           .value
-          .trim(),
+      ) || 0,
 
-      quantity:
-        Number(
-          document
-            .getElementById("editQuantity")
-            .value
-        ) || 1,
+    dp_status:
+      document
+        .getElementById(
+          "editDpStatus"
+        )
+        .value,
 
-      item_price:
-        Number(
-          document
-            .getElementById("editItemPrice")
-            .value
-        ) || 0,
-
-      dp_amount:
-        Number(
-          document
-            .getElementById("editDpAmount")
-            .value
-        ) || 0,
-
-      dp_status:
+    remaining_amount:
+      Number(
         document
-          .getElementById("editDpStatus")
-          .value,
-
-      remaining_amount:
-        Number(
-          document
-            .getElementById("editRemainingAmount")
-            .value
-        ) || 0,
-
-      payment_status:
-        document
-          .getElementById("editPaymentStatus")
-          .value,
-
-      tracking_status:
-        document
-          .getElementById("editTrackingStatus")
+          .getElementById(
+            "editRemainingAmount"
+          )
           .value
-          .trim(),
+      ) || 0,
 
-      co_deadline:
-        document
-          .getElementById("editCoDeadline")
-          .value || null,
+    payment_status:
+      document
+        .getElementById(
+          "editPaymentStatus"
+        )
+        .value,
 
-      note:
-        document
-          .getElementById("editNote")
-          .value
-          .trim() || null
+    tracking_status:
+      document
+        .getElementById(
+          "editTrackingStatus"
+        )
+        .value
+        .trim(),
 
-    };
+    co_deadline:
+      document
+        .getElementById(
+          "editCoDeadline"
+        )
+        .value ||
+      null,
+
+    note:
+      document
+        .getElementById(
+          "editNote"
+        )
+        .value
+        .trim() ||
+      null
+
+  };
 
 
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .update(updatedData)
-        .eq("id", id);
-
-
-    if (error) {
-
-      console.error(
-        "ERROR UPDATE REKAP:",
-        error
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .update(
+        updatedData
+      )
+      .eq(
+        "id",
+        id
       );
 
-      alert(
-        "Gagal menyimpan perubahan: " +
-        error.message
-      );
 
-      return;
-
-    }
-
-
-    alert(
-      "Perubahan berhasil disimpan. ♥"
-    );
-
-
-    await loadRecapList(category);
-
-  } catch (error) {
+  if (error) {
 
     console.error(
-      "ERROR SAVE EDIT REKAP:",
+      "ERROR UPDATE REKAP:",
       error
     );
 
+
     alert(
-      "Terjadi kesalahan: " +
+      "Gagal menyimpan perubahan: " +
       error.message
     );
 
+    return;
+
   }
 
-}
 
-/* ============================================
-   HAPUS REKAP GO
-   ============================================ */
-
-async function deleteRecap(id, category) {
-  const confirmDelete = confirm(
-    "Yakin ingin menghapus data Rekap GO ini?"
+  alert(
+    "Perubahan berhasil disimpan. ♥"
   );
 
-  if (!confirmDelete) return;
 
-  try {
-    const { data: deletedRows, error } =
-      await supabaseClient
-        .from("purchase_recap")
-        .delete()
-        .eq("id", id)
-        .select("id");
+  await loadRecapList(
+    category
+  );
 
-    if (error) {
-      console.error("ERROR DELETE REKAP:", error);
-      alert("Gagal menghapus data: " + error.message);
-      return;
-    }
+}
 
-    if (!deletedRows || deletedRows.length === 0) {
-      alert(
-        "Data tidak terhapus. Kemungkinan izin DELETE di Supabase belum tersedia."
-      );
-      return;
-    }
 
-    alert("Data Rekap GO berhasil dihapus. ♥");
+/* ============================================
+   HAPUS REKAP
+   ============================================ */
 
-    await loadRecapList(category);
+async function deleteRecap(
+  id,
+  category
+) {
 
-  } catch (error) {
-    console.error("ERROR DELETE REKAP:", error);
-    alert("Terjadi kesalahan: " + error.message);
+  if (
+    !confirm(
+      "Yakin ingin menghapus data Rekap GO ini?"
+    )
+  ) {
+    return;
   }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .delete()
+      .eq(
+        "id",
+        id
+      )
+      .select(
+        "id"
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR DELETE REKAP:",
+      error
+    );
+
+
+    alert(
+      "Gagal menghapus data: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    alert(
+      "Data tidak terhapus. Periksa izin DELETE di Supabase."
+    );
+
+    return;
+
+  }
+
+
+  alert(
+    "Data Rekap GO berhasil dihapus. ♥"
+  );
+
+
+  await loadRecapList(
+    category
+  );
+
 }
 
 /* ============================================
+   BAGIAN 3/4
    PESANAN / PO
+   ============================================ */
+
+
+/* ============================================
+   LOAD PESANAN
    ============================================ */
 
 async function loadOrders() {
 
-  pageTitle.textContent =
-    "Pesanan";
-
+  pageTitle.textContent = "Pesanan";
 
   pageContent.innerHTML = `
 
@@ -4005,18 +4668,13 @@ async function loadOrders() {
       <div class="panel-header">
 
         <div>
-
-          <h2>
-            Pesanan / PO
-          </h2>
+          <h2>Pesanan / PO</h2>
 
           <p>
-            Kelola posting PO
-            Dear Nadiya.
+            Kelola postingan PO dan hasil
+            pembagian barang kepada customer.
           </p>
-
         </div>
-
 
         <button
           type="button"
@@ -4028,70 +4686,116 @@ async function loadOrders() {
 
       </div>
 
+      <div id="poFormContainer"></div>
 
-      <div
-        id="poFormContainer"
-      ></div>
-
-
-      <div
-        id="ordersContainer"
-      >
-
-        <p>
-          Memuat PO...
-        </p>
-
+      <div id="poListContainer">
+        <p>Memuat PO...</p>
       </div>
 
     </div>
 
   `;
 
+  const addPOButton =
+    document.getElementById("addPOButton");
+
+  if (addPOButton) {
+
+    addPOButton.addEventListener(
+      "click",
+      function () {
+
+        showPOForm();
+
+      }
+    );
+
+  }
+
+  await loadPOList();
+
+}
+
+
+/* ============================================
+   FORM PO
+   ============================================ */
+
+function showPOForm(existingPO = null) {
 
   const container =
-    document.getElementById(
-      "ordersContainer"
-    );
-
-
-  const addPOButton =
-    document.getElementById(
-      "addPOButton"
-    );
-
-
-  const poFormContainer =
-    document.getElementById(
-      "poFormContainer"
-    );
-
+    document.getElementById("poFormContainer");
 
   if (!container) {
     return;
   }
 
+  const isEdit =
+    Boolean(existingPO);
 
-  /* ============================================
-     TOMBOL TAMBAH PO
-     ============================================ */
+  const po =
+    existingPO || {};
 
-  addPOButton.addEventListener(
-    "click",
-    function () {
+  let existingRows = [];
 
-      poFormContainer.innerHTML = `
+  if (po.list_data) {
 
-        <div class="panel">
+    try {
 
-          <h3>
-            ➕ Tambah PO
-          </h3>
+      existingRows =
+        Array.isArray(po.list_data)
+          ? po.list_data
+          : JSON.parse(po.list_data);
+
+    } catch (error) {
+
+      console.error(
+        "Gagal membaca list_data:",
+        error
+      );
+
+      existingRows = [];
+
+    }
+
+  }
 
 
-          <form
-            id="poForm"
-            class="product-form"
+  container.innerHTML = `
+
+    <div class="panel po-form-panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            ${
+              isEdit
+                ? "✏️ Edit PO"
+                : "➕ Tambah PO"
+            }
+          </h2>
+
+          <p>
+            Buat postingan PO untuk customer.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <form id="poForm">
+
+        <div class="form-grid">
+
+
+          <!-- FOTO -->
+
+          <div
+            class="form-group"
+            style="grid-column:1 / -1;"
           >
 
             <label>
@@ -4099,374 +4803,603 @@ async function loadOrders() {
             </label>
 
             <input
-              id="poImage"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
-              required
+              id="poImage"
+              accept="image/*"
+              ${
+                isEdit
+                  ? ""
+                  : "required"
+              }
             >
 
+            ${
+              po.image_url
+                ? `
+
+                  <div style="margin-top:12px;">
+
+                    <p>
+                      Foto saat ini:
+                    </p>
+
+                    <img
+                      src="${escapeHTML(
+                        po.image_url
+                      )}"
+                      alt="Foto PO"
+                      style="
+                        width:220px;
+                        max-width:100%;
+                        max-height:260px;
+                        object-fit:contain;
+                        border-radius:12px;
+                      "
+                    >
+
+                  </div>
+
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <!-- JUDUL -->
+
+          <div
+            class="form-group"
+            style="grid-column:1 / -1;"
+          >
 
             <label>
               Judul PO
             </label>
 
             <input
-              id="poTitle"
               type="text"
-              placeholder="Contoh: Sharing FS Makestar Hongkong New Way (A Ver)"
+              id="poTitle"
+              placeholder="Contoh: FS Knpops Batch 1"
+              value="${escapeHTML(
+                po.title || ""
+              )}"
               required
             >
 
+          </div>
+
+
+          <!-- TIPE PO -->
+
+          <div
+            class="form-group"
+            style="grid-column:1 / -1;"
+          >
+
+            <label>
+              Tipe PO
+            </label>
+
+            <select
+              id="poType"
+            >
+
+              <option
+                value="war"
+                ${
+                  po.po_type === "war"
+                    ? "selected"
+                    : ""
+                }
+              >
+                War / Member
+              </option>
+
+              <option
+                value="general"
+                ${
+                  po.po_type === "general" ||
+                  !po.po_type
+                    ? "selected"
+                    : ""
+                }
+              >
+                General PO
+              </option>
+
+            </select>
+
+
+            <small>
+
+              <strong>
+                War / Member:
+              </strong>
+              satu member dalam satu batch
+              hanya boleh dimiliki satu customer.
+
+              <br><br>
+
+              <strong>
+                General PO:
+              </strong>
+              satu barang dapat dimiliki
+              banyak customer.
+
+            </small>
+
+          </div>
+
+
+          <!-- HARGA -->
+
+          <div class="form-group">
 
             <label>
               Harga
             </label>
 
             <input
-              id="poPrice"
               type="text"
-              placeholder="Contoh: Set 200k / Sharing 24k"
+              id="poPrice"
+              placeholder="Contoh: Rp150.000"
+              value="${escapeHTML(
+                po.price_text || ""
+              )}"
             >
 
+          </div>
+
+
+          <!-- DP -->
+
+          <div class="form-group">
 
             <label>
               DP
             </label>
 
             <input
-              id="poDP"
               type="text"
-              placeholder="Contoh: Set 120k / Sharing 12k"
+              id="poDP"
+              placeholder="Contoh: Rp50.000"
+              value="${escapeHTML(
+                po.dp_text || ""
+              )}"
             >
 
+          </div>
+
+
+          <!-- DEADLINE -->
+
+          <div class="form-group">
 
             <label>
-              Close PO
+              Batas Waktu PO
             </label>
 
             <input
+              type="datetime-local"
               id="poCloseDate"
-              type="date"
+              value="${
+                po.close_date
+                  ? formatDateTimeLocal(
+                      po.close_date
+                    )
+                  : ""
+              }"
             >
 
+          </div>
+
+
+          <!-- DEADLINE DP -->
+
+          <div class="form-group">
 
             <label>
-              Last DP
+              Batas Pembayaran DP
             </label>
 
             <input
-              id="poLastDP"
-              type="date"
+              type="datetime-local"
+              id="poLastDPDate"
+              value="${
+                po.last_dp_date
+                  ? formatDateTimeLocal(
+                      po.last_dp_date
+                    )
+                  : ""
+              }"
             >
 
+          </div>
+
+
+          <!-- STATUS -->
+
+          <div class="form-group">
 
             <label>
-              Status PO
+              Status
             </label>
 
             <select id="poStatus">
 
-              <option value="active">
+              <option
+                value="active"
+                ${
+                  po.status === "active" ||
+                  !po.status
+                    ? "selected"
+                    : ""
+                }
+              >
                 Aktif
               </option>
 
-              <option value="closed">
-                Closed
+              <option
+                value="closed"
+                ${
+                  po.status === "closed"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Ditutup
               </option>
 
-              <option value="completed">
+              <option
+                value="completed"
+                ${
+                  po.status === "completed"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Selesai
               </option>
 
             </select>
 
+          </div>
+
+
+          <!-- DESKRIPSI -->
+
+          <div
+            class="form-group"
+            style="grid-column:1 / -1;"
+          >
 
             <label>
-              Keterangan
+              Deskripsi Barang
             </label>
 
             <textarea
               id="poDescription"
               rows="6"
-              placeholder="Tulis keterangan PO di sini..."
-            ></textarea>
+              placeholder="Tulis detail barang dan ketentuan PO..."
+            >${escapeHTML(
+              po.description || ""
+            )}</textarea>
 
-            <label>
-  Data Batch / Item / Customer
-</label>
-
-<div
-  id="poBatchContainer"
-  style="
-    margin-top:10px;
-  "
-></div>
-
-<button
-  type="button"
-  class="secondary-button"
-  id="addBatchButton"
-  style="
-    margin-top:12px;
-  "
->
-  ➕ Tambah Batch
-</button>
-
-            <div
-              style="
-                display:flex;
-                gap:10px;
-                margin-top:20px;
-                flex-wrap:wrap;
-              "
-            >
-
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                💾 Simpan PO
-              </button>
-
-
-              <button
-                type="button"
-                class="secondary-button"
-                id="cancelPOButton"
-              >
-                Batal
-              </button>
-
-            </div>
-
-
-            <div
-              id="poFormMessage"
-              style="
-                margin-top:15px;
-              "
-            ></div>
-
-          </form>
+          </div>
 
         </div>
 
-      `;
+
+        <hr>
 
 
-      const poForm =
-        document.getElementById(
-          "poForm"
-        );
+        <div>
+
+          <h3>
+            Data Barang / Hasil War
+          </h3>
+
+          <p id="poTypeDescription"></p>
+
+          <div
+            id="poRowsContainer"
+          ></div>
+
+          <button
+            type="button"
+            class="primary-button"
+            id="addPORowButton"
+          >
+            ➕ Tambah Baris
+          </button>
+
+        </div>
 
 
-      const cancelPOButton =
-        document.getElementById(
-          "cancelPOButton"
-        );
+        <div
+          class="form-actions"
+          style="margin-top:20px;"
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            ${
+              isEdit
+                ? "💾 Simpan Perubahan"
+                : "💾 Simpan PO"
+            }
+          </button>
+
+          <button
+            type="button"
+            id="cancelPOButton"
+            class="secondary-button"
+          >
+            Batal
+          </button>
+
+        </div>
 
 
-      const poFormMessage =
-        document.getElementById(
-          "poFormMessage"
-        );
+        <p
+          id="poFormMessage"
+          class="login-error"
+        ></p>
 
-       const poBatchContainer =
-  document.getElementById(
-    "poBatchContainer"
-  );
-
-const addBatchButton =
-  document.getElementById(
-    "addBatchButton"
-  );
-
-
-let batchCounter = 0;
-
-
-function addBatch() {
-
-  batchCounter++;
-
-  const batchId =
-    "batch-" +
-    batchCounter;
-
-
-  const batchDiv =
-    document.createElement(
-      "div"
-    );
-
-
-  batchDiv.className =
-    "panel";
-
-
-  batchDiv.style.marginTop =
-    "15px";
-
-
-  batchDiv.innerHTML = `
-
-    <div
-      style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:10px;
-        margin-bottom:15px;
-      "
-    >
-
-      <h3
-        style="
-          margin:0;
-        "
-      >
-        Batch ${batchCounter}
-      </h3>
-
-
-      <button
-        type="button"
-        class="secondary-button"
-        data-remove-batch="${batchId}"
-      >
-        🗑️ Hapus Batch
-      </button>
+      </form>
 
     </div>
-
-
-    <label>
-      Nama Batch
-    </label>
-
-    <input
-      type="text"
-      class="batch-name"
-      placeholder="Contoh: Batch 1"
-      value="Batch ${batchCounter}"
-    >
-
-
-    <label
-      style="
-        margin-top:15px;
-        display:block;
-      "
-    >
-      Item / Member / Version
-    </label>
-
-    <div
-      class="batch-items"
-    ></div>
-
-
-    <button
-      type="button"
-      class="secondary-button add-item-button"
-      style="
-        margin-top:12px;
-      "
-    >
-      ➕ Tambah Item
-    </button>
 
   `;
 
 
-  poBatchContainer.appendChild(
-    batchDiv
-  );
+  const typeSelect =
+    document.getElementById("poType");
 
+  const rowsContainer =
+    document.getElementById(
+      "poRowsContainer"
+    );
 
-  const itemsContainer =
-    batchDiv.querySelector(
-      ".batch-items"
+  const typeDescription =
+    document.getElementById(
+      "poTypeDescription"
     );
 
 
-  const addItemButton =
-    batchDiv.querySelector(
-      ".add-item-button"
-    );
+  let rowNumber = 0;
 
 
-  function addItem() {
+  /* ==========================================
+     DESKRIPSI TIPE
+     ========================================== */
 
-    const itemDiv =
-      document.createElement(
-        "div"
-      );
+  function updatePOTypeDescription() {
+
+    if (
+      typeSelect.value === "war"
+    ) {
+
+      typeDescription.innerHTML = `
+
+        <strong>Mode War / Member</strong>
+
+        <br>
+
+        Contoh:
+        Batch 1 → Hyunsuk → Euis.
+
+        <br>
+
+        Dalam batch yang sama,
+        member yang sama tidak boleh
+        dimiliki customer lain.
+
+      `;
+
+    } else {
+
+      typeDescription.innerHTML = `
+
+        <strong>Mode General PO</strong>
+
+        <br>
+
+        Contoh:
+        Album → Euis × 2,
+        Nadiya × 1,
+        Rina × 3.
+
+        <br>
+
+        Barang yang sama boleh dimiliki
+        banyak customer.
+
+      `;
+
+    }
+
+  }
 
 
-    itemDiv.style.display =
-      "grid";
+  /* ==========================================
+     TAMBAH BARIS
+     ========================================== */
 
-    itemDiv.style.gridTemplateColumns =
-      "1fr 1fr 100px auto";
+  function addPORow(rowData = {}) {
 
-    itemDiv.style.gap =
-      "8px";
+    rowNumber++;
 
-    itemDiv.style.marginTop =
-      "10px";
+    const row =
+      document.createElement("div");
 
+    row.className =
+      "batch-item po-row";
 
-    itemDiv.innerHTML = `
+    row.innerHTML = `
 
-      <input
-        type="text"
-        class="po-item-name"
-        placeholder="Item / Member / Version"
+      <div
+        class="batch-item-header"
       >
 
+        <h4>
+          ${
+            typeSelect.value === "war"
+              ? "Member"
+              : "Barang"
+          }
+          ${rowNumber}
+        </h4>
 
-      <input
-        type="text"
-        class="po-customer-name"
-        placeholder="Nama Customer"
-      >
+        <button
+          type="button"
+          class="remove-po-row"
+        >
+          ✕ Hapus
+        </button>
+
+      </div>
 
 
-      <input
-        type="number"
-        class="po-item-qty"
-        min="1"
-        value="1"
-        placeholder="Qty"
-      >
+      ${
+        typeSelect.value === "war"
+
+          ? `
+
+            <label>
+              Batch
+            </label>
+
+            <input
+              type="text"
+              class="po-row-batch"
+              placeholder="Contoh: Batch 1"
+              value="${escapeHTML(
+                rowData.batch || ""
+              )}"
+            >
 
 
-      <button
-        type="button"
-        class="secondary-button remove-item-button"
-      >
-        ✕
-      </button>
+            <label>
+              Member / Version
+            </label>
+
+            <input
+              type="text"
+              class="po-row-member"
+              placeholder="Contoh: Hyunsuk"
+              value="${escapeHTML(
+                rowData.member || ""
+              )}"
+            >
+
+
+            <label>
+              Customer
+            </label>
+
+            <input
+              type="text"
+              class="po-row-customer"
+              placeholder="Nama customer"
+              value="${escapeHTML(
+                rowData.customer || ""
+              )}"
+            >
+
+
+            <label>
+              Quantity
+            </label>
+
+            <input
+              type="number"
+              class="po-row-quantity"
+              min="1"
+              value="${
+                rowData.quantity || 1
+              }"
+            >
+
+          `
+
+          : `
+
+            <label>
+              Nama Barang
+            </label>
+
+            <input
+              type="text"
+              class="po-row-member"
+              placeholder="Contoh: Album TREASURE"
+              value="${escapeHTML(
+                rowData.member || ""
+              )}"
+            >
+
+
+            <label>
+              Customer
+            </label>
+
+            <input
+              type="text"
+              class="po-row-customer"
+              placeholder="Nama customer"
+              value="${escapeHTML(
+                rowData.customer || ""
+              )}"
+            >
+
+
+            <label>
+              Quantity
+            </label>
+
+            <input
+              type="number"
+              class="po-row-quantity"
+              min="1"
+              value="${
+                rowData.quantity || 1
+              }"
+            >
+
+          `
+      }
+
+
+      <label>
+        Catatan
+      </label>
+
+      <textarea
+        class="po-row-note"
+        rows="2"
+        placeholder="Catatan..."
+      >${escapeHTML(
+        rowData.note || ""
+      )}</textarea>
 
     `;
 
 
-    itemsContainer.appendChild(
-      itemDiv
-    );
+    rowsContainer.appendChild(row);
 
 
-    itemDiv
+    row
       .querySelector(
-        ".remove-item-button"
+        ".remove-po-row"
       )
       .addEventListener(
         "click",
-        function() {
+        function () {
 
-          itemDiv.remove();
+          row.remove();
 
         }
       );
@@ -4474,495 +5407,837 @@ function addBatch() {
   }
 
 
-  addItemButton.addEventListener(
-    "click",
-    addItem
+  /* ==========================================
+     RENDER BARIS ULANG SAAT TIPE BERUBAH
+     ========================================== */
+
+  function renderRows() {
+
+    const currentRows = [];
+
+    rowsContainer
+      .querySelectorAll(
+        ".po-row"
+      )
+      .forEach(
+        function (row) {
+
+          currentRows.push({
+
+            batch:
+              row.querySelector(
+                ".po-row-batch"
+              )?.value.trim() || "",
+
+            member:
+              row.querySelector(
+                ".po-row-member"
+              )?.value.trim() || "",
+
+            customer:
+              row.querySelector(
+                ".po-row-customer"
+              )?.value.trim() || "",
+
+            quantity:
+              Number(
+                row.querySelector(
+                  ".po-row-quantity"
+                )?.value
+              ) || 1,
+
+            note:
+              row.querySelector(
+                ".po-row-note"
+              )?.value.trim() || ""
+
+          });
+
+        }
+      );
+
+
+    rowsContainer.innerHTML =
+      "";
+
+    rowNumber = 0;
+
+
+    if (
+      currentRows.length
+    ) {
+
+      currentRows.forEach(
+        function (rowData) {
+
+          addPORow(
+            rowData
+          );
+
+        }
+      );
+
+    } else {
+
+      addPORow();
+
+    }
+
+  }
+
+
+  typeSelect.addEventListener(
+    "change",
+    function () {
+
+      updatePOTypeDescription();
+
+      renderRows();
+
+    }
   );
 
 
-  batchDiv
-    .querySelector(
-      `[data-remove-batch="${batchId}"]`
+  /* ==========================================
+     BARIS AWAL
+     ========================================== */
+
+  updatePOTypeDescription();
+
+
+  if (
+    existingRows.length
+  ) {
+
+    existingRows.forEach(
+      function (rowData) {
+
+        addPORow(
+          rowData
+        );
+
+      }
+    );
+
+  } else {
+
+    addPORow();
+
+  }
+
+
+  /* ==========================================
+     TAMBAH BARIS
+     ========================================== */
+
+  document
+    .getElementById(
+      "addPORowButton"
     )
     .addEventListener(
       "click",
-      function() {
+      function () {
 
-        batchDiv.remove();
+        addPORow();
 
       }
     );
 
 
-  /* Baris pertama otomatis */
+  /* ==========================================
+     BATAL
+     ========================================== */
 
-  addItem();
+  document
+    .getElementById(
+      "cancelPOButton"
+    )
+    .addEventListener(
+      "click",
+      function () {
+
+        container.innerHTML =
+          "";
+
+      }
+    );
+
+
+  /* ==========================================
+     SUBMIT
+     ========================================== */
+
+  document
+    .getElementById(
+      "poForm"
+    )
+    .addEventListener(
+      "submit",
+      async function (event) {
+
+        event.preventDefault();
+
+        await savePO(
+          existingPO
+        );
+
+      }
+    );
 
 }
 
 
-/* Tambah Batch */
+/* ============================================
+   FORMAT DATETIME
+   ============================================ */
 
-addBatchButton.addEventListener(
-  "click",
-  addBatch
-);
+function formatDateTimeLocal(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(2, "0");
+
+  const hours =
+    String(
+      date.getHours()
+    ).padStart(2, "0");
+
+  const minutes =
+    String(
+      date.getMinutes()
+    ).padStart(2, "0");
+
+  return (
+    `${year}-${month}-${day}` +
+    `T${hours}:${minutes}`
+  );
+
+}
 
 
-/* Batch pertama otomatis */
-
-addBatch();
-
-      /* ============================================
-         BATAL
-         ============================================ */
-
-      cancelPOButton.addEventListener(
-        "click",
-        function () {
-
-          poFormContainer.innerHTML =
-            "";
-
-        }
-      );
-
-
-      /* ============================================
+/* ============================================
    SIMPAN PO
    ============================================ */
 
-poForm.addEventListener(
-  "submit",
-  async function (event) {
+async function savePO(
+  existingPO
+) {
 
-    event.preventDefault();
+  const message =
+    document.getElementById(
+      "poFormMessage"
+    );
+
+  if (message) {
+
+    message.textContent =
+      "Menyimpan PO...";
+
+  }
 
 
-    const imageFile =
-      document.getElementById(
-        "poImage"
-      ).files[0];
-
-
-    const title =
-      document.getElementById(
+  const title =
+    document
+      .getElementById(
         "poTitle"
-      ).value.trim();
+      )
+      .value
+      .trim();
 
 
-    const priceText =
-      document.getElementById(
+  const poType =
+    document
+      .getElementById(
+        "poType"
+      )
+      .value;
+
+
+  const priceText =
+    document
+      .getElementById(
         "poPrice"
-      ).value.trim();
+      )
+      .value
+      .trim();
 
 
-    const dpText =
-      document.getElementById(
+  const dpText =
+    document
+      .getElementById(
         "poDP"
-      ).value.trim();
+      )
+      .value
+      .trim();
 
 
-    const closeDate =
-      document.getElementById(
+  const closeDate =
+    document
+      .getElementById(
         "poCloseDate"
-      ).value || null;
+      )
+      .value;
 
 
-    const lastDPDate =
-      document.getElementById(
-        "poLastDP"
-      ).value || null;
+  const lastDPDate =
+    document
+      .getElementById(
+        "poLastDPDate"
+      )
+      .value;
 
 
-    const status =
-      document.getElementById(
+  const status =
+    document
+      .getElementById(
         "poStatus"
-      ).value;
+      )
+      .value;
 
 
-    const description =
-      document.getElementById(
+  const description =
+    document
+      .getElementById(
         "poDescription"
-      ).value.trim();
+      )
+      .value
+      .trim();
 
 
-    if (!imageFile) {
+  if (!title) {
 
-      poFormMessage.innerHTML = `
-        <p style="color:#a83232;">
-          Foto PO wajib dipilih.
-        </p>
-      `;
+    if (message) {
 
-      return;
-
-    }
-
-
-    if (!title) {
-
-      poFormMessage.innerHTML = `
-        <p style="color:#a83232;">
-          Judul PO wajib diisi.
-        </p>
-      `;
-
-      return;
+      message.textContent =
+        "Judul PO wajib diisi.";
 
     }
 
+    return;
 
-    /* ============================================
-       KUMPULKAN DATA BATCH
-       ============================================ */
-
-    const batchElements =
-      poBatchContainer.querySelectorAll(
-        ":scope > .panel"
-      );
+  }
 
 
-    const batches = [];
+  /* ==========================================
+     AMBIL SEMUA BARIS
+     ========================================== */
 
-
-    batchElements.forEach(
-      function(batchElement) {
-
-        const batchNameInput =
-          batchElement.querySelector(
-            ".batch-name"
-          );
-
-
-        const batchName =
-          batchNameInput
-            ? batchNameInput.value.trim()
-            : "";
-
-
-        const itemElements =
-          batchElement.querySelectorAll(
-            ".batch-items > div"
-          );
-
-
-        const items = [];
-
-
-        itemElements.forEach(
-          function(itemElement) {
-
-            const itemInput =
-              itemElement.querySelector(
-                ".po-item-name"
-              );
-
-
-            const customerInput =
-              itemElement.querySelector(
-                ".po-customer-name"
-              );
-
-
-            const qtyInput =
-              itemElement.querySelector(
-                ".po-item-qty"
-              );
-
-
-            const itemName =
-              itemInput
-                ? itemInput.value.trim()
-                : "";
-
-
-            const customerName =
-              customerInput
-                ? customerInput.value.trim()
-                : "";
-
-
-            const quantity =
-              qtyInput
-                ? Number(
-                    qtyInput.value || 1
-                  )
-                : 1;
-
-
-            /* Lewati baris kosong */
-
-            if (
-              !itemName &&
-              !customerName
-            ) {
-              return;
-            }
-
-
-            items.push({
-              item: itemName,
-              customer: customerName,
-              quantity:
-                quantity > 0
-                  ? quantity
-                  : 1
-            });
-
-          }
-        );
-
-
-        /* Simpan batch */
-
-        if (
-          batchName ||
-          items.length > 0
-        ) {
-
-          batches.push({
-            batch_name:
-              batchName ||
-              "Batch",
-            items:
-              items
-          });
-
-        }
-
-      }
+  const rows =
+    document.querySelectorAll(
+      "#poRowsContainer .po-row"
     );
 
 
-    poFormMessage.innerHTML = `
-      <p>
-        ⏳ Menyimpan PO...
-      </p>
-    `;
+  const listData = [];
 
 
-    const submitButton =
-      poForm.querySelector(
-        'button[type="submit"]'
-      );
+  rows.forEach(
+    function (row) {
+
+      const batch =
+        row.querySelector(
+          ".po-row-batch"
+        )?.value
+          .trim() || "";
 
 
-    submitButton.disabled =
-      true;
+      const member =
+        row.querySelector(
+          ".po-row-member"
+        )?.value
+          .trim() || "";
 
 
-    let uploadedPath =
-      null;
+      const customer =
+        row.querySelector(
+          ".po-row-customer"
+        )?.value
+          .trim() || "";
 
 
-    try {
-
-      /* ============================================
-         UPLOAD FOTO
-         ============================================ */
-
-      const safeFileName =
-        imageFile.name
-          .replace(
-            /[^a-zA-Z0-9._-]/g,
-            "-"
-          );
+      const quantity =
+        Number(
+          row.querySelector(
+            ".po-row-quantity"
+          )?.value
+        ) || 1;
 
 
-      const filePath =
-        "po/" +
-        Date.now() +
-        "-" +
-        safeFileName;
+      const note =
+        row.querySelector(
+          ".po-row-note"
+        )?.value
+          .trim() || "";
 
 
-      const {
-        error: uploadError
-      } =
-        await supabaseClient
-          .storage
-          .from("po-images")
-          .upload(
-            filePath,
-            imageFile,
-            {
-              cacheControl:
-                "3600",
-              upsert:
-                false
-            }
-          );
+      if (
+        member ||
+        customer ||
+        batch
+      ) {
+
+        listData.push({
+
+          batch:
+            batch,
+
+          member:
+            member,
+
+          customer:
+            customer,
+
+          quantity:
+            quantity,
+
+          note:
+            note
+
+        });
+
+      }
+
+    }
+  );
 
 
-      if (uploadError) {
-        throw uploadError;
+  /* ==========================================
+     VALIDASI WAR
+     ========================================== */
+
+  if (
+    poType === "war"
+  ) {
+
+    const usedSlots =
+      new Map();
+
+
+    for (
+      const row
+      of listData
+    ) {
+
+      const batch =
+        row.batch
+          .toLowerCase()
+          .trim();
+
+
+      const member =
+        row.member
+          .toLowerCase()
+          .trim();
+
+
+      if (
+        !batch ||
+        !member
+      ) {
+
+        continue;
+
       }
 
 
-      uploadedPath =
-        filePath;
+      const key =
+        `${batch}|||${member}`;
 
 
-      /* ============================================
-         AMBIL URL FOTO
-         ============================================ */
+      if (
+        usedSlots.has(key)
+      ) {
 
-      const {
-        data:
-          publicURLData
-      } =
-        supabaseClient
-          .storage
-          .from("po-images")
-          .getPublicUrl(
-            filePath
+        const previousCustomer =
+          usedSlots.get(key);
+
+
+        if (
+          previousCustomer &&
+          row.customer &&
+          previousCustomer
+            .toLowerCase()
+            !==
+          row.customer
+            .toLowerCase()
+        ) {
+
+          if (message) {
+
+            message.textContent =
+              `Member ${row.member} pada ${row.batch} sudah dimiliki oleh ${previousCustomer}.`;
+
+          }
+
+          alert(
+            `Tidak dapat menyimpan.\n\n${row.member} pada ${row.batch} hanya boleh dimiliki 1 customer.`
           );
 
-
-      const imageURL =
-        publicURLData
-          .publicUrl;
-
-
-      /* ============================================
-         SIMPAN PO
-         ============================================ */
-
-      const {
-        error:
-          insertError
-      } =
-        await supabaseClient
-          .from("po_posts")
-          .insert([
-            {
-
-              title:
-                title,
-
-              image_url:
-                imageURL,
-
-              price_text:
-                priceText,
-
-              dp_text:
-                dpText,
-
-              close_date:
-                closeDate,
-
-              last_dp_date:
-                lastDPDate,
-
-              description:
-                description,
-
-              list_data:
-                batches,
-
-              status:
-                status
-
-            }
-          ]);
-
-
-      if (insertError) {
-
-        /* Jika database gagal,
-           hapus foto yang sudah
-           terupload */
-
-        if (uploadedPath) {
-
-          await supabaseClient
-            .storage
-            .from("po-images")
-            .remove([
-              uploadedPath
-            ]);
+          return;
 
         }
 
-        throw insertError;
+      } else {
+
+        usedSlots.set(
+          key,
+          row.customer
+        );
 
       }
-
-
-      /* ============================================
-         BERHASIL
-         ============================================ */
-
-      poFormMessage.innerHTML = `
-        <p
-          style="
-            color:#236b43;
-            font-weight:600;
-          "
-        >
-          ✅ PO berhasil disimpan.
-        </p>
-      `;
-
-
-      poForm.reset();
-
-
-      setTimeout(
-        function() {
-
-          loadOrders();
-
-        },
-        700
-      );
-
-
-    } catch (error) {
-
-      console.error(
-        "ERROR SAVE PO:",
-        error
-      );
-
-
-      poFormMessage.innerHTML = `
-        <p
-          style="
-            color:#a83232;
-          "
-        >
-          ❌ Gagal menyimpan PO:
-          ${error.message}
-        </p>
-      `;
-
-
-      submitButton.disabled =
-        false;
 
     }
 
   }
-);
 
-  /* ============================================
-     AMBIL DATA PO
-     ============================================ */
+
+  /* ==========================================
+     FOTO
+     ========================================== */
+
+  let imageURL =
+    existingPO
+      ? existingPO.image_url ||
+        null
+      : null;
+
+
+  const imageInput =
+    document.getElementById(
+      "poImage"
+    );
+
+
+  if (
+    imageInput &&
+    imageInput.files &&
+    imageInput.files.length
+  ) {
+
+    const file =
+      imageInput.files[0];
+
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+
+      if (message) {
+
+        message.textContent =
+          "File harus berupa gambar.";
+
+      }
+
+      return;
+
+    }
+
+
+    if (
+      file.size >
+      8 * 1024 * 1024
+    ) {
+
+      if (message) {
+
+        message.textContent =
+          "Ukuran gambar maksimal 8 MB.";
+
+      }
+
+      return;
+
+    }
+
+
+    const extension =
+      file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+
+    const fileName =
+      `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 10)}.${extension}`;
+
+
+    const filePath =
+      `po/${fileName}`;
+
+
+    const {
+      error:
+        uploadError
+    } =
+      await supabaseClient
+        .storage
+        .from(
+          "po-images"
+        )
+        .upload(
+          filePath,
+          file,
+          {
+            upsert:
+              false
+          }
+        );
+
+
+    if (
+      uploadError
+    ) {
+
+      console.error(
+        "ERROR UPLOAD PO IMAGE:",
+        uploadError
+      );
+
+
+      if (message) {
+
+        message.textContent =
+          "Gagal upload foto: " +
+          uploadError.message;
+
+      }
+
+      return;
+
+    }
+
+
+    const {
+      data:
+        publicData
+    } =
+      supabaseClient
+        .storage
+        .from(
+          "po-images"
+        )
+        .getPublicUrl(
+          filePath
+        );
+
+
+    imageURL =
+      publicData?.publicUrl ||
+      null;
+
+  }
+
+
+  /* ==========================================
+     DATA
+     ========================================== */
+
+  const poData = {
+
+    title:
+      title,
+
+    po_type:
+      poType,
+
+    image_url:
+      imageURL,
+
+    price_text:
+      priceText ||
+      null,
+
+    dp_text:
+      dpText ||
+      null,
+
+    close_date:
+      closeDate
+        ? new Date(
+            closeDate
+          ).toISOString()
+        : null,
+
+    last_dp_date:
+      lastDPDate
+        ? new Date(
+            lastDPDate
+          ).toISOString()
+        : null,
+
+    description:
+      description ||
+      null,
+
+    list_data:
+      listData,
+
+    status:
+      status
+
+  };
+
+
+  /* ==========================================
+     INSERT / UPDATE
+     ========================================== */
+
+  let result;
+
+
+  if (
+    existingPO &&
+    existingPO.id
+  ) {
+
+    result =
+      await supabaseClient
+        .from(
+          "po_posts"
+        )
+        .update(
+          poData
+        )
+        .eq(
+          "id",
+          existingPO.id
+        );
+
+  } else {
+
+    result =
+      await supabaseClient
+        .from(
+          "po_posts"
+        )
+        .insert(
+          poData
+        );
+
+  }
+
+
+  if (
+    result.error
+  ) {
+
+    console.error(
+      "ERROR SAVE PO:",
+      result.error
+    );
+
+
+    if (message) {
+
+      message.textContent =
+        "Gagal menyimpan PO: " +
+        result.error.message;
+
+    }
+
+    return;
+
+  }
+
+
+  alert(
+    existingPO
+      ? "PO berhasil diperbarui. ♥"
+      : "PO berhasil dibuat. ♥"
+  );
+
+
+  const formContainer =
+    document.getElementById(
+      "poFormContainer"
+    );
+
+
+  if (formContainer) {
+
+    formContainer.innerHTML =
+      "";
+
+  }
+
+
+  await loadPOList();
+
+}
+
+
+/* ============================================
+   LOAD DAFTAR PO
+   ============================================ */
+
+async function loadPOList() {
+
+  const container =
+    document.getElementById(
+      "poListContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  container.innerHTML = `
+
+    <div class="panel">
+      <p>Memuat PO...</p>
+    </div>
+
+  `;
+
 
   const {
     data,
     error
   } =
     await supabaseClient
-      .from("po_posts")
+      .from(
+        "po_posts"
+      )
       .select("*")
       .order(
         "id",
         {
-          ascending: false
+          ascending:
+            false
         }
       );
 
@@ -4984,7 +6259,9 @@ poForm.addEventListener(
         </h3>
 
         <p>
-          ${error.message}
+          ${escapeHTML(
+            error.message
+          )}
         </p>
 
       </div>
@@ -4995,10 +6272,6 @@ poForm.addEventListener(
 
   }
 
-
-  /* ============================================
-     BELUM ADA PO
-     ============================================ */
 
   if (
     !data ||
@@ -5014,8 +6287,8 @@ poForm.addEventListener(
         </h3>
 
         <p>
-          Klik "Tambah PO" untuk
-          membuat posting PO baru.
+          Klik "Tambah PO"
+          untuk membuat PO baru.
         </p>
 
       </div>
@@ -5027,188 +6300,445 @@ poForm.addEventListener(
   }
 
 
-  /* ============================================
-     TAMPILKAN PO
-     ============================================ */
-
   container.innerHTML = `
 
-    <div class="po-list">
+    <div class="po-admin-list">
 
       ${data.map(
-        function(po) {
+        function (po) {
 
-          const listHTML =
+          let rows = [];
+
+
+          if (
             Array.isArray(
               po.list_data
             )
-              ? po.list_data
-                  .map(
-                    function(item) {
+          ) {
 
-                      return `
-                        <div>
-                          ${item.text || ""}
-                        </div>
-                      `;
+            rows =
+              po.list_data;
 
-                    }
-                  )
-                  .join("")
-              : "";
+          } else if (
+            po.list_data
+          ) {
+
+            try {
+
+              rows =
+                typeof po.list_data ===
+                "string"
+
+                  ? JSON.parse(
+                      po.list_data
+                    )
+
+                  : [];
+
+            } catch (
+              error
+            ) {
+
+              rows = [];
+
+            }
+
+          }
+
+
+          const isWar =
+            po.po_type === "war";
 
 
           return `
 
             <div
-              class="panel po-card"
-              style="
-                margin-bottom:20px;
-              "
+              class="panel po-admin-card"
             >
+
+              <div
+                class="po-admin-header"
+              >
+
+                <div>
+
+                  <h2>
+                    ${escapeHTML(
+                      po.title ||
+                      "Tanpa Judul"
+                    )}
+                  </h2>
+
+
+                  <div
+                    style="margin-top:6px;"
+                  >
+
+                    <span
+                      class="status-badge"
+                    >
+                      ${
+                        isWar
+                          ? "WAR / MEMBER"
+                          : "GENERAL PO"
+                      }
+                    </span>
+
+
+                    <span
+                      class="status-badge"
+                    >
+                      ${escapeHTML(
+                        po.status ||
+                        "active"
+                      )}
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <div>
+
+                  <button
+                    type="button"
+                    class="edit-po-button primary-button"
+                    data-id="${po.id}"
+                  >
+                    ✏️ Edit
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="delete-po-button delete-button"
+                    data-id="${po.id}"
+                  >
+                    🗑️ Hapus
+                  </button>
+
+                </div>
+
+              </div>
+
 
               ${
                 po.image_url
                   ? `
-                    <img
-                      src="${po.image_url}"
-                      alt="${po.title || "Foto PO"}"
-                      style="
-                        width:100%;
-                        max-height:400px;
-                        object-fit:contain;
-                        border-radius:15px;
-                        margin-bottom:20px;
-                      "
+
+                    <div
+                      style="margin:15px 0;"
                     >
+
+                      <img
+                        src="${escapeHTML(
+                          po.image_url
+                        )}"
+                        alt="Foto PO"
+                        style="
+                          width:220px;
+                          max-width:100%;
+                          max-height:260px;
+                          object-fit:contain;
+                          border-radius:14px;
+                        "
+                      >
+
+                    </div>
+
                   `
                   : ""
               }
 
 
-              <h2>
-                ${po.title || "Tanpa Judul"}
-              </h2>
+              <div
+                class="po-info-grid"
+              >
+
+                ${
+                  po.price_text
+                    ? `
+
+                      <div>
+
+                        <strong>
+                          Harga
+                        </strong>
+
+                        <p>
+                          ${escapeHTML(
+                            po.price_text
+                          )}
+                        </p>
+
+                      </div>
+
+                    `
+                    : ""
+                }
 
 
-              ${
-                po.price_text
-                  ? `
-                    <p>
-                      💸
-                      <strong>Harga:</strong>
-                      ${po.price_text}
-                    </p>
-                  `
-                  : ""
-              }
+                ${
+                  po.dp_text
+                    ? `
+
+                      <div>
+
+                        <strong>
+                          DP
+                        </strong>
+
+                        <p>
+                          ${escapeHTML(
+                            po.dp_text
+                          )}
+                        </p>
+
+                      </div>
+
+                    `
+                    : ""
+                }
 
 
-              ${
-                po.dp_text
-                  ? `
-                    <p>
-                      💰
-                      <strong>DP:</strong>
-                      ${po.dp_text}
-                    </p>
-                  `
-                  : ""
-              }
+                ${
+                  po.close_date
+                    ? `
+
+                      <div>
+
+                        <strong>
+                          Batas PO
+                        </strong>
+
+                        <p>
+                          ${formatDate(
+                            po.close_date
+                          )}
+                        </p>
+
+                      </div>
+
+                    `
+                    : ""
+                }
 
 
-              ${
-                po.close_date
-                  ? `
-                    <p>
-                      📅
-                      <strong>Close PO:</strong>
-                      ${new Date(
-                        po.close_date +
-                        "T00:00:00"
-                      ).toLocaleDateString(
-                        "id-ID"
-                      )}
-                    </p>
-                  `
-                  : ""
-              }
+                ${
+                  po.last_dp_date
+                    ? `
 
+                      <div>
 
-              ${
-                po.last_dp_date
-                  ? `
-                    <p>
-                      💳
-                      <strong>Last DP:</strong>
-                      ${new Date(
-                        po.last_dp_date +
-                        "T00:00:00"
-                      ).toLocaleDateString(
-                        "id-ID"
-                      )}
-                    </p>
-                  `
-                  : ""
-              }
+                        <strong>
+                          Batas DP
+                        </strong>
+
+                        <p>
+                          ${formatDate(
+                            po.last_dp_date
+                          )}
+                        </p>
+
+                      </div>
+
+                    `
+                    : ""
+                }
+
+              </div>
 
 
               ${
                 po.description
                   ? `
-                    <div
-                      style="
-                        margin-top:15px;
-                        white-space:pre-line;
-                      "
-                    >
-                      ${po.description}
-                    </div>
-                  `
-                  : ""
-              }
 
-
-              ${
-                listHTML
-                  ? `
                     <div
-                      style="
-                        margin-top:20px;
-                        padding-top:15px;
-                        border-top:1px solid #eee;
-                        line-height:1.7;
-                      "
+                      class="po-description"
                     >
 
                       <strong>
-                        📋 List
+                        Deskripsi
                       </strong>
 
-                      <div
-                        style="
-                          margin-top:10px;
-                        "
-                      >
-                        ${listHTML}
-                      </div>
+                      <p>
+                        ${escapeHTML(
+                          po.description
+                        ).replace(
+                          /\n/g,
+                          "<br>"
+                        )}
+                      </p>
 
                     </div>
+
                   `
                   : ""
               }
 
 
-              <p
-                style="
-                  margin-top:20px;
-                "
+              <div
+                class="po-member-list"
               >
-                Status:
-                <strong>
-                  ${po.status || "—"}
-                </strong>
-              </p>
+
+                <h3>
+                  ${
+                    isWar
+                      ? "Hasil War / Member"
+                      : "Daftar Pesanan"
+                  }
+                </h3>
+
+
+                ${
+                  rows.length
+                    ? `
+
+                      <div
+                        class="product-table-wrapper"
+                      >
+
+                        <table
+                          class="product-table"
+                        >
+
+                          <thead>
+
+                            <tr>
+
+                              ${
+                                isWar
+                                  ? `
+
+                                    <th>
+                                      Batch
+                                    </th>
+
+                                    <th>
+                                      Member
+                                    </th>
+
+                                  `
+                                  : `
+
+                                    <th>
+                                      Barang
+                                    </th>
+
+                                  `
+                              }
+
+                              <th>
+                                Customer
+                              </th>
+
+                              <th>
+                                Qty
+                              </th>
+
+                              <th>
+                                Catatan
+                              </th>
+
+                            </tr>
+
+                          </thead>
+
+
+                          <tbody>
+
+                            ${rows.map(
+                              function (
+                                row
+                              ) {
+
+                                return `
+
+                                  <tr>
+
+                                    ${
+                                      isWar
+                                        ? `
+
+                                          <td>
+                                            ${escapeHTML(
+                                              row.batch ||
+                                              "—"
+                                            )}
+                                          </td>
+
+                                        `
+                                        : ""
+                                    }
+
+
+                                    <td>
+                                      ${escapeHTML(
+                                        row.member ||
+                                        "—"
+                                      )}
+                                    </td>
+
+
+                                    <td>
+                                      ${
+                                        row.customer
+                                          ? escapeHTML(
+                                              row.customer
+                                            )
+                                          : `
+
+                                            <span
+                                              class="status-badge warning"
+                                            >
+                                              AVAILABLE
+                                            </span>
+
+                                          `
+                                      }
+                                    </td>
+
+
+                                    <td>
+                                      ${
+                                        row.quantity ||
+                                        1
+                                      }
+                                    </td>
+
+
+                                    <td>
+                                      ${escapeHTML(
+                                        row.note ||
+                                        "—"
+                                      )}
+                                    </td>
+
+                                  </tr>
+
+                                `;
+
+                              }
+                            ).join("")}
+
+                          </tbody>
+
+                        </table>
+
+                      </div>
+
+                    `
+                    : `
+
+                      <p>
+                        Belum ada data.
+                      </p>
+
+                    `
+                }
+
+              </div>
 
             </div>
 
@@ -5221,441 +6751,290 @@ poForm.addEventListener(
 
   `;
 
-}
 
-/* ============================================
-   PEMBAYARAN
-   ============================================ */
+  /* ==========================================
+     EDIT
+     ========================================== */
 
-async function loadPayments() {
+  container
+    .querySelectorAll(
+      ".edit-po-button"
+    )
+    .forEach(
+      function (button) {
 
-  pageTitle.textContent =
-    "Pembayaran";
+        button.addEventListener(
+          "click",
+          function () {
 
-
-  pageContent.innerHTML = `
-
-    <div class="panel">
-
-      <div class="panel-header">
-
-        <div>
-
-          <h2>
-            Pembayaran
-          </h2>
-
-          <p>
-            Kelola bukti pembayaran customer.
-          </p>
-
-        </div>
-
-      </div>
+            const id =
+              this.dataset.id;
 
 
-      <div
-        id="paymentsContainer"
-      >
+            const selectedPO =
+              data.find(
+                function (po) {
 
-        <p>
-          Memuat pembayaran...
-        </p>
+                  return String(
+                    po.id
+                  ) === String(
+                    id
+                  );
 
-      </div>
-
-    </div>
-
-  `;
+                }
+              );
 
 
-  const container =
-    document.getElementById(
-      "paymentsContainer"
+            if (
+              selectedPO
+            ) {
+
+              showPOForm(
+                selectedPO
+              );
+
+            }
+
+          }
+        );
+
+      }
     );
 
 
-  if (!container) {
+  /* ==========================================
+     DELETE
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".delete-po-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            deletePO(
+              this.dataset.id
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================
+   DELETE PO
+   ============================================ */
+
+async function deletePO(
+  id
+) {
+
+  if (
+    !confirm(
+      "Yakin ingin menghapus PO ini?"
+    )
+  ) {
+
     return;
+
   }
 
 
   const {
-    data,
     error
   } =
     await supabaseClient
-
       .from(
-        "dn_payment_submissions"
+        "po_posts"
       )
-
-      .select("*")
-
-      .order(
+      .delete()
+      .eq(
         "id",
-        {
-          ascending: false
-        }
+        id
       );
 
 
   if (error) {
 
     console.error(
-      "ERROR LOAD PAYMENTS:",
+      "ERROR DELETE PO:",
       error
     );
 
 
-    container.innerHTML = `
-
-      <div class="panel">
-
-        <h3>
-          Gagal memuat pembayaran
-        </h3>
-
-        <p>
-          ${error.message}
-        </p>
-
-      </div>
-
-    `;
+    alert(
+      "Gagal menghapus PO: " +
+      error.message
+    );
 
     return;
+
   }
 
 
-  if (
-    !data ||
-    data.length === 0
-  ) {
+  alert(
+    "PO berhasil dihapus."
+  );
 
-    container.innerHTML = `
 
-      <div class="panel">
-
-        <h3>
-          Belum ada pembayaran
-        </h3>
-
-      </div>
-
-    `;
-
-    return;
-  }
-
-
-  container.innerHTML = `
-
-    <div
-      class="product-table-wrapper"
-    >
-
-      <table
-        class="product-table"
-      >
-
-        <thead>
-
-          <tr>
-
-            <th>
-              ID
-            </th>
-
-            <th>
-              Customer
-            </th>
-
-            <th>
-              WhatsApp
-            </th>
-
-            <th>
-              Kode Produk
-            </th>
-
-            <th>
-              Versi
-            </th>
-
-            <th>
-              Nominal
-            </th>
-
-            <th>
-              Tanggal Transfer
-            </th>
-
-            <th>
-              Bukti
-            </th>
-
-            <th>
-              Status
-            </th>
-
-            <th>
-              Aksi
-            </th>
-
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          ${data.map(
-            function(payment) {
-
-              return `
-
-                <tr>
-
-                  <td>
-                    ${
-                      payment.id ||
-                      "—"
-                    }
-                  </td>
-
-
-                  <td>
-                    ${
-                      payment.customer_name ||
-                      "—"
-                    }
-                  </td>
-
-
-                  <td>
-                    ${
-                      payment.whatsapp_last4 ||
-                      "—"
-                    }
-                  </td>
-
-
-                  <td>
-                    ${
-                      payment.product_code ||
-                      "—"
-                    }
-                  </td>
-
-
-                  <td>
-                    ${
-                      payment.product_version ||
-                      "—"
-                    }
-                  </td>
-
-
-                  <td>
-                    Rp${Number(
-                      payment.amount ||
-                      0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-
-                  <td>
-                    ${
-                      payment.payment_date
-                        ? new Date(
-                            payment.payment_date
-                          ).toLocaleDateString(
-                            "id-ID"
-                          )
-                        : "—"
-                    }
-                  </td>
-
-
-                  <td>
-
-                   ${
-  payment.proof_path
-    ? `
-      <button
-        type="button"
-        class="primary-button"
-        onclick='viewPaymentProof(${JSON.stringify(
-          payment.proof_path
-        )})'
-      >
-        👁️ Lihat Bukti
-      </button>
-    `
-    : "—"
-}
-
-                  </td>
-
-
-                  <td>
-
-  <span
-    class="status"
-  >
-
-    ${
-      payment.status ||
-      "—"
-    }
-
-  </span>
-
-</td>
-
-<td>
-
-  ${
-    payment.status === "pending"
-      ? `
-
-        <button
-          type="button"
-          class="primary-button"
-          onclick="
-            if (
-              confirm(
-                'Konfirmasi pembayaran ini?'
-              )
-            ) {
-              updatePaymentStatus(
-                ${payment.id},
-                'confirmed'
-              );
-            }
-          "
-        >
-          ✓ Konfirmasi
-        </button>
-
-
-        <button
-          type="button"
-          class="delete-button"
-          onclick="
-            if (
-              confirm(
-                'Tolak pembayaran ini?'
-              )
-            ) {
-              updatePaymentStatus(
-                ${payment.id},
-                'rejected'
-              );
-            }
-          "
-        >
-          ✕ Tolak
-        </button>
-
-      `
-      : payment.status === "confirmed"
-        ? "✓ Pembayaran dikonfirmasi"
-        : payment.status === "rejected"
-          ? "✕ Pembayaran ditolak"
-          : "—"
-  }
-
-</td>
-                </tr>
-
-              `;
-
-            }
-
-          ).join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
+  await loadPOList();
 
 }
 
 /* ============================================
-   REFRESH
+   BAGIAN 4/4
+   NAVIGASI + SESSION + INITIALIZATION
    ============================================ */
 
-if (refreshButton) {
 
-  refreshButton.addEventListener(
-    "click",
-    async function () {
+/* ============================================
+   NAVIGASI SIDEBAR
+   ============================================ */
 
-      const activeButton =
-        document.querySelector(
-          ".menu-button.active"
-        );
+function showPage(page) {
 
+  /* ------------------------------------------
+     Dashboard
+     ------------------------------------------ */
 
-      const currentPage =
-        activeButton?.dataset?.page;
+  if (
+    page === "dashboard"
+  ) {
 
+    loadDashboard();
 
-      if (
-        currentPage ===
-        "dashboard"
-      ) {
+    return;
 
-        loadDashboard();
-
-      }
+  }
 
 
-      else if (
-        currentPage ===
-        "products"
-      ) {
+  /* ------------------------------------------
+     Produk & GO
+     ------------------------------------------ */
 
-        loadProducts();
+  if (
+    page === "products"
+  ) {
 
-      }
+    loadProducts();
 
+    return;
 
-      else if (
-        currentPage ===
-        "orders"
-      ) {
-
-        loadOrders();
-
-      }
+  }
 
 
-      else if (
-        currentPage ===
-        "payments"
-      ) {
+  /* ------------------------------------------
+     Pesanan / PO
+     ------------------------------------------ */
 
-        loadPayments();
+  if (
+    page === "orders"
+  ) {
 
-      }
+    loadOrders();
+
+    return;
+
+  }
 
 
-      else if (
-        currentPage ===
-        "recap"
-      ) {
+  /* ------------------------------------------
+     Pembayaran
+     ------------------------------------------ */
 
-        loadRecap();
+  if (
+    page === "payments"
+  ) {
 
-      }
+    loadPayments();
+
+    return;
+
+  }
+
+
+  /* ------------------------------------------
+     Rekap GO
+     ------------------------------------------ */
+
+  if (
+    page === "recap"
+  ) {
+
+    loadRecap();
+
+    return;
+
+  }
+
+}
+
+
+/* ============================================
+   PASANG EVENT SIDEBAR
+   ============================================ */
+
+function setupNavigation() {
+
+  const navItems =
+    document.querySelectorAll(
+      "[data-page]"
+    );
+
+
+  navItems.forEach(
+    function (item) {
+
+      item.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+
+          const page =
+            this.dataset.page;
+
+
+          /* ------------------------------
+             ACTIVE MENU
+             ------------------------------ */
+
+          navItems.forEach(
+            function (nav) {
+
+              nav.classList.remove(
+                "active"
+              );
+
+            }
+          );
+
+
+          this.classList.add(
+            "active"
+          );
+
+
+          /* ------------------------------
+             LOAD PAGE
+             ------------------------------ */
+
+          showPage(
+            page
+          );
+
+        }
+      );
 
     }
   );
@@ -5664,7 +7043,576 @@ if (refreshButton) {
 
 
 /* ============================================
-   MULAI APLIKASI
+   LOGOUT
    ============================================ */
 
-checkGoogleSession();
+async function logoutAdmin() {
+
+  try {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .auth
+        .signOut();
+
+
+    if (error) {
+
+      console.error(
+        "Logout error:",
+        error
+      );
+
+      alert(
+        "Gagal logout: " +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    showLogin();
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Logout exception:",
+      error
+    );
+
+    alert(
+      "Terjadi kesalahan saat logout."
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   PASANG BUTTON LOGOUT
+   ============================================ */
+
+function setupLogout() {
+
+  const logoutButtons =
+    document.querySelectorAll(
+      "#logoutButton, .logout-button"
+    );
+
+
+  logoutButtons.forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+          logoutAdmin();
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* ============================================
+   CEK SESSION GOOGLE
+   ============================================ */
+
+async function checkGoogleSession() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getSession();
+
+
+    if (error) {
+
+      console.error(
+        "Session error:",
+        error
+      );
+
+      showLogin();
+
+      return;
+
+    }
+
+
+    const session =
+      data?.session;
+
+
+    if (!session) {
+
+      showLogin();
+
+      return;
+
+    }
+
+
+    await checkAdminAccess(
+      session
+    );
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Check session error:",
+      error
+    );
+
+    showLogin();
+
+  }
+
+}
+
+
+/* ============================================
+   CEK ADMIN ACCESS
+   ============================================ */
+
+async function checkAdminAccess(
+  session
+) {
+
+  if (
+    !session ||
+    !session.user
+  ) {
+
+    showLogin();
+
+    return false;
+
+  }
+
+
+  const email =
+    session.user.email
+      ?.toLowerCase()
+      .trim();
+
+
+  if (
+    !email
+  ) {
+
+    showLogin();
+
+    return false;
+
+  }
+
+
+  const allowed =
+    ADMIN_EMAILS
+      .map(
+        function (
+          item
+        ) {
+
+          return item
+            .toLowerCase()
+            .trim();
+
+        }
+      )
+      .includes(
+        email
+      );
+
+
+  if (!allowed) {
+
+    alert(
+      "Akun Google ini tidak memiliki akses Admin."
+    );
+
+
+    await supabaseClient
+      .auth
+      .signOut();
+
+
+    showLogin();
+
+    return false;
+
+  }
+
+
+  showAdmin(
+    session
+  );
+
+
+  return true;
+
+}
+
+
+/* ============================================
+   TAMPILKAN LOGIN
+   ============================================ */
+
+function showLogin() {
+
+  const loginPage =
+    document.getElementById(
+      "loginPage"
+    );
+
+
+  const adminPage =
+    document.getElementById(
+      "adminPage"
+    );
+
+
+  if (loginPage) {
+
+    loginPage.style.display =
+      "flex";
+
+  }
+
+
+  if (adminPage) {
+
+    adminPage.style.display =
+      "none";
+
+  }
+
+}
+
+
+/* ============================================
+   TAMPILKAN ADMIN
+   ============================================ */
+
+function showAdmin(
+  session
+) {
+
+  const loginPage =
+    document.getElementById(
+      "loginPage"
+    );
+
+
+  const adminPage =
+    document.getElementById(
+      "adminPage"
+    );
+
+
+  if (loginPage) {
+
+    loginPage.style.display =
+      "none";
+
+  }
+
+
+  if (adminPage) {
+
+    adminPage.style.display =
+      "block";
+
+  }
+
+
+  /* ------------------------------------------
+     INFO USER
+     ------------------------------------------ */
+
+  const userEmail =
+    document.getElementById(
+      "adminEmail"
+    );
+
+
+  if (
+    userEmail &&
+    session?.user?.email
+  ) {
+
+    userEmail.textContent =
+      session.user.email;
+
+  }
+
+
+  const userName =
+    document.getElementById(
+      "adminName"
+    );
+
+
+  if (
+    userName
+  ) {
+
+    userName.textContent =
+      session?.user?.user_metadata
+        ?.full_name ||
+      session?.user?.user_metadata
+        ?.name ||
+      "Admin";
+
+  }
+
+
+  /* ------------------------------------------
+     LOAD DASHBOARD
+     ------------------------------------------ */
+
+  loadDashboard();
+
+}
+
+
+/* ============================================
+   LOGIN GOOGLE
+   ============================================ */
+
+async function loginWithGoogle() {
+
+  try {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .auth
+        .signInWithOAuth({
+
+          provider:
+            "google",
+
+          options: {
+
+            redirectTo:
+              "https://dearnadiya.github.io/dear-nadiya-admin-new/"
+
+          }
+
+        });
+
+
+    if (error) {
+
+      console.error(
+        "Google login error:",
+        error
+      );
+
+
+      alert(
+        "Gagal login Google: " +
+        error.message
+      );
+
+    }
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Google login exception:",
+      error
+    );
+
+
+    alert(
+      "Terjadi kesalahan saat login."
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   PASANG BUTTON LOGIN GOOGLE
+   ============================================ */
+
+function setupGoogleLogin() {
+
+  const buttons =
+    document.querySelectorAll(
+      "#googleLoginButton, .google-login-button"
+    );
+
+
+  buttons.forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+
+          loginWithGoogle();
+
+        }
+      );
+
+    }
+  );
+
+}
+
+
+/* ============================================
+   AUTH STATE CHANGE
+   ============================================ */
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    async function (
+      event,
+      session
+    ) {
+
+      console.log(
+        "Auth event:",
+        event
+      );
+
+
+      if (
+        session
+      ) {
+
+        await checkAdminAccess(
+          session
+        );
+
+      } else {
+
+        showLogin();
+
+      }
+
+    }
+  );
+
+
+/* ============================================
+   ERROR HANDLER
+   ============================================ */
+
+window.addEventListener(
+  "error",
+  function (event) {
+
+    console.error(
+      "Global JavaScript error:",
+      event.error ||
+      event.message
+    );
+
+  }
+);
+
+
+/* ============================================
+   UNHANDLED PROMISE
+   ============================================ */
+
+window.addEventListener(
+  "unhandledrejection",
+  function (event) {
+
+    console.error(
+      "Unhandled Promise:",
+      event.reason
+    );
+
+  }
+);
+
+
+/* ============================================
+   INITIALIZATION
+   ============================================ */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async function () {
+
+    console.log(
+      "Dear Nadiya Admin initializing..."
+    );
+
+
+    /* ------------------------------------------
+       NAVIGATION
+       ------------------------------------------ */
+
+    setupNavigation();
+
+
+    /* ------------------------------------------
+       GOOGLE LOGIN
+       ------------------------------------------ */
+
+    setupGoogleLogin();
+
+
+    /* ------------------------------------------
+       LOGOUT
+       ------------------------------------------ */
+
+    setupLogout();
+
+
+    /* ------------------------------------------
+       DEFAULT LOGIN
+       ------------------------------------------ */
+
+    showLogin();
+
+
+    /* ------------------------------------------
+       CHECK SESSION
+       ------------------------------------------ */
+
+    await checkGoogleSession();
+
+  }
+);
+
+
+/* ============================================
+   AKHIR ADMIN.JS
+   ============================================ */
