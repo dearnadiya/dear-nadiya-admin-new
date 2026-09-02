@@ -3119,6 +3119,14 @@ async function loadRecapList(
         ></div>
 
       </div>
+
+      <button
+       type="button"
+       id="exportRecapButton"
+       class="export-recap-button"
+      >
+       📥 Export Excel
+   </button>
       
           <div>
 
