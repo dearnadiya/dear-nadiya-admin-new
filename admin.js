@@ -3989,7 +3989,7 @@ async function deleteRecap(id, category) {
 }
 
 /* ============================================
-   PESANAN
+   PESANAN / PO
    ============================================ */
 
 async function loadOrders() {
@@ -4085,17 +4085,534 @@ async function loadOrders() {
         <div class="panel">
 
           <h3>
-            Tambah PO
+            ➕ Tambah PO
           </h3>
 
-          <p>
-            Form PO akan kita buat
-            pada langkah berikutnya.
-          </p>
+
+          <form
+            id="poForm"
+            class="product-form"
+          >
+
+            <label>
+              Foto Barang / Foto PO
+            </label>
+
+            <input
+              id="poImage"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required
+            >
+
+
+            <label>
+              Judul PO
+            </label>
+
+            <input
+              id="poTitle"
+              type="text"
+              placeholder="Contoh: Sharing FS Makestar Hongkong New Way (A Ver)"
+              required
+            >
+
+
+            <label>
+              Harga
+            </label>
+
+            <input
+              id="poPrice"
+              type="text"
+              placeholder="Contoh: Set 200k / Sharing 24k"
+            >
+
+
+            <label>
+              DP
+            </label>
+
+            <input
+              id="poDP"
+              type="text"
+              placeholder="Contoh: Set 120k / Sharing 12k"
+            >
+
+
+            <label>
+              Close PO
+            </label>
+
+            <input
+              id="poCloseDate"
+              type="date"
+            >
+
+
+            <label>
+              Last DP
+            </label>
+
+            <input
+              id="poLastDP"
+              type="date"
+            >
+
+
+            <label>
+              Status PO
+            </label>
+
+            <select id="poStatus">
+
+              <option value="active">
+                Aktif
+              </option>
+
+              <option value="closed">
+                Closed
+              </option>
+
+              <option value="completed">
+                Selesai
+              </option>
+
+            </select>
+
+
+            <label>
+              Keterangan
+            </label>
+
+            <textarea
+              id="poDescription"
+              rows="6"
+              placeholder="Tulis keterangan PO di sini..."
+            ></textarea>
+
+
+            <label>
+              List / Batch / Customer
+            </label>
+
+            <textarea
+              id="poList"
+              rows="15"
+              placeholder="Contoh:
+
+Batch 1
+Hyunsuk : Ivana 5614
+Jihoon : Tatas yita 0135
+Yoshi : Annisa 5771
+
+Batch 2
+Hyunsuk :
+Jihoon : Naf 2985
+Yoshi : noir 9407
+
+Atau untuk album:
+
+Version A
+Euis × 2
+Nadiya × 1
+Eka × 3
+
+Version B
+Euis × 1
+Riri × 2"
+            ></textarea>
+
+
+            <div
+              style="
+                display:flex;
+                gap:10px;
+                margin-top:20px;
+                flex-wrap:wrap;
+              "
+            >
+
+              <button
+                type="submit"
+                class="primary-button"
+              >
+                💾 Simpan PO
+              </button>
+
+
+              <button
+                type="button"
+                class="secondary-button"
+                id="cancelPOButton"
+              >
+                Batal
+              </button>
+
+            </div>
+
+
+            <div
+              id="poFormMessage"
+              style="
+                margin-top:15px;
+              "
+            ></div>
+
+          </form>
 
         </div>
 
       `;
+
+
+      const poForm =
+        document.getElementById(
+          "poForm"
+        );
+
+
+      const cancelPOButton =
+        document.getElementById(
+          "cancelPOButton"
+        );
+
+
+      const poFormMessage =
+        document.getElementById(
+          "poFormMessage"
+        );
+
+
+      /* ============================================
+         BATAL
+         ============================================ */
+
+      cancelPOButton.addEventListener(
+        "click",
+        function () {
+
+          poFormContainer.innerHTML =
+            "";
+
+        }
+      );
+
+
+      /* ============================================
+         SIMPAN PO
+         ============================================ */
+
+      poForm.addEventListener(
+        "submit",
+        async function (event) {
+
+          event.preventDefault();
+
+
+          const imageFile =
+            document.getElementById(
+              "poImage"
+            ).files[0];
+
+
+          const title =
+            document.getElementById(
+              "poTitle"
+            ).value.trim();
+
+
+          const priceText =
+            document.getElementById(
+              "poPrice"
+            ).value.trim();
+
+
+          const dpText =
+            document.getElementById(
+              "poDP"
+            ).value.trim();
+
+
+          const closeDate =
+            document.getElementById(
+              "poCloseDate"
+            ).value || null;
+
+
+          const lastDPDate =
+            document.getElementById(
+              "poLastDP"
+            ).value || null;
+
+
+          const status =
+            document.getElementById(
+              "poStatus"
+            ).value;
+
+
+          const description =
+            document.getElementById(
+              "poDescription"
+            ).value.trim();
+
+
+          const listText =
+            document.getElementById(
+              "poList"
+            ).value;
+
+
+          if (!imageFile) {
+
+            poFormMessage.innerHTML = `
+              <p style="color:#a83232;">
+                Foto PO wajib dipilih.
+              </p>
+            `;
+
+            return;
+
+          }
+
+
+          if (!title) {
+
+            poFormMessage.innerHTML = `
+              <p style="color:#a83232;">
+                Judul PO wajib diisi.
+              </p>
+            `;
+
+            return;
+
+          }
+
+
+          poFormMessage.innerHTML = `
+            <p>
+              ⏳ Menyimpan PO...
+            </p>
+          `;
+
+
+          const submitButton =
+            poForm.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          submitButton.disabled = true;
+
+
+          let uploadedPath =
+            null;
+
+
+          try {
+
+            /* ============================================
+               UPLOAD FOTO
+               ============================================ */
+
+            const safeFileName =
+              imageFile.name
+                .replace(
+                  /[^a-zA-Z0-9._-]/g,
+                  "-"
+                );
+
+
+            const filePath =
+              "po/" +
+              Date.now() +
+              "-" +
+              safeFileName;
+
+
+            const {
+              error: uploadError
+            } =
+              await supabaseClient
+                .storage
+                .from("po-images")
+                .upload(
+                  filePath,
+                  imageFile,
+                  {
+                    cacheControl:
+                      "3600",
+                    upsert: false
+                  }
+                );
+
+
+            if (uploadError) {
+              throw uploadError;
+            }
+
+
+            uploadedPath =
+              filePath;
+
+
+            /* ============================================
+               AMBIL URL FOTO
+               ============================================ */
+
+            const {
+              data: publicURLData
+            } =
+              supabaseClient
+                .storage
+                .from("po-images")
+                .getPublicUrl(
+                  filePath
+                );
+
+
+            const imageURL =
+              publicURLData
+                .publicUrl;
+
+
+            /* ============================================
+               SIMPAN LIST SEBAGAI DATA FLEKSIBEL
+               ============================================ */
+
+            const listData =
+              listText
+                .split("\n")
+                .map(
+                  function(line) {
+                    return line.trim();
+                  }
+                )
+                .filter(
+                  function(line) {
+                    return line !== "";
+                  }
+                )
+                .map(
+                  function(line) {
+                    return {
+                      text: line
+                    };
+                  }
+                );
+
+
+            /* ============================================
+               SIMPAN DATA PO
+               ============================================ */
+
+            const {
+              error: insertError
+            } =
+              await supabaseClient
+                .from("po_posts")
+                .insert([
+                  {
+                    title:
+                      title,
+
+                    image_url:
+                      imageURL,
+
+                    price_text:
+                      priceText,
+
+                    dp_text:
+                      dpText,
+
+                    close_date:
+                      closeDate,
+
+                    last_dp_date:
+                      lastDPDate,
+
+                    description:
+                      description,
+
+                    list_data:
+                      listData,
+
+                    status:
+                      status
+                  }
+                ]);
+
+
+            if (insertError) {
+
+              /* Hapus foto jika
+                 database gagal */
+
+              await supabaseClient
+                .storage
+                .from("po-images")
+                .remove([
+                  uploadedPath
+                ]);
+
+              throw insertError;
+
+            }
+
+
+            poFormMessage.innerHTML = `
+              <p
+                style="
+                  color:#236b43;
+                  font-weight:600;
+                "
+              >
+                ✅ PO berhasil disimpan.
+              </p>
+            `;
+
+
+            poForm.reset();
+
+
+            setTimeout(
+              function() {
+
+                loadOrders();
+
+              },
+              700
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              "ERROR SAVE PO:",
+              error
+            );
+
+
+            poFormMessage.innerHTML = `
+              <p
+                style="
+                  color:#a83232;
+                "
+              >
+                ❌ Gagal menyimpan PO:
+                ${error.message}
+              </p>
+            `;
+
+
+            submitButton.disabled =
+              false;
+
+          }
+
+        }
+      );
 
     }
   );
@@ -4191,9 +4708,34 @@ async function loadOrders() {
       ${data.map(
         function(po) {
 
+          const listHTML =
+            Array.isArray(
+              po.list_data
+            )
+              ? po.list_data
+                  .map(
+                    function(item) {
+
+                      return `
+                        <div>
+                          ${item.text || ""}
+                        </div>
+                      `;
+
+                    }
+                  )
+                  .join("")
+              : "";
+
+
           return `
 
-            <div class="panel po-card">
+            <div
+              class="panel po-card"
+              style="
+                margin-bottom:20px;
+              "
+            >
 
               ${
                 po.image_url
@@ -4203,7 +4745,7 @@ async function loadOrders() {
                       alt="${po.title || "Foto PO"}"
                       style="
                         width:100%;
-                        max-height:350px;
+                        max-height:400px;
                         object-fit:contain;
                         border-radius:15px;
                         margin-bottom:20px;
@@ -4223,7 +4765,8 @@ async function loadOrders() {
                 po.price_text
                   ? `
                     <p>
-                      💸 <strong>Harga:</strong>
+                      💸
+                      <strong>Harga:</strong>
                       ${po.price_text}
                     </p>
                   `
@@ -4235,7 +4778,8 @@ async function loadOrders() {
                 po.dp_text
                   ? `
                     <p>
-                      💰 <strong>DP:</strong>
+                      💰
+                      <strong>DP:</strong>
                       ${po.dp_text}
                     </p>
                   `
@@ -4247,8 +4791,14 @@ async function loadOrders() {
                 po.close_date
                   ? `
                     <p>
-                      📅 <strong>Close PO:</strong>
-                      ${po.close_date}
+                      📅
+                      <strong>Close PO:</strong>
+                      ${new Date(
+                        po.close_date +
+                        "T00:00:00"
+                      ).toLocaleDateString(
+                        "id-ID"
+                      )}
                     </p>
                   `
                   : ""
@@ -4259,8 +4809,14 @@ async function loadOrders() {
                 po.last_dp_date
                   ? `
                     <p>
-                      💳 <strong>Last DP:</strong>
-                      ${po.last_dp_date}
+                      💳
+                      <strong>Last DP:</strong>
+                      ${new Date(
+                        po.last_dp_date +
+                        "T00:00:00"
+                      ).toLocaleDateString(
+                        "id-ID"
+                      )}
                     </p>
                   `
                   : ""
@@ -4284,21 +4840,45 @@ async function loadOrders() {
 
 
               ${
-                po.status
+                listHTML
                   ? `
-                    <p
+                    <div
                       style="
-                        margin-top:15px;
+                        margin-top:20px;
+                        padding-top:15px;
+                        border-top:1px solid #eee;
+                        line-height:1.7;
                       "
                     >
-                      Status:
+
                       <strong>
-                        ${po.status}
+                        📋 List
                       </strong>
-                    </p>
+
+                      <div
+                        style="
+                          margin-top:10px;
+                        "
+                      >
+                        ${listHTML}
+                      </div>
+
+                    </div>
                   `
                   : ""
               }
+
+
+              <p
+                style="
+                  margin-top:20px;
+                "
+              >
+                Status:
+                <strong>
+                  ${po.status || "—"}
+                </strong>
+              </p>
 
             </div>
 
