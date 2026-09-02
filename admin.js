@@ -3150,6 +3150,315 @@ async function loadRecapList(
 
 }
 
+/* ============================================
+   EDIT REKAP GO - TAHAP 2
+   ============================================ */
+
+async function editRecap(id) {
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!data) {
+      alert("Data rekap tidak ditemukan.");
+      return;
+    }
+
+
+    const container =
+      document.getElementById(
+        "recapListContainer"
+      );
+
+
+    if (!container) {
+      return;
+    }
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h2>
+          ✏️ Edit Rekap GO
+        </h2>
+
+        <p>
+          Batch: <strong>
+            ${data.batch_code || "—"}
+          </strong>
+        </p>
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>
+              Nama Barang
+            </label>
+
+            <input
+              type="text"
+              id="editItemName"
+              value="${data.item_name || ""}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Versi / Member
+            </label>
+
+            <input
+              type="text"
+              id="editVersion"
+              value="${data.version || ""}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Customer
+            </label>
+
+            <input
+              type="text"
+              id="editCustomerName"
+              value="${data.customer_name || ""}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Quantity
+            </label>
+
+            <input
+              type="number"
+              id="editQuantity"
+              value="${data.quantity || 1}"
+              min="1"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Harga Barang
+            </label>
+
+            <input
+              type="number"
+              id="editItemPrice"
+              value="${data.item_price || 0}"
+              min="0"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              DP
+            </label>
+
+            <input
+              type="number"
+              id="editDpAmount"
+              value="${data.dp_amount || 0}"
+              min="0"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Status DP
+            </label>
+
+            <select id="editDpStatus">
+
+              <option
+                value="unpaid"
+                ${data.dp_status === "unpaid" ? "selected" : ""}
+              >
+                Belum Dibayar
+              </option>
+
+              <option
+                value="paid"
+                ${data.dp_status === "paid" ? "selected" : ""}
+              >
+                Sudah Dibayar
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Pelunasan
+            </label>
+
+            <input
+              type="number"
+              id="editRemainingAmount"
+              value="${data.remaining_amount || 0}"
+              min="0"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Status Pelunasan
+            </label>
+
+            <select id="editPaymentStatus">
+
+              <option
+                value="unpaid"
+                ${data.payment_status === "unpaid" ? "selected" : ""}
+              >
+                Belum Lunas
+              </option>
+
+              <option
+                value="paid"
+                ${data.payment_status === "paid" ? "selected" : ""}
+              >
+                Sudah Lunas
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Tracking
+            </label>
+
+            <input
+              type="text"
+              id="editTrackingStatus"
+              value="${data.tracking_status || ""}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Batas CO
+            </label>
+
+            <input
+              type="date"
+              id="editCoDeadline"
+              value="${
+                data.co_deadline
+                  ? data.co_deadline.substring(0, 10)
+                  : ""
+              }"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Note
+            </label>
+
+            <textarea
+              id="editNote"
+              rows="3"
+            >${data.note || ""}</textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="loadRecap()"
+          >
+            ← Kembali
+          </button>
+
+          <button
+            type="button"
+            class="primary-button"
+            disabled
+          >
+            Simpan Perubahan
+          </button>
+
+        </div>
+
+      </div>
+
+    `;
+
+  } catch (error) {
+
+    console.error(
+      "Kesalahan editRecap:",
+      error
+    );
+
+    alert(
+      "Gagal membuka data: " +
+      error.message
+    );
+
+  }
+
+}
 
 /* ============================================
    PESANAN
