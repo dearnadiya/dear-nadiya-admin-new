@@ -1636,3 +1636,38 @@ a {
   }
 
 }
+
+/* ============================================
+   PENCARIAN REKAP GO
+   ============================================ */
+
+.recap-search {
+  width: 100%;
+  margin: 12px 0 20px;
+}
+
+#recapSearchInput {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 16px;
+  border: 1px solid #ddd6df;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #29283f;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease;
+}
+
+#recapSearchInput::placeholder {
+  color: #99929e;
+}
+
+#recapSearchInput:focus {
+  border-color: #c9789f;
+  box-shadow:
+    0 0 0 3px rgba(201, 120, 159, 0.12);
+}
