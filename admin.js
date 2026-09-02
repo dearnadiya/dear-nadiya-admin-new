@@ -3121,6 +3121,23 @@ async function loadRecapList(
 
     `;
 
+         container
+      .querySelectorAll(".edit-recap-button")
+      .forEach(function(button) {
+
+        button.addEventListener(
+          "click",
+          function() {
+
+            const id =
+              this.getAttribute("data-id");
+
+            editRecap(id);
+
+          }
+        );
+
+      });
 
   } catch (error) {
 
