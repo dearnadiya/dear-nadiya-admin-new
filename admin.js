@@ -7286,10 +7286,9 @@ function showLogin() {
       "loginPage"
     );
 
-
-  const adminPage =
+  const adminApp =
     document.getElementById(
-      "adminPage"
+      "adminApp"
     );
 
 
@@ -7301,15 +7300,14 @@ function showLogin() {
   }
 
 
-  if (adminPage) {
+  if (adminApp) {
 
-    adminPage.style.display =
+    adminApp.style.display =
       "none";
 
   }
 
 }
-
 
 /* ============================================
    TAMPILKAN ADMIN
@@ -7324,10 +7322,9 @@ function showAdmin(
       "loginPage"
     );
 
-
-  const adminPage =
+  const adminApp =
     document.getElementById(
-      "adminPage"
+      "adminApp"
     );
 
 
@@ -7339,17 +7336,13 @@ function showAdmin(
   }
 
 
-  if (adminPage) {
+  if (adminApp) {
 
-    adminPage.style.display =
+    adminApp.style.display =
       "block";
 
   }
 
-
-  /* ------------------------------------------
-     INFO USER
-     ------------------------------------------ */
 
   const userEmail =
     document.getElementById(
@@ -7374,9 +7367,7 @@ function showAdmin(
     );
 
 
-  if (
-    userName
-  ) {
+  if (userName) {
 
     userName.textContent =
       session?.user?.user_metadata
@@ -7388,14 +7379,9 @@ function showAdmin(
   }
 
 
-  /* ------------------------------------------
-     LOAD DASHBOARD
-     ------------------------------------------ */
-
   loadDashboard();
 
 }
-
 
 /* ============================================
    LOGIN GOOGLE
