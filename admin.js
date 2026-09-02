@@ -4459,47 +4459,58 @@ async function loadPayments() {
 
 <td>
 
-  <button
-    type="button"
-    class="primary-button"
-    onclick="
-      if (
-        confirm(
-          'Konfirmasi pembayaran ini?'
-        )
-      ) {
-        updatePaymentStatus(
-          ${payment.id},
-          'confirmed'
-        );
-      }
-    "
-  >
-    ✓ Konfirmasi
-  </button>
+  ${
+    payment.status === "pending"
+      ? `
+
+        <button
+          type="button"
+          class="primary-button"
+          onclick="
+            if (
+              confirm(
+                'Konfirmasi pembayaran ini?'
+              )
+            ) {
+              updatePaymentStatus(
+                ${payment.id},
+                'confirmed'
+              );
+            }
+          "
+        >
+          ✓ Konfirmasi
+        </button>
 
 
-  <button
-    type="button"
-    class="delete-button"
-    onclick="
-      if (
-        confirm(
-          'Tolak pembayaran ini?'
-        )
-      ) {
-        updatePaymentStatus(
-          ${payment.id},
-          'rejected'
-        );
-      }
-    "
-  >
-    ✕ Tolak
-  </button>
+        <button
+          type="button"
+          class="delete-button"
+          onclick="
+            if (
+              confirm(
+                'Tolak pembayaran ini?'
+              )
+            ) {
+              updatePaymentStatus(
+                ${payment.id},
+                'rejected'
+              );
+            }
+          "
+        >
+          ✕ Tolak
+        </button>
+
+      `
+      : payment.status === "confirmed"
+        ? "✓ Pembayaran dikonfirmasi"
+        : payment.status === "rejected"
+          ? "✕ Pembayaran ditolak"
+          : "—"
+  }
 
 </td>
-
                 </tr>
 
               `;
