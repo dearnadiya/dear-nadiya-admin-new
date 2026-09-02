@@ -2574,6 +2574,525 @@ async function loadRecapList(
 
 
     /* ========================================
+       FORMAT RUPIAH
+       ======================================== */
+
+    function formatRupiah(
+      value
+    ) {
+
+      return (
+        "Rp" +
+        Number(
+          value || 0
+        ).toLocaleString(
+          "id-ID"
+        )
+      );
+
+    }
+
+
+    /* ========================================
+       FORMAT TANGGAL
+       ======================================== */
+
+    function formatDate(
+      value
+    ) {
+
+      if (!value) {
+
+        return "—";
+
+      }
+
+
+      const date =
+        new Date(
+          value
+        );
+
+
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
+
+        return value;
+
+      }
+
+
+      return date.toLocaleDateString(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }
+      );
+
+    }
+
+
+    /* ========================================
+       STATUS DP
+       ======================================== */
+
+    function dpStatusHTML(
+      status
+    ) {
+
+      if (
+        status === "paid"
+      ) {
+
+        return `
+
+          <span
+            class="status-badge success"
+          >
+            ✓ Sudah Dibayar
+          </span>
+
+        `;
+
+      }
+
+
+      return `
+
+        <span
+          class="status-badge warning"
+        >
+          Belum Dibayar
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       STATUS PELUNASAN
+       ======================================== */
+
+    function paymentStatusHTML(
+      status
+    ) {
+
+      if (
+        status === "paid"
+      ) {
+
+        return `
+
+          <span
+            class="status-badge success"
+          >
+            ✓ Sudah Lunas
+          </span>
+
+        `;
+
+      }
+
+
+      return `
+
+        <span
+          class="status-badge warning"
+        >
+          Belum Lunas
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       TRACKING
+       ======================================== */
+
+    function trackingHTML(
+      status
+    ) {
+
+      if (!status) {
+
+        return "—";
+
+      }
+
+
+      return `
+
+        <span
+          class="tracking-badge"
+        >
+          ${status}
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       BUAT BARIS TABEL
+       ======================================== */
+
+    const rowsHTML =
+      data.map(
+        function(item) {
+
+          const version =
+            item.version ||
+            "AVAILABLE";
+
+
+          const customer =
+            item.customer_name ||
+            "AVAILABLE";
+
+
+          const versionHTML =
+            version
+              .toUpperCase()
+              .trim() ===
+            "AVAILABLE"
+
+              ? `
+
+                <span
+                  class="available-member"
+                >
+                  AVAILABLE
+                </span>
+
+              `
+
+              : version;
+
+
+          const customerHTML =
+            customer
+              .toUpperCase()
+              .trim() ===
+            "AVAILABLE"
+
+              ? `
+
+                <span
+                  class="available-member"
+                >
+                  AVAILABLE
+                </span>
+
+              `
+
+              : customer;
+
+
+          return `
+
+            <tr>
+
+              <!-- =========================
+                   BATCH
+                   ========================= -->
+
+              <td>
+                ${
+                  item.batch_code ||
+                  "—"
+                }
+              </td>
+
+
+              <!-- =========================
+                   NAMA BARANG
+                   ========================= -->
+
+              <td>
+                ${
+                  item.item_name ||
+                  "—"
+                }
+              </td>
+
+
+              <!-- =========================
+                   VERSI / MEMBER
+                   ========================= -->
+
+              <td>
+                ${versionHTML}
+              </td>
+
+
+              <!-- =========================
+                   CUSTOMER
+                   ========================= -->
+
+              <td>
+                ${customerHTML}
+              </td>
+
+
+              <!-- =========================
+                   QTY
+                   ========================= -->
+
+              <td>
+                ${
+                  item.quantity ||
+                  1
+                }
+              </td>
+
+
+              <!-- =========================
+                   HARGA
+                   ========================= -->
+
+              <td>
+                ${formatRupiah(
+                  item.item_price
+                )}
+              </td>
+
+
+              <!-- =========================
+                   DP
+                   ========================= -->
+
+              <td>
+                ${formatRupiah(
+                  item.dp_amount
+                )}
+              </td>
+
+
+              <!-- =========================
+                   STATUS DP
+                   ========================= -->
+
+              <td>
+                ${dpStatusHTML(
+                  item.dp_status
+                )}
+              </td>
+
+
+              <!-- =========================
+                   PELUNASAN
+                   ========================= -->
+
+              <td>
+                ${formatRupiah(
+                  item.remaining_amount
+                )}
+              </td>
+
+
+              <!-- =========================
+                   STATUS PELUNASAN
+                   ========================= -->
+
+              <td>
+                ${paymentStatusHTML(
+                  item.payment_status
+                )}
+              </td>
+
+
+              <!-- =========================
+                   TRACKING
+                   ========================= -->
+
+              <td>
+                ${trackingHTML(
+                  item.tracking_status
+                )}
+              </td>
+
+
+              <!-- =========================
+                   NOTE
+                   ========================= -->
+
+              <td>
+                ${
+                  item.note ||
+                  "—"
+                }
+              </td>
+
+
+              <!-- =========================
+                   BATAS CO
+                   ========================= -->
+
+              <td>
+                ${formatDate(
+                  item.co_deadline
+                )}
+              </td>
+
+            </tr>
+
+          `;
+
+        }
+      )
+      .join("");
+
+
+    /* ========================================
+       TAMPILKAN SATU TABEL
+       ======================================== */
+
+    container.innerHTML = `
+
+      <div class="recap-list">
+
+        <div
+          class="recap-list-header"
+        >
+
+          <div>
+
+            <h2>
+              ${category}
+            </h2>
+
+            <p>
+              ${data.length}
+              data pembelian
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="product-table-wrapper"
+        >
+
+          <table
+            class="product-table recap-table"
+          >
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Batch
+                </th>
+
+                <th>
+                  Nama Barang
+                </th>
+
+                <th>
+                  Versi / Member
+                </th>
+
+                <th>
+                  Customer
+                </th>
+
+                <th>
+                  Qty
+                </th>
+
+                <th>
+                  Harga Barang
+                </th>
+
+                <th>
+                  DP
+                </th>
+
+                <th>
+                  Status DP
+                </th>
+
+                <th>
+                  Pelunasan
+                </th>
+
+                <th>
+                  Status Pelunasan
+                </th>
+
+                <th>
+                  Tracking
+                </th>
+
+                <th>
+                  Note
+                </th>
+
+                <th>
+                  Batas CO
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${rowsHTML}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    `;
+
+
+  } catch (error) {
+
+    console.error(
+      "Kesalahan loadRecapList:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat rekap
+        </h3>
+
+        <p>
+          ${error.message}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+    /* ========================================
        GROUPING BERDASARKAN KODE BATCH
        ======================================== */
 
