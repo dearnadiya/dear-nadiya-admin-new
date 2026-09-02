@@ -4007,17 +4007,31 @@ async function loadOrders() {
         <div>
 
           <h2>
-            Pesanan
+            Pesanan / PO
           </h2>
 
           <p>
-            Daftar pesanan customer
+            Kelola posting PO
             Dear Nadiya.
           </p>
 
         </div>
 
+
+        <button
+          type="button"
+          class="primary-button"
+          id="addPOButton"
+        >
+          ➕ Tambah PO
+        </button>
+
       </div>
+
+
+      <div
+        id="poFormContainer"
+      ></div>
 
 
       <div
@@ -4025,7 +4039,7 @@ async function loadOrders() {
       >
 
         <p>
-          Memuat pesanan...
+          Memuat PO...
         </p>
 
       </div>
@@ -4041,17 +4055,62 @@ async function loadOrders() {
     );
 
 
+  const addPOButton =
+    document.getElementById(
+      "addPOButton"
+    );
+
+
+  const poFormContainer =
+    document.getElementById(
+      "poFormContainer"
+    );
+
+
   if (!container) {
     return;
   }
 
+
+  /* ============================================
+     TOMBOL TAMBAH PO
+     ============================================ */
+
+  addPOButton.addEventListener(
+    "click",
+    function () {
+
+      poFormContainer.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Tambah PO
+          </h3>
+
+          <p>
+            Form PO akan kita buat
+            pada langkah berikutnya.
+          </p>
+
+        </div>
+
+      `;
+
+    }
+  );
+
+
+  /* ============================================
+     AMBIL DATA PO
+     ============================================ */
 
   const {
     data,
     error
   } =
     await supabaseClient
-      .from("orders")
+      .from("po_posts")
       .select("*")
       .order(
         "id",
@@ -4064,7 +4123,7 @@ async function loadOrders() {
   if (error) {
 
     console.error(
-      "ERROR LOAD ORDERS:",
+      "ERROR LOAD PO:",
       error
     );
 
@@ -4074,7 +4133,7 @@ async function loadOrders() {
       <div class="panel">
 
         <h3>
-          Gagal memuat pesanan
+          Gagal memuat PO
         </h3>
 
         <p>
@@ -4090,6 +4149,10 @@ async function loadOrders() {
   }
 
 
+  /* ============================================
+     BELUM ADA PO
+     ============================================ */
+
   if (
     !data ||
     data.length === 0
@@ -4100,8 +4163,13 @@ async function loadOrders() {
       <div class="panel">
 
         <h3>
-          Belum ada pesanan
+          Belum ada PO
         </h3>
+
+        <p>
+          Klik "Tambah PO" untuk
+          membuat posting PO baru.
+        </p>
 
       </div>
 
@@ -4112,128 +4180,132 @@ async function loadOrders() {
   }
 
 
+  /* ============================================
+     TAMPILKAN PO
+     ============================================ */
+
   container.innerHTML = `
 
-    <div
-      class="product-table-wrapper"
-    >
+    <div class="po-list">
 
-      <table
-        class="product-table"
-      >
+      ${data.map(
+        function(po) {
 
-        <thead>
+          return `
 
-          <tr>
+            <div class="panel po-card">
 
-            <th>
-              ID
-            </th>
-
-            <th>
-              Customer
-            </th>
-
-            <th>
-              Produk
-            </th>
-
-            <th>
-              Qty
-            </th>
-
-            <th>
-              Total
-            </th>
-
-            <th>
-              Status
-            </th>
-
-            <th>
-              Tanggal
-            </th>
-
-          </tr>
-
-        </thead>
+              ${
+                po.image_url
+                  ? `
+                    <img
+                      src="${po.image_url}"
+                      alt="${po.title || "Foto PO"}"
+                      style="
+                        width:100%;
+                        max-height:350px;
+                        object-fit:contain;
+                        border-radius:15px;
+                        margin-bottom:20px;
+                      "
+                    >
+                  `
+                  : ""
+              }
 
 
-        <tbody>
+              <h2>
+                ${po.title || "Tanpa Judul"}
+              </h2>
 
-          ${data.map(
-            function(order) {
 
-              return `
+              ${
+                po.price_text
+                  ? `
+                    <p>
+                      💸 <strong>Harga:</strong>
+                      ${po.price_text}
+                    </p>
+                  `
+                  : ""
+              }
 
-                <tr>
 
-                  <td>
-                    ${
-                      order.id ||
-                      "—"
-                    }
-                  </td>
+              ${
+                po.dp_text
+                  ? `
+                    <p>
+                      💰 <strong>DP:</strong>
+                      ${po.dp_text}
+                    </p>
+                  `
+                  : ""
+              }
 
-                  <td>
-                    ${
-                      order.customer_name ||
-                      "—"
-                    }
-                  </td>
 
-                  <td>
-                    ${
-                      order.product_name ||
-                      "—"
-                    }
-                  </td>
+              ${
+                po.close_date
+                  ? `
+                    <p>
+                      📅 <strong>Close PO:</strong>
+                      ${po.close_date}
+                    </p>
+                  `
+                  : ""
+              }
 
-                  <td>
-                    ${
-                      order.quantity ||
-                      1
-                    }
-                  </td>
 
-                  <td>
-                    Rp${Number(
-                      order.total_amount ||
-                      0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
+              ${
+                po.last_dp_date
+                  ? `
+                    <p>
+                      💳 <strong>Last DP:</strong>
+                      ${po.last_dp_date}
+                    </p>
+                  `
+                  : ""
+              }
 
-                  <td>
-                    ${
-                      order.status ||
-                      "—"
-                    }
-                  </td>
 
-                  <td>
-                    ${
-                      order.created_at
-                        ? new Date(
-                            order.created_at
-                          ).toLocaleDateString(
-                            "id-ID"
-                          )
-                        : "—"
-                    }
-                  </td>
+              ${
+                po.description
+                  ? `
+                    <div
+                      style="
+                        margin-top:15px;
+                        white-space:pre-line;
+                      "
+                    >
+                      ${po.description}
+                    </div>
+                  `
+                  : ""
+              }
 
-                </tr>
 
-              `;
+              ${
+                po.status
+                  ? `
+                    <p
+                      style="
+                        margin-top:15px;
+                      "
+                    >
+                      Status:
+                      <strong>
+                        ${po.status}
+                      </strong>
+                    </p>
+                  `
+                  : ""
+              }
 
-            }
-          ).join("")}
+            </div>
 
-        </tbody>
+          `;
 
-      </table>
+        }
+      ).join("")}
 
     </div>
 
