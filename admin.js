@@ -3260,6 +3260,107 @@ async function loadRecapList(
 
 }
 
+     const exportButton =
+  container.querySelector("#exportRecapButton");
+
+if (exportButton) {
+
+  exportButton.addEventListener(
+    "click",
+    function() {
+
+      if (
+        !data ||
+        data.length === 0
+      ) {
+
+        alert(
+          "Tidak ada data Rekap GO untuk diexport."
+        );
+
+        return;
+      }
+
+      const exportData =
+        data.map(function(item) {
+
+          return {
+
+            "Kategori":
+              item.category || "—",
+
+            "Kode Batch":
+              item.batch_code || "—",
+
+            "Nama Barang":
+              item.item_name || "—",
+
+            "Customer":
+              item.customer_name || "—",
+
+            "Versi / Member":
+              item.version || "—",
+
+            "Quantity":
+              item.quantity || 0,
+
+            "Harga":
+              item.item_price || 0,
+
+            "DP":
+              item.dp_amount || 0,
+
+            "Status DP":
+              item.dp_status || "—",
+
+            "Sisa Pembayaran":
+              item.remaining_amount || 0,
+
+            "Status Pembayaran":
+              item.payment_status || "—",
+
+            "Tracking":
+              item.tracking_status || "—",
+
+            "Catatan":
+              item.note || "—",
+
+            "Deadline CO":
+              item.co_deadline || "—"
+
+          };
+
+        });
+
+      const worksheet =
+        XLSX.utils.json_to_sheet(
+          exportData
+        );
+
+      const workbook =
+        XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Rekap GO"
+      );
+
+      const safeCategory =
+        category
+          .replace(/[^a-z0-9]+/gi, "-")
+          .replace(/^-+|-+$/g, "");
+
+      XLSX.writeFile(
+        workbook,
+        `Rekap-GO-${safeCategory}.xlsx`
+      );
+
+    }
+  );
+
+}
+
   } catch (error) {
 
     console.error(
