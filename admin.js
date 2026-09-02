@@ -3173,6 +3173,53 @@ async function loadRecapList(
 
       });
 
+  const searchInput =
+     container.querySelector("#recapSearchInput");
+
+  if (searchInput) {
+
+     searchInput.addEventListener(
+       "input",
+       function() {
+
+      const keyword =
+        this.value
+          .toLowerCase()
+          .trim();
+
+      const batchCards =
+        container.querySelectorAll(
+          ".recap-batch-card"
+        );
+
+      batchCards.forEach(
+        function(card) {
+
+          const text =
+            card.innerText
+              .toLowerCase();
+
+          if (
+            keyword === "" ||
+            text.includes(keyword)
+          ) {
+
+            card.style.display = "";
+
+          } else {
+
+            card.style.display = "none";
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+}
+
   } catch (error) {
 
     console.error(
