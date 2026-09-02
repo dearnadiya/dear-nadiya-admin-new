@@ -3158,7 +3158,7 @@ async function loadRecapList(
               const id =
                 this.getAttribute("data-id");
 
-              deleteRecap(id, selectedCategory);
+              deleteRecap(id, category);
 
             }
           );
