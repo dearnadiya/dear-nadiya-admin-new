@@ -1,533 +1,668 @@
 /* ============================================
-   DEAR NADIYA ADMIN
-   LOGIN + NAVIGASI + PRODUK + REKAP GO
+   TAMPILKAN DAFTAR REKAP
    ============================================ */
 
-
-/* ============================================
-   ELEMENT
-   ============================================ */
-
-const loginPage =
-  document.getElementById("loginPage");
-
-const adminApp =
-  document.getElementById("adminApp");
-
-const loginForm =
-  document.getElementById("loginForm");
-
-const loginError =
-  document.getElementById("loginError");
-
-const logoutButton =
-  document.getElementById("logoutButton");
-
-const refreshButton =
-  document.getElementById("refreshButton");
-
-const pageTitle =
-  document.getElementById("pageTitle");
-
-const pageContent =
-  document.getElementById("pageContent");
-
-const googleLoginButton =
-  document.getElementById("googleLoginButton");
-
-
-/* ============================================
-   SUPABASE
-   ============================================ */
-
-const SUPABASE_URL =
-  "https://cwwzsbqfznzwfclajwnw.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_ADa_gyMfyBZ1ZcdUO8FRfw_iELzOmbQ";
-
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-
-/* ============================================
-   ADMIN EMAIL
-   ============================================ */
-
-const ADMIN_EMAILS = [
-  "dearnadiya6@gmail.com"
-];
-
-
-/* ============================================
-   LOGIN GOOGLE
-   ============================================ */
-
-if (googleLoginButton) {
-
-  googleLoginButton.addEventListener(
-    "click",
-    async function () {
-
-      if (loginError) {
-        loginError.textContent = "";
-      }
-
-
-      const {
-        error
-      } =
-        await supabaseClient.auth.signInWithOAuth({
-
-          provider: "google",
-
-          options: {
-
-            redirectTo:
-              "https://dearnadiya.github.io/dear-nadiya-admin-new/"
-
-          }
-
-        });
-
-
-      if (error) {
-
-        console.error(
-          "LOGIN GOOGLE ERROR:",
-          error
-        );
-
-
-        if (loginError) {
-
-          loginError.textContent =
-            "Login Google gagal: " +
-            error.message;
-
-        }
-
-      }
-
-    }
-  );
-
-}
-
-
-/* ============================================
-   CEK SESSION
-   ============================================ */
-
-async function checkGoogleSession() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.getSession();
-
-
-  if (error) {
-
-    console.error(
-      "SESSION ERROR:",
-      error
-    );
-
-
-    showLogin();
-
-    return;
-
-  }
-
-
-  const session =
-    data?.session;
-
-
-  if (!session) {
-
-    showLogin();
-
-    return;
-
-  }
-
-
-  await checkAdminAccess(
-    session
-  );
-
-}
-
-
-/* ============================================
-   CEK AKSES ADMIN
-   ============================================ */
-
-async function checkAdminAccess(
-  session
+async function loadRecapList(
+  category
 ) {
 
-  const userEmail =
-    session?.user?.email
-      ?.toLowerCase()
-      .trim();
-
-
-  const isAdmin =
-    ADMIN_EMAILS
-      .map(
-        function (email) {
-
-          return email
-            .toLowerCase()
-            .trim();
-
-        }
-      )
-      .includes(
-        userEmail
-      );
-
-
-  if (isAdmin) {
-
-    showAdmin();
-
-    return;
-
-  }
-
-
-  await supabaseClient.auth.signOut();
-
-
-  if (loginError) {
-
-    loginError.textContent =
-      "Akun Google ini tidak memiliki akses Admin.";
-
-  }
-
-
-  showLogin();
-
-}
-
-
-/* ============================================
-   LOGOUT
-   ============================================ */
-
-if (logoutButton) {
-
-  logoutButton.addEventListener(
-    "click",
-    async function () {
-
-      await supabaseClient.auth.signOut();
-
-      showLogin();
-
-    }
-  );
-
-}
-
-
-/* ============================================
-   SESSION BERUBAH
-   ============================================ */
-
-supabaseClient.auth.onAuthStateChange(
-  async function (
-    event,
-    session
-  ) {
-
-    if (!session) {
-
-      showLogin();
-
-      return;
-
-    }
-
-
-    await checkAdminAccess(
-      session
+  const container =
+    document.getElementById(
+      "recapListContainer"
     );
 
-  }
-);
 
-
-/* ============================================
-   TAMPILKAN ADMIN
-   ============================================ */
-
-function showAdmin() {
-
-  if (loginPage) {
-
-    loginPage.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (adminApp) {
-
-    adminApp.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  loadDashboard();
-
-}
-
-
-/* ============================================
-   TAMPILKAN LOGIN
-   ============================================ */
-
-function showLogin() {
-
-  if (adminApp) {
-
-    adminApp.classList.add(
-      "hidden"
-    );
-
-  }
-
-
-  if (loginPage) {
-
-    loginPage.classList.remove(
-      "hidden"
-    );
-
-  }
-
-}
-
-
-/* ============================================
-   SIDEBAR
-   ============================================ */
-
-const menuButtons =
-  document.querySelectorAll(
-    ".menu-button"
-  );
-
-
-menuButtons.forEach(
-  function (button) {
-
-    button.addEventListener(
-      "click",
-      function () {
-
-        const page =
-          button.dataset.page;
-
-
-        if (!page) {
-          return;
-        }
-
-
-        menuButtons.forEach(
-          function (item) {
-
-            item.classList.remove(
-              "active"
-            );
-
-          }
-        );
-
-
-        button.classList.add(
-          "active"
-        );
-
-
-        showPage(
-          page
-        );
-
-      }
-    );
-
-  }
-);
-
-
-/* ============================================
-   PINDAH HALAMAN
-   ============================================ */
-
-function showPage(
-  page
-) {
-
-  if (
-    page ===
-    "dashboard"
-  ) {
-
-    loadDashboard();
-
+  if (!container) {
     return;
-
   }
 
 
-  if (
-    page ===
-    "products"
-  ) {
+  container.innerHTML = `
 
-    loadProducts();
-
-    return;
-
-  }
-
-
-  if (
-    page ===
-    "orders"
-  ) {
-
-    loadOrders();
-
-    return;
-
-  }
-
-
-  if (
-    page ===
-    "payments"
-  ) {
-
-    loadPayments();
-
-    return;
-
-  }
-
-
-  if (
-    page ===
-    "recap"
-  ) {
-
-    loadRecap();
-
-    return;
-
-  }
-
-}
-
-
-/* ============================================
-   DASHBOARD
-   ============================================ */
-
-function loadDashboard() {
-
-  pageTitle.textContent =
-    "Dashboard";
-
-
-  pageContent.innerHTML = `
-
-    <div class="dashboard-stats">
-
-      <div class="stat-card">
-
-        <p>
-          Total Pesanan
-        </p>
-
-        <h2>
-          0
-        </h2>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <p>
-          Total Pembayaran
-        </p>
-
-        <h2>
-          Rp0
-        </h2>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <p>
-          GO Aktif
-        </p>
-
-        <h2>
-          0
-        </h2>
-
-      </div>
-
-    </div>
-
-
-    <div class="welcome-card">
-
-      <h2>
-        Selamat datang di Dear Nadiya Admin ♥
-      </h2>
+    <div class="panel">
 
       <p>
-        Kelola produk, Group Order,
-        pesanan, pembayaran, dan rekap
-        dari satu dashboard.
+        Memuat rekap...
       </p>
 
     </div>
 
   `;
 
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select("*")
+        .eq(
+          "category",
+          category
+        )
+        .order(
+          "batch_code",
+          {
+            ascending: true
+          }
+        )
+        .order(
+          "id",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (error) {
+
+      throw error;
+
+    }
+
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="panel">
+
+          <h3>
+            Belum ada rekap
+          </h3>
+
+          <p>
+            Belum terdapat data pada kategori
+            ${category}.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    /* ========================================
+       GROUPING BERDASARKAN KODE BATCH
+       ======================================== */
+
+    const grouped = {};
+
+
+    data.forEach(
+      function(item) {
+
+        const batchCode =
+          item.batch_code ||
+          "Tanpa Kode Batch";
+
+
+        if (
+          !grouped[batchCode]
+        ) {
+
+          grouped[batchCode] = [];
+
+        }
+
+
+        grouped[batchCode].push(
+          item
+        );
+
+      }
+    );
+
+
+    /* ========================================
+       FORMAT RUPIAH
+       ======================================== */
+
+    function formatRupiah(
+      value
+    ) {
+
+      return (
+        "Rp" +
+        Number(
+          value || 0
+        ).toLocaleString(
+          "id-ID"
+        )
+      );
+
+    }
+
+
+    /* ========================================
+       STATUS DP
+       ======================================== */
+
+    function dpStatusHTML(
+      status
+    ) {
+
+      if (
+        status === "paid"
+      ) {
+
+        return `
+
+          <span
+            class="status-badge success"
+          >
+            ✓ Sudah Dibayar
+          </span>
+
+        `;
+
+      }
+
+
+      return `
+
+        <span
+          class="status-badge warning"
+        >
+          Belum Dibayar
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       STATUS PELUNASAN
+       ======================================== */
+
+    function paymentStatusHTML(
+      status
+    ) {
+
+      if (
+        status === "paid"
+      ) {
+
+        return `
+
+          <span
+            class="status-badge success"
+          >
+            ✓ Sudah Lunas
+          </span>
+
+        `;
+
+      }
+
+
+      return `
+
+        <span
+          class="status-badge warning"
+        >
+          Belum Lunas
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       TRACKING
+       ======================================== */
+
+    function trackingHTML(
+      status
+    ) {
+
+      if (!status) {
+
+        return "—";
+
+      }
+
+
+      return `
+
+        <span
+          class="tracking-badge"
+        >
+          ${status}
+        </span>
+
+      `;
+
+    }
+
+
+    /* ========================================
+       TANGGAL
+       ======================================== */
+
+    function formatDate(
+      value
+    ) {
+
+      if (!value) {
+
+        return "—";
+
+      }
+
+
+      const date =
+        new Date(
+          value
+        );
+
+
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
+
+        return value;
+
+      }
+
+
+      return date.toLocaleDateString(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }
+      );
+
+    }
+
+
+    /* ========================================
+       BUAT TAMPILAN SETIAP BATCH
+       ======================================== */
+
+    const batchHTML =
+      Object.entries(
+        grouped
+      )
+      .map(
+        function(
+          [
+            batchCode,
+            items
+          ]
+        ) {
+
+          const firstItem =
+            items[0];
+
+
+          return `
+
+            <div
+              class="recap-batch-card"
+            >
+
+              <!-- ==========================
+                   HEADER BATCH
+                   ========================== -->
+
+              <div
+                class="recap-batch-header"
+              >
+
+                <div>
+
+                  <div
+                    class="recap-batch-code"
+                  >
+                    ${batchCode}
+                  </div>
+
+
+                  <div
+                    class="recap-batch-name"
+                  >
+                    ${
+                      firstItem.item_name ||
+                      "—"
+                    }
+                  </div>
+
+                </div>
+
+
+                <div
+                  class="recap-batch-count"
+                >
+                  ${items.length}
+                  data
+                </div>
+
+              </div>
+
+
+              <!-- ==========================
+                   TABEL BATCH
+                   ========================== -->
+
+              <div
+                class="product-table-wrapper"
+              >
+
+                <table
+                  class="product-table recap-table"
+                >
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Versi / Member
+                      </th>
+
+                      <th>
+                        Customer
+                      </th>
+
+                      <th>
+                        Qty
+                      </th>
+
+                      <th>
+                        Harga Barang
+                      </th>
+
+                      <th>
+                        DP
+                      </th>
+
+                      <th>
+                        Status DP
+                      </th>
+
+                      <th>
+                        Pelunasan
+                      </th>
+
+                      <th>
+                        Status Pelunasan
+                      </th>
+
+                      <th>
+                        Tracking
+                      </th>
+
+                      <th>
+                        Note
+                      </th>
+
+                      <th>
+                        Batas CO
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    ${items.map(
+                      function(item) {
+
+                        const version =
+                          item.version ||
+                          "AVAILABLE";
+
+
+                        const customer =
+                          item.customer_name ||
+                          "AVAILABLE";
+
+
+                        const versionHTML =
+                          version
+                            .toUpperCase()
+                            .trim() ===
+                          "AVAILABLE"
+
+                            ? `
+
+                              <span
+                                class="available-member"
+                              >
+                                AVAILABLE
+                              </span>
+
+                            `
+
+                            : version;
+
+
+                        const customerHTML =
+                          customer
+                            .toUpperCase()
+                            .trim() ===
+                          "AVAILABLE"
+
+                            ? `
+
+                              <span
+                                class="available-member"
+                              >
+                                AVAILABLE
+                              </span>
+
+                            `
+
+                            : customer;
+
+
+                        const dpStatus =
+                          dpStatusHTML(
+                            item.dp_status
+                          );
+
+
+                        const paymentStatus =
+                          paymentStatusHTML(
+                            item.payment_status
+                          );
+
+
+                        const tracking =
+                          trackingHTML(
+                            item.tracking_status
+                          );
+
+
+                        const deadline =
+                          formatDate(
+                            item.co_deadline
+                          );
+
+
+                        return `
+
+                          <tr>
+
+                            <td>
+                              ${versionHTML}
+                            </td>
+
+
+                            <td>
+                              ${customerHTML}
+                            </td>
+
+
+                            <td>
+                              ${item.quantity || 1}
+                            </td>
+
+
+                            <td>
+                              ${formatRupiah(
+                                item.item_price
+                              )}
+                            </td>
+
+
+                            <td>
+                              ${formatRupiah(
+                                item.dp_amount
+                              )}
+                            </td>
+
+
+                            <td>
+                              ${dpStatus}
+                            </td>
+
+
+                            <td>
+                              ${formatRupiah(
+                                item.remaining_amount
+                              )}
+                            </td>
+
+
+                            <td>
+                              ${paymentStatus}
+                            </td>
+
+
+                            <td>
+                              ${tracking}
+                            </td>
+
+
+                            <td>
+                              ${
+                                item.note ||
+                                "—"
+                              }
+                            </td>
+
+
+                            <td>
+                              ${deadline}
+                            </td>
+
+                          </tr>
+
+                        `;
+
+                      }
+                    ).join("")}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join("");
+
+
+    /* ========================================
+       TAMPILKAN KE HALAMAN
+       ======================================== */
+
+    container.innerHTML = `
+
+      <div
+        class="recap-list"
+      >
+
+        <div
+          class="recap-list-header"
+        >
+
+          <div>
+
+            <h2>
+              ${category}
+            </h2>
+
+            <p>
+              ${data.length}
+              data pembelian dari
+              ${Object.keys(grouped).length}
+              kode batch
+            </p>
+
+          </div>
+
+        </div>
+
+
+        ${batchHTML}
+
+      </div>
+
+    `;
+
+
+  } catch (error) {
+
+    console.error(
+      "Kesalahan loadRecapList:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat rekap
+        </h3>
+
+        <p>
+          ${error.message}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
 }
 
 
 /* ============================================
-   PRODUK & GO
+   PESANAN
    ============================================ */
 
-async function loadProducts() {
+async function loadOrders() {
 
   pageTitle.textContent =
-    "Produk & GO";
+    "Pesanan";
 
 
   pageContent.innerHTML = `
@@ -539,39 +674,25 @@ async function loadProducts() {
         <div>
 
           <h2>
-            Produk & Group Order
+            Pesanan
           </h2>
 
           <p>
-            Kelola produk dan Group Order
+            Daftar pesanan customer
             Dear Nadiya.
           </p>
 
         </div>
 
-
-        <button
-          type="button"
-          class="primary-button"
-          id="addProductButton"
-        >
-          ➕ Tambah Produk
-        </button>
-
       </div>
 
 
       <div
-        id="productFormContainer"
-      ></div>
-
-
-      <div
-        id="productListContainer"
+        id="ordersContainer"
       >
 
         <p>
-          Memuat produk...
+          Memuat pesanan...
         </p>
 
       </div>
@@ -581,411 +702,9 @@ async function loadProducts() {
   `;
 
 
-  const addProductButton =
-    document.getElementById(
-      "addProductButton"
-    );
-
-
-  const productFormContainer =
-    document.getElementById(
-      "productFormContainer"
-    );
-
-
-  addProductButton.addEventListener(
-    "click",
-    function () {
-
-      productFormContainer.innerHTML = `
-
-        <div class="panel product-form">
-
-          <h3>
-            Tambah Produk / GO
-          </h3>
-
-
-          <form id="productForm">
-
-            <label>
-              Kode Produk
-            </label>
-
-            <input
-              id="productCode"
-              type="text"
-              placeholder="Contoh: TRS-001"
-              required
-            >
-
-
-            <label>
-              Nama Produk
-            </label>
-
-            <input
-              id="productName"
-              type="text"
-              placeholder="Nama produk / Group Order"
-              required
-            >
-
-
-            <label>
-              Jenis
-            </label>
-
-            <select id="productType">
-
-              <option value="GO">
-                Group Order
-              </option>
-
-              <option value="Pre Order">
-                Pre Order
-              </option>
-
-              <option value="Ready Stock">
-                Ready Stock
-              </option>
-
-            </select>
-
-
-            <label>
-              Harga
-            </label>
-
-            <input
-              id="productPrice"
-              type="number"
-              min="0"
-              placeholder="115000"
-              required
-            >
-
-
-            <label>
-              DP
-            </label>
-
-            <input
-              id="productDp"
-              type="number"
-              min="0"
-              value="0"
-            >
-
-
-            <label>
-              Deadline List
-            </label>
-
-            <input
-              id="deadlineList"
-              type="date"
-            >
-
-
-            <label>
-              Deadline Pembayaran
-            </label>
-
-            <input
-              id="deadlinePayment"
-              type="date"
-            >
-
-
-            <label>
-              Status
-            </label>
-
-            <select id="productStatus">
-
-              <option value="active">
-                Active
-              </option>
-
-              <option value="closed">
-                Closed
-              </option>
-
-              <option value="completed">
-                Completed
-              </option>
-
-            </select>
-
-
-            <label>
-              Deskripsi
-            </label>
-
-            <textarea
-              id="productDescription"
-              rows="4"
-              placeholder="Deskripsi produk..."
-            ></textarea>
-
-
-            <label>
-              Jumlah Member
-            </label>
-
-            <input
-              id="productMembers"
-              type="number"
-              min="0"
-              value="0"
-            >
-
-
-            <label class="checkbox-label">
-
-              <input
-                id="showWebsite"
-                type="checkbox"
-                checked
-              >
-
-              Tampilkan di website customer
-
-            </label>
-
-
-            <div class="form-actions">
-
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                Simpan Produk
-              </button>
-
-
-              <button
-                type="button"
-                id="cancelProductButton"
-              >
-                Batal
-              </button>
-
-            </div>
-
-
-            <p
-              id="productFormMessage"
-              class="login-error"
-            ></p>
-
-          </form>
-
-        </div>
-
-      `;
-
-
-      document
-        .getElementById(
-          "cancelProductButton"
-        )
-        .addEventListener(
-          "click",
-          function () {
-
-            productFormContainer.innerHTML =
-              "";
-
-          }
-        );
-
-
-      document
-        .getElementById(
-          "productForm"
-        )
-        .addEventListener(
-          "submit",
-          saveProduct
-        );
-
-    }
-  );
-
-
-  await loadProductList();
-
-}
-
-
-/* ============================================
-   SIMPAN PRODUK
-   ============================================ */
-
-async function saveProduct(
-  event
-) {
-
-  event.preventDefault();
-
-
-  const message =
-    document.getElementById(
-      "productFormMessage"
-    );
-
-
-  message.textContent =
-    "Menyimpan produk...";
-
-
-  const product = {
-
-    product_code:
-      document
-        .getElementById(
-          "productCode"
-        )
-        .value
-        .trim(),
-
-    name:
-      document
-        .getElementById(
-          "productName"
-        )
-        .value
-        .trim(),
-
-    type:
-      document
-        .getElementById(
-          "productType"
-        )
-        .value,
-
-    price:
-      Number(
-        document
-          .getElementById(
-            "productPrice"
-          )
-          .value
-      ),
-
-    dp:
-      Number(
-        document
-          .getElementById(
-            "productDp"
-          )
-          .value
-      ),
-
-    deadline_list:
-      document
-        .getElementById(
-          "deadlineList"
-        )
-        .value ||
-      null,
-
-    deadline_payment:
-      document
-        .getElementById(
-          "deadlinePayment"
-        )
-        .value ||
-      null,
-
-    status:
-      document
-        .getElementById(
-          "productStatus"
-        )
-        .value,
-
-    description:
-      document
-        .getElementById(
-          "productDescription"
-        )
-        .value
-        .trim(),
-
-    members:
-      Number(
-        document
-          .getElementById(
-            "productMembers"
-          )
-          .value
-      ),
-
-    show_website:
-      document
-        .getElementById(
-          "showWebsite"
-        )
-        .checked
-
-  };
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("products")
-      .insert(
-        product
-      );
-
-
-  if (error) {
-
-    console.error(
-      error
-    );
-
-
-    message.textContent =
-      "Gagal menyimpan produk: " +
-      error.message;
-
-    return;
-
-  }
-
-
-  message.textContent =
-    "Produk berhasil disimpan. ♥";
-
-
-  document
-    .getElementById(
-      "productFormContainer"
-    )
-    .innerHTML =
-      "";
-
-
-  await loadProductList();
-
-}
-
-
-/* ============================================
-   TAMPILKAN DAFTAR PRODUK
-   ============================================ */
-
-async function loadProductList() {
-
   const container =
     document.getElementById(
-      "productListContainer"
+      "ordersContainer"
     );
 
 
@@ -994,16 +713,12 @@ async function loadProductList() {
   }
 
 
-  container.innerHTML =
-    "<p>Memuat produk...</p>";
-
-
   const {
     data,
     error
   } =
     await supabaseClient
-      .from("products")
+      .from("orders")
       .select("*")
       .order(
         "id",
@@ -1016,6 +731,7 @@ async function loadProductList() {
   if (error) {
 
     console.error(
+      "ERROR LOAD ORDERS:",
       error
     );
 
@@ -1025,7 +741,7 @@ async function loadProductList() {
       <div class="panel">
 
         <h3>
-          Gagal memuat produk
+          Gagal memuat pesanan
         </h3>
 
         <p>
@@ -1051,13 +767,8 @@ async function loadProductList() {
       <div class="panel">
 
         <h3>
-          Belum ada produk
+          Belum ada pesanan
         </h3>
-
-        <p>
-          Tambahkan produk atau Group Order
-          pertama Anda.
-        </p>
 
       </div>
 
@@ -1070,16 +781,24 @@ async function loadProductList() {
 
   container.innerHTML = `
 
-    <div class="product-table-wrapper">
+    <div
+      class="product-table-wrapper"
+    >
 
-      <table class="product-table">
+      <table
+        class="product-table"
+      >
 
         <thead>
 
           <tr>
 
             <th>
-              Kode
+              ID
+            </th>
+
+            <th>
+              Customer
             </th>
 
             <th>
@@ -1087,15 +806,11 @@ async function loadProductList() {
             </th>
 
             <th>
-              Jenis
+              Qty
             </th>
 
             <th>
-              Harga
-            </th>
-
-            <th>
-              DP
+              Total
             </th>
 
             <th>
@@ -1103,7 +818,7 @@ async function loadProductList() {
             </th>
 
             <th>
-              Website
+              Tanggal
             </th>
 
           </tr>
@@ -1114,49 +829,307 @@ async function loadProductList() {
         <tbody>
 
           ${data.map(
-            function(item) {
+            function(order) {
 
               return `
 
                 <tr>
 
                   <td>
-                    ${item.product_code || "—"}
-                  </td>
-
-                  <td>
-                    ${item.name || "—"}
-                  </td>
-
-                  <td>
-                    ${item.type || "—"}
-                  </td>
-
-                  <td>
-                    Rp${Number(
-                      item.price || 0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-                  <td>
-                    Rp${Number(
-                      item.dp || 0
-                    ).toLocaleString(
-                      "id-ID"
-                    )}
-                  </td>
-
-                  <td>
-                    ${item.status || "—"}
+                    ${
+                      order.id ||
+                      "—"
+                    }
                   </td>
 
                   <td>
                     ${
-                      item.show_website
-                        ? "Tampil"
-                        : "Tidak"
+                      order.customer_name ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      order.product_name ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      order.quantity ||
+                      1
+                    }
+                  </td>
+
+                  <td>
+                    Rp${Number(
+                      order.total_amount ||
+                      0
+                    ).toLocaleString(
+                      "id-ID"
+                    )}
+                  </td>
+
+                  <td>
+                    ${
+                      order.status ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      order.created_at
+                        ? new Date(
+                            order.created_at
+                          ).toLocaleDateString(
+                            "id-ID"
+                          )
+                        : "—"
+                    }
+                  </td>
+
+                </tr>
+
+              `;
+
+            }
+          ).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================
+   PEMBAYARAN
+   ============================================ */
+
+async function loadPayments() {
+
+  pageTitle.textContent =
+    "Pembayaran";
+
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            Pembayaran
+          </h2>
+
+          <p>
+            Kelola pembayaran customer.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="paymentsContainer"
+      >
+
+        <p>
+          Memuat pembayaran...
+        </p>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  const container =
+    document.getElementById(
+      "paymentsContainer"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("payments")
+      .select("*")
+      .order(
+        "id",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD PAYMENTS:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat pembayaran
+        </h3>
+
+        <p>
+          ${error.message}
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Belum ada pembayaran
+        </h3>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div
+      class="product-table-wrapper"
+    >
+
+      <table
+        class="product-table"
+      >
+
+        <thead>
+
+          <tr>
+
+            <th>
+              ID
+            </th>
+
+            <th>
+              Customer
+            </th>
+
+            <th>
+              Jumlah
+            </th>
+
+            <th>
+              Metode
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Tanggal
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          ${data.map(
+            function(payment) {
+
+              return `
+
+                <tr>
+
+                  <td>
+                    ${
+                      payment.id ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      payment.customer_name ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    Rp${Number(
+                      payment.amount ||
+                      0
+                    ).toLocaleString(
+                      "id-ID"
+                    )}
+                  </td>
+
+                  <td>
+                    ${
+                      payment.method ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      payment.status ||
+                      "—"
+                    }
+                  </td>
+
+                  <td>
+                    ${
+                      payment.created_at
+                        ? new Date(
+                            payment.created_at
+                          ).toLocaleDateString(
+                            "id-ID"
+                          )
+                        : "—"
                     }
                   </td>
 
