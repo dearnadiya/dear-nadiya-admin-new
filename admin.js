@@ -3059,6 +3059,14 @@ async function loadRecapList(
                            >
                                ✏️ Edit
                               </button>
+
+                              <button
+                               type="button"
+                               class="delete-recap-button"
+                               data-id="${item.id}"
+                           >
+                               🗑️ Hapus
+                              </button>
                            </td>
 
                           </tr>
