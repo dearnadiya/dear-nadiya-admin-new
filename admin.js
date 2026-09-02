@@ -3147,6 +3147,24 @@ async function loadRecapList(
 
       });
 
+     container
+        .querySelectorAll(".delete-recap-button")
+        .forEach(function(button) {
+
+          button.addEventListener(
+            "click",
+            function() {
+
+              const id =
+                this.getAttribute("data-id");
+
+              deleteRecap(id, selectedCategory);
+
+            }
+          );
+
+      });
+
   } catch (error) {
 
     console.error(
@@ -3608,6 +3626,65 @@ async function saveEditedRecap(id, category) {
 
     console.error(
       "ERROR SAVE EDIT REKAP:",
+      error
+    );
+
+    alert(
+      "Terjadi kesalahan: " +
+      error.message
+    );
+
+  }
+
+}
+
+/* ============================================
+   HAPUS REKAP GO
+   ============================================ */
+
+async function deleteRecap(id, category) {
+
+  const confirmDelete = confirm(
+    "Yakin ingin menghapus data Rekap GO ini?"
+  );
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+
+    const { error } =
+      await supabaseClient
+        .from("purchase_recap")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+
+      console.error(
+        "ERROR DELETE REKAP:",
+        error
+      );
+
+      alert(
+        "Gagal menghapus data: " +
+        error.message
+      );
+
+      return;
+    }
+
+    alert(
+      "Data Rekap GO berhasil dihapus. ♥"
+    );
+
+    await loadRecapList(category);
+
+  } catch (error) {
+
+    console.error(
+      "ERROR DELETE REKAP:",
       error
     );
 
