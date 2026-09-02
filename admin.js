@@ -4529,323 +4529,424 @@ addBatch();
 
 
       /* ============================================
+   SIMPAN PO
+   ============================================ */
+
+poForm.addEventListener(
+  "submit",
+  async function (event) {
+
+    event.preventDefault();
+
+
+    const imageFile =
+      document.getElementById(
+        "poImage"
+      ).files[0];
+
+
+    const title =
+      document.getElementById(
+        "poTitle"
+      ).value.trim();
+
+
+    const priceText =
+      document.getElementById(
+        "poPrice"
+      ).value.trim();
+
+
+    const dpText =
+      document.getElementById(
+        "poDP"
+      ).value.trim();
+
+
+    const closeDate =
+      document.getElementById(
+        "poCloseDate"
+      ).value || null;
+
+
+    const lastDPDate =
+      document.getElementById(
+        "poLastDP"
+      ).value || null;
+
+
+    const status =
+      document.getElementById(
+        "poStatus"
+      ).value;
+
+
+    const description =
+      document.getElementById(
+        "poDescription"
+      ).value.trim();
+
+
+    if (!imageFile) {
+
+      poFormMessage.innerHTML = `
+        <p style="color:#a83232;">
+          Foto PO wajib dipilih.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    if (!title) {
+
+      poFormMessage.innerHTML = `
+        <p style="color:#a83232;">
+          Judul PO wajib diisi.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    /* ============================================
+       KUMPULKAN DATA BATCH
+       ============================================ */
+
+    const batchElements =
+      poBatchContainer.querySelectorAll(
+        ":scope > .panel"
+      );
+
+
+    const batches = [];
+
+
+    batchElements.forEach(
+      function(batchElement) {
+
+        const batchNameInput =
+          batchElement.querySelector(
+            ".batch-name"
+          );
+
+
+        const batchName =
+          batchNameInput
+            ? batchNameInput.value.trim()
+            : "";
+
+
+        const itemElements =
+          batchElement.querySelectorAll(
+            ".batch-items > div"
+          );
+
+
+        const items = [];
+
+
+        itemElements.forEach(
+          function(itemElement) {
+
+            const itemInput =
+              itemElement.querySelector(
+                ".po-item-name"
+              );
+
+
+            const customerInput =
+              itemElement.querySelector(
+                ".po-customer-name"
+              );
+
+
+            const qtyInput =
+              itemElement.querySelector(
+                ".po-item-qty"
+              );
+
+
+            const itemName =
+              itemInput
+                ? itemInput.value.trim()
+                : "";
+
+
+            const customerName =
+              customerInput
+                ? customerInput.value.trim()
+                : "";
+
+
+            const quantity =
+              qtyInput
+                ? Number(
+                    qtyInput.value || 1
+                  )
+                : 1;
+
+
+            /* Lewati baris kosong */
+
+            if (
+              !itemName &&
+              !customerName
+            ) {
+              return;
+            }
+
+
+            items.push({
+              item: itemName,
+              customer: customerName,
+              quantity:
+                quantity > 0
+                  ? quantity
+                  : 1
+            });
+
+          }
+        );
+
+
+        /* Simpan batch */
+
+        if (
+          batchName ||
+          items.length > 0
+        ) {
+
+          batches.push({
+            batch_name:
+              batchName ||
+              "Batch",
+            items:
+              items
+          });
+
+        }
+
+      }
+    );
+
+
+    poFormMessage.innerHTML = `
+      <p>
+        ⏳ Menyimpan PO...
+      </p>
+    `;
+
+
+    const submitButton =
+      poForm.querySelector(
+        'button[type="submit"]'
+      );
+
+
+    submitButton.disabled =
+      true;
+
+
+    let uploadedPath =
+      null;
+
+
+    try {
+
+      /* ============================================
+         UPLOAD FOTO
+         ============================================ */
+
+      const safeFileName =
+        imageFile.name
+          .replace(
+            /[^a-zA-Z0-9._-]/g,
+            "-"
+          );
+
+
+      const filePath =
+        "po/" +
+        Date.now() +
+        "-" +
+        safeFileName;
+
+
+      const {
+        error: uploadError
+      } =
+        await supabaseClient
+          .storage
+          .from("po-images")
+          .upload(
+            filePath,
+            imageFile,
+            {
+              cacheControl:
+                "3600",
+              upsert:
+                false
+            }
+          );
+
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+
+      uploadedPath =
+        filePath;
+
+
+      /* ============================================
+         AMBIL URL FOTO
+         ============================================ */
+
+      const {
+        data:
+          publicURLData
+      } =
+        supabaseClient
+          .storage
+          .from("po-images")
+          .getPublicUrl(
+            filePath
+          );
+
+
+      const imageURL =
+        publicURLData
+          .publicUrl;
+
+
+      /* ============================================
          SIMPAN PO
          ============================================ */
 
-      poForm.addEventListener(
-        "submit",
-        async function (event) {
+      const {
+        error:
+          insertError
+      } =
+        await supabaseClient
+          .from("po_posts")
+          .insert([
+            {
 
-          event.preventDefault();
+              title:
+                title,
 
+              image_url:
+                imageURL,
 
-          const imageFile =
-            document.getElementById(
-              "poImage"
-            ).files[0];
+              price_text:
+                priceText,
 
+              dp_text:
+                dpText,
 
-          const title =
-            document.getElementById(
-              "poTitle"
-            ).value.trim();
+              close_date:
+                closeDate,
 
+              last_dp_date:
+                lastDPDate,
 
-          const priceText =
-            document.getElementById(
-              "poPrice"
-            ).value.trim();
+              description:
+                description,
 
+              list_data:
+                batches,
 
-          const dpText =
-            document.getElementById(
-              "poDP"
-            ).value.trim();
-
-
-          const closeDate =
-            document.getElementById(
-              "poCloseDate"
-            ).value || null;
-
-
-          const lastDPDate =
-            document.getElementById(
-              "poLastDP"
-            ).value || null;
-
-
-          const status =
-            document.getElementById(
-              "poStatus"
-            ).value;
-
-
-          const description =
-            document.getElementById(
-              "poDescription"
-            ).value.trim();
-
-
-          const listText =
-            document.getElementById(
-              "poList"
-            ).value;
-
-
-          if (!imageFile) {
-
-            poFormMessage.innerHTML = `
-              <p style="color:#a83232;">
-                Foto PO wajib dipilih.
-              </p>
-            `;
-
-            return;
-
-          }
-
-
-          if (!title) {
-
-            poFormMessage.innerHTML = `
-              <p style="color:#a83232;">
-                Judul PO wajib diisi.
-              </p>
-            `;
-
-            return;
-
-          }
-
-
-          poFormMessage.innerHTML = `
-            <p>
-              ⏳ Menyimpan PO...
-            </p>
-          `;
-
-
-          const submitButton =
-            poForm.querySelector(
-              'button[type="submit"]'
-            );
-
-
-          submitButton.disabled = true;
-
-
-          let uploadedPath =
-            null;
-
-
-          try {
-
-            /* ============================================
-               UPLOAD FOTO
-               ============================================ */
-
-            const safeFileName =
-              imageFile.name
-                .replace(
-                  /[^a-zA-Z0-9._-]/g,
-                  "-"
-                );
-
-
-            const filePath =
-              "po/" +
-              Date.now() +
-              "-" +
-              safeFileName;
-
-
-            const {
-              error: uploadError
-            } =
-              await supabaseClient
-                .storage
-                .from("po-images")
-                .upload(
-                  filePath,
-                  imageFile,
-                  {
-                    cacheControl:
-                      "3600",
-                    upsert: false
-                  }
-                );
-
-
-            if (uploadError) {
-              throw uploadError;
-            }
-
-
-            uploadedPath =
-              filePath;
-
-
-            /* ============================================
-               AMBIL URL FOTO
-               ============================================ */
-
-            const {
-              data: publicURLData
-            } =
-              supabaseClient
-                .storage
-                .from("po-images")
-                .getPublicUrl(
-                  filePath
-                );
-
-
-            const imageURL =
-              publicURLData
-                .publicUrl;
-
-
-            /* ============================================
-               SIMPAN LIST SEBAGAI DATA FLEKSIBEL
-               ============================================ */
-
-            const listData =
-              listText
-                .split("\n")
-                .map(
-                  function(line) {
-                    return line.trim();
-                  }
-                )
-                .filter(
-                  function(line) {
-                    return line !== "";
-                  }
-                )
-                .map(
-                  function(line) {
-                    return {
-                      text: line
-                    };
-                  }
-                );
-
-
-            /* ============================================
-               SIMPAN DATA PO
-               ============================================ */
-
-            const {
-              error: insertError
-            } =
-              await supabaseClient
-                .from("po_posts")
-                .insert([
-                  {
-                    title:
-                      title,
-
-                    image_url:
-                      imageURL,
-
-                    price_text:
-                      priceText,
-
-                    dp_text:
-                      dpText,
-
-                    close_date:
-                      closeDate,
-
-                    last_dp_date:
-                      lastDPDate,
-
-                    description:
-                      description,
-
-                    list_data:
-                      listData,
-
-                    status:
-                      status
-                  }
-                ]);
-
-
-            if (insertError) {
-
-              /* Hapus foto jika
-                 database gagal */
-
-              await supabaseClient
-                .storage
-                .from("po-images")
-                .remove([
-                  uploadedPath
-                ]);
-
-              throw insertError;
+              status:
+                status
 
             }
+          ]);
 
 
-            poFormMessage.innerHTML = `
-              <p
-                style="
-                  color:#236b43;
-                  font-weight:600;
-                "
-              >
-                ✅ PO berhasil disimpan.
-              </p>
-            `;
+      if (insertError) {
 
+        /* Jika database gagal,
+           hapus foto yang sudah
+           terupload */
 
-            poForm.reset();
+        if (uploadedPath) {
 
-
-            setTimeout(
-              function() {
-
-                loadOrders();
-
-              },
-              700
-            );
-
-
-          } catch (error) {
-
-            console.error(
-              "ERROR SAVE PO:",
-              error
-            );
-
-
-            poFormMessage.innerHTML = `
-              <p
-                style="
-                  color:#a83232;
-                "
-              >
-                ❌ Gagal menyimpan PO:
-                ${error.message}
-              </p>
-            `;
-
-
-            submitButton.disabled =
-              false;
-
-          }
+          await supabaseClient
+            .storage
+            .from("po-images")
+            .remove([
+              uploadedPath
+            ]);
 
         }
+
+        throw insertError;
+
+      }
+
+
+      /* ============================================
+         BERHASIL
+         ============================================ */
+
+      poFormMessage.innerHTML = `
+        <p
+          style="
+            color:#236b43;
+            font-weight:600;
+          "
+        >
+          ✅ PO berhasil disimpan.
+        </p>
+      `;
+
+
+      poForm.reset();
+
+
+      setTimeout(
+        function() {
+
+          loadOrders();
+
+        },
+        700
       );
 
-    }
-  );
 
+    } catch (error) {
+
+      console.error(
+        "ERROR SAVE PO:",
+        error
+      );
+
+
+      poFormMessage.innerHTML = `
+        <p
+          style="
+            color:#a83232;
+          "
+        >
+          ❌ Gagal menyimpan PO:
+          ${error.message}
+        </p>
+      `;
+
+
+      submitButton.disabled =
+        false;
+
+    }
+
+  }
+);
 
   /* ============================================
      AMBIL DATA PO
