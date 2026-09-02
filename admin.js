@@ -4350,6 +4350,10 @@ async function loadPayments() {
               Status
             </th>
 
+            <th>
+              Aksi
+            </th>
+
           </tr>
 
         </thead>
@@ -4440,18 +4444,61 @@ async function loadPayments() {
 
                   <td>
 
-                    <span
-                      class="status"
-                    >
+  <span
+    class="status"
+  >
 
-                      ${
-                        payment.status ||
-                        "—"
-                      }
+    ${
+      payment.status ||
+      "—"
+    }
 
-                    </span>
+  </span>
 
-                  </td>
+</td>
+
+<td>
+
+  <button
+    type="button"
+    class="primary-button"
+    onclick="
+      if (
+        confirm(
+          'Konfirmasi pembayaran ini?'
+        )
+      ) {
+        updatePaymentStatus(
+          ${payment.id},
+          'confirmed'
+        );
+      }
+    "
+  >
+    ✓ Konfirmasi
+  </button>
+
+
+  <button
+    type="button"
+    class="delete-button"
+    onclick="
+      if (
+        confirm(
+          'Tolak pembayaran ini?'
+        )
+      ) {
+        updatePaymentStatus(
+          ${payment.id},
+          'rejected'
+        );
+      }
+    "
+  >
+    ✕ Tolak
+  </button>
+
+</td>
 
                 </tr>
 
