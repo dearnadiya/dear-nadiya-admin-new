@@ -1178,6 +1178,51 @@ async function loadProductList() {
 }
 
 /* ============================================
+   UPDATE STATUS PEMBAYARAN
+   ============================================ */
+
+async function updatePaymentStatus(
+  id,
+  newStatus
+) {
+
+  const { error } =
+    await supabaseClient
+      .from("dn_payment_submissions")
+      .update({
+        status: newStatus
+      })
+      .eq("id", id);
+
+
+  if (error) {
+
+    console.error(
+      "ERROR UPDATE PAYMENT:",
+      error
+    );
+
+    alert(
+      "Gagal mengubah status pembayaran: " +
+      error.message
+    );
+
+    return;
+  }
+
+
+  alert(
+    newStatus === "confirmed"
+      ? "Pembayaran berhasil dikonfirmasi."
+      : "Pembayaran ditolak."
+  );
+
+
+  await loadPayments();
+
+}
+
+/* ============================================
    REKAP GO
    ============================================ */
 
