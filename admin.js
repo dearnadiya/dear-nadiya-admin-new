@@ -3106,13 +3106,20 @@ async function loadRecapList(
         >
 
         <div class="recap-search">
-         <input
+
+        <input
           type="text"
           id="recapSearchInput"
           placeholder="🔍 Cari kode batch, customer, barang, member..."
         />
-      </div>
 
+        <div
+          id="recapSearchResult"
+          class="recap-search-result"
+        ></div>
+
+      </div>
+      
           <div>
 
             <h2>
