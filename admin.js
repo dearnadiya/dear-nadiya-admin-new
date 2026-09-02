@@ -3730,58 +3730,41 @@ async function saveEditedRecap(id, category) {
    ============================================ */
 
 async function deleteRecap(id, category) {
-
   const confirmDelete = confirm(
     "Yakin ingin menghapus data Rekap GO ini?"
   );
 
-  if (!confirmDelete) {
-    return;
-  }
+  if (!confirmDelete) return;
 
   try {
-
-    const { error } =
+    const { data: deletedRows, error } =
       await supabaseClient
         .from("purchase_recap")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
 
     if (error) {
-
-      console.error(
-        "ERROR DELETE REKAP:",
-        error
-      );
-
-      alert(
-        "Gagal menghapus data: " +
-        error.message
-      );
-
+      console.error("ERROR DELETE REKAP:", error);
+      alert("Gagal menghapus data: " + error.message);
       return;
     }
 
-    alert(
-      "Data Rekap GO berhasil dihapus. ♥"
-    );
+    if (!deletedRows || deletedRows.length === 0) {
+      alert(
+        "Data tidak terhapus. Kemungkinan izin DELETE di Supabase belum tersedia."
+      );
+      return;
+    }
+
+    alert("Data Rekap GO berhasil dihapus. ♥");
 
     await loadRecapList(category);
 
   } catch (error) {
-
-    console.error(
-      "ERROR DELETE REKAP:",
-      error
-    );
-
-    alert(
-      "Terjadi kesalahan: " +
-      error.message
-    );
-
+    console.error("ERROR DELETE REKAP:", error);
+    alert("Terjadi kesalahan: " + error.message);
   }
-
 }
 
 /* ============================================
