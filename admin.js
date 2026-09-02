@@ -4192,7 +4192,7 @@ async function loadPayments() {
     error
   } =
     await supabaseClient
-      .from("payments")
+      .from("dn_payment_submissions")
       .select("*")
       .order(
         "id",
