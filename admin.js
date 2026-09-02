@@ -3780,6 +3780,145 @@ async function saveBatchRecap(
 
 }
 
+/* ============================================
+   TRACKING OPTIONS
+   ============================================ */
+
+function getTrackingOptions(
+  category
+) {
+
+  if (
+    category ===
+    "Treasure INA"
+  ) {
+
+    return [
+      "Co Seller",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Truz"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure KR"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH KR",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure JP"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH JP",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure CH"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH CH",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure Thai"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH Thai",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  if (
+    category ===
+    "Treasure Album"
+  ) {
+
+    return [
+      "Co Web / Seller",
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  return [
+    "Co Web / Seller",
+    "Shipping INA",
+    "Arrived WH INA",
+    "Arrived Admin",
+    "Goods Arrive at Customer"
+  ];
+
+}
 
 /* ============================================
    EDIT REKAP
