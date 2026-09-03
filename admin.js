@@ -2222,19 +2222,18 @@ function showRecapForm(
         </label>
 
         <select
-          id="recapPaymentStatus"
-        >
+  id="recapPaymentStatus"
+>
 
-          <option value="Belum Lunas">
-            Belum Lunas
-          </option>
+  <option value="unpaid">
+    Belum Lunas
+  </option>
 
-          <option value="Lunas">
-            Lunas
-          </option>
+  <option value="paid">
+    Lunas
+  </option>
 
-        </select>
-
+</select>
 
         <label>
           Tracking
