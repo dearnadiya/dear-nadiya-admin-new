@@ -3346,7 +3346,11 @@ async function loadRecapList(
   container.innerHTML =
     html;
 
-   const recapSearchInput =
+   /* ==========================================
+   SEARCH + FILTER REKAP GO
+   ========================================== */
+
+const recapSearchInput =
   document.getElementById(
     "recapSearchInput"
   );
@@ -3356,67 +3360,246 @@ const recapSearchResult =
     "recapSearchResult"
   );
 
-if (recapSearchInput) {
+const recapCustomerFilter =
+  document.getElementById(
+    "recapCustomerFilter"
+  );
 
-  recapSearchInput.addEventListener(
-    "input",
-    function () {
+const recapDpFilter =
+  document.getElementById(
+    "recapDpFilter"
+  );
 
-      const keyword =
-        recapSearchInput.value
+const recapPaymentFilter =
+  document.getElementById(
+    "recapPaymentFilter"
+  );
+
+
+function applyRecapFilters() {
+
+  const keyword =
+    recapSearchInput
+      ? recapSearchInput.value
           .trim()
-          .toLowerCase();
+          .toLowerCase()
+      : "";
 
-      const batchCards =
-        document.querySelectorAll(
-          "#recapListContainer .recap-batch-card"
+  const customerFilter =
+    recapCustomerFilter
+      ? recapCustomerFilter.value
+      : "";
+
+  const dpFilter =
+    recapDpFilter
+      ? recapDpFilter.value
+      : "";
+
+  const paymentFilter =
+    recapPaymentFilter
+      ? recapPaymentFilter.value
+      : "";
+
+
+  const batchCards =
+    document.querySelectorAll(
+      "#recapListContainer .recap-batch-card"
+    );
+
+
+  let visibleCount = 0;
+
+
+  batchCards.forEach(
+    function (card) {
+
+      const searchText =
+        card.dataset.search || "";
+
+
+      const batchCode =
+        card.querySelector(
+          ".recap-batch-header h3"
+        )?.textContent
+        .trim()
+        .toLowerCase() || "";
+
+
+      const rows =
+        card.querySelectorAll(
+          ".product-table tbody tr"
         );
 
-      let visibleCount = 0;
 
-      batchCards.forEach(
-        function (card) {
+      let batchHasMatch = false;
 
-          const searchText =
-            card.dataset.search || "";
 
-          if (
+      rows.forEach(
+        function (row) {
+
+          const rowText =
+            row.textContent
+              .toLowerCase();
+
+
+          const matchesSearch =
             !keyword ||
-            searchText.includes(keyword)
-          ) {
+            searchText.includes(
+              keyword
+            ) ||
+            rowText.includes(
+              keyword
+            );
 
-            card.style.display = "";
 
-            visibleCount++;
+          const customerStatus =
+            row.querySelector(
+              ".recap-customer-status"
+            )?.value || "";
 
-          } else {
 
-            card.style.display = "none";
+          const dpStatus =
+            row.querySelector(
+              ".recap-dp-status"
+            )?.value || "";
 
+
+          const paymentStatus =
+            row.querySelector(
+              ".recap-payment-status"
+            )?.value || "";
+
+
+          const matchesCustomer =
+            !customerFilter ||
+            customerStatus ===
+              customerFilter;
+
+
+          const matchesDp =
+            !dpFilter ||
+            dpStatus ===
+              dpFilter;
+
+
+          const matchesPayment =
+            !paymentFilter ||
+            paymentStatus ===
+              paymentFilter;
+
+
+          const visible =
+            matchesSearch &&
+            matchesCustomer &&
+            matchesDp &&
+            matchesPayment;
+
+
+          row.style.display =
+            visible
+              ? ""
+              : "none";
+
+
+          if (visible) {
+            batchHasMatch = true;
           }
 
         }
       );
 
 
-      if (!keyword) {
+      /*
+       * Jika minimal satu customer
+       * cocok, batch tetap tampil.
+       */
 
-        recapSearchResult.textContent =
-          "";
+      if (batchHasMatch) {
 
-      } else if (visibleCount === 0) {
+        card.style.display = "";
 
-        recapSearchResult.textContent =
-          "Tidak ada hasil yang ditemukan.";
+        visibleCount++;
 
       } else {
 
-        recapSearchResult.textContent =
-          `${visibleCount} batch ditemukan.`;
+        card.style.display = "none";
 
       }
 
     }
+  );
+
+
+  if (
+    !keyword &&
+    !customerFilter &&
+    !dpFilter &&
+    !paymentFilter
+  ) {
+
+    recapSearchResult.textContent =
+      "";
+
+  } else if (
+    visibleCount === 0
+  ) {
+
+    recapSearchResult.textContent =
+      "Tidak ada hasil yang ditemukan.";
+
+  } else {
+
+    recapSearchResult.textContent =
+      `${visibleCount} batch ditemukan.`;
+
+  }
+
+}
+
+
+/* Pencarian */
+
+if (recapSearchInput) {
+
+  recapSearchInput.addEventListener(
+    "input",
+    applyRecapFilters
+  );
+
+}
+
+
+/* Filter Status Customer */
+
+if (recapCustomerFilter) {
+
+  recapCustomerFilter.addEventListener(
+    "change",
+    applyRecapFilters
+  );
+
+}
+
+
+/* Filter Status DP */
+
+if (recapDpFilter) {
+
+  recapDpFilter.addEventListener(
+    "change",
+    applyRecapFilters
+  );
+
+}
+
+
+/* Filter Pembayaran */
+
+if (recapPaymentFilter) {
+
+  recapPaymentFilter.addEventListener(
+    "change",
+    applyRecapFilters
   );
 
 }
