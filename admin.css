@@ -2472,3 +2472,12 @@ a {
   width: 100%;
   margin: 2px 0;
 }
+
+/* ============================================
+   REKAP GO - HILANGKAN KOLOM BARANG
+   ============================================ */
+
+.recap-batch-card .product-table th:first-child,
+.recap-batch-card .product-table td:first-child {
+  display: none;
+}
