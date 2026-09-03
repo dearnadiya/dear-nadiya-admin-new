@@ -2060,18 +2060,15 @@ function loadRecap() {
 
 
 /* ============================================
-   FORM REKAP GO
+   FORM REKAP GO - MULTI MEMBER
    ============================================ */
 
-function showRecapForm(
-  category
-) {
+function showRecapForm(category) {
 
   const container =
     document.getElementById(
       "recapFormContainer"
     );
-
 
   if (!container) {
     return;
@@ -2080,35 +2077,28 @@ function showRecapForm(
 
   container.innerHTML = `
 
-    <div
-      class="panel recap-form"
-    >
+    <div class="panel recap-form">
 
       <h3>
         ➕ Tambah Rekap GO
       </h3>
 
-
       <p>
         Kategori:
         <strong>
-          ${escapeHTML(
-            category
-          )}
+          ${escapeHTML(category)}
         </strong>
       </p>
 
 
-      <form
-        id="recapForm"
-      >
+      <form id="batchRecapForm">
 
         <label>
           Kode Batch
         </label>
 
         <input
-          id="recapBatchCode"
+          id="batchCode"
           type="text"
           placeholder="Contoh: TRUZ-001"
           required
@@ -2120,177 +2110,169 @@ function showRecapForm(
         </label>
 
         <input
-          id="recapItemName"
+          id="batchItemName"
           type="text"
-          placeholder="Nama barang"
+          placeholder="Contoh: Truz Friend Sale"
           required
         >
 
 
         <label>
-          Customer
+          Tipe Harga
         </label>
 
-        <input
-          id="recapCustomerName"
-          type="text"
-          placeholder="Nama customer"
-          required
-        >
+        <select id="batchPriceMode">
 
-
-        <label>
-          Versi / Member
-        </label>
-
-        <input
-          id="recapVersion"
-          type="text"
-          placeholder="Contoh: Hyunsuk"
-        >
-
-
-        <label>
-          Quantity
-        </label>
-
-        <input
-          id="recapQuantity"
-          type="number"
-          min="1"
-          value="1"
-          required
-        >
-
-
-        <label>
-          Harga
-        </label>
-
-        <input
-          id="recapItemPrice"
-          type="number"
-          min="0"
-          value="0"
-        >
-
-
-        <label>
-          DP
-        </label>
-
-        <input
-          id="recapDpAmount"
-          type="number"
-          min="0"
-          value="0"
-        >
-
-
-        <label>
-          Status DP
-        </label>
-
-        <select
-  id="recapDpStatus"
->
-
-  <option value="unpaid">
-    Belum Dibayar
-  </option>
-
-  <option value="paid">
-    Sudah Dibayar
-  </option>
-
-</select>
-
-        <label>
-          Sisa Pembayaran
-        </label>
-
-        <input
-          id="recapRemainingAmount"
-          type="number"
-          min="0"
-          value="0"
-        >
-
-
-        <label>
-          Status Pembayaran
-        </label>
-
-        <select
-  id="recapPaymentStatus"
->
-
-  <option value="unpaid">
-    Belum Lunas
-  </option>
-
-  <option value="paid">
-    Lunas
-  </option>
-
-</select>
-
-        <label>
-          Tracking
-        </label>
-
-        <select
-          id="recapTrackingStatus"
-        >
-
-          <option>
-            Co Web / Seller
+          <option value="same">
+            Harga Sama untuk Semua Member
           </option>
 
-          <option>
-            Arrived WH KR
-          </option>
-
-          <option>
-            Arrived WH JP
-          </option>
-
-          <option>
-            Arrived WH CH
-          </option>
-
-          <option>
-            Arrived WH Thai
-          </option>
-
-          <option>
-            Shipping INA
-          </option>
-
-          <option>
-            Arrived WH INA
-          </option>
-
-          <option>
-            Arrived Admin
-          </option>
-
-          <option>
-            Goods Arrive at Customer
+          <option value="different">
+            Harga Berbeda per Member
           </option>
 
         </select>
 
 
+        <!-- ==================================
+             PENGATURAN HARGA SAMA
+             ================================== -->
+
+        <div id="batchCommonFields">
+
+          <hr>
+
+          <h3>
+            Harga & Pembayaran
+          </h3>
+
+          <label>
+            Harga Barang
+          </label>
+
+          <input
+            id="batchCommonPrice"
+            type="number"
+            min="0"
+            value="0"
+          >
+
+
+          <label>
+            DP
+          </label>
+
+          <input
+            id="batchCommonDp"
+            type="number"
+            min="0"
+            value="0"
+          >
+
+
+          <label>
+            Status DP
+          </label>
+
+          <select id="batchCommonDpStatus">
+
+            <option value="unpaid">
+              Belum Dibayar
+            </option>
+
+            <option value="paid">
+              Sudah Dibayar
+            </option>
+
+          </select>
+
+
+          <label>
+            Sisa Pembayaran
+          </label>
+
+          <input
+            id="batchCommonRemaining"
+            type="number"
+            min="0"
+            value="0"
+          >
+
+
+          <label>
+            Status Pembayaran
+          </label>
+
+          <select id="batchCommonPaymentStatus">
+
+            <option value="unpaid">
+              Belum Lunas
+            </option>
+
+            <option value="paid">
+              Lunas
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <hr>
+
+
+        <h3>
+          Versi / Member
+        </h3>
+
+        <p>
+          Tambahkan customer dan member yang
+          termasuk dalam batch ini.
+        </p>
+
+
+        <div id="batchItemsContainer"></div>
+
+
+        <button
+          type="button"
+          id="addBatchItemButton"
+          class="primary-button"
+        >
+          ＋ Tambah Member / Versi
+        </button>
+
+
+        <hr>
+
+
+        <h3>
+          Pengaturan Batch
+        </h3>
+
+
         <label>
-          Catatan
+          Tracking Batch
         </label>
 
-        <textarea
-          id="recapNote"
-          rows="3"
-          placeholder="Catatan..."
-        ></textarea>
+        <select id="batchTrackingStatus">
+
+          ${getTrackingOptions(category)
+            .map(function(option) {
+
+              return `
+                <option
+                  value="${escapeHTML(option)}"
+                >
+                  ${escapeHTML(option)}
+                </option>
+              `;
+
+            })
+            .join("")
+          }
+
+        </select>
 
 
         <label>
@@ -2298,26 +2280,24 @@ function showRecapForm(
         </label>
 
         <input
-          id="recapCoDeadline"
+          id="batchCoDeadline"
           type="date"
         >
 
 
-        <div
-          class="form-actions"
-        >
+        <div class="form-actions">
 
           <button
             type="submit"
             class="primary-button"
           >
-            Simpan Rekap
+            Simpan Batch
           </button>
 
 
           <button
             type="button"
-            id="cancelRecapButton"
+            id="cancelBatchButton"
           >
             Batal
           </button>
@@ -2326,7 +2306,7 @@ function showRecapForm(
 
 
         <p
-          id="recapFormMessage"
+          id="batchFormMessage"
           class="login-error"
         ></p>
 
@@ -2337,13 +2317,304 @@ function showRecapForm(
   `;
 
 
+  const itemsContainer =
+    document.getElementById(
+      "batchItemsContainer"
+    );
+
+
+  let itemNumber = 0;
+
+
+  /* ========================================
+     TAMBAH MEMBER / VERSI
+     ======================================== */
+
+  function addBatchItem() {
+
+    itemNumber++;
+
+
+    const item =
+      document.createElement(
+        "div"
+      );
+
+    item.className =
+      "batch-item";
+
+
+    item.innerHTML = `
+
+      <div class="batch-item-header">
+
+        <strong>
+          Member / Customer ${itemNumber}
+        </strong>
+
+        <button
+          type="button"
+          class="delete-button remove-batch-item"
+        >
+          🗑️ Hapus
+        </button>
+
+      </div>
+
+
+      <label>
+        Customer
+      </label>
+
+      <input
+        type="text"
+        class="batch-customer"
+        placeholder="Nama customer"
+      >
+
+
+      <label>
+        Versi / Member
+      </label>
+
+      <input
+        type="text"
+        class="batch-version"
+        placeholder="Contoh: Hyunsuk"
+      >
+
+
+      <label>
+        Quantity
+      </label>
+
+      <input
+        type="number"
+        class="batch-quantity"
+        min="1"
+        value="1"
+      >
+
+
+      <div class="different-price-fields">
+
+        <label>
+          Harga Barang
+        </label>
+
+        <input
+          type="number"
+          class="batch-price"
+          min="0"
+          value="0"
+        >
+
+
+        <label>
+          DP
+        </label>
+
+        <input
+          type="number"
+          class="batch-dp"
+          min="0"
+          value="0"
+        >
+
+
+        <label>
+          Status DP
+        </label>
+
+        <select class="batch-dp-status">
+
+          <option value="unpaid">
+            Belum Dibayar
+          </option>
+
+          <option value="paid">
+            Sudah Dibayar
+          </option>
+
+        </select>
+
+
+        <label>
+          Sisa Pembayaran
+        </label>
+
+        <input
+          type="number"
+          class="batch-remaining"
+          min="0"
+          value="0"
+        >
+
+
+        <label>
+          Status Pembayaran
+        </label>
+
+        <select class="batch-payment-status">
+
+          <option value="unpaid">
+            Belum Lunas
+          </option>
+
+          <option value="paid">
+            Lunas
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <label>
+        Catatan
+      </label>
+
+      <textarea
+        class="batch-note"
+        rows="2"
+        placeholder="Catatan..."
+      ></textarea>
+
+    `;
+
+
+    itemsContainer.appendChild(
+      item
+    );
+
+
+    /* Hapus member */
+
+    item
+      .querySelector(
+        ".remove-batch-item"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          item.remove();
+
+        }
+      );
+
+
+    updatePriceMode();
+
+  }
+
+
+  /* ========================================
+     MODE HARGA
+     ======================================== */
+
+  function updatePriceMode() {
+
+    const mode =
+      document.getElementById(
+        "batchPriceMode"
+      ).value;
+
+
+    const commonFields =
+      document.getElementById(
+        "batchCommonFields"
+      );
+
+
+    const differentFields =
+      document.querySelectorAll(
+        ".different-price-fields"
+      );
+
+
+    if (mode === "same") {
+
+      commonFields.style.display =
+        "block";
+
+
+      differentFields.forEach(
+        function(fields) {
+
+          fields.style.display =
+            "none";
+
+        }
+      );
+
+
+    } else {
+
+      commonFields.style.display =
+        "none";
+
+
+      differentFields.forEach(
+        function(fields) {
+
+          fields.style.display =
+            "block";
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* ========================================
+     BARIS PERTAMA
+     ======================================== */
+
+  addBatchItem();
+
+
+  /* ========================================
+     TAMBAH MEMBER
+     ======================================== */
+
   document
     .getElementById(
-      "cancelRecapButton"
+      "addBatchItemButton"
     )
     .addEventListener(
       "click",
-      function () {
+      addBatchItem
+    );
+
+
+  /* ========================================
+     GANTI TIPE HARGA
+     ======================================== */
+
+  document
+    .getElementById(
+      "batchPriceMode"
+    )
+    .addEventListener(
+      "change",
+      updatePriceMode
+    );
+
+
+  /* ========================================
+     BATAL
+     ======================================== */
+
+  document
+    .getElementById(
+      "cancelBatchButton"
+    )
+    .addEventListener(
+      "click",
+      function() {
 
         container.innerHTML =
           "";
@@ -2352,24 +2623,20 @@ function showRecapForm(
     );
 
 
+  /* ========================================
+     SUBMIT
+     ======================================== */
+
   document
     .getElementById(
-      "recapForm"
+      "batchRecapForm"
     )
     .addEventListener(
       "submit",
-      function (event) {
-
-        saveRecap(
-          event,
-          category
-        );
-
-      }
+      saveBatchRecap
     );
 
 }
-
 
 /* ============================================
    SIMPAN REKAP GO
@@ -3528,18 +3795,14 @@ batchTrackingButtons.forEach(
    SIMPAN DATA BATCH
    ============================================ */
 
-async function saveBatchRecap(
-  event
-) {
+async function saveBatchRecap(event) {
 
   event.preventDefault();
-
 
   const message =
     document.getElementById(
       "batchFormMessage"
     );
-
 
   if (message) {
     message.textContent =
@@ -3547,30 +3810,44 @@ async function saveBatchRecap(
   }
 
 
+  /* ==========================================
+     DATA BATCH
+     ========================================== */
+
   const category =
-    document
-      .getElementById(
-        "batchCategory"
-      )
-      .value;
+    document.getElementById(
+      "batchCategory"
+    ).value;
 
 
   const batchCode =
-    document
-      .getElementById(
-        "batchCode"
-      )
-      .value
-      .trim();
+    document.getElementById(
+      "batchCode"
+    ).value.trim();
 
 
   const itemName =
-    document
-      .getElementById(
-        "batchItemName"
-      )
-      .value
-      .trim();
+    document.getElementById(
+      "batchItemName"
+    ).value.trim();
+
+
+  const priceMode =
+    document.getElementById(
+      "batchPriceMode"
+    ).value;
+
+
+  const batchTracking =
+    document.getElementById(
+      "batchTrackingStatus"
+    ).value;
+
+
+  const batchCoDeadline =
+    document.getElementById(
+      "batchCoDeadline"
+    ).value || null;
 
 
   if (!batchCode) {
@@ -3593,6 +3870,61 @@ async function saveBatchRecap(
   }
 
 
+  /* ==========================================
+     HARGA SAMA UNTUK SEMUA MEMBER
+     ========================================== */
+
+  let commonPrice = 0;
+  let commonDp = 0;
+  let commonDpStatus = "unpaid";
+  let commonRemaining = 0;
+  let commonPaymentStatus = "unpaid";
+
+
+  if (priceMode === "same") {
+
+    commonPrice =
+      Number(
+        document.getElementById(
+          "batchCommonPrice"
+        ).value
+      ) || 0;
+
+
+    commonDp =
+      Number(
+        document.getElementById(
+          "batchCommonDp"
+        ).value
+      ) || 0;
+
+
+    commonDpStatus =
+      document.getElementById(
+        "batchCommonDpStatus"
+      ).value;
+
+
+    commonRemaining =
+      Number(
+        document.getElementById(
+          "batchCommonRemaining"
+        ).value
+      ) || 0;
+
+
+    commonPaymentStatus =
+      document.getElementById(
+        "batchCommonPaymentStatus"
+      ).value;
+
+  }
+
+
+  /* ==========================================
+     AMBIL SEMUA MEMBER
+     ========================================== */
+
   const itemElements =
     document.querySelectorAll(
       "#batchItemsContainer .batch-item"
@@ -3600,8 +3932,7 @@ async function saveBatchRecap(
 
 
   if (
-    itemElements.length ===
-    0
+    itemElements.length === 0
   ) {
 
     message.textContent =
@@ -3616,7 +3947,7 @@ async function saveBatchRecap(
 
 
   itemElements.forEach(
-    function (item) {
+    function(item) {
 
       const version =
         item
@@ -3646,58 +3977,91 @@ async function saveBatchRecap(
         ) || 1;
 
 
-      const price =
-        Number(
+      let price = 0;
+      let dp = 0;
+      let dpStatus = "unpaid";
+      let remaining = 0;
+      let paymentStatus = "unpaid";
+
+
+      /* ======================================
+         JIKA HARGA SAMA
+         ====================================== */
+
+      if (
+        priceMode === "same"
+      ) {
+
+        price =
+          commonPrice;
+
+        dp =
+          commonDp;
+
+        dpStatus =
+          commonDpStatus;
+
+        remaining =
+          commonRemaining;
+
+        paymentStatus =
+          commonPaymentStatus;
+
+      }
+
+
+      /* ======================================
+         JIKA HARGA BERBEDA
+         ====================================== */
+
+      else {
+
+        price =
+          Number(
+            item
+              .querySelector(
+                ".batch-price"
+              )
+              .value
+          ) || 0;
+
+
+        dp =
+          Number(
+            item
+              .querySelector(
+                ".batch-dp"
+              )
+              .value
+          ) || 0;
+
+
+        dpStatus =
           item
             .querySelector(
-              ".batch-price"
+              ".batch-dp-status"
             )
-            .value
-        ) || 0;
+            .value;
 
 
-      const dp =
-        Number(
+        remaining =
+          Number(
+            item
+              .querySelector(
+                ".batch-remaining"
+              )
+              .value
+          ) || 0;
+
+
+        paymentStatus =
           item
             .querySelector(
-              ".batch-dp"
+              ".batch-payment-status"
             )
-            .value
-        ) || 0;
+            .value;
 
-
-      const dpStatus =
-        item
-          .querySelector(
-            ".batch-dp-status"
-          )
-          .value;
-
-
-      const remaining =
-        Number(
-          item
-            .querySelector(
-              ".batch-remaining"
-            )
-            .value
-        ) || 0;
-
-
-      const paymentStatus =
-        item
-          .querySelector(
-            ".batch-payment-status"
-          )
-          .value;
-
-
-      const tracking =
-        item
-          .querySelector(
-            ".batch-tracking"
-          )
-          .value;
+      }
 
 
       const note =
@@ -3707,15 +4071,6 @@ async function saveBatchRecap(
           )
           .value
           .trim();
-
-
-      const coDeadline =
-        item
-          .querySelector(
-            ".batch-co-deadline"
-          )
-          .value ||
-        null;
 
 
       records.push({
@@ -3754,23 +4109,51 @@ async function saveBatchRecap(
           paymentStatus,
 
         tracking_status:
-  tracking,
+          batchTracking,
 
-batch_tracking_status:
-  tracking,
+        batch_tracking_status:
+          batchTracking,
 
-customer_status:
-  "Belum Checkout Shopee",
+        customer_status:
+          "Belum Checkout Shopee",
 
-note:
-  note,
+        note:
+          note,
+
         co_deadline:
-          coDeadline
+          batchCoDeadline
 
       });
 
     }
   );
+
+
+  /* ==========================================
+     CEK CUSTOMER / MEMBER KOSONG
+     ========================================== */
+
+  const incomplete =
+    records.find(
+      function(record) {
+
+        return (
+          !record.customer_name ||
+          !record.version
+        );
+
+      }
+    );
+
+
+  if (incomplete) {
+
+    message.textContent =
+      "Customer dan Versi / Member wajib diisi.";
+
+    return;
+
+  }
 
 
   /* ==========================================
@@ -3781,22 +4164,26 @@ note:
   const versions =
     records
       .map(
-        function (item) {
+        function(item) {
+
           return item.version
             .toLowerCase()
             .trim();
+
         }
       )
       .filter(
-        function (value) {
+        function(value) {
+
           return value !== "";
+
         }
       );
 
 
   const duplicateVersion =
     versions.some(
-      function (
+      function(
         value,
         index
       ) {
@@ -3822,7 +4209,7 @@ note:
 
 
   /* ==========================================
-     CEK MEMBER YANG SUDAH DIMILIKI
+     CEK MEMBER YANG SUDAH ADA
      ========================================== */
 
   const {
@@ -3862,7 +4249,7 @@ note:
   const existingVersions =
     (existingData || [])
       .map(
-        function (item) {
+        function(item) {
 
           return (
             item.version ||
@@ -3874,15 +4261,17 @@ note:
         }
       )
       .filter(
-        function (value) {
+        function(value) {
+
           return value !== "";
+
         }
       );
 
 
   const conflict =
     records.find(
-      function (record) {
+      function(record) {
 
         const version =
           record.version
@@ -3912,7 +4301,7 @@ note:
 
 
   /* ==========================================
-     SIMPAN SEMUA RECORD
+     SIMPAN SEMUA RECORD SEKALIGUS
      ========================================== */
 
   const {
@@ -3943,6 +4332,10 @@ note:
 
   }
 
+
+  /* ==========================================
+     BERHASIL
+     ========================================== */
 
   message.textContent =
     "Batch berhasil disimpan. ♥";
