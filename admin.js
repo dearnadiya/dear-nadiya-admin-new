@@ -3156,13 +3156,25 @@ async function loadRecapList(
 </td>
 
 <td>
-  ${
-    row.dp_status === "paid"
-      ? "✓ Sudah Dibayar"
-      : "⏳ Belum Dibayar"
-  }
-</td>
+  <select
+    class="recap-status-select recap-dp-status"
+    data-id="${escapeHTML(String(row.id))}"
+  >
+    <option
+      value="unpaid"
+      ${row.dp_status === "unpaid" ? "selected" : ""}
+    >
+      Belum Dibayar
+    </option>
 
+    <option
+      value="paid"
+      ${row.dp_status === "paid" ? "selected" : ""}
+    >
+      Sudah Dibayar
+    </option>
+  </select>
+</td>
 
 <td>
   ${formatRupiah(
@@ -3171,23 +3183,64 @@ async function loadRecapList(
 </td>
 
                         <td>
-  ${
-    row.payment_status === "paid"
-      ? "✓ Lunas"
-      : "⏳ Belum Lunas"
-  }
+  <select
+    class="recap-status-select recap-payment-status"
+    data-id="${escapeHTML(String(row.id))}"
+  >
+    <option
+      value="unpaid"
+      ${row.payment_status === "unpaid" ? "selected" : ""}
+    >
+      Belum Lunas
+    </option>
+
+    <option
+      value="paid"
+      ${row.payment_status === "paid" ? "selected" : ""}
+    >
+      Lunas
+    </option>
+  </select>
 </td>
 
                        <td>
-  ${
-    row.customer_status === "Belum Checkout Shopee"
-      ? "⏳ Belum Checkout Shopee"
-      : row.customer_status === "Sudah Checkout Shopee"
-      ? "🛒 Sudah Checkout Shopee"
-      : row.customer_status === "Sudah Menerima Barang"
-      ? "📦 Sudah Menerima Barang"
-      : "⏳ Belum Checkout Shopee"
-  }
+  <select
+    class="recap-status-select recap-customer-status"
+    data-id="${escapeHTML(String(row.id))}"
+  >
+    <option
+      value="Belum Checkout Shopee"
+      ${
+        row.customer_status === "Belum Checkout Shopee"
+          ? "selected"
+          : ""
+      }
+    >
+      ⏳ Belum Checkout Shopee
+    </option>
+
+    <option
+      value="Sudah Checkout Shopee"
+      ${
+        row.customer_status === "Sudah Checkout Shopee"
+          ? "selected"
+          : ""
+      }
+    >
+      🛒 Sudah Checkout Shopee
+    </option>
+
+    <option
+      value="Sudah Menerima Barang"
+      ${
+        row.customer_status === "Sudah Menerima Barang"
+          ? "selected"
+          : ""
+      }
+    >
+      📦 Sudah Menerima Barang
+    </option>
+  </select>
 </td>
 
                         <td>
@@ -3317,6 +3370,133 @@ if (recapSearchInput) {
   );
 
 }
+
+   /* ==========================================
+   AUTO SAVE STATUS REKAP GO
+   ========================================== */
+
+const recapStatusSelects =
+  document.querySelectorAll(
+    "#recapListContainer .recap-status-select"
+  );
+
+
+recapStatusSelects.forEach(
+  function (select) {
+
+    select.addEventListener(
+      "change",
+      async function () {
+
+        const id =
+          select.dataset.id;
+
+        const value =
+          select.value;
+
+        if (!id) {
+          return;
+        }
+
+
+        let updateData = {};
+
+
+        if (
+          select.classList.contains(
+            "recap-dp-status"
+          )
+        ) {
+
+          updateData = {
+            dp_status: value
+          };
+
+        }
+
+
+        else if (
+          select.classList.contains(
+            "recap-payment-status"
+          )
+        ) {
+
+          updateData = {
+            payment_status: value
+          };
+
+        }
+
+
+        else if (
+          select.classList.contains(
+            "recap-customer-status"
+          )
+        ) {
+
+          updateData = {
+            customer_status: value
+          };
+
+        }
+
+
+        const originalText =
+          select.dataset.originalText ||
+          select.options[
+            select.selectedIndex
+          ].textContent;
+
+
+        select.disabled = true;
+
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .update(
+              updateData
+            )
+            .eq(
+              "id",
+              id
+            );
+
+
+        select.disabled = false;
+
+
+        if (error) {
+
+          console.error(
+            "ERROR UPDATE STATUS REKAP:",
+            error
+          );
+
+
+          alert(
+            "Gagal menyimpan perubahan status."
+          );
+
+          return;
+
+        }
+
+
+        select.dataset.originalText =
+          select.options[
+            select.selectedIndex
+          ].textContent;
+
+      }
+    );
+
+  }
+);
 
    /* ==========================================
    SIMPAN TRACKING BATCH
