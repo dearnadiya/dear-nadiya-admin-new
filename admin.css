@@ -3502,3 +3502,162 @@ a {
   }
 
 }
+
+/* =========================================
+   DASHBOARD - CUSTOMER PAYMENT MONITORING
+========================================= */
+
+.dashboard-customer-card {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid #eadfe8;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.dashboard-customer-card h4 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #20243a;
+}
+
+
+/* BARANG CUSTOMER */
+
+.dashboard-payment-item {
+  display: grid;
+  grid-template-columns:
+    110px
+    minmax(180px, 1fr)
+    130px
+    180px;
+
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+  margin-bottom: 7px;
+
+  border-radius: 10px;
+  background: #faf7fa;
+
+  font-size: 13px;
+  color: #555;
+}
+
+.dashboard-payment-item strong {
+  color: #333;
+  font-weight: 700;
+}
+
+.dashboard-payment-item span {
+  min-width: 0;
+}
+
+
+/* TOTAL TAGIHAN */
+
+.dashboard-payment-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 12px;
+  padding-top: 12px;
+
+  border-top: 1px solid #eadfe8;
+
+  font-size: 14px;
+  color: #333;
+}
+
+
+/* =========================================
+   DASHBOARD - CO
+========================================= */
+
+.dashboard-co-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dashboard-co-item {
+  padding: 12px 15px;
+
+  border: 1px solid #eadfe8;
+  border-radius: 10px;
+
+  background: #fff;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .dashboard-payment-item {
+    grid-template-columns:
+      100px
+      minmax(150px, 1fr)
+      110px;
+
+    gap: 10px;
+  }
+
+  .dashboard-payment-item span:last-child {
+    grid-column: 2 / 4;
+  }
+
+}
+
+
+/* =========================================
+   HP
+========================================= */
+
+@media (max-width: 600px) {
+
+  .dashboard-customer-card {
+    padding: 14px;
+  }
+
+  .dashboard-payment-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    padding: 11px 12px;
+  }
+
+  .dashboard-payment-item strong {
+    font-size: 13px;
+  }
+
+  .dashboard-payment-item span {
+    font-size: 13px;
+  }
+
+  .dashboard-payment-total {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    font-size: 13px;
+  }
+
+  .dashboard-co-item {
+    font-size: 13px;
+  }
+
+}
