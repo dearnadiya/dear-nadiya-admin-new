@@ -2481,3 +2481,112 @@ a {
 .recap-batch-card .product-table td:first-child {
   display: none;
 }
+
+/* ==========================================
+   PERBAIKAN TABEL REKAP GO
+   ========================================== */
+
+.recap-batch-card .product-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.recap-batch-card .product-table {
+  width: max-content;
+  min-width: 1200px;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.recap-batch-card .product-table th,
+.recap-batch-card .product-table td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.recap-batch-card .product-table th {
+  text-align: left;
+}
+
+.recap-batch-card .product-table td {
+  overflow: visible;
+}
+
+/* Lebar kolom */
+.recap-batch-card .product-table th:nth-child(2),
+.recap-batch-card .product-table td:nth-child(2) {
+  min-width: 140px;
+}
+
+.recap-batch-card .product-table th:nth-child(3),
+.recap-batch-card .product-table td:nth-child(3) {
+  min-width: 130px;
+}
+
+.recap-batch-card .product-table th:nth-child(4),
+.recap-batch-card .product-table td:nth-child(4) {
+  min-width: 55px;
+  text-align: center;
+}
+
+.recap-batch-card .product-table th:nth-child(5),
+.recap-batch-card .product-table td:nth-child(5) {
+  min-width: 100px;
+}
+
+.recap-batch-card .product-table th:nth-child(6),
+.recap-batch-card .product-table td:nth-child(6) {
+  min-width: 100px;
+}
+
+.recap-batch-card .product-table th:nth-child(7),
+.recap-batch-card .product-table td:nth-child(7) {
+  min-width: 145px;
+}
+
+.recap-batch-card .product-table th:nth-child(8),
+.recap-batch-card .product-table td:nth-child(8) {
+  min-width: 100px;
+}
+
+.recap-batch-card .product-table th:nth-child(9),
+.recap-batch-card .product-table td:nth-child(9) {
+  min-width: 130px;
+}
+
+.recap-batch-card .product-table th:nth-child(10),
+.recap-batch-card .product-table td:nth-child(10) {
+  min-width: 200px;
+}
+
+.recap-batch-card .product-table th:nth-child(11),
+.recap-batch-card .product-table td:nth-child(11) {
+  min-width: 130px;
+  white-space: normal;
+}
+
+.recap-batch-card .product-table th:nth-child(12),
+.recap-batch-card .product-table td:nth-child(12) {
+  min-width: 150px;
+}
+
+/* Dropdown status */
+.recap-batch-card .recap-status-select {
+  min-width: 135px;
+  width: auto;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+/* Status customer lebih lebar */
+.recap-batch-card .recap-customer-status {
+  min-width: 195px;
+}
+
+/* Tombol aksi */
+.recap-batch-card .edit-recap-button,
+.recap-batch-card .delete-recap-button {
+  white-space: nowrap;
+}
