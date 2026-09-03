@@ -2202,15 +2202,6 @@ function showRecapForm(category) {
          type="date"
          id="batchDpDeadline"
         >
-        
-        <label>
-         Deadline CO
-        </label>
-        <input
-          id="batchCoDeadline"
-          type="date"
-        >
-
 
         <div class="form-actions">
 
@@ -4347,12 +4338,6 @@ const batchDpDeadline =
     "batchDpDeadline"
   ).value || null;
 
-
-const batchCoDeadline =
-  document.getElementById(
-    "batchCoDeadline"
-  ).value || null;
-
   /* ==========================================
      VALIDASI DATA BATCH
      ========================================== */
@@ -4665,8 +4650,7 @@ const batchCoDeadline =
         dp_deadline:
   batchDpDeadline,
 
-co_deadline:
-  batchCoDeadline
+co_deadline: null
 
 });
 
