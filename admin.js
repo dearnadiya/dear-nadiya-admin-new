@@ -3092,9 +3092,13 @@ async function loadRecapList(
                   </th>
 
                   <th>
-                    Aksi
+                    Catatan
                   </th>
 
+                  <th>
+                    Aksi
+                  </th>
+                  
                 </tr>
 
               </thead>
@@ -3187,6 +3191,14 @@ async function loadRecapList(
 
 
                         <td>
+                          ${
+                            row.note
+                              ? `📝 ${escapeHTML(row.note)}`
+                              : "—"
+                        }
+                        </td>
+
+                        <td>
 
                           <button
                             type="button"
@@ -3217,34 +3229,6 @@ async function loadRecapList(
               </tbody>
 
             </table>
-
-          </div>
-
-
-          <div
-            class="recap-note"
-          >
-
-            ${
-              rows
-                .map(
-                  function (row) {
-
-                    return row.note
-                      ? `
-                        <p>
-                          📝
-                          ${escapeHTML(
-                            row.note
-                          )}
-                        </p>
-                      `
-                      : "";
-
-                  }
-                )
-                .join("")
-            }
 
           </div>
 
