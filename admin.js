@@ -4197,45 +4197,51 @@ async function editRecap(
 
         </select>
 
-
         <label>
-          Tracking
-        </label>
+  Status Customer
+</label>
 
-        <select
-          id="editTracking"
-        >
+<select
+  id="editCustomerStatus"
+>
 
-          ${trackingOptions.map(
-            function (
-              option
-            ) {
+  <option
+    value="Belum Checkout Shopee"
+    ${
+      data.customer_status ===
+      "Belum Checkout Shopee"
+        ? "selected"
+        : ""
+    }
+  >
+    ⏳ Belum Checkout Shopee
+  </option>
 
-              return `
+  <option
+    value="Sudah Checkout Shopee"
+    ${
+      data.customer_status ===
+      "Sudah Checkout Shopee"
+        ? "selected"
+        : ""
+    }
+  >
+    🛒 Sudah Checkout Shopee
+  </option>
 
-                <option
-                  value="${escapeHTML(
-                    option
-                  )}"
-                  ${
-                    data.tracking_status ===
-                    option
-                      ? "selected"
-                      : ""
-                  }
-                >
-                  ${escapeHTML(
-                    option
-                  )}
-                </option>
+  <option
+    value="Sudah Menerima Barang"
+    ${
+      data.customer_status ===
+      "Sudah Menerima Barang"
+        ? "selected"
+        : ""
+    }
+  >
+    📦 Sudah Menerima Barang
+  </option>
 
-              `;
-
-            }
-          ).join("")}
-
-        </select>
-
+</select>
 
         <label>
           Catatan
@@ -4418,13 +4424,13 @@ async function editRecap(
               )
               .value,
 
-          tracking_status:
-            document
-              .getElementById(
-                "editTracking"
-              )
-              .value,
-
+          customer_status:
+  document
+    .getElementById(
+      "editCustomerStatus"
+    )
+    .value,
+           
           note:
             document
               .getElementById(
