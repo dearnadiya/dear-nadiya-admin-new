@@ -538,79 +538,266 @@ function showPage(
    DASHBOARD
    ============================================ */
 
-function loadDashboard() {
-
-  pageTitle.textContent =
-    "Dashboard";
-
+async function loadDashboard() {
+  pageTitle.textContent = "Dashboard";
 
   pageContent.innerHTML = `
-
     <div class="dashboard-stats">
-
       <div class="stat-card">
-
-        <p>
-          Total Pesanan
-        </p>
-
-        <h2>
-          —
-        </h2>
-
+        <p>Total Customer</p>
+        <h2 id="dashboardTotalCustomer">—</h2>
       </div>
 
-
       <div class="stat-card">
-
-        <p>
-          Total Pembayaran
-        </p>
-
-        <h2>
-          —
-        </h2>
-
+        <p>Total GO Aktif</p>
+        <h2 id="dashboardTotalGO">—</h2>
       </div>
-
-
-      <div class="stat-card">
-
-        <p>
-          GO Aktif
-        </p>
-
-        <h2>
-          —
-        </h2>
-
-      </div>
-
     </div>
-
 
     <div class="welcome-card">
+      <h3>⚠️ Customer Mendekati Batas Akhir CO</h3>
 
-      <h2>
-        Selamat datang di
-        Dear Nadiya Admin ♥
-      </h2>
-
-      <p>
-        Kelola produk,
-        Group Order,
-        pesanan,
-        pembayaran,
-        dan rekap
-        dari satu dashboard.
-      </p>
-
+      <div id="dashboardCoDeadlineList">
+        <p>Memuat data...</p>
+      </div>
     </div>
-
   `;
 
-}
+  try {
+    const { data, error } = await supabaseClient
+      .from("purchase_recap")
+      .select(`
+        customer_name,
+        batch_code,
+        co_deadline,
+        customer_status
+      `);
 
+    if (error) {
+      console.error(
+        "ERROR LOAD DASHBOARD:",
+        error
+      );
+
+      document.getElementById(
+        "dashboardCoDeadlineList"
+      ).innerHTML = `
+        <p>Gagal memuat data.</p>
+      `;
+
+      return;
+    }
+
+    const rows = data || [];
+
+    /* =========================
+       TOTAL CUSTOMER
+    ========================= */
+
+    const uniqueCustomers =
+      new Set(
+        rows
+          .map(row =>
+            String(
+              row.customer_name || ""
+            ).trim()
+          )
+          .filter(Boolean)
+      );
+
+    document.getElementById(
+      "dashboardTotalCustomer"
+    ).textContent =
+      uniqueCustomers.size;
+
+
+    /* =========================
+       TOTAL GO AKTIF
+    ========================= */
+
+    const uniqueGO =
+      new Set(
+        rows
+          .map(row =>
+            String(
+              row.batch_code || ""
+            ).trim()
+          )
+          .filter(Boolean)
+      );
+
+    document.getElementById(
+      "dashboardTotalGO"
+    ).textContent =
+      uniqueGO.size;
+
+
+    /* =========================
+       H-7 DEADLINE CO
+    ========================= */
+
+    const today = new Date();
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const todayISO =
+      `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+      ).padStart(2, "0")}-${String(
+        today.getDate()
+      ).padStart(2, "0")}`;
+
+
+    const h7Date =
+      new Date(today);
+
+    h7Date.setDate(
+      h7Date.getDate() + 7
+    );
+
+   const h7ISO =
+  `${h7Date.getFullYear()}-${String(
+    h7Date.getMonth() + 1
+  ).padStart(2, "0")}-${String(
+    h7Date.getDate()
+  ).padStart(2, "0")}`;
+
+
+    /* =========================
+       FILTER CUSTOMER
+    ========================= */
+
+    const customerNames = [];
+
+    rows.forEach(row => {
+
+      const customerName =
+        String(
+          row.customer_name || ""
+        ).trim();
+
+      const customerStatus =
+        String(
+          row.customer_status || ""
+        ).trim();
+
+      const coDeadline =
+        row.co_deadline
+          ? String(
+              row.co_deadline
+            ).substring(0, 10)
+          : "";
+
+
+      if (
+        !customerName ||
+        !coDeadline
+      ) {
+        return;
+      }
+
+
+      /*
+       * Sudah checkout Shopee
+       * tidak perlu muncul
+       */
+      if (
+        customerStatus ===
+        "Sudah Checkout Shopee"
+      ) {
+        return;
+      }
+
+
+      /*
+       * Muncul jika deadline
+       * berada antara hari ini
+       * sampai H+7
+       */
+      if (
+        coDeadline >= todayISO &&
+        coDeadline <= h7ISO
+      ) {
+        customerNames.push(
+          customerName
+        );
+      }
+
+    });
+
+
+    /* =========================
+       HILANGKAN DUPLIKAT
+    ========================= */
+
+    const uniqueCustomerNames =
+      [...new Set(customerNames)];
+
+
+    /* =========================
+       TAMPILKAN CUSTOMER
+    ========================= */
+
+    const listElement =
+      document.getElementById(
+        "dashboardCoDeadlineList"
+      );
+
+
+    if (
+      uniqueCustomerNames.length === 0
+    ) {
+
+      listElement.innerHTML = `
+        <p>
+          Tidak ada customer yang
+          mendekati batas akhir CO.
+        </p>
+      `;
+
+      return;
+    }
+
+
+    listElement.innerHTML = `
+      <div class="dashboard-customer-list">
+        ${uniqueCustomerNames
+          .map(name => `
+            <div class="dashboard-customer-item">
+              ${name}
+            </div>
+          `)
+          .join("")
+        }
+      </div>
+    `;
+
+  } catch (err) {
+
+    console.error(
+      "ERROR DASHBOARD:",
+      err
+    );
+
+    const listElement =
+      document.getElementById(
+        "dashboardCoDeadlineList"
+      );
+
+    if (listElement) {
+      listElement.innerHTML = `
+        <p>
+          Gagal memuat Dashboard.
+        </p>
+      `;
+    }
+  }
+}
 
 /* ============================================
    PRODUK & GO
