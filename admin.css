@@ -3728,3 +3728,58 @@ a {
   }
 
 }
+
+/* =========================================
+   DASHBOARD - DEADLINE BADGE
+========================================= */
+
+.dashboard-payment-amount {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dashboard-deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 3px 7px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  white-space: nowrap;
+}
+
+.dashboard-deadline-badge.today {
+  background: #fff1c7;
+  color: #9a6800;
+}
+
+.dashboard-deadline-badge.overdue {
+  background: #ffe1e1;
+  color: #c62828;
+}
+
+
+/* =========================================
+   HP
+========================================= */
+
+@media (max-width: 600px) {
+
+  .dashboard-payment-amount {
+    justify-content: flex-start;
+  }
+
+  .dashboard-deadline-badge {
+    font-size: 9px;
+  }
+
+}
