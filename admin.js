@@ -2769,26 +2769,62 @@ async function loadRecapList(
         >
 
           <div
-            class="recap-batch-header"
-          >
+  class="recap-batch-header"
+>
 
-            <div>
+  <div>
 
-              <h3>
-                ${escapeHTML(
-                  batchCode
-                )}
-              </h3>
+    <h3>
+      ${escapeHTML(
+        batchCode
+      )}
+    </h3>
 
-              <p>
-                ${rows.length}
-                data
-              </p>
+    <p>
+      ${escapeHTML(
+        rows[0]?.item_name ||
+        "Nama barang belum tersedia"
+      )}
+    </p>
 
-            </div>
+    <p>
+      ${rows.length}
+      customer
+    </p>
 
-          </div>
+  </div>
 
+
+  <div
+    class="batch-tracking"
+  >
+
+    <small>
+      TRACKING BATCH
+    </small>
+
+    <strong>
+      ${escapeHTML(
+        rows.find(
+          function (row) {
+            return (
+              row.batch_tracking_status ||
+              row.tracking_status
+            );
+          }
+        )?.batch_tracking_status ||
+        rows.find(
+          function (row) {
+            return row.tracking_status;
+          }
+        )?.tracking_status ||
+        "Belum ada tracking"
+      )}
+    </strong>
+
+  </div>
+
+</div>
 
           <div
             class="product-table-wrapper"
@@ -2835,7 +2871,7 @@ async function loadRecapList(
                   </th>
 
                   <th>
-                    Tracking
+                    Status Customer
                   </th>
 
                   <th>
@@ -2919,8 +2955,8 @@ async function loadRecapList(
 
                         <td>
                           ${escapeHTML(
-                            row.tracking_status ||
-                            "—"
+                            row.customer_status ||
+                            "Belum Checkout Shopee"
                           )}
                         </td>
 
