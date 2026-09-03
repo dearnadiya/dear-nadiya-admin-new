@@ -2192,19 +2192,18 @@ function showRecapForm(
         </label>
 
         <select
-          id="recapDpStatus"
-        >
+  id="recapDpStatus"
+>
 
-          <option value="Belum">
-            Belum
-          </option>
+  <option value="unpaid">
+    Belum Dibayar
+  </option>
 
-          <option value="Sudah">
-            Sudah
-          </option>
+  <option value="paid">
+    Sudah Dibayar
+  </option>
 
-        </select>
-
+</select>
 
         <label>
           Sisa Pembayaran
