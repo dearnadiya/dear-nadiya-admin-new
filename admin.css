@@ -2381,3 +2381,94 @@ a {
 .delete-recap-button {
   margin: 2px;
 }
+
+/* ============================================
+   REKAP GO - FINAL COMPACT TABLE
+   ============================================ */
+
+.recap-batch-card .product-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.recap-batch-card .product-table th,
+.recap-batch-card .product-table td {
+  padding: 8px 6px;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+/* Barang */
+.recap-batch-card .product-table th:nth-child(1),
+.recap-batch-card .product-table td:nth-child(1) {
+  width: 13%;
+}
+
+/* Customer */
+.recap-batch-card .product-table th:nth-child(2),
+.recap-batch-card .product-table td:nth-child(2) {
+  width: 14%;
+}
+
+/* Versi / Member */
+.recap-batch-card .product-table th:nth-child(3),
+.recap-batch-card .product-table td:nth-child(3) {
+  width: 11%;
+}
+
+/* Qty */
+.recap-batch-card .product-table th:nth-child(4),
+.recap-batch-card .product-table td:nth-child(4) {
+  width: 5%;
+  text-align: center;
+}
+
+/* Harga */
+.recap-batch-card .product-table th:nth-child(5),
+.recap-batch-card .product-table td:nth-child(5) {
+  width: 10%;
+}
+
+/* DP */
+.recap-batch-card .product-table th:nth-child(6),
+.recap-batch-card .product-table td:nth-child(6) {
+  width: 9%;
+}
+
+/* Sisa */
+.recap-batch-card .product-table th:nth-child(7),
+.recap-batch-card .product-table td:nth-child(7) {
+  width: 9%;
+}
+
+/* Pembayaran */
+.recap-batch-card .product-table th:nth-child(8),
+.recap-batch-card .product-table td:nth-child(8) {
+  width: 10%;
+}
+
+/* Status Customer */
+.recap-batch-card .product-table th:nth-child(9),
+.recap-batch-card .product-table td:nth-child(9) {
+  width: 11%;
+}
+
+/* Aksi */
+.recap-batch-card .product-table th:nth-child(10),
+.recap-batch-card .product-table td:nth-child(10) {
+  width: 8%;
+}
+
+.recap-batch-card .product-table td:nth-child(5),
+.recap-batch-card .product-table td:nth-child(6),
+.recap-batch-card .product-table td:nth-child(7) {
+  white-space: normal;
+}
+
+.recap-batch-card .edit-recap-button,
+.recap-batch-card .delete-recap-button {
+  width: 100%;
+  margin: 2px 0;
+}
