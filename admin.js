@@ -3604,6 +3604,32 @@ if (recapPaymentFilter) {
 
 }
 
+     /* ==========================================
+   TOMBOL EDIT REKAP GO
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".edit-recap-button"
+  )
+  .forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function () {
+
+          const id =
+            this.dataset.id;
+
+          editRecap(id);
+
+        }
+      );
+
+    }
+  );
+
    /* ==========================================
    AUTO SAVE STATUS REKAP GO
    ========================================== */
