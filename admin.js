@@ -3705,14 +3705,22 @@ async function saveBatchRecap(event) {
 
   event.preventDefault();
 
+
+  /* ==========================================
+     PESAN FORM
+     ========================================== */
+
   const message =
     document.getElementById(
       "batchFormMessage"
     );
 
+
   if (message) {
+
     message.textContent =
       "Menyimpan batch...";
+
   }
 
 
@@ -3756,6 +3764,10 @@ async function saveBatchRecap(event) {
     ).value || null;
 
 
+  /* ==========================================
+     VALIDASI DATA BATCH
+     ========================================== */
+
   if (!batchCode) {
 
     message.textContent =
@@ -3777,17 +3789,17 @@ async function saveBatchRecap(event) {
 
 
   /* ==========================================
-     HARGA SAMA UNTUK SEMUA MEMBER
+     HARGA & DP BERSAMA
+     KHUSUS MODE HARGA SAMA
      ========================================== */
 
   let commonPrice = 0;
   let commonDp = 0;
-  let commonDpStatus = "unpaid";
-  let commonRemaining = 0;
-  let commonPaymentStatus = "unpaid";
 
 
-  if (priceMode === "same") {
+  if (
+    priceMode === "same"
+  ) {
 
     commonPrice =
       Number(
@@ -3804,31 +3816,11 @@ async function saveBatchRecap(event) {
         ).value
       ) || 0;
 
-
-    commonDpStatus =
-      document.getElementById(
-        "batchCommonDpStatus"
-      ).value;
-
-
-    commonRemaining =
-      Number(
-        document.getElementById(
-          "batchCommonRemaining"
-        ).value
-      ) || 0;
-
-
-    commonPaymentStatus =
-      document.getElementById(
-        "batchCommonPaymentStatus"
-      ).value;
-
   }
 
 
   /* ==========================================
-     AMBIL SEMUA MEMBER
+     AMBIL SEMUA CUSTOMER
      ========================================== */
 
   const itemElements =
@@ -3852,8 +3844,30 @@ async function saveBatchRecap(event) {
   const records = [];
 
 
+  /* ==========================================
+     BENTUK DATA SETIAP CUSTOMER
+     ========================================== */
+
   itemElements.forEach(
     function(item) {
+
+
+      /* ======================================
+         CUSTOMER
+         ====================================== */
+
+      const customer =
+        item
+          .querySelector(
+            ".batch-customer"
+          )
+          .value
+          .trim();
+
+
+      /* ======================================
+         VERSI / MEMBER
+         ====================================== */
 
       const version =
         item
@@ -3864,14 +3878,9 @@ async function saveBatchRecap(event) {
           .trim();
 
 
-      const customer =
-        item
-          .querySelector(
-            ".batch-customer"
-          )
-          .value
-          .trim();
-
+      /* ======================================
+         QUANTITY
+         ====================================== */
 
       const quantity =
         Number(
@@ -3883,44 +3892,31 @@ async function saveBatchRecap(event) {
         ) || 1;
 
 
-      let price = 0;
-      let dp = 0;
-      let dpStatus = "unpaid";
-      let remaining = 0;
-      let paymentStatus = "unpaid";
-
-
       /* ======================================
-         JIKA HARGA SAMA
+         HARGA
          ====================================== */
+
+      let price = 0;
+
 
       if (
         priceMode === "same"
       ) {
 
+        /*
+         * Harga sama untuk semua customer
+         */
+
         price =
           commonPrice;
 
-        dp =
-          commonDp;
-
-        dpStatus =
-          commonDpStatus;
-
-        remaining =
-          commonRemaining;
-
-        paymentStatus =
-          commonPaymentStatus;
-
       }
 
-
-      /* ======================================
-         JIKA HARGA BERBEDA
-         ====================================== */
-
       else {
+
+        /*
+         * Harga berbeda per customer
+         */
 
         price =
           Number(
@@ -3931,6 +3927,34 @@ async function saveBatchRecap(event) {
               .value
           ) || 0;
 
+      }
+
+
+      /* ======================================
+         DP
+         ====================================== */
+
+      let dp = 0;
+
+
+      if (
+        priceMode === "same"
+      ) {
+
+        /*
+         * DP sama untuk semua customer
+         */
+
+        dp =
+          commonDp;
+
+      }
+
+      else {
+
+        /*
+         * DP berbeda per customer
+         */
 
         dp =
           Number(
@@ -3941,34 +3965,53 @@ async function saveBatchRecap(event) {
               .value
           ) || 0;
 
-
-        dpStatus =
-          item
-            .querySelector(
-              ".batch-dp-status"
-            )
-            .value;
-
-
-        remaining =
-          Number(
-            item
-              .querySelector(
-                ".batch-remaining"
-              )
-              .value
-          ) || 0;
-
-
-        paymentStatus =
-          item
-            .querySelector(
-              ".batch-payment-status"
-            )
-            .value;
-
       }
 
+
+      /* ======================================
+         STATUS DP
+         SELALU PER CUSTOMER
+         ====================================== */
+
+      const dpStatus =
+        item
+          .querySelector(
+            ".batch-dp-status"
+          )
+          .value;
+
+
+      /* ======================================
+         SISA PEMBAYARAN
+         SELALU PER CUSTOMER
+         ====================================== */
+
+      const remaining =
+        Number(
+          item
+            .querySelector(
+              ".batch-remaining"
+            )
+            .value
+        ) || 0;
+
+
+      /* ======================================
+         STATUS PEMBAYARAN
+         SELALU PER CUSTOMER
+         ====================================== */
+
+      const paymentStatus =
+        item
+          .querySelector(
+            ".batch-payment-status"
+          )
+          .value;
+
+
+      /* ======================================
+         CATATAN
+         ====================================== */
 
       const note =
         item
@@ -3978,6 +4021,10 @@ async function saveBatchRecap(event) {
           .value
           .trim();
 
+
+      /* ======================================
+         MASUKKAN KE RECORD
+         ====================================== */
 
       records.push({
 
@@ -3991,10 +4038,10 @@ async function saveBatchRecap(event) {
           itemName,
 
         customer_name:
-          customer || "",
+          customer,
 
         version:
-          version || "",
+          version,
 
         quantity:
           quantity,
@@ -4115,7 +4162,7 @@ async function saveBatchRecap(event) {
 
 
   /* ==========================================
-     CEK MEMBER YANG SUDAH ADA
+     CEK MEMBER / VERSI YANG SUDAH ADA
      ========================================== */
 
   const {
@@ -4207,7 +4254,7 @@ async function saveBatchRecap(event) {
 
 
   /* ==========================================
-     SIMPAN SEMUA RECORD SEKALIGUS
+     SIMPAN SEMUA CUSTOMER SEKALIGUS
      ========================================== */
 
   const {
