@@ -150,25 +150,6 @@ const todayISO =
 const h7ISO =
   getDateAfterDays(7);
 
-
-function getDeadlineStatus(deadline) {
-  const date = normalizeDate(deadline);
-
-  if (!date) {
-    return "";
-  }
-
-  if (date < todayISO) {
-    return "terlambat";
-  }
-
-  if (date === todayISO) {
-    return "hari-ini";
-  }
-
-  return "";
-}
-
 function formatDate(value) {
 
   if (!value) {
@@ -907,26 +888,9 @@ async function loadDashboard() {
     </span>
 
     <span class="dashboard-payment-amount">
-
   ${formatRupiah(dpAmount)}
-
-  ${
-    getDeadlineStatus(row.dp_deadline) === "hari-ini"
-      ? `<span class="dashboard-deadline-badge today">
-          HARI INI
-        </span>`
-      : ""
-  }
-
-  ${
-    getDeadlineStatus(row.dp_deadline) === "terlambat"
-      ? `<span class="dashboard-deadline-badge overdue">
-          TERLAMBAT
-        </span>`
-      : ""
-  }
-
 </span>
+
   </div>
 `;
                 })
@@ -1078,25 +1042,7 @@ ${itemsHTML}
     </span>
 
     <span class="dashboard-payment-amount">
-
   ${formatRupiah(remaining)}
-
-  ${
-    getDeadlineStatus(row.payment_deadline) === "hari-ini"
-      ? `<span class="dashboard-deadline-badge today">
-          HARI INI
-        </span>`
-      : ""
-  }
-
-  ${
-    getDeadlineStatus(row.payment_deadline) === "terlambat"
-      ? `<span class="dashboard-deadline-badge overdue">
-          TERLAMBAT
-        </span>`
-      : ""
-  }
-
 </span>
   </div>
 `;
