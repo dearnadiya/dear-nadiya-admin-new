@@ -2883,3 +2883,181 @@ a {
   }
 
 }
+
+/* =====================================================
+   PERBAIKAN PO / PESANAN ADMIN
+   Foto kecil + tabel customer tidak melebar
+   ===================================================== */
+
+/* Kartu PO */
+.po-card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  padding-right: 250px;
+}
+
+
+/* =====================================================
+   FOTO PO
+   ===================================================== */
+
+.po-card > img {
+  position: absolute !important;
+
+  top: 20px;
+  right: 20px;
+
+  width: auto !important;
+  height: auto !important;
+
+  max-width: 200px !important;
+  max-height: 150px !important;
+
+  object-fit: contain !important;
+
+  margin: 0 !important;
+  border-radius: 12px;
+
+  display: block;
+}
+
+
+/* =====================================================
+   INFORMASI PO
+   ===================================================== */
+
+.po-card > h2,
+.po-card > p {
+  max-width: 100%;
+}
+
+
+/* =====================================================
+   TABEL CUSTOMER PO
+   Jangan gunakan min-width 900px dari
+   .product-table global
+   ===================================================== */
+
+.po-card .product-table-wrapper,
+.po-card .table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible !important;
+  overflow-y: visible;
+}
+
+
+/* Tabel khusus PO */
+.po-card .product-table {
+  width: 100% !important;
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  table-layout: fixed !important;
+  border-collapse: collapse;
+
+  font-size: 13px;
+}
+
+
+/* Semua cell */
+.po-card .product-table th,
+.po-card .product-table td {
+  padding: 9px 8px;
+
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  vertical-align: middle;
+}
+
+
+/* Barang */
+.po-card .product-table th:nth-child(1),
+.po-card .product-table td:nth-child(1) {
+  width: 30%;
+}
+
+
+/* Customer */
+.po-card .product-table th:nth-child(2),
+.po-card .product-table td:nth-child(2) {
+  width: 30%;
+}
+
+
+/* Qty */
+.po-card .product-table th:nth-child(3),
+.po-card .product-table td:nth-child(3) {
+  width: 12%;
+
+  text-align: center;
+}
+
+
+/* Catatan */
+.po-card .product-table th:nth-child(4),
+.po-card .product-table td:nth-child(4) {
+  width: 28%;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+  .po-card {
+    padding-right: 16px;
+  }
+
+
+  /* Foto kembali menjadi bagian normal
+     agar tidak menutupi informasi */
+  .po-card > img {
+    position: static !important;
+
+    display: block;
+
+    width: auto !important;
+    height: auto !important;
+
+    max-width: 160px !important;
+    max-height: 120px !important;
+
+    margin: 0 0 15px auto !important;
+  }
+
+
+  .po-card .product-table-wrapper,
+  .po-card .table-wrapper {
+    width: 100%;
+    overflow-x: hidden !important;
+  }
+
+
+  .po-card .product-table {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    table-layout: fixed !important;
+  }
+
+
+  .po-card .product-table th,
+  .po-card .product-table td {
+    padding: 8px 5px;
+
+    font-size: 12px;
+
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+}
