@@ -555,7 +555,23 @@ async function loadDashboard() {
     </div>
 
     <div class="welcome-card">
-      <h3>⚠️ Customer Mendekati Batas Akhir CO</h3>
+      <h3>💰 Customer Jatuh Tempo DP</h3>
+
+      <div id="dashboardDpList">
+        <p>Memuat data...</p>
+      </div>
+    </div>
+
+    <div class="welcome-card">
+      <h3>💳 Customer Jatuh Tempo Pelunasan</h3>
+
+      <div id="dashboardPaymentList">
+        <p>Memuat data...</p>
+      </div>
+    </div>
+
+    <div class="welcome-card">
+      <h3>🛒 Customer Mendekati Batas Akhir CO</h3>
 
       <div id="dashboardCoDeadlineList">
         <p>Memuat data...</p>
@@ -569,8 +585,17 @@ async function loadDashboard() {
       .select(`
         customer_name,
         batch_code,
-        co_deadline,
-        customer_status
+        item_name,
+        version,
+        quantity,
+        dp_amount,
+        remaining_amount,
+        dp_status,
+        payment_status,
+        customer_status,
+        dp_deadline,
+        payment_deadline,
+        co_deadline
       `);
 
     if (error) {
@@ -578,6 +603,18 @@ async function loadDashboard() {
         "ERROR LOAD DASHBOARD:",
         error
       );
+
+      document.getElementById(
+        "dashboardDpList"
+      ).innerHTML = `
+        <p>Gagal memuat data.</p>
+      `;
+
+      document.getElementById(
+        "dashboardPaymentList"
+      ).innerHTML = `
+        <p>Gagal memuat data.</p>
+      `;
 
       document.getElementById(
         "dashboardCoDeadlineList"
@@ -590,9 +627,76 @@ async function loadDashboard() {
 
     const rows = data || [];
 
-    /* =========================
+
+    /* =====================================
+       HELPER
+    ===================================== */
+
+    function normalizeDate(value) {
+      if (!value) return "";
+
+      return String(value).substring(0, 10);
+    }
+
+
+    function getTodayISO() {
+      const today = new Date();
+
+      return `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+      ).padStart(2, "0")}-${String(
+        today.getDate()
+      ).padStart(2, "0")}`;
+    }
+
+
+    function getDateAfterDays(days) {
+      const date = new Date();
+
+      date.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      date.setDate(
+        date.getDate() + days
+      );
+
+      return `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(
+        date.getDate()
+      ).padStart(2, "0")}`;
+    }
+
+
+    function formatRupiah(value) {
+      const number =
+        Number(value) || 0;
+
+      return new Intl.NumberFormat(
+        "id-ID",
+        {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0
+        }
+      ).format(number);
+    }
+
+
+    const todayISO =
+      getTodayISO();
+
+    const h7ISO =
+      getDateAfterDays(7);
+
+
+    /* =====================================
        TOTAL CUSTOMER
-    ========================= */
+    ===================================== */
 
     const uniqueCustomers =
       new Set(
@@ -611,9 +715,9 @@ async function loadDashboard() {
       uniqueCustomers.size;
 
 
-    /* =========================
+    /* =====================================
        TOTAL GO AKTIF
-    ========================= */
+    ===================================== */
 
     const uniqueGO =
       new Set(
@@ -632,150 +736,426 @@ async function loadDashboard() {
       uniqueGO.size;
 
 
-    /* =========================
-       H-7 DEADLINE CO
-    ========================= */
+    /* =====================================
+       GROUP DATA PER CUSTOMER
+    ===================================== */
 
-    const today = new Date();
+    function groupCustomers(
+      sourceRows
+    ) {
+      const grouped = {};
 
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+      sourceRows.forEach(row => {
 
-    const todayISO =
-      `${today.getFullYear()}-${String(
-        today.getMonth() + 1
-      ).padStart(2, "0")}-${String(
-        today.getDate()
-      ).padStart(2, "0")}`;
+        const customerName =
+          String(
+            row.customer_name || ""
+          ).trim();
 
+        if (!customerName) {
+          return;
+        }
 
-    const h7Date =
-      new Date(today);
+        if (!grouped[customerName]) {
+          grouped[customerName] = [];
+        }
 
-    h7Date.setDate(
-      h7Date.getDate() + 7
-    );
+        grouped[customerName].push(row);
+      });
 
-   const h7ISO =
-  `${h7Date.getFullYear()}-${String(
-    h7Date.getMonth() + 1
-  ).padStart(2, "0")}-${String(
-    h7Date.getDate()
-  ).padStart(2, "0")}`;
+      return grouped;
+    }
 
 
-    /* =========================
-       FILTER CUSTOMER
-    ========================= */
+    /* =====================================
+       DP
+       
+       Muncul:
+       - tepat pada deadline
+       - atau setelah deadline jika belum lunas
+       
+       Tidak muncul sebelum deadline.
+    ===================================== */
 
-    const customerNames = [];
+    const dpRows =
+      rows.filter(row => {
 
-    rows.forEach(row => {
+        const deadline =
+          normalizeDate(
+            row.dp_deadline
+          );
 
-      const customerName =
-        String(
-          row.customer_name || ""
-        ).trim();
+        const status =
+          String(
+            row.dp_status || ""
+          ).trim();
 
-      const customerStatus =
-        String(
-          row.customer_status || ""
-        ).trim();
+        if (!deadline) {
+          return false;
+        }
 
-      const coDeadline =
-        row.co_deadline
-          ? String(
-              row.co_deadline
-            ).substring(0, 10)
-          : "";
+        if (
+          status === "paid"
+        ) {
+          return false;
+        }
 
-
-      if (
-        !customerName ||
-        !coDeadline
-      ) {
-        return;
-      }
-
-
-      /*
-       * Sudah checkout Shopee
-       * tidak perlu muncul
-       */
-      if (
-        customerStatus ===
-        "Sudah Checkout Shopee"
-      ) {
-        return;
-      }
+        return deadline <= todayISO;
+      });
 
 
-      /*
-       * Muncul jika deadline
-       * berada antara hari ini
-       * sampai H+7
-       */
-      if (
-        coDeadline >= todayISO &&
-        coDeadline <= h7ISO
-      ) {
-        customerNames.push(
-          customerName
+    const dpGrouped =
+      groupCustomers(
+        dpRows
+      );
+
+
+    const dpCustomerNames =
+      Object.keys(
+        dpGrouped
+      );
+
+
+    const dpList =
+      document.getElementById(
+        "dashboardDpList"
+      );
+
+
+    if (
+      dpCustomerNames.length === 0
+    ) {
+
+      dpList.innerHTML = `
+        <p>
+          Tidak ada customer yang
+          jatuh tempo DP hari ini.
+        </p>
+      `;
+
+    } else {
+
+      dpList.innerHTML =
+        dpCustomerNames
+          .map(customerName => {
+
+            const customerRows =
+              dpGrouped[
+                customerName
+              ];
+
+            let totalDP = 0;
+
+            const itemsHTML =
+              customerRows
+                .map(row => {
+
+                  const dpAmount =
+                    Number(
+                      row.dp_amount
+                    ) || 0;
+
+                  totalDP +=
+                    dpAmount;
+
+                  return `
+                    <div class="dashboard-payment-item">
+
+                      <strong>
+                        ${row.batch_code || "—"}
+                      </strong>
+
+                      <span>
+                        ${row.item_name || "—"}
+                      </span>
+
+                      <span>
+                        ${row.version || "—"}
+                      </span>
+
+                      <span>
+                        Tagihan DP:
+                        ${formatRupiah(
+                          dpAmount
+                        )}
+                      </span>
+
+                    </div>
+                  `;
+                })
+                .join("");
+
+
+            return `
+              <div class="dashboard-customer-card">
+
+                <h4>
+                  ${customerName}
+                </h4>
+
+                ${itemsHTML}
+
+                <div class="dashboard-payment-total">
+                  <strong>
+                    Total Tagihan DP:
+                  </strong>
+
+                  <strong>
+                    ${formatRupiah(
+                      totalDP
+                    )}
+                  </strong>
+                </div>
+
+              </div>
+            `;
+
+          })
+          .join("");
+    }
+
+
+    /* =====================================
+       PELUNASAN
+       
+       Muncul:
+       - tepat pada deadline
+       - atau setelah deadline jika belum lunas
+       
+       Tidak muncul sebelum deadline.
+    ===================================== */
+
+    const paymentRows =
+      rows.filter(row => {
+
+        const deadline =
+          normalizeDate(
+            row.payment_deadline
+          );
+
+        const status =
+          String(
+            row.payment_status || ""
+          ).trim();
+
+        if (!deadline) {
+          return false;
+        }
+
+        if (
+          status === "paid"
+        ) {
+          return false;
+        }
+
+        return deadline <= todayISO;
+      });
+
+
+    const paymentGrouped =
+      groupCustomers(
+        paymentRows
+      );
+
+
+    const paymentCustomerNames =
+      Object.keys(
+        paymentGrouped
+      );
+
+
+    const paymentList =
+      document.getElementById(
+        "dashboardPaymentList"
+      );
+
+
+    if (
+      paymentCustomerNames.length === 0
+    ) {
+
+      paymentList.innerHTML = `
+        <p>
+          Tidak ada customer yang
+          jatuh tempo pelunasan hari ini.
+        </p>
+      `;
+
+    } else {
+
+      paymentList.innerHTML =
+        paymentCustomerNames
+          .map(customerName => {
+
+            const customerRows =
+              paymentGrouped[
+                customerName
+              ];
+
+            let totalPayment = 0;
+
+            const itemsHTML =
+              customerRows
+                .map(row => {
+
+                  const remaining =
+                    Number(
+                      row.remaining_amount
+                    ) || 0;
+
+                  totalPayment +=
+                    remaining;
+
+                  return `
+                    <div class="dashboard-payment-item">
+
+                      <strong>
+                        ${row.batch_code || "—"}
+                      </strong>
+
+                      <span>
+                        ${row.item_name || "—"}
+                      </span>
+
+                      <span>
+                        ${row.version || "—"}
+                      </span>
+
+                      <span>
+                        Tagihan Pelunasan:
+                        ${formatRupiah(
+                          remaining
+                        )}
+                      </span>
+
+                    </div>
+                  `;
+                })
+                .join("");
+
+
+            return `
+              <div class="dashboard-customer-card">
+
+                <h4>
+                  ${customerName}
+                </h4>
+
+                ${itemsHTML}
+
+                <div class="dashboard-payment-total">
+                  <strong>
+                    Total Tagihan Pelunasan:
+                  </strong>
+
+                  <strong>
+                    ${formatRupiah(
+                      totalPayment
+                    )}
+                  </strong>
+                </div>
+
+              </div>
+            `;
+
+          })
+          .join("");
+    }
+
+
+    /* =====================================
+       CO
+       
+       Muncul H-7 sampai deadline.
+       
+       Yang sudah checkout tidak muncul.
+    ===================================== */
+
+    const coRows =
+      rows.filter(row => {
+
+        const customerName =
+          String(
+            row.customer_name || ""
+          ).trim();
+
+        const status =
+          String(
+            row.customer_status || ""
+          ).trim();
+
+        const deadline =
+          normalizeDate(
+            row.co_deadline
+          );
+
+        if (
+          !customerName ||
+          !deadline
+        ) {
+          return false;
+        }
+
+        if (
+          status ===
+          "Sudah Checkout Shopee"
+        ) {
+          return false;
+        }
+
+        return (
+          deadline >= todayISO &&
+          deadline <= h7ISO
         );
-      }
-
-    });
+      });
 
 
-    /* =========================
-       HILANGKAN DUPLIKAT
-    ========================= */
+    const coCustomerNames =
+      [
+        ...new Set(
+          coRows.map(row =>
+            String(
+              row.customer_name || ""
+            ).trim()
+          )
+        )
+      ].filter(Boolean);
 
-    const uniqueCustomerNames =
-      [...new Set(customerNames)];
 
-
-    /* =========================
-       TAMPILKAN CUSTOMER
-    ========================= */
-
-    const listElement =
+    const coList =
       document.getElementById(
         "dashboardCoDeadlineList"
       );
 
 
     if (
-      uniqueCustomerNames.length === 0
+      coCustomerNames.length === 0
     ) {
 
-      listElement.innerHTML = `
+      coList.innerHTML = `
         <p>
           Tidak ada customer yang
           mendekati batas akhir CO.
         </p>
       `;
 
-      return;
+    } else {
+
+      coList.innerHTML = `
+        <div class="dashboard-co-list">
+
+          ${coCustomerNames
+            .map(name => `
+              <div class="dashboard-co-item">
+                ${name}
+              </div>
+            `)
+            .join("")
+          }
+
+        </div>
+      `;
     }
-
-
-    listElement.innerHTML = `
-      <div class="dashboard-customer-list">
-        ${uniqueCustomerNames
-          .map(name => `
-            <div class="dashboard-customer-item">
-              ${name}
-            </div>
-          `)
-          .join("")
-        }
-      </div>
-    `;
 
   } catch (err) {
 
@@ -784,16 +1164,36 @@ async function loadDashboard() {
       err
     );
 
-    const listElement =
+    const dpList =
+      document.getElementById(
+        "dashboardDpList"
+      );
+
+    const paymentList =
+      document.getElementById(
+        "dashboardPaymentList"
+      );
+
+    const coList =
       document.getElementById(
         "dashboardCoDeadlineList"
       );
 
-    if (listElement) {
-      listElement.innerHTML = `
-        <p>
-          Gagal memuat Dashboard.
-        </p>
+    if (dpList) {
+      dpList.innerHTML = `
+        <p>Gagal memuat data.</p>
+      `;
+    }
+
+    if (paymentList) {
+      paymentList.innerHTML = `
+        <p>Gagal memuat data.</p>
+      `;
+    }
+
+    if (coList) {
+      coList.innerHTML = `
+        <p>Gagal memuat data.</p>
       `;
     }
   }
