@@ -2022,3 +2022,160 @@ a {
   }
 
 }
+
+/* ============================================
+   REKAP GO - TABLE FINAL DESKTOP
+   ============================================ */
+
+@media (min-width: 769px) {
+
+  .recap-batch-card {
+    overflow: hidden;
+  }
+
+  .product-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 18px;
+    border: 1px solid #e5dfe7;
+    border-radius: 12px;
+    background: #ffffff;
+  }
+
+  .recap-table {
+    width: max-content;
+    min-width: 1450px;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+  }
+
+  .recap-table th,
+  .recap-table td {
+    padding: 12px 16px;
+    border-right: 1px solid #eee8ef;
+    border-bottom: 1px solid #eee8ef;
+    vertical-align: middle;
+  }
+
+  /* Header */
+  .recap-table th {
+    background: #faf7fa;
+    color: #3d3745;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Isi */
+  .recap-table td {
+    background: #ffffff;
+    color: #403947;
+    white-space: nowrap;
+  }
+
+  /* Garis antar baris */
+  .recap-table tbody tr:hover td {
+    background: #fcf8fb;
+  }
+
+  /* Hilangkan garis kanan terakhir */
+  .recap-table th:last-child,
+  .recap-table td:last-child {
+    border-right: none;
+  }
+
+  /* Kolom Member */
+  .recap-table th:nth-child(1),
+  .recap-table td:nth-child(1) {
+    min-width: 140px;
+  }
+
+  /* Customer */
+  .recap-table th:nth-child(2),
+  .recap-table td:nth-child(2) {
+    min-width: 130px;
+  }
+
+  /* Qty */
+  .recap-table th:nth-child(3),
+  .recap-table td:nth-child(3) {
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Harga */
+  .recap-table th:nth-child(4),
+  .recap-table td:nth-child(4) {
+    min-width: 120px;
+    text-align: right;
+  }
+
+  /* DP */
+  .recap-table th:nth-child(5),
+  .recap-table td:nth-child(5) {
+    min-width: 120px;
+    text-align: right;
+  }
+
+  /* Status DP */
+  .recap-table th:nth-child(6),
+  .recap-table td:nth-child(6) {
+    min-width: 110px;
+    text-align: center;
+  }
+
+  /* Pelunasan */
+  .recap-table th:nth-child(7),
+  .recap-table td:nth-child(7) {
+    min-width: 120px;
+    text-align: right;
+  }
+
+  /* Status Pelunasan */
+  .recap-table th:nth-child(8),
+  .recap-table td:nth-child(8) {
+    min-width: 135px;
+    text-align: center;
+  }
+
+  /* Tracking */
+  .recap-table th:nth-child(9),
+  .recap-table td:nth-child(9) {
+    min-width: 160px;
+  }
+
+  /* Note */
+  .recap-table th:nth-child(10),
+  .recap-table td:nth-child(10) {
+    min-width: 140px;
+    max-width: 220px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Batas CO */
+  .recap-table th:nth-child(11),
+  .recap-table td:nth-child(11) {
+    min-width: 110px;
+    text-align: center;
+  }
+
+  /* Aksi */
+  .recap-table th:nth-child(12),
+  .recap-table td:nth-child(12) {
+    min-width: 155px;
+    text-align: center;
+  }
+
+  /* Tombol aksi */
+  .edit-recap-button,
+  .delete-recap-button {
+    display: inline-block;
+    margin: 3px;
+    padding: 8px 12px;
+    border-radius: 9px;
+    white-space: nowrap;
+  }
+
+}
