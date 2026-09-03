@@ -1684,3 +1684,28 @@ a {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ============================================
+   REKAP GO - MOBILE TABLE FIX
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  .product-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .recap-table {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .recap-table th,
+  .recap-table td {
+    padding: 8px 7px;
+    font-size: 12px;
+  }
+
+}
