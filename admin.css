@@ -1919,3 +1919,106 @@ a {
   }
 
 }
+
+/* ============================================
+   REKAP GO - DESKTOP COLUMN SPACING
+   ============================================ */
+
+@media (min-width: 769px) {
+
+  .recap-table {
+    min-width: 1550px;
+  }
+
+  .recap-table th,
+  .recap-table td {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  /* Barang */
+  .recap-table th:nth-child(1),
+  .recap-table td:nth-child(1) {
+    min-width: 180px;
+  }
+
+  /* Customer */
+  .recap-table th:nth-child(2),
+  .recap-table td:nth-child(2) {
+    min-width: 140px;
+  }
+
+  /* Versi / Member */
+  .recap-table th:nth-child(3),
+  .recap-table td:nth-child(3) {
+    min-width: 150px;
+  }
+
+  /* Qty */
+  .recap-table th:nth-child(4),
+  .recap-table td:nth-child(4) {
+    min-width: 65px;
+    text-align: center;
+  }
+
+  /* Harga */
+  .recap-table th:nth-child(5),
+  .recap-table td:nth-child(5) {
+    min-width: 125px;
+  }
+
+  /* DP */
+  .recap-table th:nth-child(6),
+  .recap-table td:nth-child(6) {
+    min-width: 125px;
+  }
+
+  /* Sisa */
+  .recap-table th:nth-child(7),
+  .recap-table td:nth-child(7) {
+    min-width: 125px;
+  }
+
+  /* Pembayaran */
+  .recap-table th:nth-child(8),
+  .recap-table td:nth-child(8) {
+    min-width: 135px;
+  }
+
+  /* Tracking */
+  .recap-table th:nth-child(9),
+  .recap-table td:nth-child(9) {
+    min-width: 165px;
+  }
+
+  /* Catatan */
+  .recap-table th:nth-child(10),
+  .recap-table td:nth-child(10) {
+    min-width: 130px;
+    white-space: normal;
+  }
+
+  /* Batas CO */
+  .recap-table th:nth-child(11),
+  .recap-table td:nth-child(11) {
+    min-width: 110px;
+  }
+
+  /* Aksi */
+  .recap-table th:nth-child(12),
+  .recap-table td:nth-child(12) {
+    min-width: 170px;
+  }
+
+  /* Jarak antar tombol */
+  .recap-table td:last-child {
+    white-space: nowrap;
+  }
+
+  .edit-recap-button,
+  .delete-recap-button {
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+
+}
