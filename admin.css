@@ -2820,244 +2820,306 @@ a {
 }
 
 /* ============================================
-   FIX FOTO PESANAN / PO
-   FOTO KECIL DI POJOK KANAN
-   ============================================ */
-
-.po-card {
-  position: relative;
-  padding-right: 300px;
-}
-
-/* Foto PO */
-.po-card > img {
-  position: absolute !important;
-
-  top: 20px;
-  right: 20px;
-
-  /*
-    Ukuran foto dibatasi,
-    tetapi rasio gambar tetap dipertahankan.
-  */
-  width: auto !important;
-  height: auto !important;
-
-  max-width: 260px !important;
-  max-height: 200px !important;
-
-  object-fit: contain !important;
-
-  display: block;
-
-  margin: 0 !important;
-
-  border-radius: 15px;
-}
-
-
-/* ============================================
-   TAMPILAN MOBILE
+   MOBILE ADMIN - TAHAP 2
+   REKAP GO
    ============================================ */
 
 @media (max-width: 700px) {
 
-  .po-card {
-    padding-right: 16px;
-  }
+  /* ==========================================
+     REKAP CONTAINER
+     ========================================== */
 
-  .po-card > img {
-    position: static !important;
-
-    width: auto !important;
-    height: auto !important;
-
-    max-width: 100% !important;
-    max-height: 220px !important;
-
-    object-fit: contain !important;
-
-    margin: 0 0 16px auto !important;
-
-    display: block;
-  }
-
-}
-
-/* =====================================================
-   PERBAIKAN PO / PESANAN ADMIN
-   Foto kecil + tabel customer tidak melebar
-   ===================================================== */
-
-/* Kartu PO */
-.po-card {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
-  padding-right: 250px;
-}
-
-
-/* =====================================================
-   FOTO PO
-   ===================================================== */
-
-.po-card > img {
-  position: absolute !important;
-
-  top: 20px;
-  right: 20px;
-
-  width: auto !important;
-  height: auto !important;
-
-  max-width: 200px !important;
-  max-height: 150px !important;
-
-  object-fit: contain !important;
-
-  margin: 0 !important;
-  border-radius: 12px;
-
-  display: block;
-}
-
-
-/* =====================================================
-   INFORMASI PO
-   ===================================================== */
-
-.po-card > h2,
-.po-card > p {
-  max-width: 100%;
-}
-
-
-/* =====================================================
-   TABEL CUSTOMER PO
-   Jangan gunakan min-width 900px dari
-   .product-table global
-   ===================================================== */
-
-.po-card .product-table-wrapper,
-.po-card .table-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: visible !important;
-  overflow-y: visible;
-}
-
-
-/* Tabel khusus PO */
-.po-card .product-table {
-  width: 100% !important;
-  min-width: 0 !important;
-
-  max-width: 100% !important;
-
-  table-layout: fixed !important;
-  border-collapse: collapse;
-
-  font-size: 13px;
-}
-
-
-/* Semua cell */
-.po-card .product-table th,
-.po-card .product-table td {
-  padding: 9px 8px;
-
-  white-space: normal !important;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-
-  vertical-align: middle;
-}
-
-
-/* Barang */
-.po-card .product-table th:nth-child(1),
-.po-card .product-table td:nth-child(1) {
-  width: 30%;
-}
-
-
-/* Customer */
-.po-card .product-table th:nth-child(2),
-.po-card .product-table td:nth-child(2) {
-  width: 30%;
-}
-
-
-/* Qty */
-.po-card .product-table th:nth-child(3),
-.po-card .product-table td:nth-child(3) {
-  width: 12%;
-
-  text-align: center;
-}
-
-
-/* Catatan */
-.po-card .product-table th:nth-child(4),
-.po-card .product-table td:nth-child(4) {
-  width: 28%;
-}
-
-
-/* =====================================================
-   MOBILE
-   ===================================================== */
-
-@media (max-width: 700px) {
-
-  .po-card {
-    padding-right: 16px;
-  }
-
-
-  /* Foto kembali menjadi bagian normal
-     agar tidak menutupi informasi */
-  .po-card > img {
-    position: static !important;
-
-    display: block;
-
-    width: auto !important;
-    height: auto !important;
-
-    max-width: 160px !important;
-    max-height: 120px !important;
-
-    margin: 0 0 15px auto !important;
-  }
-
-
-  .po-card .product-table-wrapper,
-  .po-card .table-wrapper {
+  #recapListContainer {
     width: 100%;
-    overflow-x: hidden !important;
+    overflow: hidden;
   }
 
 
-  .po-card .product-table {
-    width: 100% !important;
-    min-width: 0 !important;
+  /* ==========================================
+     SEARCH & FILTER
+     ========================================== */
 
-    table-layout: fixed !important;
+  .recap-search {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .recap-search input {
+    width: 100%;
+    min-height: 46px;
+    font-size: 15px;
   }
 
 
-  .po-card .product-table th,
-  .po-card .product-table td {
-    padding: 8px 5px;
+  .recap-search-result {
+    margin-top: 6px;
+    font-size: 13px;
+  }
 
+
+  .recap-actions {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .recap-actions button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+
+  /* ==========================================
+     CATEGORY BUTTON
+     ========================================== */
+
+  .recap-category-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+
+  .recap-category-buttons button {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 6px;
+    font-size: 13px;
+  }
+
+
+  /* ==========================================
+     BATCH CARD
+     ========================================== */
+
+  .recap-batch-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+
+  /* ==========================================
+     HEADER BATCH
+     ========================================== */
+
+  .recap-batch-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+
+  .recap-batch-header > div:first-child {
+    width: 100%;
+  }
+
+
+  .recap-batch-code {
+    font-size: 19px;
+    line-height: 1.25;
+  }
+
+
+  .recap-batch-name {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 3px;
+  }
+
+
+  .recap-batch-count {
+    align-self: flex-start;
+    font-size: 13px;
+  }
+
+
+  /* ==========================================
+     TRACKING BATCH
+     ========================================== */
+
+  .batch-tracking {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  .batch-tracking small {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+
+  .batch-tracking select {
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+
+  .save-batch-tracking-button {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 8px;
+  }
+
+
+  /* ==========================================
+     TABEL REKAP
+     ========================================== */
+
+  .recap-batch-card
+  .product-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-top: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+
+  .recap-batch-card
+  .product-table {
+    min-width: 1100px;
+    width: 1100px;
+    table-layout: fixed;
+  }
+
+
+  /* ==========================================
+     CELL TABEL
+     ========================================== */
+
+  .recap-batch-card
+  .product-table th,
+  .recap-batch-card
+  .product-table td {
+    padding: 9px 7px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+
+  /* ==========================================
+     DROPDOWN STATUS DI DALAM TABEL
+     ========================================== */
+
+  .recap-batch-card
+  .product-table select {
+    min-height: 38px;
+    max-width: 100%;
+    padding: 6px 7px;
     font-size: 12px;
+    box-sizing: border-box;
+  }
 
-    white-space: normal !important;
-    word-break: break-word;
+
+  /* ==========================================
+     STATUS CUSTOMER
+     ========================================== */
+
+  .recap-batch-card
+  .recap-customer-status {
+    width: 145px;
+  }
+
+
+  /* ==========================================
+     STATUS DP
+     ========================================== */
+
+  .recap-batch-card
+  .recap-dp-status {
+    width: 120px;
+  }
+
+
+  /* ==========================================
+     STATUS PEMBAYARAN
+     ========================================== */
+
+  .recap-batch-card
+  .recap-payment-status {
+    width: 110px;
+  }
+
+
+  /* ==========================================
+     CATATAN
+     ========================================== */
+
+  .recap-batch-card
+  .product-table td {
     overflow-wrap: anywhere;
+  }
+
+
+  /* ==========================================
+     TOMBOL AKSI
+     ========================================== */
+
+  .recap-batch-card
+  .edit-recap-button,
+  .recap-batch-card
+  .delete-recap-button {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+
+  /* ==========================================
+     FORM TAMBAH / EDIT REKAP
+     ========================================== */
+
+  .recap-form {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+
+  .batch-item {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+
+  .batch-item input,
+  .batch-item select,
+  .batch-item textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  .batch-item-header {
+    gap: 8px;
+  }
+
+
+  .remove-batch-item {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+
+  #addBatchItemButton {
+    width: 100%;
+    min-height: 44px;
   }
 
 }
