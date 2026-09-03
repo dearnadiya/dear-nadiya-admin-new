@@ -2195,9 +2195,17 @@ function showRecapForm(category) {
 
         </select>
 
-
-        <label>Deadline CO</label>
-
+        <label>
+         Deadline DP
+        </label>
+        <input
+         type="date"
+         id="batchDpDeadline"
+        >
+        
+        <label>
+         Deadline CO
+        </label>
         <input
           id="batchCoDeadline"
           type="date"
@@ -4263,16 +4271,21 @@ async function saveBatchRecap(event) {
 
 
   const batchTracking =
-    document.getElementById(
-      "batchTrackingStatus"
-    ).value;
+  document.getElementById(
+    "batchTrackingStatus"
+  ).value;
 
 
-  const batchCoDeadline =
-    document.getElementById(
-      "batchCoDeadline"
-    ).value || null;
+const batchDpDeadline =
+  document.getElementById(
+    "batchDpDeadline"
+  ).value || null;
 
+
+const batchCoDeadline =
+  document.getElementById(
+    "batchCoDeadline"
+  ).value || null;
 
   /* ==========================================
      VALIDASI DATA BATCH
@@ -4583,10 +4596,13 @@ async function saveBatchRecap(event) {
         note:
           note,
 
-        co_deadline:
-          batchCoDeadline
+        dp_deadline:
+  batchDpDeadline,
 
-      });
+co_deadline:
+  batchCoDeadline
+
+});
 
     }
   );
