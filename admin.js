@@ -3060,10 +3060,18 @@ async function loadRecapList(
     ${
       rows[0]?.co_deadline
         ? (() => {
-            const parts = String(rows[0].co_deadline).split("-");
-            if (parts.length !== 3) return "—";
+            const dateValue =
+              String(rows[0].co_deadline).substring(0, 10);
 
-            const [year, month, day] = parts;
+            const parts =
+              dateValue.split("-");
+
+            if (parts.length !== 3) {
+              return "—";
+            }
+
+            const [year, month, day] =
+              parts;
 
             const date = new Date(
               Number(year),
@@ -3073,11 +3081,14 @@ async function loadRecapList(
 
             return isNaN(date.getTime())
               ? "—"
-              : date.toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                });
+              : date.toLocaleDateString(
+                  "id-ID",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  }
+                );
           })()
         : "—"
     }
@@ -5421,10 +5432,12 @@ ${
   id="editCoDeadline"
   type="date"
   value="${
-    data.co_deadline ||
-    ""
-  }"
-  ${
+  data.co_deadline
+    ? String(data.co_deadline).substring(0, 10)
+    : ""
+   }"  
+
+${
     canSetCoDeadline
       ? ""
       : "disabled"
