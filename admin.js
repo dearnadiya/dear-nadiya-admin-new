@@ -3054,26 +3054,35 @@ async function loadRecapList(
     </strong>
   </p>
 
-  <p>
-    🛒 Deadline CO Shopee:
-    <strong>
-      ${
-        rows[0]?.co_deadline
-          ? new Date(
-              rows[0].co_deadline +
-              "T00:00:00"
-            ).toLocaleDateString(
-              "id-ID",
-              {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-              }
-            )
-          : "—"
-      }
-    </strong>
-  </p>
+ <p>
+  🛒 Deadline CO Shopee:
+  <strong>
+    ${
+      rows[0]?.co_deadline
+        ? (() => {
+            const parts = String(rows[0].co_deadline).split("-");
+            if (parts.length !== 3) return "—";
+
+            const [year, month, day] = parts;
+
+            const date = new Date(
+              Number(year),
+              Number(month) - 1,
+              Number(day)
+            );
+
+            return isNaN(date.getTime())
+              ? "—"
+              : date.toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric"
+                });
+          })()
+        : "—"
+    }
+  </strong>
+</p>
 
 </div>
 
