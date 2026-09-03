@@ -719,21 +719,41 @@ co_deadline
        TOTAL GO AKTIF
     ===================================== */
 
-    const uniqueGO =
-      new Set(
-        rows
-          .map(row =>
-            String(
-              row.batch_code || ""
-            ).trim()
-          )
-          .filter(Boolean)
-      );
+    const activeGO =
+  new Set(
+    rows
+      .filter(row => {
+        const batchCode =
+          String(
+            row.batch_code || ""
+          ).trim();
 
-    document.getElementById(
-      "dashboardTotalGO"
-    ).textContent =
-      uniqueGO.size;
+        const tracking =
+          String(
+            row.batch_tracking_status || ""
+          ).trim();
+
+        if (!batchCode) {
+          return false;
+        }
+
+        return (
+          tracking !==
+          "Goods Arrive at Customer"
+        );
+      })
+      .map(row =>
+        String(
+          row.batch_code || ""
+        ).trim()
+      )
+      .filter(Boolean)
+  );
+
+document.getElementById(
+  "dashboardTotalGO"
+).textContent =
+  activeGO.size;
 
 
     /* =====================================
