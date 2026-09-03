@@ -1033,23 +1033,24 @@ ${itemsHTML}
     <span>Kode Batch</span>
     <span>Nama Barang</span>
     <span>Versi / Member</span>
+    <span>Deadline</span>
     <span>Tagihan Pelunasan</span>
   </div>
 `;
 
             const itemsHTML =
-              customerRows
-                .map(row => {
+  customerRows
+    .map(row => {
 
-                  const remaining =
-                    Number(
-                      row.remaining_amount
-                    ) || 0;
+      const remaining =
+        Number(
+          row.remaining_amount
+        ) || 0;
 
-                  totalPayment +=
-                    remaining;
+      totalPayment +=
+        remaining;
 
-                  return `
+      return `
   <div class="dashboard-payment-item">
 
     <strong>
@@ -1064,9 +1065,14 @@ ${itemsHTML}
       ${row.version || "—"}
     </span>
 
+    <span>
+      ${row.payment_deadline || "—"}
+    </span>
+
     <span class="dashboard-payment-amount">
-  ${formatRupiah(remaining)}
-</span>
+      ${formatRupiah(remaining)}
+    </span>
+
   </div>
 `;
                 })
