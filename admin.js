@@ -3161,18 +3161,18 @@ async function loadRecapList(
     data-id="${escapeHTML(String(row.id))}"
   >
     <option
-      value="unpaid"
-      ${row.dp_status === "unpaid" ? "selected" : ""}
-    >
-      Belum Dibayar
-    </option>
+  value="unpaid"
+  ${row.dp_status === "unpaid" ? "selected" : ""}
+>
+  🟠 ⏳ Belum Dibayar
+</option>
 
-    <option
-      value="paid"
-      ${row.dp_status === "paid" ? "selected" : ""}
-    >
-      Sudah Dibayar
-    </option>
+<option
+  value="paid"
+  ${row.dp_status === "paid" ? "selected" : ""}
+>
+  🟢 ✓ Sudah Dibayar
+</option>
   </select>
 </td>
 
@@ -3188,19 +3188,19 @@ async function loadRecapList(
     data-id="${escapeHTML(String(row.id))}"
   >
     <option
-      value="unpaid"
-      ${row.payment_status === "unpaid" ? "selected" : ""}
-    >
-      Belum Lunas
-    </option>
+  value="unpaid"
+  ${row.payment_status === "unpaid" ? "selected" : ""}
+>
+  🟠 ⏳ Belum Lunas
+</option>
 
-    <option
-      value="paid"
-      ${row.payment_status === "paid" ? "selected" : ""}
-    >
-      Lunas
-    </option>
-  </select>
+<option
+  value="paid"
+  ${row.payment_status === "paid" ? "selected" : ""}
+>
+  🟢 ✓ Lunas
+</option>  
+</select>
 </td>
 
                        <td>
