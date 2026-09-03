@@ -3783,3 +3783,77 @@ a {
   }
 
 }
+
+/* =========================================================
+   FIX: CUSTOMER JATUH TEMPO DP - 5 KOLOM
+   ========================================================= */
+
+.dashboard-payment-header,
+.dashboard-payment-item {
+  display: grid;
+  grid-template-columns:
+    110px
+    minmax(180px, 1fr)
+    130px
+    120px
+    150px;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Pastikan setiap data tetap berada di kolomnya */
+.dashboard-payment-item > * {
+  min-width: 0;
+}
+
+/* Tagihan DP tetap di kolom terakhir */
+.dashboard-payment-item .payment-amount,
+.dashboard-payment-item > :last-child {
+  grid-column: auto;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .dashboard-payment-header,
+  .dashboard-payment-item {
+    grid-template-columns:
+      90px
+      minmax(140px, 1fr)
+      110px
+      110px
+      130px;
+    gap: 9px;
+  }
+
+  .dashboard-payment-item > :last-child {
+    grid-column: auto;
+  }
+}
+
+
+/* =========================================================
+   HP
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .dashboard-payment-header {
+    display: none;
+  }
+
+  .dashboard-payment-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 11px 12px;
+  }
+
+  .dashboard-payment-item > :last-child {
+    margin-top: 2px;
+  }
+}
