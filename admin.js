@@ -3076,6 +3076,10 @@ async function loadRecapList(
                   </th>
 
                   <th>
+                    Status DP
+                  </th>
+                  
+                  <th>
                     Sisa
                   </th>
 
@@ -3145,18 +3149,26 @@ async function loadRecapList(
 
 
                         <td>
-                          ${formatRupiah(
-                            row.dp_amount
-                          )}
-                        </td>
+  ${formatRupiah(
+    row.dp_amount
+  )}
+</td>
 
 
-                        <td>
-                          ${formatRupiah(
-                            row.remaining_amount
-                          )}
-                        </td>
+<td>
+  ${
+    row.dp_status === "paid"
+      ? "✓ Sudah Dibayar"
+      : "Belum Dibayar"
+  }
+</td>
 
+
+<td>
+  ${formatRupiah(
+    row.remaining_amount
+  )}
+</td>
 
                         <td>
                           ${escapeHTML(
