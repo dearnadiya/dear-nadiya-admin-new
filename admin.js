@@ -2066,36 +2066,30 @@ function loadRecap() {
 function showRecapForm(category) {
 
   const container =
-    document.getElementById(
-      "recapFormContainer"
-    );
+    document.getElementById("recapFormContainer");
 
-  if (!container) {
-    return;
-  }
-
+  if (!container) return;
 
   container.innerHTML = `
 
     <div class="panel recap-form">
 
-      <h3>
-        ➕ Tambah Rekap GO
-      </h3>
+      <h3>➕ Tambah Rekap GO</h3>
 
       <p>
         Kategori:
-        <strong>
-          ${escapeHTML(category)}
-        </strong>
+        <strong>${escapeHTML(category)}</strong>
       </p>
-
 
       <form id="batchRecapForm">
 
-        <label>
-          Kode Batch
-        </label>
+        <input
+          type="hidden"
+          id="batchCategory"
+          value="${escapeHTML(category)}"
+        >
+
+        <label>Kode Batch</label>
 
         <input
           id="batchCode"
@@ -2104,10 +2098,7 @@ function showRecapForm(category) {
           required
         >
 
-
-        <label>
-          Nama Barang
-        </label>
+        <label>Nama Barang</label>
 
         <input
           id="batchItemName"
@@ -2116,10 +2107,7 @@ function showRecapForm(category) {
           required
         >
 
-
-        <label>
-          Tipe Harga
-        </label>
+        <label>Tipe Harga</label>
 
         <select id="batchPriceMode">
 
@@ -2134,21 +2122,17 @@ function showRecapForm(category) {
         </select>
 
 
-        <!-- ==================================
-             PENGATURAN HARGA SAMA
-             ================================== -->
+        <!-- =====================================
+             HARGA SAMA UNTUK SEMUA MEMBER
+             ===================================== -->
 
         <div id="batchCommonFields">
 
           <hr>
 
-          <h3>
-            Harga & Pembayaran
-          </h3>
+          <h3>Harga Batch</h3>
 
-          <label>
-            Harga Barang
-          </label>
+          <label>Harga Barang</label>
 
           <input
             id="batchCommonPrice"
@@ -2157,10 +2141,7 @@ function showRecapForm(category) {
             value="0"
           >
 
-
-          <label>
-            DP
-          </label>
+          <label>DP</label>
 
           <input
             id="batchCommonDp"
@@ -2169,67 +2150,17 @@ function showRecapForm(category) {
             value="0"
           >
 
-
-          <label>
-            Status DP
-          </label>
-
-          <select id="batchCommonDpStatus">
-
-            <option value="unpaid">
-              Belum Dibayar
-            </option>
-
-            <option value="paid">
-              Sudah Dibayar
-            </option>
-
-          </select>
-
-
-          <label>
-            Sisa Pembayaran
-          </label>
-
-          <input
-            id="batchCommonRemaining"
-            type="number"
-            min="0"
-            value="0"
-          >
-
-
-          <label>
-            Status Pembayaran
-          </label>
-
-          <select id="batchCommonPaymentStatus">
-
-            <option value="unpaid">
-              Belum Lunas
-            </option>
-
-            <option value="paid">
-              Lunas
-            </option>
-
-          </select>
-
         </div>
 
 
         <hr>
 
-
-        <h3>
-          Versi / Member
-        </h3>
+        <h3>Versi / Member</h3>
 
         <p>
           Tambahkan customer dan member yang
           termasuk dalam batch ini.
         </p>
-
 
         <div id="batchItemsContainer"></div>
 
@@ -2245,15 +2176,9 @@ function showRecapForm(category) {
 
         <hr>
 
+        <h3>Pengaturan Batch</h3>
 
-        <h3>
-          Pengaturan Batch
-        </h3>
-
-
-        <label>
-          Tracking Batch
-        </label>
+        <label>Tracking Batch</label>
 
         <select id="batchTrackingStatus">
 
@@ -2261,9 +2186,7 @@ function showRecapForm(category) {
             .map(function(option) {
 
               return `
-                <option
-                  value="${escapeHTML(option)}"
-                >
+                <option value="${escapeHTML(option)}">
                   ${escapeHTML(option)}
                 </option>
               `;
@@ -2275,9 +2198,7 @@ function showRecapForm(category) {
         </select>
 
 
-        <label>
-          Deadline CO
-        </label>
+        <label>Deadline CO</label>
 
         <input
           id="batchCoDeadline"
@@ -2293,7 +2214,6 @@ function showRecapForm(category) {
           >
             Simpan Batch
           </button>
-
 
           <button
             type="button"
@@ -2326,9 +2246,9 @@ function showRecapForm(category) {
   let itemNumber = 0;
 
 
-  /* ========================================
-     TAMBAH MEMBER / VERSI
-     ======================================== */
+  /* ==========================================
+     TAMBAH CUSTOMER
+     ========================================== */
 
   function addBatchItem() {
 
@@ -2336,12 +2256,9 @@ function showRecapForm(category) {
 
 
     const item =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
-    item.className =
-      "batch-item";
+    item.className = "batch-item";
 
 
     item.innerHTML = `
@@ -2362,9 +2279,7 @@ function showRecapForm(category) {
       </div>
 
 
-      <label>
-        Customer
-      </label>
+      <label>Customer</label>
 
       <input
         type="text"
@@ -2373,9 +2288,7 @@ function showRecapForm(category) {
       >
 
 
-      <label>
-        Versi / Member
-      </label>
+      <label>Versi / Member</label>
 
       <input
         type="text"
@@ -2384,9 +2297,7 @@ function showRecapForm(category) {
       >
 
 
-      <label>
-        Quantity
-      </label>
+      <label>Quantity</label>
 
       <input
         type="number"
@@ -2396,11 +2307,14 @@ function showRecapForm(category) {
       >
 
 
+      <!-- ====================================
+           HARGA PER CUSTOMER
+           HANYA UNTUK MODE BERBEDA
+           ==================================== -->
+
       <div class="different-price-fields">
 
-        <label>
-          Harga Barang
-        </label>
+        <label>Harga Barang</label>
 
         <input
           type="number"
@@ -2409,10 +2323,7 @@ function showRecapForm(category) {
           value="0"
         >
 
-
-        <label>
-          DP
-        </label>
+        <label>DP</label>
 
         <input
           type="number"
@@ -2421,10 +2332,17 @@ function showRecapForm(category) {
           value="0"
         >
 
+      </div>
 
-        <label>
-          Status DP
-        </label>
+
+      <!-- ====================================
+           PEMBAYARAN CUSTOMER
+           SELALU PER CUSTOMER
+           ==================================== -->
+
+      <div class="batch-payment-fields">
+
+        <label>Status DP</label>
 
         <select class="batch-dp-status">
 
@@ -2439,9 +2357,7 @@ function showRecapForm(category) {
         </select>
 
 
-        <label>
-          Sisa Pembayaran
-        </label>
+        <label>Sisa Pembayaran</label>
 
         <input
           type="number"
@@ -2451,9 +2367,7 @@ function showRecapForm(category) {
         >
 
 
-        <label>
-          Status Pembayaran
-        </label>
+        <label>Status Pembayaran</label>
 
         <select class="batch-payment-status">
 
@@ -2470,9 +2384,7 @@ function showRecapForm(category) {
       </div>
 
 
-      <label>
-        Catatan
-      </label>
+      <label>Catatan</label>
 
       <textarea
         class="batch-note"
@@ -2483,17 +2395,11 @@ function showRecapForm(category) {
     `;
 
 
-    itemsContainer.appendChild(
-      item
-    );
+    itemsContainer.appendChild(item);
 
-
-    /* Hapus member */
 
     item
-      .querySelector(
-        ".remove-batch-item"
-      )
+      .querySelector(".remove-batch-item")
       .addEventListener(
         "click",
         function() {
@@ -2509,9 +2415,9 @@ function showRecapForm(category) {
   }
 
 
-  /* ========================================
-     MODE HARGA
-     ======================================== */
+  /* ==========================================
+     ATUR MODE HARGA
+     ========================================== */
 
   function updatePriceMode() {
 
@@ -2535,6 +2441,10 @@ function showRecapForm(category) {
 
     if (mode === "same") {
 
+      /*
+       * Harga + DP bersama
+       */
+
       commonFields.style.display =
         "block";
 
@@ -2548,8 +2458,13 @@ function showRecapForm(category) {
         }
       );
 
+    }
 
-    } else {
+    else {
+
+      /*
+       * Harga + DP per customer
+       */
 
       commonFields.style.display =
         "none";
@@ -2569,68 +2484,59 @@ function showRecapForm(category) {
   }
 
 
-  /* ========================================
-     BARIS PERTAMA
-     ======================================== */
+  /* ==========================================
+     CUSTOMER PERTAMA
+     ========================================== */
 
   addBatchItem();
 
 
-  /* ========================================
-     TAMBAH MEMBER
-     ======================================== */
+  /* ==========================================
+     TAMBAH CUSTOMER
+     ========================================== */
 
   document
-    .getElementById(
-      "addBatchItemButton"
-    )
+    .getElementById("addBatchItemButton")
     .addEventListener(
       "click",
       addBatchItem
     );
 
 
-  /* ========================================
-     GANTI TIPE HARGA
-     ======================================== */
+  /* ==========================================
+     GANTI MODE HARGA
+     ========================================== */
 
   document
-    .getElementById(
-      "batchPriceMode"
-    )
+    .getElementById("batchPriceMode")
     .addEventListener(
       "change",
       updatePriceMode
     );
 
 
-  /* ========================================
+  /* ==========================================
      BATAL
-     ======================================== */
+     ========================================== */
 
   document
-    .getElementById(
-      "cancelBatchButton"
-    )
+    .getElementById("cancelBatchButton")
     .addEventListener(
       "click",
       function() {
 
-        container.innerHTML =
-          "";
+        container.innerHTML = "";
 
       }
     );
 
 
-  /* ========================================
-     SUBMIT
-     ======================================== */
+  /* ==========================================
+     SIMPAN
+     ========================================== */
 
   document
-    .getElementById(
-      "batchRecapForm"
-    )
+    .getElementById("batchRecapForm")
     .addEventListener(
       "submit",
       saveBatchRecap
