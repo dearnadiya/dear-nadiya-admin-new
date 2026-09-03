@@ -2590,3 +2590,231 @@ a {
 .recap-batch-card .delete-recap-button {
   white-space: nowrap;
 }
+
+/* ============================================
+   MOBILE ADMIN - TAHAP 1
+   ============================================ */
+
+@media (max-width: 700px) {
+
+  /* AREA ADMIN */
+  .admin-app {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 100%;
+    padding: 14px;
+    box-sizing: border-box;
+  }
+
+
+  /* BRAND */
+  .sidebar-brand {
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+
+
+  .sidebar-brand img {
+    width: 52px;
+    height: 52px;
+  }
+
+
+  .sidebar-brand h2 {
+    font-size: 20px;
+  }
+
+
+  /* MENU */
+  .sidebar-menu {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+
+  .sidebar-menu .menu-button {
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+
+  /* BOTTOM MENU */
+  .sidebar-bottom {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+
+  .sidebar-bottom button {
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+
+  /* KONTEN UTAMA */
+  .main-content {
+    width: 100%;
+    margin-left: 0;
+    padding: 16px 12px;
+    box-sizing: border-box;
+  }
+
+
+  /* TOPBAR */
+  .topbar {
+    width: 100%;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+
+  .topbar h1 {
+    font-size: 25px;
+    line-height: 1.2;
+  }
+
+
+  /* PANEL */
+  .panel,
+  .welcome-card {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+
+  /* PANEL HEADER */
+  .panel-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+
+  .panel-header button {
+    width: 100%;
+  }
+
+
+  /* BUTTON */
+  .primary-button,
+  .delete-button {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+
+  /* FORM */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+
+  .form-actions button {
+    width: 100%;
+  }
+
+
+  /* INPUT */
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  /* TOOLBAR */
+  .toolbar {
+    width: 100%;
+  }
+
+
+  /* SEARCH */
+  .recap-search {
+    width: 100%;
+  }
+
+
+  .recap-search input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+  }
+
+
+  /* FILTER */
+  .recap-filters {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+
+  .recap-filters label {
+    width: 100%;
+  }
+
+
+  .recap-filters select {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+
+  /* BATCH HEADER */
+  .recap-batch-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+
+  .batch-tracking {
+    width: 100%;
+  }
+
+
+  .batch-tracking select {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+
+  .batch-tracking button {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 44px;
+  }
+
+
+  /* TABEL REKAP */
+  .product-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+
+  .recap-batch-card .product-table {
+    min-width: 1100px;
+  }
+
+}
