@@ -592,9 +592,10 @@ async function loadDashboard() {
         dp_status,
         payment_status,
         customer_status,
-        dp_deadline,
-        payment_deadline,
-        co_deadline
+batch_tracking_status,
+dp_deadline,
+payment_deadline,
+co_deadline
       `);
 
     if (error) {
