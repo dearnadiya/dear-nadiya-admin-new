@@ -1709,3 +1709,153 @@ a {
   }
 
 }
+
+/* ============================================
+   REKAP GO - MOBILE CARD VIEW
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  /* Batch tetap menjadi kartu */
+  .recap-batch-card {
+    width: 100%;
+    overflow: hidden;
+  }
+
+
+  /* Hilangkan perilaku tabel di HP */
+  .recap-table,
+  .recap-table tbody,
+  .recap-table tr,
+  .recap-table td {
+    display: block;
+    width: 100%;
+  }
+
+
+  /* Header tabel tidak diperlukan di HP */
+  .recap-table thead {
+    display: none;
+  }
+
+
+  /* Setiap pesanan menjadi kartu kecil */
+  .recap-table tbody tr {
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid #eee7f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(40, 35, 55, 0.04);
+  }
+
+
+  /* Setiap informasi menjadi satu baris */
+  .recap-table tbody td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding: 9px 0;
+
+    white-space: normal;
+    word-break: break-word;
+
+    border-bottom: 1px solid #f0ebf1;
+
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+
+  .recap-table tbody td:last-child {
+    border-bottom: none;
+  }
+
+
+  /* Label otomatis */
+  .recap-table tbody td::before {
+    flex: 0 0 105px;
+
+    font-weight: 700;
+    color: #6f6875;
+  }
+
+
+  /* Label masing-masing kolom */
+
+  .recap-table tbody td:nth-child(1)::before {
+    content: "Barang";
+  }
+
+  .recap-table tbody td:nth-child(2)::before {
+    content: "Customer";
+  }
+
+  .recap-table tbody td:nth-child(3)::before {
+    content: "Versi / Member";
+  }
+
+  .recap-table tbody td:nth-child(4)::before {
+    content: "Qty";
+  }
+
+  .recap-table tbody td:nth-child(5)::before {
+    content: "Harga";
+  }
+
+  .recap-table tbody td:nth-child(6)::before {
+    content: "DP";
+  }
+
+  .recap-table tbody td:nth-child(7)::before {
+    content: "Sisa";
+  }
+
+  .recap-table tbody td:nth-child(8)::before {
+    content: "Pembayaran";
+  }
+
+  .recap-table tbody td:nth-child(9)::before {
+    content: "Tracking";
+  }
+
+  .recap-table tbody td:nth-child(10)::before {
+    content: "Catatan";
+  }
+
+  .recap-table tbody td:nth-child(11)::before {
+    content: "Batas CO";
+  }
+
+  .recap-table tbody td:nth-child(12)::before {
+    content: "Aksi";
+  }
+
+
+  /* Isi kolom */
+  .recap-table tbody td > * {
+    max-width: calc(100% - 119px);
+  }
+
+
+  /* Tombol Edit & Hapus */
+  .edit-recap-button,
+  .delete-recap-button {
+    min-height: 40px;
+    padding: 8px 11px;
+    border-radius: 9px;
+    white-space: nowrap;
+  }
+
+
+  .recap-table tbody td:nth-child(12) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+  }
+
+}
