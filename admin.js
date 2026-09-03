@@ -871,6 +871,7 @@ document.getElementById(
     <span>Kode Batch</span>
     <span>Nama Barang</span>
     <span>Versi / Member</span>
+    <span>Deadline</span>
     <span>Tagihan DP</span>
   </div>
 `;
@@ -899,13 +900,20 @@ document.getElementById(
     </span>
 
     <span>
-      ${row.version || "—"}
-    </span>
-
-    <span class="dashboard-payment-amount">
-  ${formatRupiah(dpAmount)}
+  ${row.version || "—"}
 </span>
 
+<span>
+  ${
+    row.dp_deadline
+      ? String(row.dp_deadline).substring(0, 10)
+      : "—"
+  }
+</span>
+
+<span class="dashboard-payment-amount">
+  ${formatRupiah(dpAmount)}
+</span>
   </div>
 `;
                 })
