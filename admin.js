@@ -3152,7 +3152,7 @@ async function loadRecapList(
                         </td>
 
 
-                        <td>
+                       <td>
   ${formatRupiah(
     row.dp_amount
   )}
@@ -3163,7 +3163,7 @@ async function loadRecapList(
   ${
     row.dp_status === "paid"
       ? "✓ Sudah Dibayar"
-      : "Belum Dibayar"
+      : "⏳ Belum Dibayar"
   }
 </td>
 
@@ -3175,12 +3175,12 @@ async function loadRecapList(
 </td>
 
                         <td>
-                          ${escapeHTML(
-                            row.payment_status ||
-                            "—"
-                          )}
-                        </td>
-
+  ${
+    row.payment_status === "paid"
+      ? "✓ Lunas"
+      : "⏳ Belum Lunas"
+  }
+</td>
 
                         <td>
                           ${escapeHTML(
