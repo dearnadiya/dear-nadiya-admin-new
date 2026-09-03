@@ -3182,13 +3182,17 @@ async function loadRecapList(
   }
 </td>
 
-                        <td>
-                          ${escapeHTML(
-                            row.customer_status ||
-                            "Belum Checkout Shopee"
-                          )}
-                        </td>
-
+                       <td>
+  ${
+    row.customer_status === "Belum Checkout Shopee"
+      ? "⏳ Belum Checkout Shopee"
+      : row.customer_status === "Sudah Checkout Shopee"
+      ? "🛒 Sudah Checkout Shopee"
+      : row.customer_status === "Sudah Menerima Barang"
+      ? "📦 Sudah Menerima Barang"
+      : "⏳ Belum Checkout Shopee"
+  }
+</td>
 
                         <td>
                           ${
