@@ -1962,20 +1962,6 @@ function loadRecap() {
       </div>
 
       <div
-        class="recap-search-box"
-      >
-
-        <input
-          type="text"
-          id="adminRecapSearch"
-          placeholder="🔎 Cari customer, kode batch, barang, atau member..."
-          autocomplete="off"
-        >
-
-      </div>
-
-
-      <div
         id="recapFormContainer"
       ></div>
      
@@ -3256,6 +3242,81 @@ async function loadRecapList(
 
   container.innerHTML =
     html;
+
+   const recapSearchInput =
+  document.getElementById(
+    "recapSearchInput"
+  );
+
+const recapSearchResult =
+  document.getElementById(
+    "recapSearchResult"
+  );
+
+if (recapSearchInput) {
+
+  recapSearchInput.addEventListener(
+    "input",
+    function () {
+
+      const keyword =
+        recapSearchInput.value
+          .trim()
+          .toLowerCase();
+
+      const batchCards =
+        document.querySelectorAll(
+          "#recapListContainer .recap-batch-card"
+        );
+
+      let visibleCount = 0;
+
+      batchCards.forEach(
+        function (card) {
+
+          const searchText =
+            card.dataset.search || "";
+
+          if (
+            !keyword ||
+            searchText.includes(keyword)
+          ) {
+
+            card.style.display = "";
+
+            visibleCount++;
+
+          } else {
+
+            card.style.display = "none";
+
+          }
+
+        }
+      );
+
+
+      if (!keyword) {
+
+        recapSearchResult.textContent =
+          "";
+
+      } else if (visibleCount === 0) {
+
+        recapSearchResult.textContent =
+          "Tidak ada hasil yang ditemukan.";
+
+      } else {
+
+        recapSearchResult.textContent =
+          `${visibleCount} batch ditemukan.`;
+
+      }
+
+    }
+  );
+
+}
 
    /* ==========================================
    SIMPAN TRACKING BATCH
