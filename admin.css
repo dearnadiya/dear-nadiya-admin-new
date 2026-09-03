@@ -1859,3 +1859,63 @@ a {
   }
 
 }
+
+/* ============================================
+   REKAP GO - DESKTOP TABLE SPACING
+   ============================================ */
+
+@media (min-width: 769px) {
+
+  .recap-table {
+    width: 100%;
+    min-width: 1300px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .recap-table th,
+  .recap-table td {
+    padding: 13px 16px;
+    vertical-align: top;
+  }
+
+  .recap-table th {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .recap-table td {
+    line-height: 1.5;
+  }
+
+  .recap-table th:first-child,
+  .recap-table td:first-child {
+    min-width: 150px;
+  }
+
+  .recap-table th:nth-child(2),
+  .recap-table td:nth-child(2) {
+    min-width: 120px;
+  }
+
+  .recap-table th:nth-child(3),
+  .recap-table td:nth-child(3) {
+    min-width: 130px;
+  }
+
+  .recap-table th:nth-child(8),
+  .recap-table td:nth-child(8) {
+    min-width: 120px;
+  }
+
+  .recap-table th:nth-child(9),
+  .recap-table td:nth-child(9) {
+    min-width: 145px;
+  }
+
+  .recap-table th:last-child,
+  .recap-table td:last-child {
+    min-width: 145px;
+  }
+
+}
