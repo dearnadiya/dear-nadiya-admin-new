@@ -2803,24 +2803,66 @@ async function loadRecapList(
       TRACKING BATCH
     </small>
 
-    <strong>
-      ${escapeHTML(
-        rows.find(
-          function (row) {
-            return (
-              row.batch_tracking_status ||
-              row.tracking_status
-            );
-          }
-        )?.batch_tracking_status ||
-        rows.find(
-          function (row) {
-            return row.tracking_status;
-          }
-        )?.tracking_status ||
-        "Belum ada tracking"
-      )}
-    </strong>
+    <select
+      class="batch-tracking-select"
+      data-batch-code="${escapeHTML(
+        batchCode
+      )}"
+    >
+
+      ${getTrackingOptions(
+        category
+      ).map(
+        function (option) {
+
+          const currentTracking =
+            rows.find(
+              function (row) {
+                return (
+                  row.batch_tracking_status
+                );
+              }
+            )?.batch_tracking_status ||
+            rows.find(
+              function (row) {
+                return row.tracking_status;
+              }
+            )?.tracking_status ||
+            "";
+
+          return `
+            <option
+              value="${escapeHTML(
+                option
+              )}"
+              ${
+                currentTracking ===
+                option
+                  ? "selected"
+                  : ""
+              }
+            >
+              ${escapeHTML(
+                option
+              )}
+            </option>
+          `;
+
+        }
+      ).join("")}
+
+    </select>
+
+
+    <button
+      type="button"
+      class="primary-button save-batch-tracking-button"
+      data-batch-code="${escapeHTML(
+        batchCode
+      )}"
+    >
+      💾 Simpan
+    </button>
 
   </div>
 
@@ -3033,6 +3075,112 @@ async function loadRecapList(
 
   container.innerHTML =
     html;
+
+   /* ==========================================
+   SIMPAN TRACKING BATCH
+   ========================================== */
+
+const batchTrackingButtons =
+  container.querySelectorAll(
+    ".save-batch-tracking-button"
+  );
+
+
+batchTrackingButtons.forEach(
+  function (button) {
+
+    button.addEventListener(
+      "click",
+      async function () {
+
+        const batchCode =
+          this.dataset.batchCode;
+
+
+        const select =
+          container.querySelector(
+            `.batch-tracking-select[data-batch-code="${CSS.escape(
+              batchCode
+            )}"]`
+          );
+
+
+        if (!select) {
+          return;
+        }
+
+
+        const trackingStatus =
+          select.value;
+
+
+        this.disabled =
+          true;
+
+        this.textContent =
+          "Menyimpan...";
+
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .update({
+              batch_tracking_status:
+                trackingStatus
+            })
+            .eq(
+              "category",
+              category
+            )
+            .eq(
+              "batch_code",
+              batchCode
+            );
+
+
+        if (error) {
+
+          console.error(
+            "ERROR UPDATE BATCH TRACKING:",
+            error
+          );
+
+
+          alert(
+            "Gagal menyimpan tracking batch: " +
+            error.message
+          );
+
+
+          this.disabled =
+            false;
+
+          this.textContent =
+            "💾 Simpan";
+
+          return;
+
+        }
+
+
+        alert(
+          "Tracking batch berhasil diperbarui."
+        );
+
+
+        await loadRecapList(
+          category
+        );
+
+      }
+    );
+
+  }
+);
 
 
   /* ==========================================
