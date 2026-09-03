@@ -144,6 +144,30 @@ function formatRupiah(value) {
 
 }
 
+const todayISO =
+  getTodayISO();
+
+const h7ISO =
+  getDateAfterDays(7);
+
+
+function getDeadlineStatus(deadline) {
+  const date = normalizeDate(deadline);
+
+  if (!date) {
+    return "";
+  }
+
+  if (date < todayISO) {
+    return "terlambat";
+  }
+
+  if (date === todayISO) {
+    return "hari-ini";
+  }
+
+  return "";
+}
 
 function formatDate(value) {
 
@@ -883,9 +907,26 @@ async function loadDashboard() {
     </span>
 
     <span class="dashboard-payment-amount">
-      ${formatRupiah(dpAmount)}
-    </span>
 
+  ${formatRupiah(dpAmount)}
+
+  ${
+    getDeadlineStatus(row.dp_deadline) === "hari-ini"
+      ? `<span class="dashboard-deadline-badge today">
+          HARI INI
+        </span>`
+      : ""
+  }
+
+  ${
+    getDeadlineStatus(row.dp_deadline) === "terlambat"
+      ? `<span class="dashboard-deadline-badge overdue">
+          TERLAMBAT
+        </span>`
+      : ""
+  }
+
+</span>
   </div>
 `;
                 })
@@ -1037,9 +1078,26 @@ ${itemsHTML}
     </span>
 
     <span class="dashboard-payment-amount">
-      ${formatRupiah(remaining)}
-    </span>
 
+  ${formatRupiah(remaining)}
+
+  ${
+    getDeadlineStatus(row.payment_deadline) === "hari-ini"
+      ? `<span class="dashboard-deadline-badge today">
+          HARI INI
+        </span>`
+      : ""
+  }
+
+  ${
+    getDeadlineStatus(row.payment_deadline) === "terlambat"
+      ? `<span class="dashboard-deadline-badge overdue">
+          TERLAMBAT
+        </span>`
+      : ""
+  }
+
+</span>
   </div>
 `;
                 })
