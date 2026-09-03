@@ -3141,3 +3141,239 @@ a {
   }
 
 }
+
+/* ============================================
+   MOBILE ADMIN - TAHAP 3
+   FORM TAMBAH & EDIT REKAP GO
+   ============================================ */
+
+@media (max-width: 700px) {
+
+  /* ==========================================
+     FORM REKAP
+     ========================================== */
+
+  .recap-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+
+  .recap-form h3 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+
+  .recap-form p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+
+  /* ==========================================
+     LABEL
+     ========================================== */
+
+  .recap-form label {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+
+  /* ==========================================
+     INPUT / SELECT / TEXTAREA
+     ========================================== */
+
+  .recap-form input,
+  .recap-form select,
+  .recap-form textarea {
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+
+  .recap-form textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+
+  /* ==========================================
+     PEMISAH
+     ========================================== */
+
+  .recap-form hr {
+    margin: 18px 0;
+  }
+
+
+  /* ==========================================
+     HARGA BATCH
+     ========================================== */
+
+  #batchCommonFields {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  #batchCommonFields input {
+    width: 100%;
+  }
+
+
+  /* ==========================================
+     CONTAINER MEMBER
+     ========================================== */
+
+  #batchItemsContainer {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  /* ==========================================
+     KARTU MEMBER / CUSTOMER
+     ========================================== */
+
+  .batch-item {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    margin: 14px 0;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+
+  /* ==========================================
+     HEADER MEMBER
+     ========================================== */
+
+  .batch-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+
+  .batch-item-header strong {
+    font-size: 14px;
+  }
+
+
+  .remove-batch-item {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+
+  /* ==========================================
+     HARGA PER CUSTOMER
+     ========================================== */
+
+  .different-price-fields {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  .different-price-fields input {
+    width: 100%;
+  }
+
+
+  /* ==========================================
+     PEMBAYARAN CUSTOMER
+     ========================================== */
+
+  .batch-payment-fields {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+  .batch-payment-fields input,
+  .batch-payment-fields select {
+    width: 100%;
+  }
+
+
+  /* ==========================================
+     TOMBOL TAMBAH MEMBER
+     ========================================== */
+
+  #addBatchItemButton {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 8px;
+    box-sizing: border-box;
+  }
+
+
+  /* ==========================================
+     TRACKING BATCH
+     ========================================== */
+
+  #batchTrackingStatus {
+    width: 100%;
+    min-height: 46px;
+  }
+
+
+  #batchCoDeadline {
+    width: 100%;
+    min-height: 44px;
+  }
+
+
+  /* ==========================================
+     TOMBOL SIMPAN / BATAL
+     ========================================== */
+
+  .recap-form .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 100%;
+    margin-top: 18px;
+  }
+
+
+  .recap-form .form-actions button {
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+  }
+
+
+  /* ==========================================
+     PESAN FORM
+     ========================================== */
+
+  #batchFormMessage {
+    width: 100%;
+    box-sizing: border-box;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+}
