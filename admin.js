@@ -3203,7 +3203,7 @@ async function loadRecapList(
                           <button
                             type="button"
                             class="primary-button edit-recap-button"
-                            data-id="${row.id}"
+                            data-id="${escapeHTML(String(row.id))}"
                           >
                             ✏️ Edit
                           </button>
