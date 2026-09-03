@@ -5665,7 +5665,17 @@ const coDeadline =
     .value ||
   null;
 
+console.log(
+  "CO DEADLINE YANG AKAN DISIMPAN:",
+  coDeadline
+);
 
+console.log(
+  "BATCH:",
+  data.category,
+  data.batch_code
+);
+         
 /* ==========================================
    UPDATE DEADLINE PELUNASAN PER BATCH
    ========================================== */
