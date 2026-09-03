@@ -5037,6 +5037,19 @@ async function editRecap(
       data.category
     );
 
+   const currentTracking =
+  data.batch_tracking_status ||
+  data.tracking_status ||
+  "";
+
+const canSetPaymentDeadline =
+  currentTracking === "Arrived WH INA" ||
+  currentTracking === "Arrived Admin" ||
+  currentTracking === "Goods Arrive at Customer";
+
+const canSetCoDeadline =
+  currentTracking === "Arrived Admin" ||
+  currentTracking === "Goods Arrive at Customer";
 
   container.innerHTML = `
 
@@ -5314,21 +5327,59 @@ async function editRecap(
           ""
         )}</textarea>
 
+<label>
+  Deadline Pelunasan
+</label>
 
-        <label>
-          Batas CO
-        </label>
+<input
+  id="editPaymentDeadline"
+  type="date"
+  value="${
+    data.payment_deadline ||
+    ""
+  }"
+  ${
+    canSetPaymentDeadline
+      ? ""
+      : "disabled"
+  }
+>
 
-        <input
-          id="editCoDeadline"
-          type="date"
-          value="${
-            data.co_deadline ||
-            ""
-          }"
-        >
+${
+  canSetPaymentDeadline
+    ? ""
+    : `<small>
+        Deadline Pelunasan dapat diisi setelah
+        tracking mencapai Arrived WH INA.
+      </small>`
+}
 
+<label>
+  Deadline CO Shopee
+</label>
 
+<input
+  id="editCoDeadline"
+  type="date"
+  value="${
+    data.co_deadline ||
+    ""
+  }"
+  ${
+    canSetCoDeadline
+      ? ""
+      : "disabled"
+  }
+>
+
+${
+  canSetCoDeadline
+    ? ""
+    : `<small>
+        Deadline CO Shopee dapat diisi setelah
+        tracking mencapai Arrived Admin.
+      </small>`
+}
         <div
           class="form-actions"
         >
@@ -5498,49 +5549,146 @@ async function editRecap(
               .value
               .trim(),
 
-          co_deadline:
-            document
-              .getElementById(
-                "editCoDeadline"
-              )
-              .value ||
-            null
-
-        };
+};
 
 
         const {
-          error
-        } =
-          await supabaseClient
-            .from(
-              "purchase_recap"
-            )
-            .update(
-              updatedData
-            )
-            .eq(
-              "id",
-              id
-            );
+  error
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .update(
+      updatedData
+    )
+    .eq(
+      "id",
+      id
+    );
 
 
-        if (error) {
+if (error) {
 
-          console.error(
-            "ERROR UPDATE RECAP:",
-            error
-          );
+  console.error(
+    "ERROR UPDATE RECAP:",
+    error
+  );
 
 
-          message.textContent =
-            "Gagal mengubah data: " +
-            error.message;
+  message.textContent =
+    "Gagal mengubah data: " +
+    error.message;
 
-          return;
+  return;
 
-        }
+}
 
+
+/* ==========================================
+   UPDATE DEADLINE BATCH
+   ========================================== */
+
+const paymentDeadline =
+  document
+    .getElementById(
+      "editPaymentDeadline"
+    )
+    .value ||
+  null;
+
+
+const coDeadline =
+  document
+    .getElementById(
+      "editCoDeadline"
+    )
+    .value ||
+  null;
+
+
+/* ==========================================
+   UPDATE DEADLINE PELUNASAN PER BATCH
+   ========================================== */
+
+const {
+  error: paymentDeadlineError
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .update({
+      payment_deadline:
+        paymentDeadline
+    })
+    .eq(
+      "category",
+      data.category
+    )
+    .eq(
+      "batch_code",
+      data.batch_code
+    );
+
+
+if (paymentDeadlineError) {
+
+  console.error(
+    "ERROR UPDATE PAYMENT DEADLINE:",
+    paymentDeadlineError
+  );
+
+
+  message.textContent =
+    "Data customer tersimpan, tetapi Deadline Pelunasan gagal diperbarui: " +
+    paymentDeadlineError.message;
+
+  return;
+
+}
+
+
+/* ==========================================
+   UPDATE DEADLINE CO SHOPEE PER BATCH
+   ========================================== */
+
+const {
+  error: coDeadlineError
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .update({
+      co_deadline:
+        coDeadline
+    })
+    .eq(
+      "category",
+      data.category
+    )
+    .eq(
+      "batch_code",
+      data.batch_code
+    );
+
+
+if (coDeadlineError) {
+
+  console.error(
+    "ERROR UPDATE CO DEADLINE:",
+    coDeadlineError
+  );
+
+
+  message.textContent =
+    "Data tersimpan, tetapi Deadline CO Shopee gagal diperbarui: " +
+    coDeadlineError.message;
+
+  return;
+
+}
 
         alert(
           "Data Rekap GO berhasil diperbarui."
