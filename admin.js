@@ -1109,24 +1109,60 @@ ${itemsHTML}
 
 
     /* =====================================
-       CO
-       
-       Muncul H-7 sampai deadline.
-       
-       Yang sudah checkout tidak muncul.
-    ===================================== */
+   CO
 
-    const coRows =
-      rows.filter(row => {
+   Muncul H-7 sampai deadline.
 
-        const customerName =
+   Yang sudah checkout tidak muncul.
+===================================== */
+
+const coRows =
+  rows.filter(row => {
+
+    const customerName =
+      String(
+        row.customer_name || ""
+      ).trim();
+
+    const status =
+      String(
+        row.customer_status || ""
+      ).trim();
+
+    const deadline =
+      normalizeDate(
+        row.co_deadline
+      );
+
+    if (
+      !customerName ||
+      !deadline
+    ) {
+      return false;
+    }
+
+    if (
+      status ===
+      "Sudah Checkout Shopee"
+    ) {
+      return false;
+    }
+
+    return (
+      deadline >= todayISO &&
+      deadline <= h7ISO
+    );
+  });
+
+
+const coCustomers = [
+  ...new Map(
+    coRows
+      .map(row => {
+
+        const name =
           String(
             row.customer_name || ""
-          ).trim();
-
-        const status =
-          String(
-            row.customer_status || ""
           ).trim();
 
         const deadline =
@@ -1135,73 +1171,178 @@ ${itemsHTML}
           );
 
         if (
-          !customerName ||
+          !name ||
           !deadline
         ) {
-          return false;
+          return null;
         }
 
-        if (
-          status ===
-          "Sudah Checkout Shopee"
-        ) {
-          return false;
-        }
+        return [
+          name,
+          {
+            name,
+            deadline
+          }
+        ];
 
-        return (
-          deadline >= todayISO &&
-          deadline <= h7ISO
+      })
+      .filter(Boolean)
+  ).values()
+];
+
+
+const coList =
+  document.getElementById(
+    "dashboardCoDeadlineList"
+  );
+
+
+if (
+  coCustomers.length === 0
+) {
+
+  coList.innerHTML = `
+    <p>
+      Tidak ada customer yang
+      mendekati batas akhir CO.
+    </p>
+  `;
+
+} else {
+
+  coList.innerHTML = `
+    <div class="dashboard-co-list">
+
+      ${coCustomers
+        .map(customer => `
+          <div
+            class="dashboard-co-item"
+            data-co-deadline="${customer.deadline}"
+          >
+
+            <span class="dashboard-co-name">
+              ${customer.name}
+            </span>
+
+            <span class="dashboard-co-deadline">
+              ${customer.deadline}
+            </span>
+
+            <span class="dashboard-co-countdown">
+              —
+            </span>
+
+          </div>
+        `)
+        .join("")
+      }
+
+    </div>
+  `;
+}
+
+
+/* =====================================
+   COUNTDOWN DEADLINE CO
+===================================== */
+
+function updateCODashboardCountdown() {
+
+  document
+    .querySelectorAll(
+      ".dashboard-co-item"
+    )
+    .forEach(item => {
+
+      const deadline =
+        item.dataset.coDeadline;
+
+      const countdown =
+        item.querySelector(
+          ".dashboard-co-countdown"
         );
-      });
 
+      if (
+        !deadline ||
+        !countdown
+      ) {
+        return;
+      }
 
-    const coCustomerNames =
-      [
-        ...new Set(
-          coRows.map(row =>
-            String(
-              row.customer_name || ""
-            ).trim()
-          )
-        )
-      ].filter(Boolean);
+      const today =
+        new Date();
 
-
-    const coList =
-      document.getElementById(
-        "dashboardCoDeadlineList"
+      today.setHours(
+        0,
+        0,
+        0,
+        0
       );
 
+      const target =
+        new Date(
+          deadline + "T00:00:00"
+        );
 
-    if (
-      coCustomerNames.length === 0
-    ) {
+      target.setHours(
+        0,
+        0,
+        0,
+        0
+      );
 
-      coList.innerHTML = `
-        <p>
-          Tidak ada customer yang
-          mendekati batas akhir CO.
-        </p>
-      `;
+      const diff =
+        Math.ceil(
+          (
+            target - today
+          ) /
+          (
+            1000 *
+            60 *
+            60 *
+            24
+          )
+        );
 
-    } else {
+      if (
+        diff < 0
+      ) {
 
-      coList.innerHTML = `
-        <div class="dashboard-co-list">
+        countdown.textContent =
+          "🔴 CO sudah lewat";
 
-          ${coCustomerNames
-            .map(name => `
-              <div class="dashboard-co-item">
-                ${name}
-              </div>
-            `)
-            .join("")
-          }
+      } else if (
+        diff === 0
+      ) {
 
-        </div>
-      `;
-    }
+        countdown.textContent =
+          "⏳ Hari ini";
 
+      } else if (
+        diff === 1
+      ) {
+
+        countdown.textContent =
+          "⏳ 1 hari lagi";
+
+      } else {
+
+        countdown.textContent =
+          `⏳ ${diff} hari lagi`;
+
+      }
+
+    });
+}
+
+
+updateCODashboardCountdown();
+
+setInterval(
+  updateCODashboardCountdown,
+  60 * 1000
+);
+     
   } catch (err) {
 
     console.error(
