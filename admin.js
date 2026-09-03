@@ -846,6 +846,15 @@ async function loadDashboard() {
 
             let totalDP = 0;
 
+             const paymentHeader = `
+  <div class="dashboard-payment-header">
+    <span>Kode Batch</span>
+    <span>Nama Barang</span>
+    <span>Versi / Member</span>
+    <span>Tagihan Pelunasan</span>
+  </div>
+`;
+
             const itemsHTML =
               customerRows
                 .map(row => {
@@ -859,29 +868,26 @@ async function loadDashboard() {
                     dpAmount;
 
                   return `
-                    <div class="dashboard-payment-item">
+  <div class="dashboard-payment-item">
 
-                      <strong>
-                        ${row.batch_code || "—"}
-                      </strong>
+    <strong>
+      ${row.batch_code || "—"}
+    </strong>
 
-                      <span>
-                        ${row.item_name || "—"}
-                      </span>
+    <span>
+      ${row.item_name || "—"}
+    </span>
 
-                      <span>
-                        ${row.version || "—"}
-                      </span>
+    <span>
+      ${row.version || "—"}
+    </span>
 
-                      <span>
-                        Tagihan DP:
-                        ${formatRupiah(
-                          dpAmount
-                        )}
-                      </span>
+    <span class="dashboard-payment-amount">
+      ${formatRupiah(dpAmount)}
+    </span>
 
-                    </div>
-                  `;
+  </div>
+`;
                 })
                 .join("");
 
@@ -893,8 +899,8 @@ async function loadDashboard() {
                   ${customerName}
                 </h4>
 
-                ${itemsHTML}
-
+                ${paymentHeader}
+${itemsHTML}
                 <div class="dashboard-payment-total">
                   <strong>
                     Total Tagihan DP:
@@ -994,6 +1000,15 @@ async function loadDashboard() {
 
             let totalPayment = 0;
 
+             const paymentHeader = `
+  <div class="dashboard-payment-header">
+    <span>Kode Batch</span>
+    <span>Nama Barang</span>
+    <span>Versi / Member</span>
+    <span>Tagihan DP</span>
+  </div>
+`;
+
             const itemsHTML =
               customerRows
                 .map(row => {
@@ -1007,29 +1022,26 @@ async function loadDashboard() {
                     remaining;
 
                   return `
-                    <div class="dashboard-payment-item">
+  <div class="dashboard-payment-item">
 
-                      <strong>
-                        ${row.batch_code || "—"}
-                      </strong>
+    <strong>
+      ${row.batch_code || "—"}
+    </strong>
 
-                      <span>
-                        ${row.item_name || "—"}
-                      </span>
+    <span>
+      ${row.item_name || "—"}
+    </span>
 
-                      <span>
-                        ${row.version || "—"}
-                      </span>
+    <span>
+      ${row.version || "—"}
+    </span>
 
-                      <span>
-                        Tagihan Pelunasan:
-                        ${formatRupiah(
-                          remaining
-                        )}
-                      </span>
+    <span class="dashboard-payment-amount">
+      ${formatRupiah(remaining)}
+    </span>
 
-                    </div>
-                  `;
+  </div>
+`;
                 })
                 .join("");
 
@@ -1041,8 +1053,8 @@ async function loadDashboard() {
                   ${customerName}
                 </h4>
 
-                ${itemsHTML}
-
+                ${paymentHeader}
+${itemsHTML}
                 <div class="dashboard-payment-total">
                   <strong>
                     Total Tagihan Pelunasan:
