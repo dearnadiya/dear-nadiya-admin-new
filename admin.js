@@ -3015,12 +3015,78 @@ async function loadRecapList(
     </p>
 
     <p>
-      ${rows.length}
-      customer
-    </p>
+  ${rows.length}
+  customer
+</p>
 
-  </div>
+<div class="recap-batch-deadlines">
 
+  <p>
+    💰 Deadline DP:
+    <strong>
+      ${
+        rows[0]?.dp_deadline
+          ? new Date(
+              rows[0].dp_deadline +
+              "T00:00:00"
+            ).toLocaleDateString(
+              "id-ID",
+              {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              }
+            )
+          : "—"
+      }
+    </strong>
+  </p>
+
+  <p>
+    💳 Deadline Pelunasan:
+    <strong>
+      ${
+        rows[0]?.payment_deadline
+          ? new Date(
+              rows[0].payment_deadline +
+              "T00:00:00"
+            ).toLocaleDateString(
+              "id-ID",
+              {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              }
+            )
+          : "—"
+      }
+    </strong>
+  </p>
+
+  <p>
+    🛒 Deadline CO Shopee:
+    <strong>
+      ${
+        rows[0]?.co_deadline
+          ? new Date(
+              rows[0].co_deadline +
+              "T00:00:00"
+            ).toLocaleDateString(
+              "id-ID",
+              {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              }
+            )
+          : "—"
+      }
+    </strong>
+  </p>
+
+</div>
+
+</div>
 
   <div
     class="batch-tracking"
