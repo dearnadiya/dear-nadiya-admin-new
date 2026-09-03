@@ -2818,3 +2818,68 @@ a {
   }
 
 }
+
+/* ============================================
+   FIX FOTO PESANAN / PO
+   FOTO KECIL DI POJOK KANAN
+   ============================================ */
+
+.po-card {
+  position: relative;
+  padding-right: 300px;
+}
+
+/* Foto PO */
+.po-card > img {
+  position: absolute !important;
+
+  top: 20px;
+  right: 20px;
+
+  /*
+    Ukuran foto dibatasi,
+    tetapi rasio gambar tetap dipertahankan.
+  */
+  width: auto !important;
+  height: auto !important;
+
+  max-width: 260px !important;
+  max-height: 200px !important;
+
+  object-fit: contain !important;
+
+  display: block;
+
+  margin: 0 !important;
+
+  border-radius: 15px;
+}
+
+
+/* ============================================
+   TAMPILAN MOBILE
+   ============================================ */
+
+@media (max-width: 700px) {
+
+  .po-card {
+    padding-right: 16px;
+  }
+
+  .po-card > img {
+    position: static !important;
+
+    width: auto !important;
+    height: auto !important;
+
+    max-width: 100% !important;
+    max-height: 220px !important;
+
+    object-fit: contain !important;
+
+    margin: 0 0 16px auto !important;
+
+    display: block;
+  }
+
+}
