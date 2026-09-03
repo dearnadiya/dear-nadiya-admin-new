@@ -3123,3 +3123,21 @@ a {
   }
 
 }
+
+/* ============================================
+   MOBILE REKAP GO - KOLOM CUSTOMER
+   ============================================ */
+
+@media (max-width: 700px) {
+
+  .recap-batch-card .product-table th:nth-child(2),
+  .recap-batch-card .product-table td:nth-child(2) {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+}
