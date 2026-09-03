@@ -3756,11 +3756,16 @@ async function saveBatchRecap(
           paymentStatus,
 
         tracking_status:
-          tracking,
+  tracking,
 
-        note:
-          note,
+batch_tracking_status:
+  tracking,
 
+customer_status:
+  "Belum Checkout Shopee",
+
+note:
+  note,
         co_deadline:
           coDeadline
 
