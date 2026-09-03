@@ -850,7 +850,7 @@ async function loadDashboard() {
     <span>Kode Batch</span>
     <span>Nama Barang</span>
     <span>Versi / Member</span>
-    <span>Tagihan Pelunasan</span>
+    <span>Tagihan DP</span>
   </div>
 `;
 
@@ -1004,7 +1004,7 @@ ${itemsHTML}
     <span>Kode Batch</span>
     <span>Nama Barang</span>
     <span>Versi / Member</span>
-    <span>Tagihan DP</span>
+    <span>Tagihan Pelunasan</span>
   </div>
 `;
 
