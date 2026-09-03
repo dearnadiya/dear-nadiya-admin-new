@@ -144,12 +144,6 @@ function formatRupiah(value) {
 
 }
 
-const todayISO =
-  getTodayISO();
-
-const h7ISO =
-  getDateAfterDays(7);
-
 function formatDate(value) {
 
   if (!value) {
