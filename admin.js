@@ -2883,6 +2883,56 @@ async function loadRecapList(
 
     </div>
 
+<div class="recap-filters">
+
+  <label>
+    Status Customer
+
+    <select id="recapCustomerFilter">
+      <option value="">Semua</option>
+      <option value="Belum Checkout Shopee">
+        ⏳ Belum Checkout Shopee
+      </option>
+      <option value="Sudah Checkout Shopee">
+        🛒 Sudah Checkout Shopee
+      </option>
+      <option value="Sudah Menerima Barang">
+        📦 Sudah Menerima Barang
+      </option>
+    </select>
+  </label>
+
+
+  <label>
+    Status DP
+
+    <select id="recapDpFilter">
+      <option value="">Semua</option>
+      <option value="unpaid">
+        ⏳ Belum Dibayar
+      </option>
+      <option value="paid">
+        ✓ Sudah Dibayar
+      </option>
+    </select>
+  </label>
+
+
+  <label>
+    Pembayaran
+
+    <select id="recapPaymentFilter">
+      <option value="">Semua</option>
+      <option value="unpaid">
+        ⏳ Belum Lunas
+      </option>
+      <option value="paid">
+        ✓ Lunas
+      </option>
+    </select>
+  </label>
+
+</div>
 
     <div
       class="recap-actions"
