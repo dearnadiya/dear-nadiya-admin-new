@@ -1961,12 +1961,24 @@ function loadRecap() {
 
       </div>
 
+      <div
+        class="recap-search-box"
+      >
+
+        <input
+          type="text"
+          id="adminRecapSearch"
+          placeholder="🔎 Cari customer, kode batch, barang, atau member..."
+          autocomplete="off"
+        >
+
+      </div>
+
 
       <div
         id="recapFormContainer"
       ></div>
-
-
+     
       <div
         id="recapListContainer"
       >
@@ -3151,13 +3163,11 @@ async function loadRecapList(
                           )}
                         </td>
 
-
                        <td>
   ${formatRupiah(
     row.dp_amount
   )}
 </td>
-
 
 <td>
   ${
