@@ -7431,6 +7431,148 @@ container.innerHTML = `
       }
     );
 
+   /* ==========================================
+   SIMPAN DRAFT EDIT OTOMATIS
+========================================== */
+
+if (isEdit) {
+
+  const poForm =
+    document.getElementById(
+      "poForm"
+    );
+
+  if (poForm) {
+
+    poForm.addEventListener(
+      "input",
+      function () {
+
+        const draftRows = [];
+
+        document
+          .querySelectorAll(
+            "#poRowsContainer .po-item-row"
+          )
+          .forEach(
+            function (row) {
+
+              draftRows.push({
+                member:
+                  row
+                    .querySelector(
+                      ".po-row-member"
+                    )
+                    ?.value
+                    ?.trim() || "",
+
+                customer:
+                  row
+                    .querySelector(
+                      ".po-row-customer"
+                    )
+                    ?.value
+                    ?.trim() || "",
+
+                quantity:
+                  Number(
+                    row
+                      .querySelector(
+                        ".po-row-quantity"
+                      )
+                      ?.value
+                  ) || 1,
+
+                note:
+                  row
+                    .querySelector(
+                      ".po-row-note"
+                    )
+                    ?.value
+                    ?.trim() || ""
+              });
+
+            }
+          );
+
+
+        const draftPO = {
+
+          ...existingPO,
+
+          title:
+            document
+              .getElementById(
+                "poTitle"
+              )
+              ?.value
+              ?.trim() || "",
+
+          po_type:
+            document
+              .getElementById(
+                "poType"
+              )
+              ?.value || "general",
+
+          price_text:
+            document
+              .getElementById(
+                "poPrice"
+              )
+              ?.value
+              ?.trim() || "",
+
+          dp_text:
+            document
+              .getElementById(
+                "poDP"
+              )
+              ?.value
+              ?.trim() || "",
+
+          close_date:
+            document
+              .getElementById(
+                "poCloseDate"
+              )
+              ?.value || "",
+
+          last_dp_date:
+            document
+              .getElementById(
+                "poLastDPDate"
+              )
+              ?.value || "",
+
+          description:
+            document
+              .getElementById(
+                "poDescription"
+              )
+              ?.value
+              ?.trim() || "",
+
+          list_data:
+            draftRows
+
+        };
+
+
+        localStorage.setItem(
+          "dearNadiyaEditingPO",
+          JSON.stringify(
+            draftPO
+          )
+        );
+
+      }
+    );
+
+  }
+
+}
+   
 }
 
 
