@@ -5574,3 +5574,20 @@ a {
   }
 
 }
+
+/* =========================================
+   TOMBOL AKSI PEMBAYARAN
+   ========================================= */
+
+#paymentsContainer .payment-proof-button,
+#paymentsContainer .detail-payment-button,
+#paymentsContainer .confirm-payment-button,
+#paymentsContainer .reject-payment-button {
+  font-size: 10px;
+  padding: 5px 8px;
+  min-height: 30px;
+  height: 30px;
+  line-height: 1;
+  white-space: nowrap;
+  border-radius: 8px;
+}
