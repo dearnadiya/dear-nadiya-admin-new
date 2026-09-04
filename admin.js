@@ -2664,17 +2664,19 @@ async function loadPaymentArchive() {
   }
 
 
+  /* ==========================================
+     TIDAK ADA ARSIP
+     ========================================== */
+
   if (
     !data ||
     data.length === 0
   ) {
 
     archiveContainer.innerHTML = `
-      <div class="panel">
+      <div class="payment-archive-empty">
 
-        <h3>
-          Belum ada arsip pembayaran
-        </h3>
+        Belum ada arsip pembayaran.
 
       </div>
     `;
@@ -2683,188 +2685,267 @@ async function loadPaymentArchive() {
   }
 
 
+  /* ==========================================
+     TOMBOL ARSIP
+     ========================================== */
+
   archiveContainer.innerHTML = `
 
-    <div class="product-table-wrapper">
-
-      <table class="product-table">
-
-        <thead>
-
-          <tr>
-
-            <th>
-              ID
-            </th>
-
-            <th>
-              Customer
-            </th>
-
-            <th>
-              WhatsApp
-            </th>
-
-            <th>
-              Kode Produk
-            </th>
-
-            <th>
-              Versi
-            </th>
-
-            <th>
-              Nominal
-            </th>
-
-            <th>
-              Tanggal Transfer
-            </th>
-
-            <th>
-              Bukti
-            </th>
-
-            <th>
-              Status
-            </th>
-
-          </tr>
-
-        </thead>
+    <button
+      type="button"
+      class="payment-archive-toggle"
+      id="paymentArchiveToggle"
+    >
+      📁 Arsip
+    </button>
 
 
-        <tbody>
+    <div
+      id="paymentArchiveContent"
+      class="payment-archive-content"
+      style="display: none;"
+    >
 
-          ${data.map(
-            function (
-              payment
-            ) {
+      <div class="product-table-wrapper">
 
-              return `
+        <table class="product-table">
 
-                <tr>
+          <thead>
 
-                  <td>
-                    ${
-                      payment.id ||
-                      "—"
-                    }
-                  </td>
+            <tr>
 
+              <th>ID</th>
 
-                  <td>
-                    ${escapeHTML(
-                      payment.customer_name ||
-                      "—"
-                    )}
-                  </td>
+              <th>Customer</th>
 
+              <th>WhatsApp</th>
 
-                  <td>
-                    ${escapeHTML(
-                      payment.whatsapp_last4 ||
-                      "—"
-                    )}
-                  </td>
+              <th>Kode Produk</th>
 
+              <th>Versi</th>
 
-                  <td>
-                    ${escapeHTML(
-                      payment.product_code ||
-                      "—"
-                    )}
-                  </td>
+              <th>Nominal</th>
+
+              <th>Tanggal Transfer</th>
+
+              <th>Bukti</th>
+
+              <th>Status</th>
+
+            </tr>
+
+          </thead>
 
 
-                  <td>
-                    ${escapeHTML(
-                      payment.product_version ||
-                      "—"
-                    )}
-                  </td>
+          <tbody>
+
+            ${data.map(
+              function (
+                payment
+              ) {
+
+                return `
+
+                  <tr>
+
+                    <td>
+                      ${
+                        payment.id ||
+                        "—"
+                      }
+                    </td>
 
 
-                  <td>
-                    ${formatRupiah(
-                      payment.amount
-                    )}
-                  </td>
+                    <td>
+                      ${escapeHTML(
+                        payment.customer_name ||
+                        "—"
+                      )}
+                    </td>
 
 
-                  <td>
-                    ${
-                      payment.payment_date
-                        ? formatDate(
-                            payment.payment_date
-                          )
-                        : "—"
-                    }
-                  </td>
+                    <td>
+                      ${escapeHTML(
+                        payment.whatsapp_last4 ||
+                        "—"
+                      )}
+                    </td>
 
 
-                  <td>
-
-                    ${
-                      payment.proof_path
-                        ? `
-                          <button
-                            type="button"
-                            class="primary-button payment-proof-button"
-                            data-proof="${escapeHTML(
-                              payment.proof_path
-                            )}"
-                          >
-                            👁 Lihat Bukti
-                          </button>
-                        `
-                        : "—"
-                    }
-
-                  </td>
+                    <td>
+                      ${escapeHTML(
+                        payment.product_code ||
+                        "—"
+                      )}
+                    </td>
 
 
-                  <td>
+                    <td>
+                      ${escapeHTML(
+                        payment.product_version ||
+                        "—"
+                      )}
+                    </td>
 
-                    ${
-                      payment.status ===
-                      "confirmed"
 
-                        ? `
-                          <span>
-                            ✅ Diterima
-                          </span>
-                        `
+                    <td>
+                      ${formatRupiah(
+                        payment.amount
+                      )}
+                    </td>
 
-                        : payment.status ===
-                          "rejected"
+
+                    <td>
+                      ${
+                        payment.payment_date
+                          ? formatDate(
+                              payment.payment_date
+                            )
+                          : "—"
+                      }
+                    </td>
+
+
+                    <td>
+
+                      ${
+                        payment.proof_path
+                          ? `
+                            <button
+                              type="button"
+                              class="primary-button payment-proof-button"
+                              data-proof="${escapeHTML(
+                                payment.proof_path
+                              )}"
+                            >
+                              👁 Lihat Bukti
+                            </button>
+                          `
+                          : "—"
+                      }
+
+                    </td>
+
+
+                    <td>
+
+                      ${
+                        payment.status ===
+                        "confirmed"
 
                           ? `
                             <span>
-                              ❌ Ditolak
+                              ✅ Diterima
                             </span>
                           `
 
-                          : "—"
-                    }
+                          : payment.status ===
+                            "rejected"
 
-                  </td>
+                            ? `
+                              <span>
+                                ❌ Ditolak
+                              </span>
+                            `
 
-                </tr>
+                            : "—"
+                      }
 
-              `;
+                    </td>
 
-            }
-          ).join("")}
+                  </tr>
 
-        </tbody>
+                `;
 
-      </table>
+              }
+            ).join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
 
     </div>
 
   `;
 
+
+  /* ==========================================
+     BUKA / TUTUP ARSIP
+     ========================================== */
+
+  const archiveToggle =
+    document.getElementById(
+      "paymentArchiveToggle"
+    );
+
+  const archiveContent =
+    document.getElementById(
+      "paymentArchiveContent"
+    );
+
+
+  if (
+    archiveToggle &&
+    archiveContent
+  ) {
+
+    archiveToggle.addEventListener(
+      "click",
+      function () {
+
+        const isHidden =
+          archiveContent.style.display ===
+          "none";
+
+
+        archiveContent.style.display =
+          isHidden
+            ? "block"
+            : "none";
+
+
+        archiveToggle.innerHTML =
+          isHidden
+            ? "📂 Tutup Arsip"
+            : "📁 Arsip";
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     TOMBOL LIHAT BUKTI
+     ========================================== */
+
+  archiveContainer
+    .querySelectorAll(
+      ".payment-proof-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const path =
+              this.dataset.proof;
+
+            viewPaymentProof(
+              path
+            );
+
+          }
+        );
+
+      }
+    );
+
+}
 
   /* ==========================================
      TOMBOL LIHAT BUKTI ARSIP
