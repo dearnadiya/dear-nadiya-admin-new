@@ -6792,11 +6792,6 @@ function showPOForm(
 
   }
 
-
-  localStorage.removeItem(
-  "dearNadiyaEditingPO"
-);
-
 container.innerHTML = `
    
     <div
