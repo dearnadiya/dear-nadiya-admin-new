@@ -8438,6 +8438,146 @@ async function loadPORunningList() {
       </div>
     `).join("");
 
+     // ==========================================
+// KLIK KARTU PO BERJALAN
+// ==========================================
+
+container
+  .querySelectorAll(".po-running-card")
+  .forEach(function (card) {
+
+    card.addEventListener(
+      "click",
+      function () {
+
+        const poId =
+          this.dataset.poId;
+
+        const poListContainer =
+          document.getElementById(
+            "poListContainer"
+          );
+
+        if (!poListContainer) {
+          return;
+        }
+
+        // Tampilkan area detail
+        poListContainer.style.display =
+          "block";
+
+        // Sembunyikan semua detail PO
+        poListContainer
+          .querySelectorAll(".po-card")
+          .forEach(
+            function (poCard) {
+
+              if (
+                String(
+                  poCard.dataset.poId
+                ) === String(poId)
+              ) {
+
+                poCard.style.display =
+                  "";
+
+              } else {
+
+                poCard.style.display =
+                  "none";
+
+              }
+
+            }
+          );
+
+        // Buat tombol kembali jika belum ada
+        let backButton =
+          document.getElementById(
+            "backToPORunningButton"
+          );
+
+        if (!backButton) {
+
+          backButton =
+            document.createElement(
+              "button"
+            );
+
+          backButton.type =
+            "button";
+
+          backButton.id =
+            "backToPORunningButton";
+
+          backButton.className =
+            "secondary-button";
+
+          backButton.textContent =
+            "← Kembali ke PO Berjalan";
+
+          poListContainer
+            .insertBefore(
+              backButton,
+              poListContainer.firstChild
+            );
+
+        }
+
+        // Fungsi kembali ke daftar kartu
+        backButton.onclick =
+          function () {
+
+            poListContainer
+              .querySelectorAll(
+                ".po-card"
+              )
+              .forEach(
+                function (poCard) {
+
+                  poCard.style.display =
+                    "";
+
+                }
+              );
+
+            poListContainer.style.display =
+              "none";
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth"
+            });
+
+          };
+
+        // Scroll ke detail PO yang dipilih
+        const selectedCard =
+          poListContainer.querySelector(
+            `.po-card[data-po-id="${poId}"]`
+          );
+
+        if (selectedCard) {
+
+          setTimeout(
+            function () {
+
+              selectedCard.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+
+            },
+            100
+          );
+
+        }
+
+      }
+    );
+
+  });
+
   } catch (error) {
     console.error("Gagal memuat PO berjalan:", error);
 
@@ -8607,9 +8747,9 @@ const { data, error } = await supabaseClient
           return `
 
             <div
-              class="panel po-card"
-            >
-
+  class="panel po-card"
+  data-po-id="${po.id}"
+>
               <div
                 class="po-card-content"
               >
