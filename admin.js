@@ -2124,24 +2124,26 @@ async function loadPayments() {
     return;
   }
 
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from(
-        "dn_payment_submissions"
-      )
-      .select("*")
-      .order(
-        "id",
-        {
-          ascending:
-            false
-        }
-      );
-
+const {
+  data,
+  error
+} =
+  await supabaseClient
+    .from(
+      "dn_payment_submissions"
+    )
+    .select("*")
+    .eq(
+      "status",
+      "pending"
+    )
+    .order(
+      "id",
+      {
+        ascending:
+          false
+      }
+    );
 
   if (error) {
 
