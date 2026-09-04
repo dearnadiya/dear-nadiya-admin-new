@@ -3337,25 +3337,26 @@ async function updatePaymentStatus(
   ) {
 
     const {
-      data: recapRows,
-      error: recapFetchError
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select("*")
-        .ilike(
-          "customer_name",
-          payment.customer_name
-        )
-        .ilike(
-          "batch_code",
-          payment.product_code
-        )
-        .ilike(
-          "item_name",
-          payment.product_version
-        );
+  data: recapRows,
+  error: recapFetchError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select("*")
+    .ilike(
+      "customer_name",
+      payment.customer_name
+    )
+    .ilike(
+      "batch_code",
+      payment.product_code
+    );
 
+console.log(
+  "HASIL CARI REKAP CUSTOMER + BATCH:",
+  recapRows
+);
+     
      console.log("DATA PEMBAYARAN:", {
   customer_name: payment.customer_name,
   product_code: payment.product_code,
