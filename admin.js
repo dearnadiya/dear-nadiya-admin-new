@@ -6797,7 +6797,7 @@ function showPOForm(
   "dearNadiyaEditingPO"
 );
 
-container.innerHTML = "";
+container.innerHTML = `
    
     <div
       class="panel po-form-panel"
