@@ -8340,10 +8340,16 @@ localStorage.removeItem(
   "dearNadiyaEditingPO"
 );
 
-container.innerHTML = "";
+const poFormContainer =
+  document.getElementById(
+    "poFormContainer"
+  );
+
+if (poFormContainer) {
+  poFormContainer.innerHTML = "";
+}
 
 await loadPOList();
-
 }
 
 /* ============================================
