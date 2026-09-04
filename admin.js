@@ -7754,18 +7754,18 @@ async function savePO(
   ) {
 
     result =
-      await supabaseClient
-        .from(
-          "po_posts"
-        )
-        .update(
-          poData
-        )
-        .eq(
-          "id",
-          existingPO.id
-        );
-
+  await supabaseClient
+    .from(
+      "po_posts"
+    )
+    .update(
+      poData
+    )
+    .eq(
+      "id",
+      existingPO.id
+    )
+    .select();
   } else {
 
     result =
@@ -7796,6 +7796,25 @@ async function savePO(
 
   }
 
+   if (
+  existingPO &&
+  (
+    !result.data ||
+    !result.data.length
+  )
+) {
+
+  console.error(
+    "UPDATE PO TIDAK MENGUBAH DATA:",
+    result
+  );
+
+  alert(
+    "Perubahan PO tidak masuk ke database. Silakan cek izin UPDATE pada tabel po_posts."
+  );
+
+  return;
+}
 
   alert(
     existingPO
