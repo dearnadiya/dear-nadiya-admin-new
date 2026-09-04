@@ -3207,8 +3207,10 @@ const archiveContainer =
     document.getElementById(
         "paymentArchiveContainer"
     );
-  
-archiveContainer
+
+if (archiveContainer) {
+
+  archiveContainer
     .querySelectorAll(
       ".payment-proof-button"
     )
@@ -3232,6 +3234,7 @@ archiveContainer
       }
     );
 
+}
 /* ============================================
    UPDATE STATUS PEMBAYARAN
    ============================================ */
