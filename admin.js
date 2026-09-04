@@ -2706,6 +2706,30 @@ async function loadPaymentArchive() {
       style="display: none;"
     >
 
+<div class="payment-archive-filter">
+
+  <label for="paymentArchiveFilter">
+    Status
+  </label>
+
+  <select id="paymentArchiveFilter">
+
+    <option value="all">
+      Semua
+    </option>
+
+    <option value="confirmed">
+      ✅ Diterima
+    </option>
+
+    <option value="rejected">
+      ❌ Ditolak
+    </option>
+
+  </select>
+
+</div>
+
       <div class="product-table-wrapper">
 
         <table class="product-table">
@@ -2746,8 +2770,8 @@ async function loadPaymentArchive() {
 
                 return `
 
-                  <tr>
-
+                  <tr data-payment-status="${payment.status}">
+                  
                     <td>
                       ${
                         payment.id ||
@@ -2916,6 +2940,57 @@ async function loadPaymentArchive() {
 
   }
 
+   /* ==========================================
+   FILTER ARSIP PEMBAYARAN
+   ========================================== */
+
+const archiveFilter =
+  document.getElementById(
+    "paymentArchiveFilter"
+  );
+
+if (archiveFilter) {
+
+  archiveFilter.addEventListener(
+    "change",
+    function () {
+
+      const selectedStatus =
+        this.value;
+
+      const rows =
+        archiveContainer.querySelectorAll(
+          "tbody tr[data-payment-status]"
+        );
+
+      rows.forEach(
+        function (row) {
+
+          const rowStatus =
+            row.dataset.paymentStatus;
+
+          if (
+            selectedStatus ===
+            "all" ||
+            rowStatus ===
+            selectedStatus
+          ) {
+
+            row.style.display = "";
+
+          } else {
+
+            row.style.display = "none";
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+}
 
   /* ==========================================
      TOMBOL LIHAT BUKTI
