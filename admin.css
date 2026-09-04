@@ -4747,3 +4747,33 @@ a {
     font-size: 14px;
   }
 }
+
+/* =========================================
+   KARTU PO BERJALAN - CLICKABLE
+   ========================================= */
+
+.po-running-card {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.po-running-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 7px 18px rgba(0, 0, 0, 0.10);
+}
+
+.po-running-card:active {
+  transform: scale(0.98);
+}
+
+
+/* =========================================
+   TOMBOL KEMBALI
+   ========================================= */
+
+#backToPORunningButton {
+  margin-bottom: 16px;
+}
