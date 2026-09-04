@@ -3357,18 +3357,17 @@ async function updatePaymentStatus(
         )
         .select("*")
         .eq(
-          "customer_name",
-          payment.customer_name
-        )
-        .eq(
-          "batch_code",
-          payment.product_code
-        )
-        .eq(
-          "version",
-          payment.product_version
-        );
-
+  "customer_name",
+  payment.customer_name
+)
+.eq(
+  "batch_code",
+  payment.product_code
+)
+.eq(
+  "item_name",
+  payment.product_version
+);
 
     if (recapFetchError) {
 
