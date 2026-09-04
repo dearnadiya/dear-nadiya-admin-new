@@ -7970,37 +7970,58 @@ async function savePO(
 
 
       const note =
-        row
-          .querySelector(
-            ".po-row-note"
-          )
-          .value
-          .trim();
+  row
+    .querySelector(
+      ".po-row-note"
+    )
+    .value
+    .trim();
 
 
-      if (
-        member ||
-        customer
-      ) {
+const price =
+  row
+    .querySelector(
+      ".po-row-price"
+    )?.value
+    .trim() || "";
 
-        listData.push({
 
-          member:
-            member,
+const dp =
+  row
+    .querySelector(
+      ".po-row-dp"
+    )?.value
+    .trim() || "";
 
-          customer:
-            customer,
 
-          quantity:
-            quantity,
+if (
+  member ||
+  customer
+) {
 
-          note:
-            note
+  listData.push({
 
-        });
+    member:
+      member,
 
-      }
+    customer:
+      customer,
 
+    quantity:
+      quantity,
+
+    price:
+      price,
+
+    dp:
+      dp,
+
+    note:
+      note
+
+  });
+
+}
     }
   );
 
@@ -8176,24 +8197,43 @@ async function savePO(
 
   }
 
+   const priceMode =
+  document
+    .getElementById(
+      "poPriceMode"
+    )
+    ?.value || "same";
+
+
+const dpMode =
+  document
+    .getElementById(
+      "poDPMode"
+    )
+    ?.value || "same";
 
   const poData = {
 
-    title:
-      title,
+  title:
+    title,
 
-    image_url:
-      imageURL,
+  image_url:
+    imageURL,
 
-    po_type:
-      poType,
+  po_type:
+    poType,
 
-    price_text:
-      priceText,
+  price_mode:
+    priceMode,
 
-    dp_text:
-      dpText,
+  dp_mode:
+    dpMode,
 
+  price_text:
+    priceText,
+
+  dp_text:
+    dpText,
     close_date:
       closeDate
         ? new Date(
