@@ -8969,15 +8969,27 @@ const { data, error } = await supabaseClient
       Qty
     </th>
 
-    <th>
-      <span class="po-table-icon">💰</span>
-      Harga
-    </th>
+    ${
+      po.price_mode === "different"
+        ? `
+          <th>
+            <span class="po-table-icon">💰</span>
+            Harga
+          </th>
+        `
+        : ""
+    }
 
-    <th>
-      <span class="po-table-icon">💳</span>
-      DP
-    </th>
+    ${
+      po.dp_mode === "different"
+        ? `
+          <th>
+            <span class="po-table-icon">💳</span>
+            DP
+          </th>
+        `
+        : ""
+    }
 
     <th>
       <span class="po-table-icon">📝</span>
@@ -9024,33 +9036,34 @@ const { data, error } = await supabaseClient
           </td>
 
 
-          <!-- HARGA -->
-          <td>
-            ${
-              po.price_mode ===
-              "different"
-                ? escapeHTML(
-                    item.price ||
-                    "—"
-                  )
-                : "—"
-            }
-          </td>
+         ${
+  po.price_mode === "different"
+    ? `
+      <!-- HARGA PER CUSTOMER -->
+      <td>
+        ${escapeHTML(
+          item.price ||
+          "—"
+        )}
+      </td>
+    `
+    : ""
+}
 
 
-          <!-- DP -->
-          <td>
-            ${
-              po.dp_mode ===
-              "different"
-                ? escapeHTML(
-                    item.dp ||
-                    "—"
-                  )
-                : "—"
-            }
-          </td>
-
+${
+  po.dp_mode === "different"
+    ? `
+      <!-- DP PER CUSTOMER -->
+      <td>
+        ${escapeHTML(
+          item.dp ||
+          "—"
+        )}
+      </td>
+    `
+    : ""
+}
 
           <!-- CATATAN -->
           <td>
