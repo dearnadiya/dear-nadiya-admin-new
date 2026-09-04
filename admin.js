@@ -8384,23 +8384,17 @@ async function loadPOList() {
   `;
 
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from(
-        "po_posts"
-      )
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending:
-            false
-        }
-      );
+  const now = new Date().toISOString();
 
+const now = new Date().toISOString();
+
+const { data, error } = await supabaseClient
+  .from("po_posts")
+  .select("*")
+  .or(`close_date.is.null,close_date.gte.${now}`)
+  .order("created_at", {
+    ascending: false
+  });
 
   if (error) {
 
