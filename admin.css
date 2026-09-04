@@ -5018,3 +5018,96 @@ a {
   }
 
 }
+
+/* =========================================
+   TABEL PO - FIX MOBILE
+   TABEL DIGESER HORIZONTAL
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  /* Kartu PO tidak boleh ikut melebar */
+  .po-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Area pembungkus tabel */
+  .product-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-sizing: border-box;
+
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+
+    padding-bottom: 8px;
+  }
+
+  /* Tabel jangan dipaksa mengikuti lebar HP */
+  .product-table {
+    width: max-content;
+    min-width: 560px;
+    max-width: none;
+
+    table-layout: auto;
+    border-collapse: separate;
+  }
+
+  /* Header dan isi tabel */
+  .product-table th,
+  .product-table td {
+    white-space: nowrap;
+    padding: 9px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+    vertical-align: middle;
+  }
+
+  /* Header tidak boleh pecah menjadi beberapa baris */
+  .product-table th {
+    white-space: nowrap;
+  }
+
+  /* Member / Versi */
+  .product-table th:nth-child(1),
+  .product-table td:nth-child(1) {
+    min-width: 105px;
+  }
+
+  /* Customer */
+  .product-table th:nth-child(2),
+  .product-table td:nth-child(2) {
+    min-width: 120px;
+  }
+
+  /* Qty */
+  .product-table th:nth-child(3),
+  .product-table td:nth-child(3) {
+    min-width: 50px;
+    text-align: center;
+  }
+
+  /* Harga */
+  .product-table th:nth-child(4),
+  .product-table td:nth-child(4) {
+    min-width: 80px;
+  }
+
+  /* DP */
+  .product-table th:nth-child(5),
+  .product-table td:nth-child(5) {
+    min-width: 80px;
+  }
+
+  /* Catatan */
+  .product-table th:nth-child(6),
+  .product-table td:nth-child(6) {
+    min-width: 100px;
+  }
+
+}
