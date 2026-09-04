@@ -8386,8 +8386,6 @@ async function loadPOList() {
 
   const now = new Date().toISOString();
 
-const now = new Date().toISOString();
-
 const { data, error } = await supabaseClient
   .from("po_posts")
   .select("*")
