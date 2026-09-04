@@ -8606,40 +8606,40 @@ async function loadPOList() {
 
 
                   <div
-                    class="po-meta"
-                  >
+  class="po-meta"
+>
+  ${
+    po.price_mode !== "different" &&
+    po.price_text
+      ? `
+        <div>
+          <strong>
+            Harga:
+          </strong>
+          ${escapeHTML(
+            po.price_text
+          )}
+        </div>
+      `
+      : ""
+  }
 
-                    ${
-                      po.price_text
-                        ? `
-                          <div>
-                            <strong>
-                              Harga:
-                            </strong>
-                            ${escapeHTML(
-                              po.price_text
-                            )}
-                          </div>
-                        `
-                        : ""
-                    }
 
-
-                    ${
-                      po.dp_text
-                        ? `
-                          <div>
-                            <strong>
-                              DP:
-                            </strong>
-                            ${escapeHTML(
-                              po.dp_text
-                            )}
-                          </div>
-                        `
-                        : ""
-                    }
-
+  ${
+    po.dp_mode !== "different" &&
+    po.dp_text
+      ? `
+        <div>
+          <strong>
+            DP:
+          </strong>
+          ${escapeHTML(
+            po.dp_text
+          )}
+        </div>
+      `
+      : ""
+  }
 
                     ${
                       po.close_date
