@@ -3241,8 +3241,49 @@ async function updatePaymentStatus(
   newStatus
 ) {
 
+  /* ==========================================
+     1. AMBIL DATA PEMBAYARAN
+     ========================================== */
+
   const {
-    error
+    data: payment,
+    error: paymentFetchError
+  } =
+    await supabaseClient
+      .from(
+        "dn_payment_submissions"
+      )
+      .select("*")
+      .eq(
+        "id",
+        id
+      )
+      .single();
+
+
+  if (paymentFetchError) {
+
+    console.error(
+      "ERROR GET PAYMENT:",
+      paymentFetchError
+    );
+
+    alert(
+      "Gagal mengambil data pembayaran: " +
+      paymentFetchError.message
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     2. UPDATE STATUS PEMBAYARAN
+     ========================================== */
+
+  const {
+    error: paymentUpdateError
   } =
     await supabaseClient
       .from(
@@ -3258,17 +3299,16 @@ async function updatePaymentStatus(
       );
 
 
-  if (error) {
+  if (paymentUpdateError) {
 
     console.error(
       "ERROR UPDATE PAYMENT:",
-      error
+      paymentUpdateError
     );
-
 
     alert(
       "Gagal mengubah status pembayaran: " +
-      error.message
+      paymentUpdateError.message
     );
 
     return;
@@ -3276,20 +3316,218 @@ async function updatePaymentStatus(
   }
 
 
-  alert(
+  /* ==========================================
+     3. JIKA DITOLAK
+     TIDAK ADA PERUBAHAN REKAP GO
+     ========================================== */
+
+  if (
     newStatus ===
-      "confirmed"
+    "rejected"
+  ) {
 
-      ? "Pembayaran berhasil dikonfirmasi."
+    alert(
+      "Pembayaran ditolak."
+    );
 
-      : "Pembayaran ditolak."
-  );
+    await loadPayments();
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     4. JIKA DIKONFIRMASI
+     CARI REKAP GO YANG SESUAI
+     ========================================== */
+
+  if (
+    newStatus ===
+    "confirmed"
+  ) {
+
+    const {
+      data: recapRows,
+      error: recapFetchError
+    } =
+      await supabaseClient
+        .from(
+          "purchase_recap"
+        )
+        .select("*")
+        .eq(
+          "customer_name",
+          payment.customer_name
+        )
+        .eq(
+          "batch_code",
+          payment.product_code
+        )
+        .eq(
+          "version",
+          payment.product_version
+        );
+
+
+    if (recapFetchError) {
+
+      console.error(
+        "ERROR FIND RECAP:",
+        recapFetchError
+      );
+
+      alert(
+        "Pembayaran berhasil dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+        recapFetchError.message
+      );
+
+      await loadPayments();
+
+      return;
+
+    }
+
+
+    /* ========================================
+       5. CEK APAKAH REKAP DITEMUKAN
+       ======================================== */
+
+    if (
+      !recapRows ||
+      recapRows.length === 0
+    ) {
+
+      alert(
+        "Pembayaran berhasil dikonfirmasi, tetapi data Rekap GO yang sesuai tidak ditemukan."
+      );
+
+      await loadPayments();
+
+      return;
+
+    }
+
+
+    /* ========================================
+       6. TENTUKAN UPDATE BERDASARKAN
+          JENIS PEMBAYARAN
+       ======================================== */
+
+    for (
+      const recap of recapRows
+    ) {
+
+      const updateData = {};
+
+
+      if (
+        payment.payment_type ===
+        "dp"
+      ) {
+
+        updateData.dp_status =
+          "paid";
+
+      }
+
+
+      if (
+        payment.payment_type ===
+        "pelunasan"
+      ) {
+
+        updateData.payment_status =
+          "paid";
+
+        updateData.remaining_amount =
+          0;
+
+      }
+
+
+      if (
+        payment.payment_type ===
+        "both"
+      ) {
+
+        updateData.dp_status =
+          "paid";
+
+        updateData.payment_status =
+          "paid";
+
+        updateData.remaining_amount =
+          0;
+
+      }
+
+
+      /* ======================================
+         7. UPDATE REKAP GO
+         ====================================== */
+
+      if (
+        Object.keys(
+          updateData
+        ).length > 0
+      ) {
+
+        const {
+          error: recapUpdateError
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .update(
+              updateData
+            )
+            .eq(
+              "id",
+              recap.id
+            );
+
+
+        if (
+          recapUpdateError
+        ) {
+
+          console.error(
+            "ERROR UPDATE RECAP:",
+            recapUpdateError
+          );
+
+          alert(
+            "Pembayaran dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+            recapUpdateError.message
+          );
+
+          await loadPayments();
+
+          return;
+
+        }
+
+      }
+
+    }
+
+
+    /* ========================================
+       8. SELESAI
+       ======================================== */
+
+    alert(
+      "Pembayaran berhasil dikonfirmasi dan Rekap GO berhasil diperbarui."
+    );
+
+  }
 
 
   await loadPayments();
 
 }
-
 
 /* ============================================
    LIHAT BUKTI PEMBAYARAN
