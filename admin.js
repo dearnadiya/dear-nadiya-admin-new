@@ -8557,6 +8557,55 @@ window.addEventListener(
   }
 );
 
+/* ============================================
+   DELETE PO
+   ============================================ */
+
+async function deletePO(id) {
+
+  if (
+    !confirm(
+      "Yakin ingin menghapus PO ini?"
+    )
+  ) {
+    return;
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "po_posts"
+      )
+      .delete()
+      .eq(
+        "id",
+        id
+      );
+
+  if (error) {
+
+    console.error(
+      "ERROR DELETE PO:",
+      error
+    );
+
+    alert(
+      "Gagal menghapus PO: " +
+      error.message
+    );
+
+    return;
+  }
+
+  alert(
+    "PO berhasil dihapus. ♥"
+  );
+
+  await loadPOList();
+
+}
 
 /* ============================================
    AKHIR ADMIN.JS
