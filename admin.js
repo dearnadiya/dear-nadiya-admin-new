@@ -7424,6 +7424,24 @@ container.innerHTML = `
   >
 </div>
 
+<!-- DP PER MEMBER / VERSI -->
+<div
+  class="form-group po-row-dp-group"
+>
+  <label>
+    DP
+  </label>
+
+  <input
+    type="text"
+    class="po-row-dp"
+    placeholder="Contoh: Rp50.000"
+    value="${escapeHTML(
+      rowData.dp ||
+      ""
+    )}"
+  >
+</div>
           <label>
             Catatan
           </label>
