@@ -158,23 +158,7 @@ function showAdmin(session) {
     ) || "dashboard";
 
 
-  showPage(
-    savedPage
-  );
-
-}
-
-  /* =========================================
-     KEMBALIKAN HALAMAN TERAKHIR
-     ========================================= */
-
-  const savedPage =
-    localStorage.getItem(
-      "dearNadiyaAdminPage"
-    ) || "dashboard";
-
-
-  showPage(
+    showPage(
     savedPage
   );
 
