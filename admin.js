@@ -2708,6 +2708,14 @@ async function loadPaymentArchive() {
 
 <div class="payment-archive-filter">
 
+  <input
+    type="text"
+    id="paymentArchiveSearch"
+    placeholder="🔎 Cari customer / kode produk..."
+    autocomplete="off"
+  >
+
+
   <label for="paymentArchiveFilter">
     Status
   </label>
@@ -2729,7 +2737,6 @@ async function loadPaymentArchive() {
   </select>
 
 </div>
-
       <div class="product-table-wrapper">
 
         <table class="product-table">
@@ -2941,7 +2948,7 @@ async function loadPaymentArchive() {
   }
 
    /* ==========================================
-   FILTER ARSIP PEMBAYARAN
+   FILTER & PENCARIAN ARSIP PEMBAYARAN
    ========================================== */
 
 const archiveFilter =
@@ -2949,45 +2956,85 @@ const archiveFilter =
     "paymentArchiveFilter"
   );
 
+const archiveSearch =
+  document.getElementById(
+    "paymentArchiveSearch"
+  );
+
+
+function filterPaymentArchive() {
+
+  const selectedStatus =
+    archiveFilter
+      ? archiveFilter.value
+      : "all";
+
+  const searchText =
+    archiveSearch
+      ? archiveSearch.value
+          .trim()
+          .toLowerCase()
+      : "";
+
+
+  const rows =
+    archiveContainer.querySelectorAll(
+      "tbody tr[data-payment-status]"
+    );
+
+
+  rows.forEach(
+    function (row) {
+
+      const rowStatus =
+        row.dataset.paymentStatus;
+
+
+      const rowText =
+        row.textContent
+          .toLowerCase();
+
+
+      const statusMatch =
+        selectedStatus === "all" ||
+        rowStatus ===
+          selectedStatus;
+
+
+      const searchMatch =
+        !searchText ||
+        rowText.includes(
+          searchText
+        );
+
+
+      row.style.display =
+        statusMatch &&
+        searchMatch
+          ? ""
+          : "none";
+
+    }
+  );
+
+}
+
+
 if (archiveFilter) {
 
   archiveFilter.addEventListener(
     "change",
-    function () {
+    filterPaymentArchive
+  );
 
-      const selectedStatus =
-        this.value;
+}
 
-      const rows =
-        archiveContainer.querySelectorAll(
-          "tbody tr[data-payment-status]"
-        );
 
-      rows.forEach(
-        function (row) {
+if (archiveSearch) {
 
-          const rowStatus =
-            row.dataset.paymentStatus;
-
-          if (
-            selectedStatus ===
-            "all" ||
-            rowStatus ===
-            selectedStatus
-          ) {
-
-            row.style.display = "";
-
-          } else {
-
-            row.style.display = "none";
-
-          }
-
-        }
-      );
-
-    }
+  archiveSearch.addEventListener(
+    "input",
+    filterPaymentArchive
   );
 
 }
