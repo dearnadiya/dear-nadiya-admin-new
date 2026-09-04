@@ -2078,26 +2078,45 @@ async function loadProductList() {
 async function loadPayments() {
 
   pageTitle.textContent =
-    "Pembayaran";
+  "Pembayaran";
 
 
-  pageContent.innerHTML = `
+pageContent.innerHTML = `
 
-    <div class="panel">
+  <div class="panel">
 
-      <div class="panel-header">
+    <div class="panel-header">
 
-        <div>
+      <div>
 
-          <h2>
-            Pembayaran
-          </h2>
+        <h2>
+          Pembayaran
+        </h2>
 
-          <p>
-            Kelola bukti pembayaran customer.
-          </p>
+        <p>
+          Kelola bukti pembayaran customer.
+        </p>
 
-        </div>
+      </div>
+
+    </div>
+
+
+    <!-- =====================================
+         PEMBAYARAN AKTIF
+         ===================================== -->
+
+    <div class="payment-section">
+
+      <div class="payment-section-header">
+
+        <h3>
+          🟡 Pembayaran Aktif
+        </h3>
+
+        <p>
+          Pembayaran yang belum diproses.
+        </p>
 
       </div>
 
@@ -2112,8 +2131,39 @@ async function loadPayments() {
 
     </div>
 
-  `;
 
+    <!-- =====================================
+         ARSIP PEMBAYARAN
+         ===================================== -->
+
+    <div class="payment-section payment-archive-section">
+
+      <div class="payment-section-header">
+
+        <h3>
+          📁 Arsip Pembayaran
+        </h3>
+
+        <p>
+          Pembayaran yang sudah dikonfirmasi atau ditolak.
+        </p>
+
+      </div>
+
+
+      <div id="paymentArchiveContainer">
+
+        <p>
+          Memuat arsip pembayaran...
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+`;
 
   const container =
     document.getElementById(
