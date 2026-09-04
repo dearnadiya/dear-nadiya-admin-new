@@ -3250,14 +3250,9 @@ async function updatePaymentStatus(
     error: paymentFetchError
   } =
     await supabaseClient
-      .from(
-        "dn_payment_submissions"
-      )
+      .from("dn_payment_submissions")
       .select("*")
-      .eq(
-        "id",
-        id
-      )
+      .eq("id", id)
       .single();
 
 
@@ -3286,17 +3281,11 @@ async function updatePaymentStatus(
     error: paymentUpdateError
   } =
     await supabaseClient
-      .from(
-        "dn_payment_submissions"
-      )
+      .from("dn_payment_submissions")
       .update({
-        status:
-          newStatus
+        status: newStatus
       })
-      .eq(
-        "id",
-        id
-      );
+      .eq("id", id);
 
 
   if (paymentUpdateError) {
@@ -3318,12 +3307,10 @@ async function updatePaymentStatus(
 
   /* ==========================================
      3. JIKA DITOLAK
-     TIDAK ADA PERUBAHAN REKAP GO
      ========================================== */
 
   if (
-    newStatus ===
-    "rejected"
+    newStatus === "rejected"
   ) {
 
     alert(
@@ -3339,36 +3326,34 @@ async function updatePaymentStatus(
 
   /* ==========================================
      4. JIKA DIKONFIRMASI
-     CARI REKAP GO YANG SESUAI
+     CARI REKAP GO
      ========================================== */
 
   if (
-    newStatus ===
-    "confirmed"
+    newStatus === "confirmed"
   ) {
 
     const {
-  data: recapRows,
-  error: recapFetchError
-} =
-  await supabaseClient
-    .from(
-      "purchase_recap"
-    )
-    .select("*")
-    .ilike(
-      "customer_name",
-      payment.customer_name
-    )
-    .ilike(
-      "batch_code",
-      payment.product_code
-    )
-    .ilike(
-      "item_name",
-      payment.product_version
-    );
-     
+      data: recapRows,
+      error: recapFetchError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select("*")
+        .ilike(
+          "customer_name",
+          payment.customer_name
+        )
+        .ilike(
+          "batch_code",
+          payment.product_code
+        )
+        .ilike(
+          "item_name",
+          payment.product_version
+        );
+
+
     if (recapFetchError) {
 
       console.error(
@@ -3409,8 +3394,7 @@ async function updatePaymentStatus(
 
 
     /* ========================================
-       6. TENTUKAN UPDATE BERDASARKAN
-          JENIS PEMBAYARAN
+       6. UPDATE SETIAP REKAP
        ======================================== */
 
     for (
@@ -3421,43 +3405,34 @@ async function updatePaymentStatus(
 
 
       if (
-        payment.payment_type ===
-        "dp"
+        payment.payment_type === "dp"
       ) {
 
-        updateData.dp_status =
-          "paid";
+        updateData.dp_status = "paid";
 
       }
 
 
       if (
-        payment.payment_type ===
-        "pelunasan"
+        payment.payment_type === "pelunasan"
       ) {
 
-        updateData.payment_status =
-          "paid";
+        updateData.payment_status = "paid";
 
-        updateData.remaining_amount =
-          0;
+        updateData.remaining_amount = 0;
 
       }
 
 
       if (
-        payment.payment_type ===
-        "both"
+        payment.payment_type === "both"
       ) {
 
-        updateData.dp_status =
-          "paid";
+        updateData.dp_status = "paid";
 
-        updateData.payment_status =
-          "paid";
+        updateData.payment_status = "paid";
 
-        updateData.remaining_amount =
-          0;
+        updateData.remaining_amount = 0;
 
       }
 
@@ -3467,67 +3442,40 @@ async function updatePaymentStatus(
          ====================================== */
 
       if (
-        Object.keys(
-          updateData
-        ).length > 0
+        Object.keys(updateData).length > 0
       ) {
 
         const {
-  data: updatedRecap,
-  error: recapUpdateError
-} =
-  await supabaseClient
-    .from(
-      "purchase_recap"
-    )
-    .update(
-      updateData
-    )
-    .eq(
-      "id",
-      recap.id
-    )
-    .select()
-    .single();
+          error: recapUpdateError
+        } =
+          await supabaseClient
+            .from("purchase_recap")
+            .update(updateData)
+            .eq("id", recap.id);
 
 
-if (
-  recapUpdateError
-) {
+        if (recapUpdateError) {
 
-  console.error(
-    "ERROR UPDATE RECAP:",
-    recapUpdateError
-  );
+          console.error(
+            "ERROR UPDATE RECAP:",
+            recapUpdateError
+          );
 
-  alert(
-    "Pembayaran dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
-    recapUpdateError.message
-  );
+          alert(
+            "Pembayaran dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+            recapUpdateError.message
+          );
 
-  await loadPayments();
+          await loadPayments();
 
-  return;
+          return;
 
-}
+        }
 
+      }
 
-if (!updatedRecap) {
+    }
 
-  console.error(
-    "REKAP DITEMUKAN TAPI TIDAK BERHASIL DIUPDATE:",
-    recap.id
-  );
-
-  alert(
-    "Rekap GO ditemukan, tetapi tidak ada data yang berhasil diubah."
-  );
-
-  await loadPayments();
-
-  return;
-
-}
 
     /* ========================================
        8. SELESAI
