@@ -1213,6 +1213,12 @@ if (
   coList.innerHTML = `
     <div class="dashboard-co-list">
 
+      <div class="dashboard-co-header">
+        <span>Customer</span>
+        <span>Deadline CO</span>
+        <span>Hitung Mundur</span>
+      </div>
+
       ${coCustomers
         .map(customer => `
           <div
@@ -1240,7 +1246,6 @@ if (
     </div>
   `;
 }
-
 
 /* =====================================
    COUNTDOWN DEADLINE CO
