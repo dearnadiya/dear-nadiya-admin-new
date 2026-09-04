@@ -6973,12 +6973,14 @@ function showPOForm(
               type="datetime-local"
               id="poCloseDate"
               value="${
-                po.close_date
-                  ? formatDateTimeLocal(
-                      po.close_date
-                    )
-                  : ""
-              }"
+  po.close_date
+    ? new Date(
+        po.close_date
+      )
+        .toISOString()
+        .slice(0, 16)
+    : ""
+}"
             >
 
           </div>
@@ -6999,12 +7001,14 @@ function showPOForm(
               type="datetime-local"
               id="poLastDPDate"
               value="${
-                po.last_dp_date
-                  ? formatDateTimeLocal(
-                      po.last_dp_date
-                    )
-                  : ""
-              }"
+  po.last_dp_date
+    ? new Date(
+        po.last_dp_date
+      )
+        .toISOString()
+        .slice(0, 16)
+    : ""
+}"
             >
 
           </div>
