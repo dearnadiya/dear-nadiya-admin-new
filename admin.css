@@ -3857,3 +3857,81 @@ a {
     margin-top: 2px;
   }
 }
+
+/* =====================================
+   CUSTOMER MENDEKATI BATAS AKHIR CO
+   ===================================== */
+
+.dashboard-co-list {
+  width: 100%;
+}
+
+.dashboard-co-item {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1fr)
+    140px
+    150px;
+  align-items: center;
+  gap: 12px;
+
+  padding: 11px 14px;
+  margin-bottom: 8px;
+
+  border: 1px solid #eadfe8;
+  border-radius: 10px;
+  background: #faf7fa;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dashboard-co-name {
+  min-width: 0;
+}
+
+.dashboard-co-deadline {
+  white-space: nowrap;
+}
+
+.dashboard-co-countdown {
+  white-space: nowrap;
+}
+
+
+/* =====================================
+   TABLET
+   ===================================== */
+
+@media (max-width: 900px) {
+
+  .dashboard-co-item {
+    grid-template-columns:
+      minmax(150px, 1fr)
+      120px
+      130px;
+
+    gap: 10px;
+  }
+
+}
+
+
+/* =====================================
+   HP
+   ===================================== */
+
+@media (max-width: 600px) {
+
+  .dashboard-co-item {
+    grid-template-columns:
+      1fr
+      110px
+      120px;
+
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+}
