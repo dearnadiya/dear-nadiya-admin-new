@@ -8563,18 +8563,25 @@ async function loadPOList() {
                     <div>
 
                       <h3>
-                        ${escapeHTML(
-                          po.title ||
-                          "Tanpa Judul"
-                        )}
-                      </h3>
+  📦
+  ${escapeHTML(
+    po.title ||
+    "Tanpa Judul"
+  )}
+</h3>
 
-
-                      <span
-                        class="status-badge ${statusClass}"
-                      >
-                        ${statusText}
-                      </span>
+<span
+  class="status-badge ${statusClass}"
+>
+  ${
+    po.status === "active"
+      ? "🟢 "
+      : po.status === "closed"
+        ? "🟡 "
+        : "⚪ "
+  }
+  ${statusText}
+</span>
 
                     </div>
 
@@ -8646,8 +8653,8 @@ async function loadPOList() {
                         ? `
                           <div>
                             <strong>
-                              Batas PO:
-                            </strong>
+  ⏰ Batas PO:
+</strong>
                             ${formatDateTime(
                               po.close_date
                             )}
@@ -8662,8 +8669,8 @@ async function loadPOList() {
                         ? `
                           <div>
                             <strong>
-                              Batas DP:
-                            </strong>
+  💳 Batas DP:
+</strong>
                             ${formatDateTime(
                               po.last_dp_date
                             )}
