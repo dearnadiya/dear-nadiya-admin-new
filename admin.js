@@ -355,19 +355,18 @@ async function checkGoogleSession() {
   } =
     await supabaseClient
       .auth
-      .getSession();
+      .refreshSession();
 
 
   if (error) {
 
     console.error(
-      "SESSION ERROR:",
+      "SESSION REFRESH ERROR:",
       error
     );
 
     showLogin(
-      "Gagal memeriksa sesi: " +
-      error.message
+      "Sesi login sudah berakhir. Silakan login kembali."
     );
 
     return;
@@ -389,7 +388,6 @@ async function checkGoogleSession() {
   );
 
 }
-
 
 /* ============================================
    LOGOUT
