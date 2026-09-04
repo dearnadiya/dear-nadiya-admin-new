@@ -3344,12 +3344,16 @@ async function updatePaymentStatus(
     .from("purchase_recap")
     .select("*")
     .ilike(
+      "customer_name",
+      payment.customer_name
+    )
+    .ilike(
       "batch_code",
       payment.product_code
     );
 
 console.log(
-  "HASIL CARI BERDASARKAN BATCH:",
+  "HASIL CARI REKAP CUSTOMER + BATCH:",
   recapRows
 );
      
