@@ -4224,3 +4224,92 @@ a {
   }
 
 }
+
+/* =========================================
+   PERBAIKAN TABEL HASIL PO
+   ========================================= */
+
+.product-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+.product-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  box-sizing: border-box;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
+/* Lebar kolom */
+
+.product-table th:nth-child(1),
+.product-table td:nth-child(1) {
+  width: 12%;
+}
+
+.product-table th:nth-child(2),
+.product-table td:nth-child(2) {
+  width: 30%;
+}
+
+.product-table th:nth-child(3),
+.product-table td:nth-child(3) {
+  width: 30%;
+}
+
+.product-table th:nth-child(4),
+.product-table td:nth-child(4) {
+  width: 10%;
+  text-align: center;
+}
+
+.product-table th:nth-child(5),
+.product-table td:nth-child(5) {
+  width: 18%;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 900px) {
+
+  .product-table th,
+  .product-table td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+
+}
+
+
+/* =========================================
+   HP
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  .product-table {
+    font-size: 12px;
+  }
+
+  .product-table th,
+  .product-table td {
+    padding: 7px 5px;
+  }
+
+}
