@@ -8716,89 +8716,116 @@ async function loadPOList() {
                             >
 
                               <thead>
+  <tr>
 
-                                <tr>
+    <th>
+      Member / Versi
+    </th>
 
-                                  <th>
-                                    Batch
-                                  </th>
+    <th>
+      Customer
+    </th>
 
-                                  <th>
-                                    Member / Barang
-                                  </th>
+    <th>
+      Qty
+    </th>
 
-                                  <th>
-                                    Customer
-                                  </th>
+    <th>
+      Harga
+    </th>
 
-                                  <th>
-                                    Qty
-                                  </th>
+    <th>
+      DP
+    </th>
 
-                                  <th>
-                                    Catatan
-                                  </th>
+    <th>
+      Catatan
+    </th>
 
-                                </tr>
+  </tr>
+</thead>
 
-                              </thead>
+
+<tbody>
+
+  ${listData.map(
+    function (
+      item
+    ) {
+
+      return `
+        <tr>
+
+          <!-- MEMBER / VERSI -->
+          <td>
+            ${escapeHTML(
+              item.member ||
+              "—"
+            )}
+          </td>
 
 
-                              <tbody>
+          <!-- CUSTOMER -->
+          <td>
+            ${escapeHTML(
+              item.customer ||
+              "—"
+            )}
+          </td>
 
-                                ${listData.map(
-                                  function (
-                                    item
-                                  ) {
 
-                                    return `
+          <!-- QTY -->
+          <td>
+            ${
+              item.quantity ||
+              1
+            }
+          </td>
 
-                                      <tr>
 
-                                        <td>
-                                          ${escapeHTML(
-                                            item.batch ||
-                                            "—"
-                                          )}
-                                        </td>
+          <!-- HARGA -->
+          <td>
+            ${
+              po.price_mode ===
+              "different"
+                ? escapeHTML(
+                    item.price ||
+                    "—"
+                  )
+                : "—"
+            }
+          </td>
 
-                                        <td>
-                                          ${escapeHTML(
-                                            item.member ||
-                                            "—"
-                                          )}
-                                        </td>
 
-                                        <td>
-                                          ${escapeHTML(
-                                            item.customer ||
-                                            "—"
-                                          )}
-                                        </td>
+          <!-- DP -->
+          <td>
+            ${
+              po.dp_mode ===
+              "different"
+                ? escapeHTML(
+                    item.dp ||
+                    "—"
+                  )
+                : "—"
+            }
+          </td>
 
-                                        <td>
-                                          ${
-                                            item.quantity ||
-                                            1
-                                          }
-                                        </td>
 
-                                        <td>
-                                          ${escapeHTML(
-                                            item.note ||
-                                            "—"
-                                          )}
-                                        </td>
+          <!-- CATATAN -->
+          <td>
+            ${escapeHTML(
+              item.note ||
+              "—"
+            )}
+          </td>
 
-                                      </tr>
+        </tr>
+      `;
 
-                                    `;
+    }
+  ).join("")}
 
-                                  }
-                                ).join("")}
-
-                              </tbody>
-
+</tbody>
                             </table>
 
                           </div>
