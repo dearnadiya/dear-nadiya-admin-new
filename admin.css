@@ -5344,3 +5344,135 @@ a {
   }
 
 }
+
+/* =========================================
+   ARSIP PEMBAYARAN - TABEL RINGKAS
+   ========================================= */
+
+#paymentArchiveContainer {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+#paymentArchiveContainer .product-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+
+  padding-bottom: 6px;
+}
+
+#paymentArchiveContainer .product-table {
+  width: max-content;
+  min-width: 850px;
+  max-width: none;
+
+  table-layout: auto;
+  border-collapse: separate;
+}
+
+/* Ukuran tabel */
+
+#paymentArchiveContainer .product-table th,
+#paymentArchiveContainer .product-table td {
+  padding: 7px 9px;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+
+/* Lebar masing-masing kolom */
+
+#paymentArchiveContainer .product-table th:nth-child(1),
+#paymentArchiveContainer .product-table td:nth-child(1) {
+  min-width: 35px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(2),
+#paymentArchiveContainer .product-table td:nth-child(2) {
+  min-width: 95px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(3),
+#paymentArchiveContainer .product-table td:nth-child(3) {
+  min-width: 70px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(4),
+#paymentArchiveContainer .product-table td:nth-child(4) {
+  min-width: 85px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(5),
+#paymentArchiveContainer .product-table td:nth-child(5) {
+  min-width: 65px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(6),
+#paymentArchiveContainer .product-table td:nth-child(6) {
+  min-width: 85px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(7),
+#paymentArchiveContainer .product-table td:nth-child(7) {
+  min-width: 95px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(8),
+#paymentArchiveContainer .product-table td:nth-child(8) {
+  min-width: 90px;
+}
+
+#paymentArchiveContainer .product-table th:nth-child(9),
+#paymentArchiveContainer .product-table td:nth-child(9) {
+  min-width: 80px;
+  text-align: center;
+}
+
+
+/* Tombol lihat bukti */
+
+#paymentArchiveContainer .payment-proof-button {
+  padding: 5px 8px;
+  margin: 0;
+
+  font-size: 11px;
+  line-height: 1.2;
+
+  min-height: 30px;
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  #paymentArchiveContainer .product-table {
+    min-width: 850px;
+  }
+
+  #paymentArchiveContainer .product-table th,
+  #paymentArchiveContainer .product-table td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  #paymentArchiveContainer .payment-proof-button {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+}
