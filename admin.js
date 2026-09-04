@@ -3473,45 +3473,61 @@ async function updatePaymentStatus(
       ) {
 
         const {
-          error: recapUpdateError
-        } =
-          await supabaseClient
-            .from(
-              "purchase_recap"
-            )
-            .update(
-              updateData
-            )
-            .eq(
-              "id",
-              recap.id
-            );
+  data: updatedRecap,
+  error: recapUpdateError
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .update(
+      updateData
+    )
+    .eq(
+      "id",
+      recap.id
+    )
+    .select()
+    .single();
 
 
-        if (
-          recapUpdateError
-        ) {
+if (
+  recapUpdateError
+) {
 
-          console.error(
-            "ERROR UPDATE RECAP:",
-            recapUpdateError
-          );
+  console.error(
+    "ERROR UPDATE RECAP:",
+    recapUpdateError
+  );
 
-          alert(
-            "Pembayaran dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
-            recapUpdateError.message
-          );
+  alert(
+    "Pembayaran dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+    recapUpdateError.message
+  );
 
-          await loadPayments();
+  await loadPayments();
 
-          return;
+  return;
 
-        }
+}
 
-      }
 
-    }
+if (!updatedRecap) {
 
+  console.error(
+    "REKAP DITEMUKAN TAPI TIDAK BERHASIL DIUPDATE:",
+    recap.id
+  );
+
+  alert(
+    "Rekap GO ditemukan, tetapi tidak ada data yang berhasil diubah."
+  );
+
+  await loadPayments();
+
+  return;
+
+}
 
     /* ========================================
        8. SELESAI
