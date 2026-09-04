@@ -6987,51 +6987,133 @@ container.innerHTML = `
           </div>
 
 
-          <!-- HARGA -->
+          <!-- TIPE HARGA -->
+<div
+  class="form-group"
+  style="grid-column:1 / -1;"
+>
+  <label>
+    Penentuan Harga
+  </label>
 
-          <div
-            class="form-group"
-          >
+  <select id="poPriceMode">
+    <option
+      value="same"
+      ${
+        po.price_mode !== "different"
+          ? "selected"
+          : ""
+      }
+    >
+      Harga sama per batch
+    </option>
 
-            <label>
-              Harga
-            </label>
+    <option
+      value="different"
+      ${
+        po.price_mode === "different"
+          ? "selected"
+          : ""
+      }
+    >
+      Harga berbeda per Member / Versi
+    </option>
+  </select>
+
+  <small>
+    <strong>Harga sama per batch:</strong>
+    satu harga untuk seluruh Member / Versi.
+    <br>
+
+    <strong>Harga berbeda:</strong>
+    setiap Member / Versi dapat memiliki harga sendiri.
+  </small>
+</div>
 
 
-            <input
-              type="text"
-              id="poPrice"
-              placeholder="Contoh: Rp150.000"
-              value="${escapeHTML(
-                po.price_text || ""
-              )}"
-            >
+<!-- HARGA HEADER -->
+<div
+  class="form-group"
+  id="poHeaderPriceGroup"
+  style="grid-column:1 / -1;"
+>
+  <label>
+    Harga
+  </label>
 
-          </div>
+  <input
+    type="text"
+    id="poPrice"
+    placeholder="Contoh: Rp150.000"
+    value="${escapeHTML(
+      po.price_text || ""
+    )}"
+  >
+</div>
+
+          <!-- TIPE DP -->
+<div
+  class="form-group"
+  style="grid-column:1 / -1;"
+>
+  <label>
+    Penentuan DP
+  </label>
+
+  <select id="poDPMode">
+    <option
+      value="same"
+      ${
+        po.dp_mode !== "different"
+          ? "selected"
+          : ""
+      }
+    >
+      DP sama per batch
+    </option>
+
+    <option
+      value="different"
+      ${
+        po.dp_mode === "different"
+          ? "selected"
+          : ""
+      }
+    >
+      DP berbeda per Member / Versi
+    </option>
+  </select>
+
+  <small>
+    <strong>DP sama per batch:</strong>
+    satu nominal DP untuk seluruh Member / Versi.
+    <br>
+
+    <strong>DP berbeda:</strong>
+    setiap Member / Versi dapat memiliki nominal DP sendiri.
+  </small>
+</div>
 
 
-          <!-- DP -->
+<!-- DP HEADER -->
+<div
+  class="form-group"
+  id="poHeaderDPGroup"
+  style="grid-column:1 / -1;"
+>
+  <label>
+    DP
+  </label>
 
-          <div
-            class="form-group"
-          >
-
-            <label>
-              DP
-            </label>
-
-
-            <input
-              type="text"
-              id="poDP"
-              placeholder="Contoh: Rp50.000"
-              value="${escapeHTML(
-                po.dp_text || ""
-              )}"
-            >
-
-          </div>
-
+  <input
+    type="text"
+    id="poDP"
+    placeholder="Contoh: Rp50.000"
+    value="${escapeHTML(
+      po.dp_text || ""
+    )}"
+  >
+</div>
 
           <!-- DEADLINE -->
 
@@ -7323,6 +7405,24 @@ container.innerHTML = `
         <div
           class="form-group"
         >
+
+        <div
+  class="form-group po-row-price-group"
+>
+  <label>
+    Harga
+  </label>
+
+  <input
+    type="text"
+    class="po-row-price"
+    placeholder="Contoh: Rp150.000"
+    value="${escapeHTML(
+      rowData.price ||
+      ""
+    )}"
+  >
+</div>
 
           <label>
             Catatan
