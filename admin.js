@@ -6693,8 +6693,48 @@ async function loadOrders() {
 
   await loadPOList();
 
+/* ==========================================
+   BUKA KEMBALI FORM EDIT TERAKHIR
+========================================== */
+
+const savedPO =
+  localStorage.getItem(
+    "dearNadiyaEditingPO"
+  );
+
+if (savedPO) {
+
+  try {
+
+    const poData =
+      JSON.parse(savedPO);
+
+    showPOForm(poData);
+
+    // Scroll otomatis ke form edit
+    document
+      .getElementById("poFormContainer")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+  } catch (error) {
+
+    console.error(
+      "Gagal membuka kembali form edit:",
+      error
+    );
+
+    localStorage.removeItem(
+      "dearNadiyaEditingPO"
+    );
+
+  }
+
 }
 
+}
 
 /* ============================================
    FORM PO
@@ -6753,8 +6793,12 @@ function showPOForm(
   }
 
 
-  container.innerHTML = `
+  localStorage.removeItem(
+  "dearNadiyaEditingPO"
+);
 
+container.innerHTML = "";
+   
     <div
       class="panel po-form-panel"
     >
@@ -7853,21 +7897,18 @@ async function savePO(
 }
 
   alert(
-    existingPO
-      ? "PO berhasil diperbarui. ♥"
-      : "PO berhasil dibuat. ♥"
-  );
+  existingPO
+    ? "PO berhasil diperbarui. ♥"
+    : "PO berhasil dibuat. ♥"
+);
 
+localStorage.removeItem(
+  "dearNadiyaEditingPO"
+);
 
-  document
-    .getElementById(
-      "poFormContainer"
-    )
-    .innerHTML =
-      "";
+container.innerHTML = "";
 
-
-  await loadPOList();
+await loadPOList();
 
 }
 
