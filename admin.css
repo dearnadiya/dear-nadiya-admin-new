@@ -5105,3 +5105,119 @@ a {
   }
 
 }
+
+/* =========================================
+   PEMBAYARAN - TAMPILAN TABEL
+   TAHAP 1
+   ========================================= */
+
+/* Area pembayaran */
+#paymentsContainer {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Pembungkus tabel pembayaran */
+#paymentsContainer .product-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+
+  padding-bottom: 10px;
+}
+
+/* Tabel pembayaran */
+#paymentsContainer .product-table {
+  min-width: 1050px;
+  width: max-content;
+  table-layout: auto;
+}
+
+/* Header */
+#paymentsContainer .product-table th {
+  white-space: nowrap;
+  padding: 12px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* Isi tabel */
+#paymentsContainer .product-table td {
+  white-space: nowrap;
+  padding: 12px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* Kolom nominal */
+#paymentsContainer .product-table td:nth-child(6) {
+  font-weight: 600;
+}
+
+/* Kolom status */
+#paymentsContainer .product-table td:nth-child(9) {
+  text-align: center;
+}
+
+/* Kolom aksi */
+#paymentsContainer .product-table td:nth-child(10) {
+  min-width: 190px;
+}
+
+/* Tombol dalam pembayaran */
+#paymentsContainer .primary-button,
+#paymentsContainer .delete-button {
+  margin: 3px;
+  white-space: nowrap;
+}
+
+/* Tombol lihat bukti */
+#paymentsContainer .payment-proof-button {
+  white-space: nowrap;
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  /* Panel pembayaran tidak boleh melebar */
+  #paymentsContainer {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  /* Tabel tetap memiliki lebar sendiri
+     sehingga tidak bertumpuk */
+  #paymentsContainer .product-table {
+    width: max-content;
+    min-width: 1050px;
+    max-width: none;
+
+    table-layout: auto;
+  }
+
+  #paymentsContainer .product-table th,
+  #paymentsContainer .product-table td {
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  /* Tombol lebih nyaman disentuh */
+  #paymentsContainer .primary-button,
+  #paymentsContainer .delete-button {
+    min-height: 38px;
+    padding: 8px 12px;
+    margin: 3px 2px;
+  }
+
+}
