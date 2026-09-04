@@ -6650,6 +6650,18 @@ async function loadOrders() {
 
       </div>
 
+<div class="po-running-section">
+  <div class="po-running-section-header">
+    <div>
+      <h3>📦 PO Berjalan</h3>
+      <p>PO yang sedang berlangsung</p>
+    </div>
+  </div>
+
+  <div id="poRunningContainer" class="po-running-scroll">
+    <p>Memuat PO berjalan...</p>
+  </div>
+</div>
 
       <div
         id="poFormContainer"
@@ -6690,9 +6702,9 @@ async function loadOrders() {
 
   }
 
-
-  await loadPOList();
-
+  await loadPORunningList();
+await loadPOList();
+   
 /* ==========================================
    BUKA KEMBALI FORM EDIT TERAKHIR
 ========================================== */
@@ -8350,6 +8362,94 @@ if (poFormContainer) {
 }
 
 await loadPOList();
+}
+
+/* ============================================
+   LOAD PO Running List
+   ============================================ */
+
+async function loadPORunningList() {
+  const container = document.getElementById("poRunningContainer");
+
+  if (!container) return;
+
+  container.innerHTML = `<p>Memuat PO berjalan...</p>`;
+
+  try {
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabaseClient
+      .from("po_posts")
+      .select(`
+        id,
+        title,
+        image_url,
+        close_date,
+        last_dp_date,
+        created_at
+      `)
+      .or(`close_date.is.null,close_date.gte.${now}`)
+      .order("created_at", {
+        ascending: false
+      });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `
+        <div class="po-running-empty">
+          Belum ada PO yang sedang berjalan.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.map(po => `
+      <div class="po-running-card" data-po-id="${po.id}">
+        <div class="po-running-card-image">
+          ${
+            po.image_url
+              ? `<img
+                  src="${po.image_url}"
+                  alt="${po.title || "Foto PO"}"
+                >`
+              : `<div class="po-running-card-placeholder">📦</div>`
+          }
+        </div>
+
+        <div class="po-running-card-info">
+          <h4>${po.title || "Tanpa Judul"}</h4>
+
+          <p>
+            <span>⏰ Batas PO</span>
+            <strong>
+              ${typeof formatDate === "function"
+                ? formatDate(po.close_date)
+                : (po.close_date || "-")}
+            </strong>
+          </p>
+
+          <p>
+            <span>💳 Batas DP</span>
+            <strong>
+              ${typeof formatDate === "function"
+                ? formatDate(po.last_dp_date)
+                : (po.last_dp_date || "-")}
+            </strong>
+          </p>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (error) {
+    console.error("Gagal memuat PO berjalan:", error);
+
+    container.innerHTML = `
+      <div class="po-running-empty">
+        Gagal memuat PO berjalan.
+      </div>
+    `;
+  }
 }
 
 /* ============================================
