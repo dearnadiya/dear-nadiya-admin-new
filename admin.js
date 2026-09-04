@@ -2419,30 +2419,39 @@ const {
                   <td>
 
                     ${
-                      payment.status ===
-                      "pending"
+  payment.status ===
+  "pending"
 
-                        ? `
+    ? `
 
-                          <button
-                            type="button"
-                            class="primary-button confirm-payment-button"
-                            data-id="${payment.id}"
-                          >
-                            ✓ Konfirmasi
-                          </button>
+      <button
+        type="button"
+        class="primary-button detail-payment-button"
+        data-id="${payment.id}"
+      >
+        👁️ Detail
+      </button>
 
 
-                          <button
-                            type="button"
-                            class="delete-button reject-payment-button"
-                            data-id="${payment.id}"
-                          >
-                            ✕ Tolak
-                          </button>
+      <button
+        type="button"
+        class="primary-button confirm-payment-button"
+        data-id="${payment.id}"
+      >
+        ✓ Konfirmasi
+      </button>
 
-                        `
 
+      <button
+        type="button"
+        class="delete-button reject-payment-button"
+        data-id="${payment.id}"
+      >
+        ✕ Tolak
+      </button>
+
+    `
+                       
                         : payment.status ===
                           "confirmed"
 
