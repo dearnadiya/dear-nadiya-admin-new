@@ -7482,10 +7482,149 @@ container.innerHTML = `
         }
       );
 
+     updatePOPriceAndDPMode();
+
+  }
+
+   /* ==========================================
+   MODE HARGA & DP
+========================================== */
+
+function updatePOPriceAndDPMode() {
+
+  const priceMode =
+    document.getElementById(
+      "poPriceMode"
+    )?.value || "same";
+
+
+  const dpMode =
+    document.getElementById(
+      "poDPMode"
+    )?.value || "same";
+
+
+  /* ==========================================
+     HARGA HEADER
+  ========================================== */
+
+  const headerPriceGroup =
+    document.getElementById(
+      "poHeaderPriceGroup"
+    );
+
+  if (headerPriceGroup) {
+
+    headerPriceGroup.style.display =
+      priceMode === "different"
+        ? "none"
+        : "";
+
   }
 
 
-  if (
+  /* ==========================================
+     HARGA PER MEMBER / VERSI
+  ========================================== */
+
+  document
+    .querySelectorAll(
+      ".po-row-price-group"
+    )
+    .forEach(
+      function (group) {
+
+        group.style.display =
+          priceMode === "different"
+            ? ""
+            : "none";
+
+      }
+    );
+
+
+  /* ==========================================
+     DP HEADER
+  ========================================== */
+
+  const headerDPGroup =
+    document.getElementById(
+      "poHeaderDPGroup"
+    );
+
+  if (headerDPGroup) {
+
+    headerDPGroup.style.display =
+      dpMode === "different"
+        ? "none"
+        : "";
+
+  }
+
+
+  /* ==========================================
+     DP PER MEMBER / VERSI
+  ========================================== */
+
+  document
+    .querySelectorAll(
+      ".po-row-dp-group"
+    )
+    .forEach(
+      function (group) {
+
+        group.style.display =
+          dpMode === "different"
+            ? ""
+            : "none";
+
+      }
+    );
+
+}
+
+   /* ==========================================
+   EVENT MODE HARGA
+========================================== */
+
+const poPriceMode =
+  document.getElementById(
+    "poPriceMode"
+  );
+
+if (poPriceMode) {
+
+  poPriceMode.addEventListener(
+    "change",
+    updatePOPriceAndDPMode
+  );
+
+}
+
+
+/* ==========================================
+   EVENT MODE DP
+========================================== */
+
+const poDPMode =
+  document.getElementById(
+    "poDPMode"
+  );
+
+if (poDPMode) {
+
+  poDPMode.addEventListener(
+    "change",
+    updatePOPriceAndDPMode
+  );
+
+}
+
+
+/* Terapkan mode saat form pertama kali dibuka */
+updatePOPriceAndDPMode();
+  
+   if (
     existingRows.length > 0
   ) {
 
