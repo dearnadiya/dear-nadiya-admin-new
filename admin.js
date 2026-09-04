@@ -8296,34 +8296,50 @@ async function loadPOList() {
 
 
   /* ==========================================
-     EDIT PO
-     ========================================== */
+   EDIT PO
+   ========================================== */
 
-  container
-    .querySelectorAll(
-      ".edit-po-button"
-    )
-    .forEach(
-      function (button) {
+container
+  .querySelectorAll(
+    ".edit-po-button"
+  )
+  .forEach(
+    function (button) {
 
-        button.addEventListener(
-          "click",
-          async function () {
+      button.addEventListener(
+        "click",
+        function () {
 
-            const id =
-              this.dataset.id;
+          const id =
+            this.dataset.id;
 
-
-            await editPO(
-              id
+          const selectedPO =
+            data.find(
+              function (po) {
+                return String(
+                  po.id
+                ) === String(
+                  id
+                );
+              }
             );
 
+          if (!selectedPO) {
+            alert(
+              "Data PO tidak ditemukan."
+            );
+            return;
           }
-        );
 
-      }
-    );
+          showPOForm(
+            selectedPO
+          );
 
+        }
+      );
+
+    }
+  );
 
   /* ==========================================
      DELETE PO
