@@ -5520,3 +5520,57 @@ a {
   }
 
 }
+
+/* =========================================
+   PENCARIAN ARSIP PEMBAYARAN
+   ========================================= */
+
+.payment-archive-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.payment-archive-search {
+  flex: 1;
+}
+
+#paymentArchiveSearch {
+  width: 260px;
+  max-width: 100%;
+
+  box-sizing: border-box;
+
+  border: 1px solid #ddd;
+  background: #fff;
+
+  border-radius: 8px;
+
+  padding: 8px 11px;
+
+  font-size: 12px;
+  color: #333;
+
+  outline: none;
+}
+
+#paymentArchiveSearch:focus {
+  border-color: #bbb;
+}
+
+@media (max-width: 600px) {
+
+  .payment-archive-filter {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  #paymentArchiveSearch {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+}
