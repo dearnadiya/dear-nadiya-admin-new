@@ -2429,7 +2429,7 @@ const {
         class="primary-button detail-payment-button"
         data-id="${payment.id}"
       >
-        👁️ Detail
+        🔎 Detail
       </button>
 
 
