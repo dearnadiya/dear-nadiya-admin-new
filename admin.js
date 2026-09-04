@@ -3348,27 +3348,27 @@ async function updatePaymentStatus(
   ) {
 
     const {
-      data: recapRows,
-      error: recapFetchError
-    } =
-      await supabaseClient
-        .from(
-          "purchase_recap"
-        )
-        .select("*")
-        .eq(
-  "customer_name",
-  payment.customer_name
-)
-.eq(
-  "batch_code",
-  payment.product_code
-)
-.eq(
-  "item_name",
-  payment.product_version
-);
-
+  data: recapRows,
+  error: recapFetchError
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .select("*")
+    .ilike(
+      "customer_name",
+      payment.customer_name
+    )
+    .ilike(
+      "batch_code",
+      payment.product_code
+    )
+    .ilike(
+      "item_name",
+      payment.product_version
+    );
+     
     if (recapFetchError) {
 
       console.error(
