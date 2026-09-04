@@ -8390,10 +8390,14 @@ container
             return;
           }
 
-          showPOForm(
-            selectedPO
-          );
+          localStorage.setItem(
+  "dearNadiyaEditingPO",
+  JSON.stringify(selectedPO)
+);
 
+showPOForm(
+  selectedPO
+);
         }
       );
 
