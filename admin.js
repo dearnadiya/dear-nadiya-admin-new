@@ -3072,8 +3072,12 @@ if (archiveSearch) {
   /* ==========================================
      TOMBOL LIHAT BUKTI ARSIP
      ========================================== */
-
-  archiveContainer
+const archiveContainer =
+    document.getElementById(
+        "paymentArchiveContainer"
+    );
+  
+archiveContainer
     .querySelectorAll(
       ".payment-proof-button"
     )
