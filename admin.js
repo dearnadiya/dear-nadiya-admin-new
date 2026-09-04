@@ -8719,32 +8719,37 @@ async function loadPOList() {
   <tr>
 
     <th>
+      <span class="po-table-icon">👤</span>
       Member / Versi
     </th>
 
     <th>
+      <span class="po-table-icon">🧑</span>
       Customer
     </th>
 
     <th>
+      <span class="po-table-icon">📦</span>
       Qty
     </th>
 
     <th>
+      <span class="po-table-icon">💰</span>
       Harga
     </th>
 
     <th>
+      <span class="po-table-icon">💳</span>
       DP
     </th>
 
     <th>
+      <span class="po-table-icon">📝</span>
       Catatan
     </th>
 
   </tr>
 </thead>
-
 
 <tbody>
 
