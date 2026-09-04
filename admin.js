@@ -3353,6 +3353,14 @@ async function updatePaymentStatus(
           payment.product_version
         );
 
+     console.log("DATA PEMBAYARAN:", {
+  customer_name: payment.customer_name,
+  product_code: payment.product_code,
+  product_version: payment.product_version,
+  payment_type: payment.payment_type
+});
+
+console.log("HASIL CARI REKAP:", recapRows);
 
     if (recapFetchError) {
 
