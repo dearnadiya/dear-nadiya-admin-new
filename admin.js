@@ -2512,6 +2512,71 @@ const {
       }
     );
 
+     /* ==========================================
+     TOMBOL DETAIL PEMBAYARAN
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".detail-payment-button"
+    )
+    .forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            const id =
+              this.dataset.id;
+
+            const payment =
+              data.find(
+                function (item) {
+                  return String(item.id) ===
+                    String(id);
+                }
+              );
+
+            if (!payment) {
+              return;
+            }
+
+            alert(
+              "Detail Pembayaran\n\n" +
+
+              "Customer: " +
+              (payment.customer_name || "—") +
+
+              "\nWhatsApp: " +
+              (payment.whatsapp_last4 || "—") +
+
+              "\nKode Produk: " +
+              (payment.product_code || "—") +
+
+              "\nVersi: " +
+              (payment.product_version || "—") +
+
+              "\nNominal: " +
+              formatRupiah(payment.amount) +
+
+              "\nTanggal Transfer: " +
+              (
+                payment.payment_date
+                  ? formatDate(payment.payment_date)
+                  : "—"
+              ) +
+
+              "\nStatus: " +
+              (payment.status || "—")
+            );
+
+          }
+        );
+
+      }
+    );
+
 
   /* ==========================================
      TOMBOL KONFIRMASI
