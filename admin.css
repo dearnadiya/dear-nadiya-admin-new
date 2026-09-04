@@ -4068,3 +4068,159 @@ a {
   }
 
 }
+
+/* =========================================
+   LAYOUT KARTU PO
+   ========================================= */
+
+.po-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.po-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.po-card-image {
+  width: 110px;
+  min-width: 110px;
+  height: 110px;
+  flex: 0 0 110px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.po-card-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  border-radius: 14px;
+}
+
+.po-card-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+
+/* =========================================
+   HEADER PO
+   ========================================= */
+
+.po-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.po-card-header h3 {
+  margin: 0 0 4px;
+}
+
+
+/* =========================================
+   TOMBOL AKSI
+   ========================================= */
+
+.po-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.edit-po-button,
+.delete-po-button {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.edit-po-button:hover,
+.delete-po-button:hover {
+  opacity: 0.85;
+}
+
+
+/* =========================================
+   META PO
+   ========================================= */
+
+.po-meta {
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 900px) {
+
+  .po-card-content {
+    gap: 16px;
+  }
+
+  .po-card-image {
+    width: 100px;
+    min-width: 100px;
+    height: 100px;
+    flex-basis: 100px;
+  }
+
+  .po-card-header {
+    gap: 10px;
+  }
+
+}
+
+
+/* =========================================
+   HP
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  .po-card-content {
+    gap: 12px;
+  }
+
+  .po-card-image {
+    width: 85px;
+    min-width: 85px;
+    height: 85px;
+    flex-basis: 85px;
+    border-radius: 12px;
+  }
+
+  .po-card-image img {
+    border-radius: 12px;
+  }
+
+  .po-card-header {
+    display: block;
+  }
+
+  .po-card-actions {
+    margin-top: 8px;
+  }
+
+}
