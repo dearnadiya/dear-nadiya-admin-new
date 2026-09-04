@@ -92,15 +92,36 @@ function showLogin(message = "") {
 
 function showAdmin(session) {
 
+  const loginPage =
+    document.getElementById(
+      "loginPage"
+    );
+
+  const adminApp =
+    document.getElementById(
+      "adminApp"
+    );
+
+
   if (loginPage) {
-    loginPage.classList.add("hidden");
-    loginPage.style.display = "none";
+    loginPage.classList.add(
+      "hidden"
+    );
+
+    loginPage.style.display =
+      "none";
   }
 
+
   if (adminApp) {
-    adminApp.classList.remove("hidden");
-    adminApp.style.display = "block";
+    adminApp.classList.remove(
+      "hidden"
+    );
+
+    adminApp.style.display =
+      "block";
   }
+
 
   const userEmail =
     document.getElementById(
@@ -114,6 +135,7 @@ function showAdmin(session) {
     userEmail.textContent =
       session.user.email;
   }
+
 
   const userName =
     document.getElementById(
@@ -129,10 +151,34 @@ function showAdmin(session) {
       "Admin";
   }
 
-  loadDashboard();
+
+  const savedPage =
+    localStorage.getItem(
+      "dearNadiyaAdminPage"
+    ) || "dashboard";
+
+
+  showPage(
+    savedPage
+  );
 
 }
 
+  /* =========================================
+     KEMBALIKAN HALAMAN TERAKHIR
+     ========================================= */
+
+  const savedPage =
+    localStorage.getItem(
+      "dearNadiyaAdminPage"
+    ) || "dashboard";
+
+
+  showPage(
+    savedPage
+  );
+
+}
 
 function formatRupiah(value) {
 
@@ -420,7 +466,6 @@ const menuButtons =
     ".menu-button"
   );
 
-
 menuButtons.forEach(
   function (button) {
 
@@ -452,6 +497,16 @@ menuButtons.forEach(
         );
 
 
+        /* SIMPAN HALAMAN TERAKHIR */
+
+        localStorage.setItem(
+          "dearNadiyaAdminPage",
+          page
+        );
+
+
+        /* TAMPILKAN HALAMAN */
+
         showPage(
           page
         );
@@ -461,7 +516,6 @@ menuButtons.forEach(
 
   }
 );
-
 
 /* ============================================
    PINDAH HALAMAN
