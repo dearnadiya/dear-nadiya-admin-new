@@ -2975,8 +2975,6 @@ async function loadPaymentArchive() {
       }
     );
 
-}
-
 /* ============================================
    UPDATE STATUS PEMBAYARAN
    ============================================ */
