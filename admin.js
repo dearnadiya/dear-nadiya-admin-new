@@ -2161,6 +2161,63 @@ pageContent.innerHTML = `
 
     </div>
 
+      </div>
+
+
+    <!-- =====================================
+         POPUP DETAIL PEMBAYARAN
+         ===================================== -->
+
+    <div
+      id="paymentDetailModal"
+      class="payment-detail-modal"
+      style="display: none;"
+    >
+
+      <div class="payment-detail-overlay"></div>
+
+      <div class="payment-detail-box">
+
+        <div class="payment-detail-header">
+
+          <h3>
+            🔎 Detail Pembayaran
+          </h3>
+
+          <button
+            type="button"
+            id="closePaymentDetail"
+            class="payment-detail-close"
+          >
+            ✕
+          </button>
+
+        </div>
+
+
+        <div
+          id="paymentDetailContent"
+          class="payment-detail-content"
+        >
+        </div>
+
+
+        <div class="payment-detail-footer">
+
+          <button
+            type="button"
+            id="closePaymentDetailButton"
+            class="payment-detail-close-button"
+          >
+            Tutup
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 `;
