@@ -6668,10 +6668,7 @@ async function loadOrders() {
       ></div>
 
 
-      <div
-        id="poListContainer"
-      >
-
+      <div id="poListContainer" style="display: none;">
         <p>
           Memuat PO...
         </p>
