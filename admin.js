@@ -3361,9 +3361,9 @@ for (let i = 0; i < productCodes.length; i++) {
     .from("purchase_recap")
     .select("*")
     .ilike(
-      "customer_name",
-      payment.customer_name
-    )
+  "customer_name",
+  `${payment.customer_name}%`
+)
     .ilike(
       "batch_code",
       code
