@@ -3336,11 +3336,28 @@ async function updatePaymentStatus(
     newStatus === "confirmed"
   ) {
 
-    const {
-  data: recapRows,
-  error: recapFetchError
-} =
-  await supabaseClient
+   const productCodes = payment.product_code
+  .split(",")
+  .map(code => code.trim())
+  .filter(Boolean);
+
+const productVersions = payment.product_version
+  .split(",")
+  .map(version => version.trim())
+  .filter(Boolean);
+
+let recapRows = [];
+let recapFetchError = null;
+
+for (let i = 0; i < productCodes.length; i++) {
+
+  const code = productCodes[i];
+  const version = productVersions[i] || "";
+
+  const {
+    data,
+    error
+  } = await supabaseClient
     .from("purchase_recap")
     .select("*")
     .ilike(
@@ -3349,9 +3366,22 @@ async function updatePaymentStatus(
     )
     .ilike(
       "batch_code",
-      payment.product_code
+      code
+    )
+    .ilike(
+      "item_name",
+      version
     );
 
+  if (error) {
+    recapFetchError = error;
+    break;
+  }
+
+  if (data && data.length > 0) {
+    recapRows.push(...data);
+  }
+}
 console.log(
   "HASIL CARI REKAP CUSTOMER + BATCH:",
   recapRows
