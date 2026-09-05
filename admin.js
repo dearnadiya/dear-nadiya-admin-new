@@ -3369,10 +3369,10 @@ for (let i = 0; i < productCodes.length; i++) {
       code
     )
     .ilike(
-      "item_name",
-      version
-    );
-
+  "version",
+  version
+);
+   
   if (error) {
     recapFetchError = error;
     break;
