@@ -3443,172 +3443,266 @@ const {
 
 
   const itemsHTML =
-    selectedItems.length
-      ? selectedItems
-          .map(
-            function(item) {
+  selectedItems.length
+    ? selectedItems
+        .map(
+          function(item) {
 
-              const price =
-                Number(
-                  item.item_price ||
-                  item.price ||
-                  0
-                );
+            const price =
+              Number(
+                item.item_price ||
+                item.price ||
+                0
+              );
 
+            const dp =
+              Number(
+                item.dp_amount ||
+                0
+              );
 
-              const dp =
-                Number(
-                  item.dp_amount ||
-                  0
-                );
+            const remaining =
+              Number(
+                item.remaining_amount ||
+                0
+              );
 
+            const total =
+              dp +
+              remaining;
 
-              const remaining =
-                Number(
-                  item.remaining_amount ||
-                  0
-                );
+            return `
+              <div
+                class="payment-allocation-item"
+                style="
+                  border:1px solid var(--line);
+                  border-radius:12px;
+                  padding:14px;
+                  margin-top:10px;
+                  background:#fff;
+                "
+              >
 
-
-              return `
                 <div
-                  class="payment-allocation-item"
                   style="
-                    border:1px solid var(--line);
-                    border-radius:12px;
-                    padding:14px;
-                    margin-top:10px;
-                    background:#fff;
+                    font-weight:700;
+                    color:#604752;
+                    margin-bottom:6px;
+                  "
+                >
+                  ${escapeHTML(
+                    item.item_name ||
+                    item.product_name ||
+                    "Barang"
+                  )}
+                </div>
+
+
+                <div
+                  style="
+                    font-size:11px;
+                    color:#888;
+                    line-height:1.6;
+                  "
+                >
+                  Batch:
+                  ${escapeHTML(
+                    item.batch_code ||
+                    item.product_code ||
+                    "—"
+                  )}
+
+                  <br>
+
+                  Versi:
+                  ${escapeHTML(
+                    item.version ||
+                    item.product_version ||
+                    "—"
+                  )}
+                </div>
+
+
+                <div
+                  style="
+                    margin-top:9px;
+                    padding:9px 10px;
+                    border-radius:9px;
+                    background:#faf7f9;
+                    font-size:11px;
+                    color:#666;
+                    line-height:1.7;
                   "
                 >
 
-                  <div
-                    style="
-                      font-weight:700;
-                      color:#604752;
-                      margin-bottom:6px;
-                    "
-                  >
-                    ${escapeHTML(
-                      item.item_name ||
-                      item.product_name ||
-                      "Barang"
+                  Harga:
+                  <strong>
+                    ${formatRupiah(
+                      price
                     )}
-                  </div>
+                  </strong>
 
+                  <br>
 
-                  <div
-                    style="
-                      font-size:11px;
-                      color:#888;
-                      line-height:1.6;
-                    "
-                  >
-                    Batch:
-                    ${escapeHTML(
-                      item.batch_code ||
-                      item.product_code ||
-                      "—"
-                    )}
-                    <br>
-
-                    Versi:
-                    ${escapeHTML(
-                      item.version ||
-                      item.product_version ||
-                      "—"
-                    )}
-                  </div>
-
-
-                  <div
-                    style="
-                      margin-top:9px;
-                      font-size:11px;
-                      color:#666;
-                      line-height:1.7;
-                    "
-                  >
-                    Harga:
-                    <strong>
-                      ${formatRupiah(
-                        price
-                      )}
-                    </strong>
-                    <br>
-
-                    DP:
+                  DP:
+                  <strong>
                     ${formatRupiah(
                       dp
                     )}
-                    <br>
+                  </strong>
 
-                    Sisa:
+                  <br>
+
+                  Sisa Pelunasan:
+                  <strong>
                     ${formatRupiah(
                       remaining
                     )}
-                  </div>
+                  </strong>
+
+                  <br>
+
+                  Total:
+                  <strong>
+                    ${formatRupiah(
+                      total
+                    )}
+                  </strong>
+
+                </div>
 
 
-                  <div
+                <!-- JENIS PEMBAYARAN -->
+
+                <div
+                  style="
+                    margin-top:12px;
+                  "
+                >
+
+                  <label
                     style="
-                      margin-top:12px;
+                      display:block;
+                      margin-bottom:5px;
+                      font-size:11px;
+                      font-weight:600;
+                      color:#604752;
+                    "
+                  >
+                    Bagian pembayaran
+                  </label>
+
+                  <select
+                    class="payment-allocation-part"
+                    data-recap-id="${item.id}"
+                    data-dp="${dp}"
+                    data-remaining="${remaining}"
+                    style="
+                      width:100%;
+                      box-sizing:border-box;
+                      padding:10px;
+                      border:1px solid var(--line);
+                      border-radius:9px;
+                      background:#fff;
+                      font-family:inherit;
+                      font-size:12px;
                     "
                   >
 
-                    <label
-                      style="
-                        display:block;
-                        margin-bottom:5px;
-                        font-size:11px;
-                        font-weight:600;
-                        color:#604752;
-                      "
-                    >
-                      Alokasi pembayaran
-                    </label>
+                    <option value="dp">
+                      DP
+                    </option>
 
-                    <input
-                      type="number"
-                      min="0"
-                      value="0"
-                      class="payment-allocation-input"
-                      data-recap-id="${
-                        item.id
-                      }"
-                      style="
-                        width:100%;
-                        box-sizing:border-box;
-                        padding:10px;
-                        border:1px solid var(--line);
-                        border-radius:9px;
-                        font-family:inherit;
-                        font-size:12px;
-                      "
-                    >
+                    <option value="pelunasan">
+                      Pelunasan
+                    </option>
 
-                  </div>
+                    <option value="both">
+                      DP + Pelunasan
+                    </option>
+
+                  </select>
 
                 </div>
-              `;
 
-            }
-          )
-          .join("")
-      : `
-          <div
-            style="
-              padding:18px;
-              text-align:center;
-              color:#999;
-              border:1px dashed var(--line);
-              border-radius:12px;
-            "
-          >
-            Barang pembayaran tidak ditemukan.
-          </div>
-        `;
 
+                <!-- NOMINAL -->
+
+                <div
+                  style="
+                    margin-top:10px;
+                  "
+                >
+
+                  <label
+                    style="
+                      display:block;
+                      margin-bottom:5px;
+                      font-size:11px;
+                      font-weight:600;
+                      color:#604752;
+                    "
+                  >
+                    Nominal yang dialokasikan
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value="0"
+                    class="payment-allocation-input"
+                    data-recap-id="${item.id}"
+                    data-dp="${dp}"
+                    data-remaining="${remaining}"
+                    style="
+                      width:100%;
+                      box-sizing:border-box;
+                      padding:10px;
+                      border:1px solid var(--line);
+                      border-radius:9px;
+                      font-family:inherit;
+                      font-size:12px;
+                    "
+                  >
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div
+                  class="payment-allocation-status"
+                  data-recap-id="${item.id}"
+                  style="
+                    margin-top:8px;
+                    font-size:11px;
+                    font-weight:600;
+                    color:#999;
+                  "
+                >
+                  ⚪ Belum dialokasikan
+                </div>
+
+              </div>
+            `;
+
+          }
+        )
+        .join("")
+    : `
+        <div
+          style="
+            padding:18px;
+            text-align:center;
+            color:#999;
+            border:1px dashed var(--line);
+            border-radius:12px;
+          "
+        >
+          Barang pembayaran tidak ditemukan.
+        </div>
+      `;
 
   modal.innerHTML = `
     <div
@@ -3821,6 +3915,173 @@ const {
     modal
   );
 
+   /* ================================
+   STATUS ALOKASI PER BARANG
+   ================================ */
+
+function updateItemAllocationStatus(
+  recapId
+) {
+
+  const select =
+    modal.querySelector(
+      `.payment-allocation-part[data-recap-id="${recapId}"]`
+    );
+
+  const input =
+    modal.querySelector(
+      `.payment-allocation-input[data-recap-id="${recapId}"]`
+    );
+
+  const status =
+    modal.querySelector(
+      `.payment-allocation-status[data-recap-id="${recapId}"]`
+    );
+
+  if (
+    !select ||
+    !input ||
+    !status
+  ) {
+    return;
+  }
+
+
+  const dp =
+    Number(
+      select.dataset.dp
+    ) || 0;
+
+  const remaining =
+    Number(
+      select.dataset.remaining
+    ) || 0;
+
+  const amount =
+    Number(
+      input.value
+    ) || 0;
+
+
+  let target = 0;
+
+
+  if (
+    select.value ===
+    "dp"
+  ) {
+
+    target =
+      dp;
+
+  }
+
+
+  if (
+    select.value ===
+    "pelunasan"
+  ) {
+
+    target =
+      remaining;
+
+  }
+
+
+  if (
+    select.value ===
+    "both"
+  ) {
+
+    target =
+      dp +
+      remaining;
+
+  }
+
+
+  if (
+    amount <= 0
+  ) {
+
+    status.textContent =
+      "⚪ Belum dialokasikan";
+
+    status.style.color =
+      "#999";
+
+    return;
+
+  }
+
+
+  if (
+    amount >= target &&
+    target > 0
+  ) {
+
+    if (
+      select.value ===
+      "dp"
+    ) {
+
+      status.textContent =
+        "✓ DP Lunas";
+
+    }
+    else if (
+      select.value ===
+      "pelunasan"
+    ) {
+
+      status.textContent =
+        "✓ Pelunasan Lunas";
+
+    }
+    else {
+
+      status.textContent =
+        "✓ Lunas";
+
+    }
+
+    status.style.color =
+      "#2f8a57";
+
+    return;
+
+  }
+
+
+  if (
+    amount < target
+  ) {
+
+    const kurang =
+      target -
+      amount;
+
+    status.textContent =
+      "⚠ Pembayaran Kurang • " +
+      formatRupiah(
+        kurang
+      );
+
+    status.style.color =
+      "#b06b00";
+
+    return;
+
+  }
+
+
+  status.textContent =
+    "⚪ Belum dialokasikan";
+
+  status.style.color =
+    "#999";
+
+}
 
   /* ================================
      HITUNG TOTAL ALOKASI
@@ -3898,20 +4159,49 @@ const {
 
 
   modal
-    .querySelectorAll(
-      ".payment-allocation-input"
-    )
-    .forEach(
-      function(input) {
+  .querySelectorAll(
+    ".payment-allocation-input"
+  )
+  .forEach(
+    function(input) {
 
-        input.addEventListener(
-          "input",
-          updateAllocationTotal
-        );
+      input.addEventListener(
+        "input",
+        function() {
 
-      }
-    );
+          updateAllocationTotal();
 
+          updateItemAllocationStatus(
+            this.dataset.recapId
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+modal
+  .querySelectorAll(
+    ".payment-allocation-part"
+  )
+  .forEach(
+    function(select) {
+
+      select.addEventListener(
+        "change",
+        function() {
+
+          updateItemAllocationStatus(
+            this.dataset.recapId
+          );
+
+        }
+      );
+
+    }
+  );
 
   /* ================================
      TUTUP MODAL
