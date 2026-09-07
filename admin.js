@@ -3593,10 +3593,12 @@ const {
                   </label>
 
                   <select
-                    class="payment-allocation-part"
-                    data-recap-id="${item.id}"
-                    data-dp="${dp}"
-                    data-remaining="${remaining}"
+  class="payment-allocation-part"
+  data-recap-id="${item.id}"
+  data-price="${price}"
+  data-dp="${dp}"
+  data-remaining="${remaining}"
+  
                     style="
                       width:100%;
                       box-sizing:border-box;
@@ -3647,14 +3649,26 @@ const {
                   </label>
 
                   <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value="0"
-                    class="payment-allocation-input"
-                    data-recap-id="${item.id}"
-                    data-dp="${dp}"
-                    data-remaining="${remaining}"
+  type="number"
+  min="0"
+  step="1000"
+  value="0"
+  class="payment-allocation-input"
+  data-recap-id="${item.id}"
+  data-price="${price}"
+  data-dp="${dp}"
+  data-remaining="${remaining}"
+  style="
+    width:100%;
+    box-sizing:border-box;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    font-family:inherit;
+    font-size:12px;
+  "
+>
+ 
                     style="
                       width:100%;
                       box-sizing:border-box;
@@ -3947,15 +3961,17 @@ function updateItemAllocationStatus(
   }
 
 
-  const dp =
+  const price =
     Number(
-      select.dataset.dp
+      input.dataset.price
     ) || 0;
 
-  const remaining =
+
+  const dp =
     Number(
-      select.dataset.remaining
+      input.dataset.dp
     ) || 0;
+
 
   const amount =
     Number(
@@ -3965,6 +3981,10 @@ function updateItemAllocationStatus(
 
   let target = 0;
 
+
+  /* ================================
+     DP
+     ================================ */
 
   if (
     select.value ===
@@ -3977,28 +3997,40 @@ function updateItemAllocationStatus(
   }
 
 
-  if (
+  /* ================================
+     PELUNASAN
+     ================================ */
+
+  else if (
     select.value ===
     "pelunasan"
   ) {
 
     target =
-      remaining;
+      price -
+      dp;
 
   }
 
 
-  if (
+  /* ================================
+     DP + PELUNASAN
+     ================================ */
+
+  else if (
     select.value ===
     "both"
   ) {
 
     target =
-      dp +
-      remaining;
+      price;
 
   }
 
+
+  /* ================================
+     BELUM ADA NOMINAL
+     ================================ */
 
   if (
     amount <= 0
@@ -4015,35 +4047,17 @@ function updateItemAllocationStatus(
   }
 
 
+  /* ================================
+     NOMINAL CUKUP
+     ================================ */
+
   if (
     amount >= target &&
     target > 0
   ) {
 
-    if (
-      select.value ===
-      "dp"
-    ) {
-
-      status.textContent =
-        "✓ DP Lunas";
-
-    }
-    else if (
-      select.value ===
-      "pelunasan"
-    ) {
-
-      status.textContent =
-        "✓ Pelunasan Lunas";
-
-    }
-    else {
-
-      status.textContent =
-        "✓ Lunas";
-
-    }
+    status.textContent =
+      "✓ Lunas";
 
     status.style.color =
       "#2f8a57";
@@ -4053,6 +4067,10 @@ function updateItemAllocationStatus(
   }
 
 
+  /* ================================
+     NOMINAL KURANG
+     ================================ */
+
   if (
     amount < target
   ) {
@@ -4060,6 +4078,7 @@ function updateItemAllocationStatus(
     const kurang =
       target -
       amount;
+
 
     status.textContent =
       "⚠ Pembayaran Kurang • " +
