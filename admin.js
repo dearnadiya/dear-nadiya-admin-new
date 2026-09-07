@@ -4351,11 +4351,19 @@ document
       );
       const button = this;
 
-      const paymentAmount =
-        Number(
-          payment.amount
-        ) || 0;
+      const verifiedAmountElement =
+  document.getElementById(
+    "paymentVerifiedAmount"
+  );
 
+const paymentAmount =
+  verifiedAmountElement
+    ? Number(
+        verifiedAmountElement.value
+      ) || 0
+    : Number(
+        payment.amount
+      ) || 0;
       const inputs =
         modal.querySelectorAll(
           ".payment-allocation-input"
