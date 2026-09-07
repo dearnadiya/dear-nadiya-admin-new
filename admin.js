@@ -4264,9 +4264,50 @@ modal
         "input",
         function() {
 
-          updateItemAllocationStatus(
-            this.dataset.recapId
-          );
+          const recapId =
+            this.dataset.recapId;
+
+          const status =
+            modal.querySelector(
+              `.payment-allocation-status[data-recap-id="${recapId}"]`
+            );
+
+          const select =
+            modal.querySelector(
+              `.payment-allocation-part[data-recap-id="${recapId}"]`
+            );
+
+          const amount =
+            Number(
+              this.value
+            ) || 0;
+
+          if (
+            status &&
+            select
+          ) {
+
+            if (
+              amount <= 0
+            ) {
+
+              status.textContent =
+                "⚪ Belum dialokasikan";
+
+              status.style.color =
+                "#999";
+
+            } else {
+
+              status.textContent =
+                "✓ Lunas";
+
+              status.style.color =
+                "#2f8a57";
+
+            }
+
+          }
 
           updateAllocationTotal();
 
@@ -4275,7 +4316,6 @@ modal
 
     }
   );
-
   /* ================================
      TUTUP MODAL
      ================================ */
