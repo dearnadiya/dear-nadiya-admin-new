@@ -3922,12 +3922,13 @@ data-remaining="${remaining}"
       >
 
         Total pembayaran:
-        <strong>
-          ${formatRupiah(
-            payment.amount
-          )}
-        </strong>
-
+<strong id="paymentVerifiedDisplay">
+  ${formatRupiah(
+    Number(
+      payment.verified_amount ?? payment.amount
+    ) || 0
+  )}
+</strong>
         <br>
 
         Total alokasi:
@@ -4206,6 +4207,19 @@ const paymentAmount =
     : Number(
         payment.amount
       ) || 0;
+
+     const paymentVerifiedDisplay =
+  document.getElementById(
+    "paymentVerifiedDisplay"
+  );
+
+if (paymentVerifiedDisplay) {
+  paymentVerifiedDisplay.textContent =
+    formatRupiah(
+      paymentAmount
+    );
+}
+     
   const remaining =
     paymentAmount -
     total;
