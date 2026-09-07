@@ -3455,22 +3455,28 @@ const {
                 0
               );
 
-            const dp =
-              Number(
-                item.dp_amount ||
-                0
-              );
+            const minimumDp =
+  Number(
+    item.minimum_dp_amount ||
+    0
+  );
 
-            const remaining =
-              Number(
-                item.remaining_amount ||
-                0
-              );
+const dpPaid =
+  Number(
+    item.dp_amount ||
+    0
+  );
 
-            const total =
-              dp +
-              remaining;
+const remaining =
+  Number(
+    item.remaining_amount ||
+    0
+  );
 
+const total =
+  minimumDp +
+  remaining;
+             
             return `
               <div
                 class="payment-allocation-item"
@@ -3547,7 +3553,16 @@ const {
                   DP:
 <strong>
   ${formatRupiah(
-    dp
+    minimumDp
+  )}
+</strong>
+
+<br>
+
+DP Terbayar:
+<strong>
+  ${formatRupiah(
+    dpPaid
   )}
 </strong>
 
@@ -3654,7 +3669,8 @@ ${
   class="payment-allocation-part"
   data-recap-id="${item.id}"
   data-price="${price}"
-  data-dp="${dp}"
+  data-dp="${dpPaid}"
+data-minimum-dp="${minimumDp}"
 data-minimum-dp="${item.minimum_dp_amount || dp}"
 data-remaining="${remaining}"
   
