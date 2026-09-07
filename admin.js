@@ -4032,9 +4032,9 @@ function updateItemAllocationStatus(
 
    const minimumDp =
   Number(
-    input.dataset.minimumDp
+    input.dataset.minimumDp ||
+    input.dataset.dp
   ) || 0;
-
   const amount =
     Number(
       input.value
