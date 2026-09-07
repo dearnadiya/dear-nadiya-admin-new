@@ -4297,6 +4297,13 @@ document
     "click",
     async function() {
 
+      console.log(
+        "TOMBOL LANJUT DIKLIK"
+      );
+
+      alert(
+        "Tombol Lanjutkan berhasil diklik."
+      );
       const button = this;
 
       const paymentAmount =
