@@ -3299,20 +3299,23 @@ async function openPaymentAllocation(
      AMBIL REKAP CUSTOMER
      ================================ */
 
-  const {
-    data: recapData,
-    error: recapError
-  } =
-    await supabaseClient
-      .from(
-        "purchase_recap"
-      )
-      .select("*")
-      .eq(
-        "customer_name",
-        payment.customer_name
-      );
+  /* ================================
+   AMBIL REKAP BARANG PEMBAYARAN
+   ================================ */
 
+const {
+  data: recapData,
+  error: recapError
+} =
+  await supabaseClient
+    .from(
+      "purchase_recap"
+    )
+    .select("*")
+    .in(
+      "batch_code",
+      productCodes
+    );
 
   if (recapError) {
 
