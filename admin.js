@@ -4236,90 +4236,80 @@ function updateItemAllocationStatus(
      ================================ */
 
   function updateAllocationTotal() {
+  let total = 0;
 
-    let total = 0;
+  modal
+    .querySelectorAll(
+      ".payment-allocation-input"
+    )
+    .forEach(
+      function(input) {
+        total +=
+          Number(
+            input.value
+          ) || 0;
+      }
+    );
 
+  const verifiedAmountInput =
+    document.getElementById(
+      "paymentVerifiedAmount"
+    );
 
-    modal
-      .querySelectorAll(
-        ".payment-allocation-input"
-      )
-      .forEach(
-        function(input) {
+  const paymentAmount =
+    Number(
+      verifiedAmountInput
+        ? verifiedAmountInput.value
+        : payment.amount
+    ) || 0;
 
-          total +=
-            Number(
-              input.value
-            ) || 0;
+  const remaining =
+    paymentAmount -
+    total;
 
-        }
+  const totalElement =
+    document.getElementById(
+      "paymentAllocationTotal"
+    );
+
+  const remainingElement =
+    document.getElementById(
+      "paymentAllocationRemaining"
+    );
+
+  if (totalElement) {
+    totalElement.textContent =
+      formatRupiah(
+        total
+      );
+  }
+
+  if (remainingElement) {
+    remainingElement.textContent =
+      formatRupiah(
+        remaining
       );
 
+    remainingElement.style.color =
+      remaining < 0
+        ? "#c0392b"
+        : "";
+  }
+}
 
-    const verifiedAmountInput =
+   const verifiedAmountInput =
   document.getElementById(
     "paymentVerifiedAmount"
   );
 
-const paymentAmount =
-  Number(
-    verifiedAmountInput
-      ? verifiedAmountInput.value
-      : payment.amount
-  ) || 0;
-
-if (
-  paymentAmount <= 0
-) {
-  alert(
-    "Masukkan nominal pembayaran yang benar-benar diterima Admin."
+if (verifiedAmountInput) {
+  verifiedAmountInput.addEventListener(
+    "input",
+    function() {
+      updateAllocationTotal();
+    }
   );
-  return;
 }
-
-    const remaining =
-      paymentAmount -
-      total;
-
-
-    const totalElement =
-      document.getElementById(
-        "paymentAllocationTotal"
-      );
-
-
-    const remainingElement =
-      document.getElementById(
-        "paymentAllocationRemaining"
-      );
-
-
-    if (totalElement) {
-
-      totalElement.textContent =
-        formatRupiah(
-          total
-        );
-
-    }
-
-
-    if (remainingElement) {
-
-      remainingElement.textContent =
-        formatRupiah(
-          remaining
-        );
-
-      remainingElement.style.color =
-        remaining < 0
-          ? "#c0392b"
-          : "";
-
-    }
-
-  }
-
 
   modal
   .querySelectorAll(
