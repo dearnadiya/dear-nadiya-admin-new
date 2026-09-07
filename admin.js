@@ -6187,9 +6187,11 @@ async function saveRecap(
     item_price:
       itemPrice,
 
-    dp_amount:
-      dpAmount,
+    minimum_dp_amount:
+  dpAmount,
 
+dp_amount:
+  0,
     dp_status:
       document
         .getElementById(
