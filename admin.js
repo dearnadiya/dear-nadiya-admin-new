@@ -3597,7 +3597,8 @@ const {
   data-recap-id="${item.id}"
   data-price="${price}"
   data-dp="${dp}"
-  data-remaining="${remaining}"
+data-minimum-dp="${item.minimum_dp_amount || dp}"
+data-remaining="${remaining}"
   
                     style="
                       width:100%;
@@ -3657,7 +3658,8 @@ const {
   data-recap-id="${item.id}"
   data-price="${price}"
   data-dp="${dp}"
-  data-remaining="${remaining}"
+data-minimum-dp="${item.minimum_dp_amount || dp}"
+data-remaining="${remaining}"
   style="
     width:100%;
     box-sizing:border-box;
