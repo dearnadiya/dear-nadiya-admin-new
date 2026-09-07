@@ -3962,6 +3962,10 @@ function updateItemAllocationStatus(
       input.dataset.dp
     ) || 0;
 
+   const minimumDp =
+  Number(
+    input.dataset.minimumDp
+  ) || 0;
 
   const amount =
     Number(
@@ -3977,15 +3981,13 @@ function updateItemAllocationStatus(
      ================================ */
 
   if (
-    select.value ===
-    "dp"
-  ) {
+  select.value ===
+  "dp"
+) {
 
-    target =
-      dp;
-
-  }
-
+  target =
+    minimumDp;
+}
 
   /* ================================
      PELUNASAN
@@ -4062,27 +4064,38 @@ function updateItemAllocationStatus(
      ================================ */
 
   if (
-    amount < target
+  amount < target
+) {
+
+  const kurang =
+    target -
+    amount;
+
+  if (
+    select.value ===
+    "dp"
   ) {
 
-    const kurang =
-      target -
-      amount;
+    status.textContent =
+      "⚠ DP Belum Mencukupi • " +
+      formatRupiah(
+        kurang
+      );
 
+  } else {
 
     status.textContent =
       "⚠ Pembayaran Kurang • " +
       formatRupiah(
         kurang
       );
-
-    status.style.color =
-      "#b06b00";
-
-    return;
-
   }
 
+  status.style.color =
+    "#b06b00";
+
+  return;
+}
 
   status.textContent =
     "⚪ Belum dialokasikan";
