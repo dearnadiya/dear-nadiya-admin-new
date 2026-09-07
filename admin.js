@@ -4253,6 +4253,29 @@ modal
     }
   );
 
+   modal
+  .querySelectorAll(
+    ".payment-allocation-input"
+  )
+  .forEach(
+    function(input) {
+
+      input.addEventListener(
+        "input",
+        function() {
+
+          updateItemAllocationStatus(
+            this.dataset.recapId
+          );
+
+          updateAllocationTotal();
+
+        }
+      );
+
+    }
+  );
+
   /* ================================
      TUTUP MODAL
      ================================ */
