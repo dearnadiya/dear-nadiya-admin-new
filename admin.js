@@ -4649,118 +4649,363 @@ document
 
 
       /* ================================
-         UPDATE REKAP GO
-      ================================ */
+   UPDATE REKAP GO
+   DP KUMULATIF
+================================ */
 
-      for (
-        const allocation
-        of allocations
+const processedRecapIds =
+  new Set();
+
+for (
+  const allocation
+  of allocations
+) {
+
+  if (
+    processedRecapIds.has(
+      allocation.recap_id
+    )
+  ) {
+    continue;
+  }
+
+  processedRecapIds.add(
+    allocation.recap_id
+  );
+
+
+  /* ================================
+     AMBIL DATA REKAP TERBARU
+  ================================ */
+
+  const {
+    data: recapItem,
+    error: recapFetchError
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .select(
+        "id, item_price, dp_amount, minimum_dp_amount, remaining_amount, dp_status, payment_status"
+      )
+      .eq(
+        "id",
+        allocation.recap_id
+      )
+      .single();
+
+
+  if (
+    recapFetchError ||
+    !recapItem
+  ) {
+
+    console.error(
+      "ERROR FETCH RECAP:",
+      recapFetchError
+    );
+
+    alert(
+      "Pembayaran sudah dikonfirmasi, tetapi data Rekap GO gagal dibaca: " +
+      (
+        recapFetchError?.message ||
+        "Data tidak ditemukan."
+      )
+    );
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Lanjutkan";
+
+    return;
+  }
+
+
+  /* ================================
+     AMBIL SEMUA RIWAYAT ALOKASI
+  ================================ */
+
+  const {
+    data: historyAllocations,
+    error: historyError
+  } =
+    await supabaseClient
+      .from(
+        "dn_payment_allocations"
+      )
+      .select(
+        "allocated_amount, payment_part, allocation_status, created_at"
+      )
+      .eq(
+        "recap_id",
+        allocation.recap_id
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (
+    historyError
+  ) {
+
+    console.error(
+      "ERROR FETCH PAYMENT HISTORY:",
+      historyError
+    );
+
+    alert(
+      "Pembayaran sudah dikonfirmasi, tetapi riwayat alokasi gagal dibaca: " +
+      historyError.message
+    );
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Lanjutkan";
+
+    return;
+  }
+
+
+  /* ================================
+     HITUNG DP KUMULATIF
+  ================================ */
+
+  const minimumDp =
+    Number(
+      recapItem.minimum_dp_amount
+    ) || 0;
+
+  const price =
+    Number(
+      recapItem.item_price
+    ) || 0;
+
+  let totalDpPaid =
+    0;
+
+  let totalPelunasanPaid =
+    0;
+
+
+  (
+    historyAllocations ||
+    []
+  ).forEach(
+    function(history) {
+
+      const amount =
+        Number(
+          history.allocated_amount
+        ) || 0;
+
+      if (
+        amount <= 0
       ) {
-
-        if (
-          allocation.allocation_status !==
-          "lunas"
-        ) {
-          continue;
-        }
-
-
-        const updateData = {};
-
-
-        if (
-          allocation.payment_part ===
-          "dp"
-        ) {
-
-          updateData.dp_status =
-            "paid";
-
-        }
-
-
-        if (
-          allocation.payment_part ===
-          "pelunasan"
-        ) {
-
-          updateData.payment_status =
-            "paid";
-
-          updateData.remaining_amount =
-            0;
-
-        }
-
-
-        if (
-          allocation.payment_part ===
-          "both"
-        ) {
-
-          updateData.dp_status =
-            "paid";
-
-          updateData.payment_status =
-            "paid";
-
-          updateData.remaining_amount =
-            0;
-
-        }
-
-
-        if (
-          Object.keys(
-            updateData
-          ).length === 0
-        ) {
-          continue;
-        }
-
-
-        const {
-          error:
-            recapError
-        } =
-          await supabaseClient
-            .from(
-              "purchase_recap"
-            )
-            .update(
-              updateData
-            )
-            .eq(
-              "id",
-              allocation.recap_id
-            );
-
-
-        if (
-          recapError
-        ) {
-
-          console.error(
-            "ERROR UPDATE RECAP:",
-            recapError
-          );
-
-          alert(
-            "Pembayaran sudah dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
-            recapError.message
-          );
-
-          button.disabled =
-            false;
-
-          button.textContent =
-            "Lanjutkan";
-
-          return;
-        }
-
+        return;
       }
 
+
+      /* ==========================
+         DP
+      ========================== */
+
+      if (
+        history.payment_part ===
+        "dp"
+      ) {
+
+        totalDpPaid +=
+          amount;
+
+        return;
+      }
+
+
+      /* ==========================
+         PELUNASAN
+      ========================== */
+
+      if (
+        history.payment_part ===
+        "pelunasan"
+      ) {
+
+        totalPelunasanPaid +=
+          amount;
+
+        return;
+      }
+
+
+      /* ==========================
+         DP + PELUNASAN
+      ========================== */
+
+      if (
+        history.payment_part ===
+        "both"
+      ) {
+
+        const dpNeeded =
+          Math.max(
+            minimumDp -
+            totalDpPaid,
+            0
+          );
+
+        const dpPortion =
+          Math.min(
+            amount,
+            dpNeeded
+          );
+
+        const pelunasanPortion =
+          Math.max(
+            amount -
+            dpPortion,
+            0
+          );
+
+        totalDpPaid +=
+          dpPortion;
+
+        totalPelunasanPaid +=
+          pelunasanPortion;
+      }
+
+    }
+  );
+
+
+  /* ================================
+     STATUS DP
+  ================================ */
+
+  let dpStatus =
+    "unpaid";
+
+  if (
+    totalDpPaid > 0
+  ) {
+
+    if (
+      minimumDp <= 0 ||
+      totalDpPaid >= minimumDp
+    ) {
+
+      dpStatus =
+        "paid";
+
+    } else {
+
+      dpStatus =
+        "insufficient";
+
+    }
+
+  }
+
+
+  /* ================================
+     HITUNG SISA PELUNASAN
+  ================================ */
+
+  let remainingAmount =
+    0;
+
+  if (
+    dpStatus ===
+    "paid"
+  ) {
+
+    remainingAmount =
+      Math.max(
+        price -
+        totalDpPaid -
+        totalPelunasanPaid,
+        0
+      );
+
+  }
+
+
+  /* ================================
+     STATUS PELUNASAN
+  ================================ */
+
+  const paymentStatus =
+    dpStatus === "paid" &&
+    remainingAmount <= 0 &&
+    price > 0
+      ? "paid"
+      : "unpaid";
+
+
+  /* ================================
+     UPDATE PURCHASE RECAP
+  ================================ */
+
+  const {
+    error: recapUpdateError
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .update({
+
+        dp_amount:
+          totalDpPaid,
+
+        dp_status:
+          dpStatus,
+
+        remaining_amount:
+          remainingAmount,
+
+        payment_status:
+          paymentStatus
+
+      })
+      .eq(
+        "id",
+        allocation.recap_id
+      );
+
+
+  if (
+    recapUpdateError
+  ) {
+
+    console.error(
+      "ERROR UPDATE RECAP:",
+      recapUpdateError
+    );
+
+    alert(
+      "Pembayaran sudah dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+      recapUpdateError.message
+    );
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Lanjutkan";
+
+    return;
+  }
+
+}
 
       /* ================================
          SELESAI
