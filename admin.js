@@ -2640,42 +2640,28 @@ const {
      ========================================== */
 
   container
-    .querySelectorAll(
-      ".confirm-payment-button"
-    )
-    .forEach(
-      function (button) {
+  .querySelectorAll(
+    ".confirm-payment-button"
+  )
+  .forEach(
+    function (button) {
 
-        button.addEventListener(
-          "click",
-          async function () {
+      button.addEventListener(
+        "click",
+        async function () {
 
-            const id =
-              this.dataset.id;
+          const id =
+            this.dataset.id;
 
+          await openPaymentAllocation(
+            id
+          );
 
-            if (
-              !confirm(
-                "Konfirmasi pembayaran ini?"
-              )
-            ) {
+        }
+      );
 
-              return;
-
-            }
-
-
-            await updatePaymentStatus(
-              id,
-              "confirmed"
-            );
-
-          }
-        );
-
-      }
-    );
-
+    }
+  );
 
   /* ==========================================
      TOMBOL TOLAK
@@ -3235,6 +3221,789 @@ if (archiveContainer) {
     );
 
 }
+
+/* ============================================
+   ALOKASI PEMBAYARAN
+   ============================================ */
+
+async function openPaymentAllocation(
+  paymentId
+) {
+
+  /* ================================
+     AMBIL DATA PEMBAYARAN
+     ================================ */
+
+  const {
+    data: payment,
+    error: paymentError
+  } =
+    await supabaseClient
+      .from(
+        "dn_payment_submissions"
+      )
+      .select("*")
+      .eq(
+        "id",
+        paymentId
+      )
+      .single();
+
+
+  if (paymentError) {
+
+    console.error(
+      "ERROR LOAD PAYMENT:",
+      paymentError
+    );
+
+    alert(
+      "Gagal mengambil data pembayaran: " +
+      paymentError.message
+    );
+
+    return;
+
+  }
+
+
+  /* ================================
+     PARSE BARANG
+     ================================ */
+
+  const productCodes =
+    String(
+      payment.product_code ||
+      ""
+    )
+      .split(",")
+      .map(function(value) {
+        return value.trim();
+      })
+      .filter(Boolean);
+
+
+  const productVersions =
+    String(
+      payment.product_version ||
+      ""
+    )
+      .split(",")
+      .map(function(value) {
+        return value.trim();
+      })
+      .filter(Boolean);
+
+
+  /* ================================
+     AMBIL REKAP CUSTOMER
+     ================================ */
+
+  const {
+    data: recapData,
+    error: recapError
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .select("*")
+      .eq(
+        "customer_name",
+        payment.customer_name
+      );
+
+
+  if (recapError) {
+
+    console.error(
+      "ERROR LOAD RECAP FOR PAYMENT:",
+      recapError
+    );
+
+    alert(
+      "Gagal mengambil data barang: " +
+      recapError.message
+    );
+
+    return;
+
+  }
+
+
+  /* ================================
+     CARI BARANG YANG TERKAIT
+     ================================ */
+
+  const selectedItems = [];
+
+
+  productCodes.forEach(
+    function(
+      productCode,
+      index
+    ) {
+
+      const productVersion =
+        productVersions[index] ||
+        "";
+
+
+      const item =
+        (recapData || []).find(
+          function(row) {
+
+            const rowCode =
+              String(
+                row.batch_code ||
+                row.product_code ||
+                ""
+              )
+                .trim()
+                .toLowerCase();
+
+
+            const rowVersion =
+              String(
+                row.version ||
+                row.product_version ||
+                ""
+              )
+                .trim()
+                .toLowerCase();
+
+
+            return (
+              rowCode ===
+                productCode
+                  .trim()
+                  .toLowerCase()
+              &&
+              rowVersion ===
+                productVersion
+                  .trim()
+                  .toLowerCase()
+            );
+
+          }
+        );
+
+
+      if (item) {
+
+        selectedItems.push(
+          item
+        );
+
+      }
+
+    }
+  );
+
+
+  /* ================================
+     MODAL
+     ================================ */
+
+  const oldModal =
+    document.getElementById(
+      "paymentAllocationModal"
+    );
+
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "paymentAllocationModal";
+
+
+  modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  `;
+
+
+  const itemsHTML =
+    selectedItems.length
+      ? selectedItems
+          .map(
+            function(item) {
+
+              const price =
+                Number(
+                  item.item_price ||
+                  item.price ||
+                  0
+                );
+
+
+              const dp =
+                Number(
+                  item.dp_amount ||
+                  0
+                );
+
+
+              const remaining =
+                Number(
+                  item.remaining_amount ||
+                  0
+                );
+
+
+              return `
+                <div
+                  class="payment-allocation-item"
+                  style="
+                    border:1px solid var(--line);
+                    border-radius:12px;
+                    padding:14px;
+                    margin-top:10px;
+                    background:#fff;
+                  "
+                >
+
+                  <div
+                    style="
+                      font-weight:700;
+                      color:#604752;
+                      margin-bottom:6px;
+                    "
+                  >
+                    ${escapeHTML(
+                      item.item_name ||
+                      item.product_name ||
+                      "Barang"
+                    )}
+                  </div>
+
+
+                  <div
+                    style="
+                      font-size:11px;
+                      color:#888;
+                      line-height:1.6;
+                    "
+                  >
+                    Batch:
+                    ${escapeHTML(
+                      item.batch_code ||
+                      item.product_code ||
+                      "—"
+                    )}
+                    <br>
+
+                    Versi:
+                    ${escapeHTML(
+                      item.version ||
+                      item.product_version ||
+                      "—"
+                    )}
+                  </div>
+
+
+                  <div
+                    style="
+                      margin-top:9px;
+                      font-size:11px;
+                      color:#666;
+                      line-height:1.7;
+                    "
+                  >
+                    Harga:
+                    <strong>
+                      ${formatRupiah(
+                        price
+                      )}
+                    </strong>
+                    <br>
+
+                    DP:
+                    ${formatRupiah(
+                      dp
+                    )}
+                    <br>
+
+                    Sisa:
+                    ${formatRupiah(
+                      remaining
+                    )}
+                  </div>
+
+
+                  <div
+                    style="
+                      margin-top:12px;
+                    "
+                  >
+
+                    <label
+                      style="
+                        display:block;
+                        margin-bottom:5px;
+                        font-size:11px;
+                        font-weight:600;
+                        color:#604752;
+                      "
+                    >
+                      Alokasi pembayaran
+                    </label>
+
+                    <input
+                      type="number"
+                      min="0"
+                      value="0"
+                      class="payment-allocation-input"
+                      data-recap-id="${
+                        item.id
+                      }"
+                      style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:10px;
+                        border:1px solid var(--line);
+                        border-radius:9px;
+                        font-family:inherit;
+                        font-size:12px;
+                      "
+                    >
+
+                  </div>
+
+                </div>
+              `;
+
+            }
+          )
+          .join("")
+      : `
+          <div
+            style="
+              padding:18px;
+              text-align:center;
+              color:#999;
+              border:1px dashed var(--line);
+              border-radius:12px;
+            "
+          >
+            Barang pembayaran tidak ditemukan.
+          </div>
+        `;
+
+
+  modal.innerHTML = `
+    <div
+      style="
+        width:100%;
+        max-width:560px;
+        max-height:90vh;
+        overflow-y:auto;
+        background:#fff;
+        border-radius:16px;
+        padding:20px;
+        box-sizing:border-box;
+        box-shadow:0 20px 60px rgba(0,0,0,.18);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:15px;
+        "
+      >
+
+        <div>
+
+          <div
+            style="
+              font-size:10px;
+              color:#999;
+              margin-bottom:4px;
+            "
+          >
+            KONFIRMASI PEMBAYARAN
+          </div>
+
+          <h3
+            style="
+              margin:0;
+              color:#604752;
+            "
+          >
+            Pembayaran #${payment.id}
+          </h3>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="closePaymentAllocation"
+          style="
+            border:0;
+            background:transparent;
+            font-size:20px;
+            cursor:pointer;
+            color:#888;
+          "
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:15px;
+          padding:12px;
+          border-radius:10px;
+          background:#fff8fb;
+          font-size:12px;
+          line-height:1.7;
+        "
+      >
+
+        <strong>
+          ${escapeHTML(
+            payment.customer_name ||
+            "—"
+          )}
+        </strong>
+
+        <br>
+
+        WhatsApp:
+        ••••${escapeHTML(
+          payment.whatsapp_last4 ||
+          "—"
+        )}
+
+        <br>
+
+        Jenis pembayaran:
+        <strong>
+          ${escapeHTML(
+            payment.payment_type ||
+            "—"
+          )}
+        </strong>
+
+        <br>
+
+        Total pembayaran masuk:
+        <strong
+          style="
+            color:#8d526d;
+            font-size:14px;
+          "
+        >
+          ${formatRupiah(
+            payment.amount
+          )}
+        </strong>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:18px;
+          font-size:12px;
+          font-weight:700;
+          color:#604752;
+        "
+      >
+        Alokasi ke Barang
+      </div>
+
+
+      <div>
+        ${itemsHTML}
+      </div>
+
+
+      <div
+        style="
+          margin-top:15px;
+          padding:12px;
+          border-top:1px solid var(--line);
+          font-size:12px;
+          line-height:1.8;
+        "
+      >
+
+        Total pembayaran:
+        <strong>
+          ${formatRupiah(
+            payment.amount
+          )}
+        </strong>
+
+        <br>
+
+        Total alokasi:
+        <strong
+          id="paymentAllocationTotal"
+        >
+          Rp0
+        </strong>
+
+        <br>
+
+        Sisa belum dialokasikan:
+        <strong
+          id="paymentAllocationRemaining"
+        >
+          ${formatRupiah(
+            payment.amount
+          )}
+        </strong>
+
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+          margin-top:10px;
+        "
+      >
+
+        <button
+          type="button"
+          id="cancelPaymentAllocation"
+          class="delete-button"
+        >
+          Batal
+        </button>
+
+
+        <button
+          type="button"
+          id="savePaymentAllocation"
+          class="primary-button"
+        >
+          Lanjutkan
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  /* ================================
+     HITUNG TOTAL ALOKASI
+     ================================ */
+
+  function updateAllocationTotal() {
+
+    let total = 0;
+
+
+    modal
+      .querySelectorAll(
+        ".payment-allocation-input"
+      )
+      .forEach(
+        function(input) {
+
+          total +=
+            Number(
+              input.value
+            ) || 0;
+
+        }
+      );
+
+
+    const paymentAmount =
+      Number(
+        payment.amount
+      ) || 0;
+
+
+    const remaining =
+      paymentAmount -
+      total;
+
+
+    const totalElement =
+      document.getElementById(
+        "paymentAllocationTotal"
+      );
+
+
+    const remainingElement =
+      document.getElementById(
+        "paymentAllocationRemaining"
+      );
+
+
+    if (totalElement) {
+
+      totalElement.textContent =
+        formatRupiah(
+          total
+        );
+
+    }
+
+
+    if (remainingElement) {
+
+      remainingElement.textContent =
+        formatRupiah(
+          remaining
+        );
+
+      remainingElement.style.color =
+        remaining < 0
+          ? "#c0392b"
+          : "";
+
+    }
+
+  }
+
+
+  modal
+    .querySelectorAll(
+      ".payment-allocation-input"
+    )
+    .forEach(
+      function(input) {
+
+        input.addEventListener(
+          "input",
+          updateAllocationTotal
+        );
+
+      }
+    );
+
+
+  /* ================================
+     TUTUP MODAL
+     ================================ */
+
+  document
+    .getElementById(
+      "closePaymentAllocation"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        modal.remove();
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "cancelPaymentAllocation"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        modal.remove();
+
+      }
+    );
+
+
+  /* ================================
+     TOMBOL LANJUT
+     ================================ */
+
+  document
+    .getElementById(
+      "savePaymentAllocation"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        const paymentAmount =
+          Number(
+            payment.amount
+          ) || 0;
+
+
+        let total =
+          0;
+
+
+        modal
+          .querySelectorAll(
+            ".payment-allocation-input"
+          )
+          .forEach(
+            function(input) {
+
+              total +=
+                Number(
+                  input.value
+                ) || 0;
+
+            }
+          );
+
+
+        if (
+          total >
+          paymentAmount
+        ) {
+
+          alert(
+            "Total alokasi tidak boleh melebihi total pembayaran."
+          );
+
+          return;
+
+        }
+
+
+        alert(
+          "Tampilan alokasi sudah siap. Penyimpanan akan kita pasang pada tahap berikutnya."
+        );
+
+      }
+    );
+
+
+}
+
 /* ============================================
    UPDATE STATUS PEMBAYARAN
    ============================================ */
