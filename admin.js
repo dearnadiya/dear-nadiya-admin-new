@@ -3658,6 +3658,8 @@ const {
   data-price="${price}"
   data-dp="${dp}"
   data-remaining="${remaining}"
+  >
+  
   style="
     width:100%;
     box-sizing:border-box;
