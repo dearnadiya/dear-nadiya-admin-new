@@ -3658,8 +3658,6 @@ const {
   data-price="${price}"
   data-dp="${dp}"
   data-remaining="${remaining}"
-  >
-  
   style="
     width:100%;
     box-sizing:border-box;
@@ -3670,18 +3668,6 @@ const {
     font-size:12px;
   "
 >
- 
-                    style="
-                      width:100%;
-                      box-sizing:border-box;
-                      padding:10px;
-                      border:1px solid var(--line);
-                      border-radius:9px;
-                      font-family:inherit;
-                      font-size:12px;
-                    "
-                  >
-
                 </div>
 
 
