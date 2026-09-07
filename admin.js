@@ -4252,15 +4252,397 @@ document
   )
   ?.addEventListener(
     "click",
-    function() {
+    async function() {
+
+      const button = this;
+
+      const paymentAmount =
+        Number(
+          payment.amount
+        ) || 0;
+
+      const inputs =
+        modal.querySelectorAll(
+          ".payment-allocation-input"
+        );
+
+      let totalAllocated = 0;
+
+      const allocations = [];
+
+      inputs.forEach(
+        function(input) {
+
+          const amount =
+            Number(
+              input.value
+            ) || 0;
+
+          if (amount <= 0) {
+            return;
+          }
+
+          const recapId =
+            input.dataset.recapId;
+
+          const select =
+            modal.querySelector(
+              `.payment-allocation-part[data-recap-id="${recapId}"]`
+            );
+
+          const part =
+            select
+              ? select.value
+              : "dp";
+
+          const price =
+            Number(
+              input.dataset.price
+            ) || 0;
+
+          const dp =
+            Number(
+              input.dataset.dp
+            ) || 0;
+
+          let target = 0;
+
+          if (
+            part === "dp"
+          ) {
+
+            target =
+              dp;
+
+          } else if (
+            part === "pelunasan"
+          ) {
+
+            target =
+              price - dp;
+
+          } else if (
+            part === "both"
+          ) {
+
+            target =
+              price;
+
+          }
+
+          const allocationStatus =
+            amount >= target &&
+            target > 0
+              ? "lunas"
+              : "pembayaran_kurang";
+
+          totalAllocated +=
+            amount;
+
+          allocations.push({
+            recap_id:
+              recapId,
+            allocated_amount:
+              amount,
+            payment_part:
+              part,
+            allocation_status:
+              allocationStatus
+          });
+
+        }
+      );
+
+
+      /* ================================
+         VALIDASI TOTAL
+      ================================ */
+
+      if (
+        totalAllocated >
+        paymentAmount
+      ) {
+
+        alert(
+          "Total alokasi tidak boleh melebihi total pembayaran."
+        );
+
+        return;
+      }
+
+
+      if (
+        allocations.length === 0
+      ) {
+
+        alert(
+          "Silakan alokasikan nominal pembayaran ke minimal satu barang."
+        );
+
+        return;
+      }
+
+
+      /* ================================
+         SIMPAN ALOKASI
+      ================================ */
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        "Menyimpan...";
+
+
+      const allocationRows =
+        allocations.map(
+          function(item) {
+
+            return {
+              payment_submission_id:
+                payment.id,
+
+              recap_id:
+                item.recap_id,
+
+              allocated_amount:
+                item.allocated_amount,
+
+              payment_part:
+                item.payment_part,
+
+              allocation_status:
+                item.allocation_status
+            };
+
+          }
+        );
+
+
+      const {
+        error:
+          allocationError
+      } =
+        await supabaseClient
+          .from(
+            "dn_payment_allocations"
+          )
+          .upsert(
+            allocationRows,
+            {
+              onConflict:
+                "payment_submission_id,recap_id"
+            }
+          );
+
+
+      if (
+        allocationError
+      ) {
+
+        console.error(
+          "ERROR SAVE PAYMENT ALLOCATION:",
+          allocationError
+        );
+
+        alert(
+          "Gagal menyimpan alokasi pembayaran: " +
+          allocationError.message
+        );
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          "Lanjutkan";
+
+        return;
+      }
+
+
+      /* ================================
+         UPDATE STATUS PEMBAYARAN
+      ================================ */
+
+      const {
+        error:
+          paymentError
+      } =
+        await supabaseClient
+          .from(
+            "dn_payment_submissions"
+          )
+          .update({
+            status:
+              "confirmed"
+          })
+          .eq(
+            "id",
+            payment.id
+          );
+
+
+      if (
+        paymentError
+      ) {
+
+        console.error(
+          "ERROR CONFIRM PAYMENT:",
+          paymentError
+        );
+
+        alert(
+          "Alokasi tersimpan, tetapi pembayaran gagal dikonfirmasi: " +
+          paymentError.message
+        );
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          "Lanjutkan";
+
+        return;
+      }
+
+
+      /* ================================
+         UPDATE REKAP GO
+      ================================ */
+
+      for (
+        const allocation
+        of allocations
+      ) {
+
+        if (
+          allocation.allocation_status !==
+          "lunas"
+        ) {
+          continue;
+        }
+
+
+        const updateData = {};
+
+
+        if (
+          allocation.payment_part ===
+          "dp"
+        ) {
+
+          updateData.dp_status =
+            "paid";
+
+        }
+
+
+        if (
+          allocation.payment_part ===
+          "pelunasan"
+        ) {
+
+          updateData.payment_status =
+            "paid";
+
+          updateData.remaining_amount =
+            0;
+
+        }
+
+
+        if (
+          allocation.payment_part ===
+          "both"
+        ) {
+
+          updateData.dp_status =
+            "paid";
+
+          updateData.payment_status =
+            "paid";
+
+          updateData.remaining_amount =
+            0;
+
+        }
+
+
+        if (
+          Object.keys(
+            updateData
+          ).length === 0
+        ) {
+          continue;
+        }
+
+
+        const {
+          error:
+            recapError
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .update(
+              updateData
+            )
+            .eq(
+              "id",
+              allocation.recap_id
+            );
+
+
+        if (
+          recapError
+        ) {
+
+          console.error(
+            "ERROR UPDATE RECAP:",
+            recapError
+          );
+
+          alert(
+            "Pembayaran sudah dikonfirmasi, tetapi Rekap GO gagal diperbarui: " +
+            recapError.message
+          );
+
+          button.disabled =
+            false;
+
+          button.textContent =
+            "Lanjutkan";
+
+          return;
+        }
+
+      }
+
+
+      /* ================================
+         SELESAI
+      ================================ */
 
       alert(
-        "Tampilan alokasi sudah siap. Penyimpanan akan kita pasang pada tahap berikutnya."
+        "Pembayaran berhasil dikonfirmasi dan alokasi pembayaran tersimpan. ♥"
       );
+
+
+      modal.remove();
+
+
+      if (
+        typeof loadPayments ===
+        "function"
+      ) {
+
+        await loadPayments();
+
+      }
 
     }
   );
-
 }
 
 /* ============================================
