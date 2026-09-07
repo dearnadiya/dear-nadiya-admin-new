@@ -4251,16 +4251,9 @@ function updateItemAllocationStatus(
       }
     );
 
-  const verifiedAmountInput =
-    document.getElementById(
-      "paymentVerifiedAmount"
-    );
-
   const paymentAmount =
     Number(
-      verifiedAmountInput
-        ? verifiedAmountInput.value
-        : payment.amount
+      payment.amount
     ) || 0;
 
   const remaining =
@@ -4296,44 +4289,6 @@ function updateItemAllocationStatus(
         : "";
   }
 }
-
-   const verifiedAmountInput =
-  document.getElementById(
-    "paymentVerifiedAmount"
-  );
-
-if (verifiedAmountInput) {
-  verifiedAmountInput.addEventListener(
-    "input",
-    function() {
-      updateAllocationTotal();
-    }
-  );
-}
-
-  modal
-  .querySelectorAll(
-    ".payment-allocation-input"
-  )
-  .forEach(
-    function(input) {
-
-      input.addEventListener(
-        "input",
-        function() {
-
-          updateAllocationTotal();
-
-          updateItemAllocationStatus(
-            this.dataset.recapId
-          );
-
-        }
-      );
-
-    }
-  );
-
 
 modal
   .querySelectorAll(
