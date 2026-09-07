@@ -3613,7 +3613,7 @@ DP Terbayar:
   data-price="${price}"
   data-dp="${dpPaid}"
 data-minimum-dp="${minimumDp}"
-data-minimum-dp="${item.minimum_dp_amount || dp}"
+data-minimum-dp="${item.minimum_dp_amount || minimumDp}"
 data-remaining="${remaining}"
   
                     style="
@@ -3677,7 +3677,7 @@ data-remaining="${remaining}"
   data-recap-id="${item.id}"
   data-price="${price}"
   data-dp="${minimumDp}"
-data-minimum-dp="${item.minimum_dp_amount || dp}"
+data-minimum-dp="${item.minimum_dp_amount || minimumDp}"
 data-remaining="${remaining}"
   style="
     width:100%;
