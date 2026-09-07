@@ -4193,11 +4193,19 @@ function updateItemAllocationStatus(
       }
     );
 
-  const paymentAmount =
-    Number(
-      payment.amount
-    ) || 0;
+  const verifiedAmountElement =
+  document.getElementById(
+    "paymentVerifiedAmount"
+  );
 
+const paymentAmount =
+  verifiedAmountElement
+    ? Number(
+        verifiedAmountElement.value
+      ) || 0
+    : Number(
+        payment.amount
+      ) || 0;
   const remaining =
     paymentAmount -
     total;
