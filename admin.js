@@ -3577,17 +3577,36 @@ ${
         >
           🟠 DP Belum Mencukupi
         </span>
-      `
-      : `
-        <span
+
+        <div
           style="
-            display:inline-block;
-            margin-left:6px;
-            color:#999;
+            margin-top:3px;
+            color:#b06b00;
+            font-size:11px;
+            font-weight:600;
           "
         >
-          ⚪ Belum Dibayar
-        </span>
+          Kekurangan DP:
+          ${formatRupiah(
+            Math.max(
+              Number(
+                item.minimum_dp_amount || 0
+              ) - dp,
+              0
+            )
+          )}
+        </div>
+      `
+    : `
+      <span
+        style="
+          display:inline-block;
+          margin-left:6px;
+          color:#999;
+        "
+      >
+        ⚪ Belum Dibayar
+      </span>
       `
 }
                   <br>
