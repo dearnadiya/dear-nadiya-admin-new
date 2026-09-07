@@ -3872,18 +3872,67 @@ data-remaining="${remaining}"
 
         <br>
 
-        Total pembayaran masuk:
-        <strong
-          style="
-            color:#8d526d;
-            font-size:14px;
-          "
-        >
-          ${formatRupiah(
-            payment.amount
-          )}
-        </strong>
+        Total pembayaran dari customer:
+<strong
+  style="
+    color:#8d526d;
+    font-size:14px;
+  "
+>
+  ${formatRupiah(
+    payment.amount
+  )}
+</strong>
 
+<br>
+
+<div
+  style="
+    margin-top:10px;
+  "
+>
+  <label
+    style="
+      display:block;
+      margin-bottom:5px;
+      font-size:11px;
+      font-weight:600;
+      color:#604752;
+    "
+  >
+    Nominal pembayaran yang diterima Admin
+  </label>
+
+  <input
+    type="number"
+    id="paymentVerifiedAmount"
+    min="0"
+    step="1000"
+    value="${Number(payment.verified_amount ?? payment.amount) || 0}"
+    style="
+      width:100%;
+      box-sizing:border-box;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:#fff;
+      font-family:inherit;
+      font-size:13px;
+      font-weight:600;
+    "
+  >
+
+  <div
+    style="
+      margin-top:5px;
+      font-size:10px;
+      color:#888;
+      line-height:1.5;
+    "
+  >
+    Nominal ini yang akan digunakan sebagai dasar alokasi pembayaran.
+  </div>
+</div>
       </div>
 
 
@@ -4191,11 +4240,26 @@ function updateItemAllocationStatus(
       );
 
 
-    const paymentAmount =
-      Number(
-        payment.amount
-      ) || 0;
+    const verifiedAmountInput =
+  document.getElementById(
+    "paymentVerifiedAmount"
+  );
 
+const paymentAmount =
+  Number(
+    verifiedAmountInput
+      ? verifiedAmountInput.value
+      : payment.amount
+  ) || 0;
+
+if (
+  paymentAmount <= 0
+) {
+  alert(
+    "Masukkan nominal pembayaran yang benar-benar diterima Admin."
+  );
+  return;
+}
 
     const remaining =
       paymentAmount -
@@ -4549,9 +4613,11 @@ document
             "dn_payment_submissions"
           )
           .update({
-            status:
-              "confirmed"
-          })
+  status:
+    "confirmed",
+  verified_amount:
+    paymentAmount
+})
           .eq(
             "id",
             payment.id
