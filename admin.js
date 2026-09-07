@@ -3545,12 +3545,51 @@ const {
                   <br>
 
                   DP:
-                  <strong>
-                    ${formatRupiah(
-                      dp
-                    )}
-                  </strong>
+<strong>
+  ${formatRupiah(
+    dp
+  )}
+</strong>
 
+${
+  item.dp_status === "paid"
+    ? `
+      <span
+        style="
+          display:inline-block;
+          margin-left:6px;
+          color:#2f8a57;
+          font-weight:700;
+        "
+      >
+        🟢 ✓ Sudah Dibayar
+      </span>
+    `
+    : item.dp_status === "insufficient"
+      ? `
+        <span
+          style="
+            display:inline-block;
+            margin-left:6px;
+            color:#b06b00;
+            font-weight:700;
+          "
+        >
+          🟠 DP Belum Mencukupi
+        </span>
+      `
+      : `
+        <span
+          style="
+            display:inline-block;
+            margin-left:6px;
+            color:#999;
+          "
+        >
+          ⚪ Belum Dibayar
+        </span>
+      `
+}
                   <br>
 
                   Sisa Pelunasan:
@@ -3612,10 +3651,13 @@ data-remaining="${remaining}"
                     "
                   >
 
-                    <option value="dp">
-                      DP
-                    </option>
-
+                    <option
+  value="dp"
+  ${item.dp_status === "paid" ? "disabled" : ""}
+>
+  DP
+  ${item.dp_status === "paid" ? "✓ Sudah Dibayar" : ""}
+</option>
                     <option value="pelunasan">
                       Pelunasan
                     </option>
