@@ -8821,6 +8821,232 @@ container
   );
 
    /* ==========================================
+   PAGINATION CUSTOMER PER BATCH
+   ========================================== */
+
+const CUSTOMER_PER_PAGE = 10;
+
+container
+  .querySelectorAll(
+    ".recap-batch-card"
+  )
+  .forEach(
+    function(card) {
+
+      const tbody =
+        card.querySelector(
+          ".product-table tbody"
+        );
+
+      if (!tbody) {
+        return;
+      }
+
+      const rows =
+        Array.from(
+          tbody.querySelectorAll("tr")
+        );
+
+      if (
+        rows.length <=
+        CUSTOMER_PER_PAGE
+      ) {
+        return;
+      }
+
+      const pagination =
+        document.createElement("div");
+
+      pagination.className =
+        "recap-pagination";
+
+      card.appendChild(
+        pagination
+      );
+
+      let currentPage = 1;
+
+      function renderPagination() {
+
+        const totalPages =
+          Math.ceil(
+            rows.length /
+              CUSTOMER_PER_PAGE
+          );
+
+        rows.forEach(
+          function(row, index) {
+
+            const start =
+              (currentPage - 1) *
+              CUSTOMER_PER_PAGE;
+
+            const end =
+              start +
+              CUSTOMER_PER_PAGE;
+
+            row.style.display =
+              index >= start &&
+              index < end
+                ? ""
+                : "none";
+
+          }
+        );
+
+        pagination.innerHTML =
+          "";
+
+        if (
+          totalPages <= 1
+        ) {
+          return;
+        }
+
+        const previousButton =
+          document.createElement(
+            "button"
+          );
+
+        previousButton.type =
+          "button";
+
+        previousButton.textContent =
+          "‹";
+
+        previousButton.disabled =
+          currentPage === 1;
+
+        previousButton.addEventListener(
+          "click",
+          function() {
+
+            if (
+              currentPage > 1
+            ) {
+
+              currentPage--;
+
+              renderPagination();
+
+            }
+
+          }
+        );
+
+        pagination.appendChild(
+          previousButton
+        );
+
+
+        for (
+          let page = 1;
+          page <= totalPages;
+          page++
+        ) {
+
+          const pageButton =
+            document.createElement(
+              "button"
+            );
+
+          pageButton.type =
+            "button";
+
+          pageButton.textContent =
+            page;
+
+          if (
+            page ===
+            currentPage
+          ) {
+
+            pageButton.classList.add(
+              "active"
+            );
+
+          }
+
+          pageButton.addEventListener(
+            "click",
+            function() {
+
+              currentPage =
+                page;
+
+              renderPagination();
+
+            }
+          );
+
+          pagination.appendChild(
+            pageButton
+          );
+
+        }
+
+
+        const nextButton =
+          document.createElement(
+            "button"
+          );
+
+        nextButton.type =
+          "button";
+
+        nextButton.textContent =
+          "›";
+
+        nextButton.disabled =
+          currentPage ===
+          totalPages;
+
+        nextButton.addEventListener(
+          "click",
+          function() {
+
+            if (
+              currentPage <
+              totalPages
+            ) {
+
+              currentPage++;
+
+              renderPagination();
+
+            }
+
+          }
+        );
+
+        pagination.appendChild(
+          nextButton
+        );
+
+
+        const info =
+          document.createElement(
+            "span"
+          );
+
+        info.className =
+          "recap-pagination-info";
+
+        info.textContent =
+          `${rows.length} customer`;
+
+        pagination.appendChild(
+          info
+        );
+
+      }
+
+      renderPagination();
+
+    }
+  );
+
+   /* ==========================================
    SEARCH + FILTER REKAP GO
    ========================================== */
 
