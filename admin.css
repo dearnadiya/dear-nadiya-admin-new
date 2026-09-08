@@ -5632,6 +5632,11 @@ a {
   margin-left: 12px;
 }
 
+.recap-batch-card.recap-batch-collapsed
+.recap-pagination {
+  display: none;
+}
+
 /* ==========================================
    REKAP GO - PAGINATION CUSTOMER
    ========================================== */
