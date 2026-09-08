@@ -7019,9 +7019,7 @@ function loadRecap() {
           </h2>
 
           <p>
-            Kelola rekapan pembelian
-            berdasarkan kategori
-            dan kode batch.
+            Pilih jenis rekap yang ingin dikelola.
           </p>
 
         </div>
@@ -7037,6 +7035,174 @@ function loadRecap() {
 
       </div>
 
+
+      <div
+        class="recap-category-buttons"
+        id="recapTypeButtons"
+      >
+
+        <button
+          type="button"
+          class="active"
+          data-recap-type="Treasure"
+        >
+          🧸 Rekap Treasure
+        </button>
+
+
+        <button
+          type="button"
+          data-recap-type="Multi Group"
+        >
+          👥 Rekap Multi Group
+        </button>
+
+
+        <button
+          type="button"
+          data-recap-type="Tabungan"
+        >
+          💰 Rekap Tabungan
+        </button>
+
+
+        <button
+          type="button"
+          data-recap-type="Jastip"
+        >
+          📦 Rekap Jastip
+        </button>
+
+      </div>
+
+
+      <div
+        id="recapCategoryContainer"
+      ></div>
+
+
+      <div
+        id="recapFormContainer"
+      ></div>
+
+
+      <div
+        id="recapListContainer"
+      >
+
+        <p>
+          Pilih jenis rekap terlebih dahulu.
+        </p>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  let selectedRecapType =
+    "Treasure";
+
+
+  const typeButtons =
+    document.querySelectorAll(
+      "#recapTypeButtons button"
+    );
+
+
+  typeButtons.forEach(
+    function (button) {
+
+      button.addEventListener(
+        "click",
+        function () {
+
+          typeButtons.forEach(
+            function (item) {
+
+              item.classList.remove(
+                "active"
+              );
+
+            }
+
+          );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          selectedRecapType =
+            button.dataset.recapType;
+
+
+          showRecapCategories(
+            selectedRecapType
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+  const addButton =
+    document.getElementById(
+      "addRecapButton"
+    );
+
+
+  if (addButton) {
+
+    addButton.addEventListener(
+      "click",
+      function () {
+
+        showRecapForm(
+          selectedRecapType
+        );
+
+      }
+    );
+
+  }
+
+
+  showRecapCategories(
+    selectedRecapType
+  );
+
+}
+
+/* ============================================
+   PILIH KATEGORI REKAP
+   ============================================ */
+
+function showRecapCategories(
+  recapType
+) {
+
+  const container =
+    document.getElementById(
+      "recapCategoryContainer"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (
+    recapType ===
+    "Treasure"
+  ) {
+
+    container.innerHTML = `
 
       <div
         class="recap-category-buttons"
@@ -7101,101 +7267,103 @@ function loadRecap() {
 
       </div>
 
-      <div
-        id="recapFormContainer"
-      ></div>
-     
-      <div
-        id="recapListContainer"
-      >
+    `;
 
-        <p>
-          Memuat rekap...
-        </p>
 
-      </div>
+    let selectedCategory =
+      "Truz";
+
+
+    const categoryButtons =
+      container.querySelectorAll(
+        "#recapCategoryButtons button"
+      );
+
+
+    categoryButtons.forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            categoryButtons.forEach(
+              function (item) {
+
+                item.classList.remove(
+                  "active"
+                );
+
+              }
+            );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            selectedCategory =
+              button.dataset.category;
+
+
+            loadRecapList(
+              selectedCategory
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    loadRecapList(
+      selectedCategory
+    );
+
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="welcome-card">
+
+      <p>
+        Kategori untuk
+        <strong>
+          Rekap ${recapType}
+        </strong>
+        belum dibuat.
+      </p>
 
     </div>
 
   `;
 
 
-  let selectedCategory =
-    "Truz";
-
-
-  const categoryButtons =
-    document.querySelectorAll(
-      "#recapCategoryButtons button"
-    );
-
-
-  categoryButtons.forEach(
-    function (button) {
-
-      button.addEventListener(
-        "click",
-        function () {
-
-          categoryButtons.forEach(
-            function (item) {
-
-              item.classList.remove(
-                "active"
-              );
-
-            }
-          );
-
-
-          button.classList.add(
-            "active"
-          );
-
-
-          selectedCategory =
-            button.dataset.category;
-
-
-          loadRecapList(
-            selectedCategory
-          );
-
-        }
-      );
-
-    }
-  );
-
-
-  const addButton =
+  const listContainer =
     document.getElementById(
-      "addRecapButton"
+      "recapListContainer"
     );
 
 
-  if (addButton) {
+  if (listContainer) {
 
-    addButton.addEventListener(
-      "click",
-      function () {
+    listContainer.innerHTML = `
 
-        showRecapForm(
-          selectedCategory
-        );
+      <p>
+        Belum ada kategori.
+      </p>
 
-      }
-    );
+    `;
 
   }
 
-
-  loadRecapList(
-    selectedCategory
-  );
-
 }
-
 
 /* ============================================
    FORM REKAP GO - MULTI MEMBER
