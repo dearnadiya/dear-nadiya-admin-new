@@ -9195,10 +9195,10 @@ function applyRecapFilters() {
             matchesPayment;
 
 
-          row.style.display =
-            visible
-              ? ""
-              : "none";
+          row.dataset.filterVisible =
+  visible
+    ? "true"
+    : "false";
 
 
           if (visible) {
