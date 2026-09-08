@@ -6301,6 +6301,314 @@ async function loadCOReport() {
   }
 
 }
+
+/* ============================================
+   ARSIP CO TIDAK DIKONFIRMASI
+   ============================================ */
+
+async function loadCOArchive() {
+
+  pageTitle.textContent =
+    "Arsip CO";
+
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            📦 Arsip CO Tidak Dikonfirmasi
+          </h2>
+
+          <p>
+            Riwayat barang yang pernah CO
+            tetapi tidak dikonfirmasi packing.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="coArchiveContainer"
+        class="welcome-card"
+      >
+
+        <p>
+          Memuat arsip...
+        </p>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("checkout_history")
+        .select(`
+          id,
+          recap_id,
+          customer_name,
+          checkout_at,
+          checkout_result,
+          created_at
+        `)
+        .eq(
+          "checkout_result",
+          "Tidak Dikonfirmasi"
+        )
+        .order(
+          "checkout_at",
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "ERROR LOAD CO ARCHIVE:",
+        error
+      );
+
+      document.getElementById(
+        "coArchiveContainer"
+      ).innerHTML = `
+        <p>
+          Gagal memuat arsip CO.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    const rows =
+      data || [];
+
+
+    const container =
+      document.getElementById(
+        "coArchiveContainer"
+      );
+
+
+    if (
+      rows.length === 0
+    ) {
+
+      container.innerHTML = `
+        <p>
+          Belum ada arsip CO yang
+          tidak dikonfirmasi.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML = `
+
+      <div
+        style="
+          overflow-x:auto;
+        "
+      >
+
+        <table
+          style="
+            width:100%;
+            min-width:700px;
+            border-collapse:collapse;
+          "
+        >
+
+          <thead>
+
+            <tr>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                "
+              >
+                No
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                "
+              >
+                Customer
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                "
+              >
+                Recap ID
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                "
+              >
+                Tanggal CO
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                "
+              >
+                Status
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${rows
+              .map(
+                function(row, index) {
+
+                  const date =
+                    row.checkout_at
+                      ? new Date(
+                          row.checkout_at
+                        ).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day:"2-digit",
+                            month:"2-digit",
+                            year:"numeric"
+                          }
+                        )
+                      : "-";
+
+
+                  return `
+
+                    <tr>
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                        "
+                      >
+                        ${index + 1}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                        "
+                      >
+                        <strong>
+                          ${row.customer_name || "-"}
+                        </strong>
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                        "
+                      >
+                        ${row.recap_id || "-"}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                        "
+                      >
+                        ${date}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                        "
+                      >
+                        <span
+                          style="
+                            color:#b33;
+                            font-weight:600;
+                          "
+                        >
+                          ✕ Tidak Dikonfirmasi
+                        </span>
+                      </td>
+
+                    </tr>
+
+                  `;
+
+                }
+              )
+              .join("")}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    `;
+
+  } catch (err) {
+
+    console.error(
+      "ERROR CO ARCHIVE:",
+      err
+    );
+
+  }
+
+}
+
 /* ============================================
    REKAP GO
    ============================================ */
