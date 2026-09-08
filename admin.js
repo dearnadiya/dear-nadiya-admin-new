@@ -5940,10 +5940,189 @@ async function loadCOReport() {
             )
             .join("")}
 
+                </div>
+
+
+        <div
+          style="
+            margin-top:18px;
+            display:flex;
+            justify-content:flex-end;
+          "
+        >
+
+          <button
+            type="button"
+            id="coConfirmPackingButton"
+            class="btn-primary"
+          >
+            ✓ Konfirmasi Packing
+          </button>
+
         </div>
 
       `;
 
+             /*
+        KONFIRMASI PACKING PER BARANG
+      */
+
+      const confirmPackingButton =
+        document.getElementById(
+          "coConfirmPackingButton"
+        );
+
+
+      if (confirmPackingButton) {
+
+        confirmPackingButton.addEventListener(
+          "click",
+          async function() {
+
+            const selectedCheckboxes =
+              Array.from(
+                container.querySelectorAll(
+                  ".co-item-checkbox:checked"
+                )
+              );
+
+
+            /*
+              Tidak ada barang yang dipilih
+            */
+
+            if (
+              selectedCheckboxes.length === 0
+            ) {
+
+              alert(
+                "Pilih minimal satu barang untuk dikonfirmasi."
+              );
+
+              return;
+
+            }
+
+
+            /*
+              Ambil ID barang dari checkbox
+            */
+
+            const recapIds =
+              selectedCheckboxes
+                .map(
+                  function(checkbox) {
+
+                    return Number(
+                      checkbox.dataset.recapId
+                    );
+
+                  }
+                )
+                .filter(
+                  function(id) {
+
+                    return Number.isFinite(
+                      id
+                    );
+
+                  }
+                );
+
+
+            if (
+              recapIds.length === 0
+            ) {
+
+              alert(
+                "Data barang tidak ditemukan."
+              );
+
+              return;
+
+            }
+
+
+            /*
+              Konfirmasi admin
+            */
+
+            const confirmed =
+              confirm(
+                "Konfirmasi packing untuk " +
+                recapIds.length +
+                " barang?"
+              );
+
+
+            if (!confirmed) {
+
+              return;
+
+            }
+
+
+            /*
+              Ubah status packing
+              untuk barang yang dipilih
+            */
+
+            const {
+              error: packingError
+            } =
+              await supabaseClient
+                .from("purchase_recap")
+                .update({
+                  packing_status:
+                    "Sudah Dikonfirmasi",
+                  updated_at:
+                    new Date().toISOString()
+                })
+                .in(
+                  "id",
+                  recapIds
+                );
+
+
+            if (packingError) {
+
+              console.error(
+                "ERROR KONFIRMASI PACKING:",
+                packingError
+              );
+
+              alert(
+                "Gagal mengonfirmasi packing."
+              );
+
+              return;
+
+            }
+
+
+            /*
+              Berhasil
+            */
+
+            alert(
+              "Packing berhasil dikonfirmasi untuk " +
+              recapIds.length +
+              " barang."
+            );
+
+
+            /*
+              Kembali ke laporan CO
+              agar total dan daftar
+              langsung diperbarui
+            */
+
+            loadCOReport();
+
+          }
+        );
+
+      }
 
       /*
         KEMBALI KE DAFTAR CUSTOMER
