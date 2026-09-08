@@ -8304,8 +8304,8 @@ async function loadRecapList(
       html += `
 
         <div
-          class="recap-batch-card"
-          data-search="${escapeHTML(
+  class="recap-batch-card recap-batch-collapsed"
+  data-search="${escapeHTML(
             (
               batchCode +
               " " +
@@ -8772,6 +8772,53 @@ async function loadRecapList(
 
   container.innerHTML =
     html;
+
+   /* ==========================================
+   COLLAPSE / EXPAND BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".recap-batch-card .recap-batch-header"
+  )
+  .forEach(
+    function(header) {
+
+      header.addEventListener(
+        "click",
+        function(event) {
+
+          /*
+           * Jangan tutup/buka batch
+           * ketika user berinteraksi
+           * dengan select atau tombol.
+           */
+          if (
+            event.target.closest(
+              "select, button"
+            )
+          ) {
+            return;
+          }
+
+          const card =
+            header.closest(
+              ".recap-batch-card"
+            );
+
+          if (!card) {
+            return;
+          }
+
+          card.classList.toggle(
+            "recap-batch-collapsed"
+          );
+
+        }
+      );
+
+    }
+  );
 
    /* ==========================================
    SEARCH + FILTER REKAP GO
