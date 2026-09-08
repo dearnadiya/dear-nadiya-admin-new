@@ -9753,6 +9753,10 @@ async function saveBatchRecap(event) {
       "batchCategory"
     ).value;
 
+   const recapType =
+  getRecapTypeFromCategory(
+    category
+  );
 
   const batchCode =
     document.getElementById(
@@ -10046,10 +10050,12 @@ const batchDpDeadline =
          ====================================== */
 
       records.push({
+  recap_type:
+    recapType,
 
-        category:
-          category,
-
+  category:
+    category,
+         
         batch_code:
           batchCode,
 
