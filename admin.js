@@ -6360,9 +6360,13 @@ async function loadCOArchive() {
 
   try {
 
+    /*
+      AMBIL HISTORI CO
+    */
+
     const {
-      data,
-      error
+      data: historyData,
+      error: historyError
     } =
       await supabaseClient
         .from("checkout_history")
@@ -6379,18 +6383,18 @@ async function loadCOArchive() {
           "Tidak Dikonfirmasi"
         )
         .order(
-          "checkout_at",
+          "created_at",
           {
             ascending: false
           }
         );
 
 
-    if (error) {
+    if (historyError) {
 
       console.error(
         "ERROR LOAD CO ARCHIVE:",
-        error
+        historyError
       );
 
       document.getElementById(
@@ -6406,8 +6410,8 @@ async function loadCOArchive() {
     }
 
 
-    const rows =
-      data || [];
+    const historyRows =
+      historyData || [];
 
 
     const container =
@@ -6416,8 +6420,12 @@ async function loadCOArchive() {
       );
 
 
+    /*
+      TIDAK ADA ARSIP
+    */
+
     if (
-      rows.length === 0
+      historyRows.length === 0
     ) {
 
       container.innerHTML = `
@@ -6432,18 +6440,228 @@ async function loadCOArchive() {
     }
 
 
+    /*
+      AMBIL RECAP ID
+    */
+
+    const recapIds =
+      Array.from(
+        new Set(
+          historyRows
+            .map(
+              function(row) {
+
+                return Number(
+                  row.recap_id
+                );
+
+              }
+            )
+            .filter(
+              function(id) {
+
+                return Number.isFinite(
+                  id
+                );
+
+              }
+            )
+        )
+      );
+
+
+    /*
+      AMBIL DETAIL BARANG
+      DARI PURCHASE RECAP
+    */
+
+    let recapRows = [];
+
+
+    if (
+      recapIds.length > 0
+    ) {
+
+      const {
+        data: recapData,
+        error: recapError
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .select(`
+            id,
+            batch_code,
+            item_name,
+            version,
+            quantity
+          `)
+          .in(
+            "id",
+            recapIds
+          );
+
+
+      if (recapError) {
+
+        console.error(
+          "ERROR LOAD RECAP DETAIL:",
+          recapError
+        );
+
+        container.innerHTML = `
+          <p>
+            Gagal memuat detail barang.
+          </p>
+        `;
+
+        return;
+
+      }
+
+
+      recapRows =
+        recapData || [];
+
+    }
+
+
+    /*
+      GABUNGKAN HISTORI DENGAN
+      DETAIL BARANG
+    */
+
+    const recapMap = {};
+
+
+    recapRows.forEach(
+      function(row) {
+
+        recapMap[
+          String(row.id)
+        ] = row;
+
+      }
+    );
+
+
+    /*
+      HITUNG URUTAN CO
+      PER BARANG
+    */
+
+    const historyCountMap = {};
+
+
+    const historyForNumbering =
+      [...historyRows].sort(
+        function(a, b) {
+
+          const dateA =
+            a.checkout_at
+              ? new Date(
+                  a.checkout_at
+                ).getTime()
+              : new Date(
+                  a.created_at
+                ).getTime();
+
+          const dateB =
+            b.checkout_at
+              ? new Date(
+                  b.checkout_at
+                ).getTime()
+              : new Date(
+                  b.created_at
+                ).getTime();
+
+          return dateA - dateB;
+
+        }
+      );
+
+
+    const historyNumberMap = {};
+
+
+    historyForNumbering.forEach(
+      function(row) {
+
+        const recapId =
+          String(
+            row.recap_id
+          );
+
+
+        if (
+          !historyCountMap[
+            recapId
+          ]
+        ) {
+
+          historyCountMap[
+            recapId
+          ] = 0;
+
+        }
+
+
+        historyCountMap[
+          recapId
+        ] += 1;
+
+
+        historyNumberMap[
+          String(row.id)
+        ] =
+          historyCountMap[
+            recapId
+          ];
+
+      }
+    );
+
+
+    /*
+      TAMPILKAN JUMLAH ARSIP
+    */
+
     container.innerHTML = `
 
       <div
         style="
+          margin-bottom:18px;
+        "
+      >
+
+        <h3>
+          📦 ${historyRows.length}
+          Riwayat CO Tidak Dikonfirmasi
+        </h3>
+
+        <p
+          style="
+            margin-top:5px;
+            color:#777;
+          "
+        >
+          Seluruh histori tetap disimpan
+          meskipun barang dapat di-CO kembali.
+        </p>
+
+      </div>
+
+
+      <div
+        style="
           overflow-x:auto;
+          width:100%;
         "
       >
 
         <table
           style="
             width:100%;
-            min-width:700px;
+            min-width:1050px;
             border-collapse:collapse;
           "
         >
@@ -6457,49 +6675,118 @@ async function loadCOArchive() {
                   text-align:left;
                   padding:10px;
                   border-bottom:1px solid #eee;
+                  white-space:nowrap;
                 "
               >
                 No
               </th>
 
+
               <th
                 style="
                   text-align:left;
                   padding:10px;
                   border-bottom:1px solid #eee;
+                  white-space:nowrap;
                 "
               >
                 Customer
               </th>
 
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                "
-              >
-                Recap ID
-              </th>
 
               <th
                 style="
                   text-align:left;
                   padding:10px;
                   border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                Nama Barang
+              </th>
+
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                Batch
+              </th>
+
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                Version / Member
+              </th>
+
+
+              <th
+                style="
+                  text-align:center;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                Qty
+              </th>
+
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
                 "
               >
                 Tanggal CO
               </th>
 
+
+              <th
+                style="
+                  text-align:center;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                CO Ke-
+              </th>
+
+
               <th
                 style="
                   text-align:left;
                   padding:10px;
                   border-bottom:1px solid #eee;
+                  white-space:nowrap;
                 "
               >
                 Status
+              </th>
+
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #eee;
+                  white-space:nowrap;
+                "
+              >
+                Tanggal Arsip
               </th>
 
             </tr>
@@ -6509,20 +6796,49 @@ async function loadCOArchive() {
 
           <tbody>
 
-            ${rows
+            ${historyRows
               .map(
                 function(row, index) {
 
-                  const date =
+                  const item =
+                    recapMap[
+                      String(
+                        row.recap_id
+                      )
+                    ] || {};
+
+
+                  const checkoutDate =
                     row.checkout_at
                       ? new Date(
                           row.checkout_at
                         ).toLocaleDateString(
                           "id-ID",
                           {
-                            day:"2-digit",
-                            month:"2-digit",
-                            year:"numeric"
+                            day:
+                              "2-digit",
+                            month:
+                              "2-digit",
+                            year:
+                              "numeric"
+                          }
+                        )
+                      : "-";
+
+
+                  const archiveDate =
+                    row.created_at
+                      ? new Date(
+                          row.created_at
+                        ).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day:
+                              "2-digit",
+                            month:
+                              "2-digit",
+                            year:
+                              "numeric"
                           }
                         )
                       : "-";
@@ -6536,6 +6852,7 @@ async function loadCOArchive() {
                         style="
                           padding:10px;
                           border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
                         "
                       >
                         ${index + 1}
@@ -6546,6 +6863,7 @@ async function loadCOArchive() {
                         style="
                           padding:10px;
                           border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
                         "
                       >
                         <strong>
@@ -6560,7 +6878,9 @@ async function loadCOArchive() {
                           border-bottom:1px solid #f1f1f1;
                         "
                       >
-                        ${row.recap_id || "-"}
+                        <strong>
+                          ${item.item_name || "-"}
+                        </strong>
                       </td>
 
 
@@ -6568,9 +6888,10 @@ async function loadCOArchive() {
                         style="
                           padding:10px;
                           border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
                         "
                       >
-                        ${date}
+                        ${item.batch_code || "-"}
                       </td>
 
 
@@ -6578,6 +6899,54 @@ async function loadCOArchive() {
                         style="
                           padding:10px;
                           border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
+                        "
+                      >
+                        ${item.version || "-"}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                          text-align:center;
+                        "
+                      >
+                        ${item.quantity || 0}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
+                        "
+                      >
+                        ${checkoutDate}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                          text-align:center;
+                          font-weight:600;
+                        "
+                      >
+                        #${historyNumberMap[
+                          String(row.id)
+                        ] || 1}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
                         "
                       >
                         <span
@@ -6588,6 +6957,17 @@ async function loadCOArchive() {
                         >
                           ✕ Tidak Dikonfirmasi
                         </span>
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:10px;
+                          border-bottom:1px solid #f1f1f1;
+                          white-space:nowrap;
+                        "
+                      >
+                        ${archiveDate}
                       </td>
 
                     </tr>
@@ -6616,7 +6996,6 @@ async function loadCOArchive() {
   }
 
 }
-
 /* ============================================
    REKAP GO
    ============================================ */
