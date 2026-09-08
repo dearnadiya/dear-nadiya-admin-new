@@ -5293,6 +5293,224 @@ async function viewPaymentProof(
 
 }
 
+/* ============================================
+   LAPORAN CO
+   ============================================ */
+
+async function loadCOReport() {
+
+  pageTitle.textContent =
+    "Laporan CO";
+
+  pageContent.innerHTML = `
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            🛒 Laporan CO
+          </h2>
+
+          <p>
+            Customer yang sudah Checkout Shopee
+            dan belum dikonfirmasi packing.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="dashboard-stats">
+
+        <div class="stat-card">
+
+          <p>
+            Total Customer Sudah CO
+          </p>
+
+          <h2 id="coReportTotal">
+            —
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="coReportContainer"
+        class="welcome-card"
+      >
+
+        <p>
+          Memuat data...
+        </p>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          customer_name,
+          customer_status,
+          packing_status
+        `);
+
+
+    if (error) {
+
+      console.error(
+        "ERROR LOAD CO REPORT:",
+        error
+      );
+
+      document.getElementById(
+        "coReportContainer"
+      ).innerHTML = `
+        <p>
+          Gagal memuat laporan CO.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    const rows =
+      data || [];
+
+
+    /*
+      Ambil hanya customer yang:
+
+      1. Sudah Checkout Shopee
+      2. Belum dikonfirmasi packing
+    */
+
+    const coCustomers =
+      new Set();
+
+    rows.forEach(
+      function(row) {
+
+        const customerName =
+          String(
+            row.customer_name || ""
+          ).trim();
+
+        const customerStatus =
+          String(
+            row.customer_status || ""
+          ).trim();
+
+        const packingStatus =
+          String(
+            row.packing_status || ""
+          ).trim();
+
+
+        if (
+          customerName &&
+          customerStatus ===
+            "Sudah Checkout Shopee" &&
+          packingStatus !==
+            "Sudah Dikonfirmasi"
+        ) {
+
+          coCustomers.add(
+            customerName
+          );
+
+        }
+
+      }
+    );
+
+
+    /*
+      TAMPILKAN TOTAL CUSTOMER
+    */
+
+    const totalElement =
+      document.getElementById(
+        "coReportTotal"
+      );
+
+    if (totalElement) {
+
+      totalElement.textContent =
+        coCustomers.size;
+
+    }
+
+
+    /*
+      TAMPILKAN STATUS
+    */
+
+    const container =
+      document.getElementById(
+        "coReportContainer"
+      );
+
+
+    if (
+      coCustomers.size === 0
+    ) {
+
+      container.innerHTML = `
+        <p>
+          Tidak ada customer yang
+          menunggu konfirmasi packing.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML = `
+
+      <h3>
+        🛒 Customer Menunggu Packing
+      </h3>
+
+      <p>
+        ${coCustomers.size}
+        customer sudah CO dan belum
+        dikonfirmasi packing.
+      </p>
+
+    `;
+
+
+  } catch (err) {
+
+    console.error(
+      "ERROR CO REPORT:",
+      err
+    );
+
+  }
+
+}
 
 /* ============================================
    REKAP GO
