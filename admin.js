@@ -5622,21 +5622,10 @@ async function loadCOReport() {
                   >
 
                     <input
-                      type="checkbox"
-                      class="co-check-all"
-                      data-customer="${customerKey}"
-                      onchange="
-                        document
-                          .querySelectorAll(
-                            '[data-customer-item="${customerKey}"]'
-                          )
-                          .forEach(function(cb) {
-                            cb.checked =
-                              this.checked;
-                          }.bind(this));
-                      "
-                    >
-
+  type="checkbox"
+  class="co-check-all"
+  data-customer="${customerKey}"
+>
                     Konfirmasi Semua
 
                   </label>
@@ -5736,6 +5725,48 @@ async function loadCOReport() {
       </div>
 
     `;
+
+     /*
+  EVENT KONFIRMASI SEMUA
+*/
+
+container
+  .querySelectorAll(
+    ".co-check-all"
+  )
+  .forEach(
+    function(checkAll) {
+
+      checkAll.addEventListener(
+        "change",
+        function() {
+
+          const customerKey =
+            this.dataset.customer;
+
+          const checked =
+            this.checked;
+
+          container
+            .querySelectorAll(
+              '.co-item-checkbox[data-customer-item="' +
+              customerKey +
+              '"]'
+            )
+            .forEach(
+              function(itemCheckbox) {
+
+                itemCheckbox.checked =
+                  checked;
+
+              }
+            );
+
+        }
+      );
+
+    }
+  );
 
   } catch (err) {
 
