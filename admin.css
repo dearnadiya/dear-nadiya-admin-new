@@ -5721,3 +5721,41 @@ a {
 .recap-pagination {
   display: none;
 }
+
+/* ==========================================
+   FORM CUSTOMER REKAP - COMPACT
+   ========================================== */
+
+.batch-customer-item label {
+  display: block;
+  margin-top: 6px;
+  margin-bottom: 3px;
+  font-size: 13px;
+}
+
+.batch-customer-item input,
+.batch-customer-item select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.batch-customer-item textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 45px;
+}
+
+.batch-customer-item .different-price-fields,
+.batch-customer-item .batch-payment-fields {
+  margin-top: 4px;
+}
+
+.batch-customer-item {
+  padding: 10px;
+}
