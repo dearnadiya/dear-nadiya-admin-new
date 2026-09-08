@@ -5776,3 +5776,50 @@ a {
   padding: 4px 8px;
   font-size: 11px;
 }
+
+/* ==========================================
+   COMPACT FORM REKAP GO
+   ========================================== */
+
+.batch-item {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.batch-item label {
+  margin-top: 3px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.batch-item input,
+.batch-item select {
+  min-height: 30px;
+  height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.batch-item textarea {
+  min-height: 38px;
+  height: 38px;
+  padding: 4px 8px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.batch-item-header {
+  margin-bottom: 4px;
+}
+
+.batch-item .different-price-fields,
+.batch-item .batch-payment-fields {
+  margin-top: 2px;
+}
+
+.batch-item .remove-batch-item {
+  padding: 3px 7px;
+  font-size: 11px;
+}
