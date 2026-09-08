@@ -7101,7 +7101,8 @@ function loadRecap() {
   `;
 
 
-  let selectedRecapType = null;
+  let selectedRecapType =
+  "Treasure";
 
   const typeButtons =
     document.querySelectorAll(
@@ -7135,6 +7136,10 @@ function loadRecap() {
 
           selectedRecapType =
             button.dataset.recapType;
+
+           showRecapCategories(
+  selectedRecapType
+);
            
         }
       );
