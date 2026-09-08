@@ -8868,32 +8868,60 @@ container
 
       function renderPagination() {
 
-        const totalPages =
-          Math.ceil(
-            rows.length /
-              CUSTOMER_PER_PAGE
-          );
+        const visibleRows =
+  rows.filter(
+    function(row) {
 
-        rows.forEach(
-          function(row, index) {
+      return (
+        row.dataset.filterVisible !==
+        "false"
+      );
 
-            const start =
-              (currentPage - 1) *
-              CUSTOMER_PER_PAGE;
+    }
+  );
 
-            const end =
-              start +
-              CUSTOMER_PER_PAGE;
+const totalPages =
+  Math.ceil(
+    visibleRows.length /
+      CUSTOMER_PER_PAGE
+  );
 
-            row.style.display =
-              index >= start &&
-              index < end
-                ? ""
-                : "none";
+if (
+  totalPages > 0 &&
+  currentPage > totalPages
+) {
+  currentPage = totalPages;
+}
 
-          }
-        );
+rows.forEach(
+  function(row) {
 
+    row.style.display =
+      "none";
+
+  }
+);
+
+const start =
+  (currentPage - 1) *
+  CUSTOMER_PER_PAGE;
+
+const pageRows =
+  visibleRows.slice(
+    start,
+    start +
+      CUSTOMER_PER_PAGE
+  );
+
+pageRows.forEach(
+  function(row) {
+
+    row.style.display =
+      "";
+
+  }
+);
+         
         pagination.innerHTML =
           "";
 
