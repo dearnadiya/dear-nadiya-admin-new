@@ -5868,3 +5868,49 @@ a {
   margin-top: 3px !important;
   margin-bottom: 6px !important;
 }
+
+/* ==========================================
+   REKAP GO - KARTU CUSTOMER COMPACT
+   ========================================== */
+
+.batch-item {
+  padding: 10px !important;
+  margin: 8px 0 !important;
+  border-radius: 10px !important;
+}
+
+.batch-item-header {
+  margin-bottom: 4px !important;
+}
+
+.batch-item-header strong {
+  font-size: 13px !important;
+}
+
+.batch-item label {
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+  font-size: 12px !important;
+}
+
+.batch-item input,
+.batch-item select {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+.batch-item textarea {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+.batch-item .remove-batch-item {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+}
