@@ -7199,90 +7199,93 @@ function loadRecap() {
    FORM TAMBAH KATEGORI REKAP
    ============================================ */
 
-function showRecapCategories(
-  recapType
-) {
+function showRecapCategories(recapType) {
 
   const container =
     document.getElementById(
       "recapCategoryContainer"
     );
 
-  if (!container) {
-    return;
-  }
+  if (!container) return;
 
 
-  if (
-    recapType ===
-    "Treasure"
-  ) {
+  /*
+   * Muat kategori dari database
+   */
+  loadRecapCategories(
+    recapType
+  ).then(function(categories) {
 
+    /*
+     * Jika belum ada kategori
+     */
+    if (
+      !categories ||
+      categories.length === 0
+    ) {
+
+      container.innerHTML = `
+        <div class="welcome-card">
+          <p>
+            Kategori untuk
+            <strong>
+              Rekap ${escapeHTML(recapType)}
+            </strong>
+            belum dibuat.
+          </p>
+        </div>
+      `;
+
+      const listContainer =
+        document.getElementById(
+          "recapListContainer"
+        );
+
+      if (listContainer) {
+
+        listContainer.innerHTML =
+          `<p>Belum ada kategori.</p>`;
+
+      }
+
+      return;
+    }
+
+
+    /*
+     * Tampilkan tombol kategori
+     */
     container.innerHTML = `
-
       <div
         class="recap-category-buttons"
         id="recapCategoryButtons"
       >
+        ${categories.map(function(category, index) {
 
-        <button
-          type="button"
-          class="active"
-          data-category="Truz"
-        >
-          Truz
-        </button>
+          return `
+            <button
+              type="button"
+              class="${index === 0 ? "active" : ""}"
+              data-category="${escapeHTML(
+                category.category_name
+              )}"
+            >
+              ${escapeHTML(
+                category.category_name
+              )}
+            </button>
+          `;
 
-        <button
-          type="button"
-          data-category="Treasure KR"
-        >
-          Treasure KR
-        </button>
-
-        <button
-          type="button"
-          data-category="Treasure JP"
-        >
-          Treasure JP
-        </button>
-
-        <button
-          type="button"
-          data-category="Treasure CH"
-        >
-          Treasure CH
-        </button>
-
-        <button
-          type="button"
-          data-category="Treasure Thai"
-        >
-          Treasure Thai
-        </button>
-
-        <button
-          type="button"
-          data-category="Treasure Album"
-        >
-          Treasure Album
-        </button>
-
-        <button
-          type="button"
-          data-category="Treasure INA"
-        >
-          Treasure INA
-        </button>
-
+        }).join("")}
       </div>
-
     `;
 
 
+    /*
+     * Aktifkan tombol kategori
+     */
     let selectedCategory =
-      "Truz";
-
+      categories[0].category_name;
 
     const categoryButtons =
       container.querySelectorAll(
@@ -7291,14 +7294,14 @@ function showRecapCategories(
 
 
     categoryButtons.forEach(
-      function (button) {
+      function(button) {
 
         button.addEventListener(
           "click",
-          function () {
+          function() {
 
             categoryButtons.forEach(
-              function (item) {
+              function(item) {
 
                 item.classList.remove(
                   "active"
@@ -7328,50 +7331,29 @@ function showRecapCategories(
     );
 
 
+    /*
+     * Tampilkan kategori pertama
+     */
     loadRecapList(
       selectedCategory
     );
 
+  }).catch(function(error) {
 
-    return;
-
-  }
-
-
-  container.innerHTML = `
-
-    <div class="welcome-card">
-
-      <p>
-        Kategori untuk
-        <strong>
-          Rekap ${recapType}
-        </strong>
-        belum dibuat.
-      </p>
-
-    </div>
-
-  `;
-
-
-  const listContainer =
-    document.getElementById(
-      "recapListContainer"
+    console.error(
+      "Error saat memuat kategori:",
+      error
     );
 
-
-  if (listContainer) {
-
-    listContainer.innerHTML = `
-
-      <p>
-        Belum ada kategori.
-      </p>
-
+    container.innerHTML = `
+      <div class="welcome-card">
+        <p>
+          ❌ Gagal memuat kategori rekap.
+        </p>
+      </div>
     `;
 
-  }
+  });
 
 }
 
