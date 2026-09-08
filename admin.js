@@ -9641,6 +9641,81 @@ batchTrackingButtons.forEach(
    LANJUTAN REKAP GO
    ============================================ */
 
+/* ============================================
+   DAPATKAN TIPE REKAP DARI KATEGORI 
+   ============================================ */
+
+function getRecapTypeFromCategory(category) {
+
+  const treasureCategories = [
+    "Truz",
+    "Treasure KR",
+    "Treasure JP",
+    "Treasure CH",
+    "Treasure Thai",
+    "Treasure Album",
+    "Treasure INA"
+  ];
+
+  const multiGroupCategories = [
+    "NCT",
+    "Lngshot",
+    "Cortis",
+    "Babymonster",
+    "Ateez"
+  ];
+
+  const tabunganCategories = [
+    "Tabungan Lightstick",
+    "Tabungan Album"
+  ];
+
+  const jastipCategories = [
+    "Jastip Korea",
+    "Jastip Jepang",
+    "Jastip Thailand",
+    "Jastip China"
+  ];
+
+
+  if (
+    treasureCategories.includes(
+      category
+    )
+  ) {
+    return "Treasure";
+  }
+
+
+  if (
+    multiGroupCategories.includes(
+      category
+    )
+  ) {
+    return "Multi Group";
+  }
+
+
+  if (
+    tabunganCategories.includes(
+      category
+    )
+  ) {
+    return "Tabungan";
+  }
+
+
+  if (
+    jastipCategories.includes(
+      category
+    )
+  ) {
+    return "Jastip";
+  }
+
+
+  return null;
+}
 
 /* ============================================
    SIMPAN DATA BATCH
