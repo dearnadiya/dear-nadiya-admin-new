@@ -7199,7 +7199,7 @@ function loadRecap() {
    FORM TAMBAH KATEGORI REKAP
    ============================================ */
 
-function showNewRecapCategoryForm(
+function showRecapCategories(
   recapType
 ) {
 
@@ -7213,131 +7213,167 @@ function showNewRecapCategoryForm(
   }
 
 
-  container.innerHTML = `
+  if (
+    recapType ===
+    "Treasure"
+  ) {
 
-    <div class="welcome-card">
+    container.innerHTML = `
 
-      <h3>
-        ➕ Tambah Kategori
-      </h3>
-
-      <p>
-        Type:
-        <strong>
-          Rekap ${escapeHTML(recapType)}
-        </strong>
-      </p>
-
-
-      <label>
-        Nama Kategori
-      </label>
-
-      <input
-        type="text"
-        id="newRecapCategory"
-        placeholder="Contoh: NCT DREAM"
+      <div
+        class="recap-category-buttons"
+        id="recapCategoryButtons"
       >
 
-
-      <div class="form-actions">
-
         <button
           type="button"
-          class="primary-button"
-          id="saveNewRecapCategoryButton"
+          class="active"
+          data-category="Truz"
         >
-          Simpan
+          Truz
         </button>
 
+        <button
+          type="button"
+          data-category="Treasure KR"
+        >
+          Treasure KR
+        </button>
 
         <button
           type="button"
-          id="cancelNewRecapCategoryButton"
+          data-category="Treasure JP"
         >
-          Batal
+          Treasure JP
+        </button>
+
+        <button
+          type="button"
+          data-category="Treasure CH"
+        >
+          Treasure CH
+        </button>
+
+        <button
+          type="button"
+          data-category="Treasure Thai"
+        >
+          Treasure Thai
+        </button>
+
+        <button
+          type="button"
+          data-category="Treasure Album"
+        >
+          Treasure Album
+        </button>
+
+        <button
+          type="button"
+          data-category="Treasure INA"
+        >
+          Treasure INA
         </button>
 
       </div>
 
+    `;
 
-      <p
-        id="newRecapCategoryMessage"
-        class="login-error"
-      ></p>
+
+    let selectedCategory =
+      "Truz";
+
+
+    const categoryButtons =
+      container.querySelectorAll(
+        "#recapCategoryButtons button"
+      );
+
+
+    categoryButtons.forEach(
+      function (button) {
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            categoryButtons.forEach(
+              function (item) {
+
+                item.classList.remove(
+                  "active"
+                );
+
+              }
+            );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            selectedCategory =
+              button.dataset.category;
+
+
+            loadRecapList(
+              selectedCategory
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    loadRecapList(
+      selectedCategory
+    );
+
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="welcome-card">
+
+      <p>
+        Kategori untuk
+        <strong>
+          Rekap ${recapType}
+        </strong>
+        belum dibuat.
+      </p>
 
     </div>
 
   `;
 
 
-  const input =
+  const listContainer =
     document.getElementById(
-      "newRecapCategory"
+      "recapListContainer"
     );
 
 
-  const saveButton =
-    document.getElementById(
-      "saveNewRecapCategoryButton"
-    );
+  if (listContainer) {
 
+    listContainer.innerHTML = `
 
-  const cancelButton =
-    document.getElementById(
-      "cancelNewRecapCategoryButton"
-    );
+      <p>
+        Belum ada kategori.
+      </p>
 
-
-  if (cancelButton) {
-
-    cancelButton.addEventListener(
-      "click",
-      function () {
-
-        showRecapCategories(
-          recapType
-        );
-
-      }
-    );
-
-  }
-
-
-  if (saveButton) {
-
-    saveButton.addEventListener(
-      "click",
-      function () {
-
-        const category =
-          input.value.trim();
-
-
-        if (!category) {
-
-          alert(
-            "Nama kategori wajib diisi."
-          );
-
-          return;
-
-        }
-
-
-        alert(
-          "Kategori berhasil dibuat: " +
-          category
-        );
-
-      }
-    );
+    `;
 
   }
 
 }
-
 /* ============================================
    FORM REKAP GO - MULTI MEMBER
    ============================================ */
