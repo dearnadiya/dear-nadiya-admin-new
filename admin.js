@@ -7316,6 +7316,9 @@ function showRecapCategories(recapType) {
             selectedCategory =
               button.dataset.category;
 
+             document.getElementById(
+  "recapListContainer"
+).style.display = "block";
 
             loadRecapList(
               selectedCategory
@@ -7325,14 +7328,6 @@ function showRecapCategories(recapType) {
         );
 
       }
-    );
-
-
-    /*
-     * Tampilkan kategori pertama
-     */
-    loadRecapList(
-      selectedCategory
     );
 
   }).catch(function(error) {
