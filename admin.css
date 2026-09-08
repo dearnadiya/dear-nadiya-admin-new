@@ -5825,24 +5825,46 @@ a {
 }
 
 /* ==========================================
-   BAGIAN ATAS FORM REKAP GO
+   REKAP GO - FORM ATAS COMPACT
    ========================================== */
 
-#recapForm label {
-  margin-top: 5px;
-  margin-bottom: 2px;
-  font-size: 13px;
+.recap-form label {
+  margin-top: 6px !important;
+  margin-bottom: 3px !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
 }
 
-#recapForm input,
-#recapForm select {
-  min-height: 34px;
-  height: 34px;
-  padding: 5px 9px;
-  font-size: 13px;
+.recap-form input,
+.recap-form select {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 6px 9px !important;
+  font-size: 13px !important;
+  box-sizing: border-box !important;
 }
 
-#recapForm textarea {
-  padding: 5px 9px;
-  font-size: 13px;
+.recap-form textarea {
+  min-height: 45px !important;
+  height: 45px !important;
+  padding: 6px 9px !important;
+  font-size: 13px !important;
+}
+
+/* Garis pemisah dibuat lebih rapat */
+.recap-form hr {
+  margin: 8px 0 !important;
+}
+
+/* Judul bagian */
+.recap-form h3 {
+  margin-top: 5px !important;
+  margin-bottom: 5px !important;
+  font-size: 16px !important;
+}
+
+/* Keterangan di bawah Versi / Member */
+.recap-form p {
+  margin-top: 3px !important;
+  margin-bottom: 6px !important;
 }
