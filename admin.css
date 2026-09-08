@@ -5914,3 +5914,34 @@ a {
   padding: 3px 8px !important;
   font-size: 11px !important;
 }
+
+/* ==========================================
+   MEMBER / CUSTOMER - 2 CARD PER BARIS
+   ========================================== */
+
+#batchItemsContainer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+#batchItemsContainer .batch-item {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+
+/* ==========================================
+   MOBILE - 1 CARD PER BARIS
+   ========================================== */
+
+@media (max-width: 700px) {
+
+  #batchItemsContainer {
+    grid-template-columns: 1fr;
+  }
+
+}
