@@ -7158,19 +7158,36 @@ function loadRecap() {
 
   if (addButton) {
 
-    addButton.addEventListener(
-      "click",
-      function () {
+  addButton.addEventListener(
+    "click",
+    function () {
 
-        showRecapForm(
-          selectedRecapType
+      const activeCategoryButton =
+        document.querySelector(
+          "#recapCategoryButtons button.active"
         );
 
+      if (!activeCategoryButton) {
+
+        alert(
+          "Pilih kategori terlebih dahulu."
+        );
+
+        return;
+
       }
-    );
 
-  }
+      const selectedCategory =
+        activeCategoryButton.dataset.category;
 
+      showRecapForm(
+        selectedCategory
+      );
+
+    }
+  );
+
+}
 
   showRecapCategories(
     selectedRecapType
