@@ -7374,6 +7374,52 @@ function showRecapCategories(
   }
 
 }
+
+/* ============================================
+   LOAD KATEGORI REKAP DARI DATABASE
+   ============================================ */
+
+async function loadRecapCategories(
+  recapType
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("recap_categories")
+      .select(
+        "id, recap_type, category_name"
+      )
+      .eq(
+        "recap_type",
+        recapType
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Gagal memuat kategori rekap:",
+      error
+    );
+
+    return [];
+
+  }
+
+
+  return data || [];
+
+}
+
 /* ============================================
    FORM REKAP GO - MULTI MEMBER
    ============================================ */
