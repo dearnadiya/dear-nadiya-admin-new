@@ -5945,3 +5945,75 @@ a {
   }
 
 }
+
+/* ==========================================
+   ISI CARD CUSTOMER - COMPACT
+   ========================================== */
+
+#batchItemsContainer .batch-item {
+  padding: 10px !important;
+}
+
+
+/* Header */
+#batchItemsContainer .batch-item-header {
+  margin-bottom: 4px !important;
+}
+
+#batchItemsContainer .batch-item-header strong {
+  font-size: 13px !important;
+}
+
+
+/* Label */
+#batchItemsContainer .batch-item label {
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+
+/* Input & Select */
+#batchItemsContainer .batch-item input,
+#batchItemsContainer .batch-item select {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 4px 7px !important;
+  font-size: 12px !important;
+}
+
+
+/* Catatan */
+#batchItemsContainer .batch-item textarea {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 5px 7px !important;
+  font-size: 12px !important;
+}
+
+
+/* Tombol Hapus */
+#batchItemsContainer .remove-batch-item {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 3px 7px !important;
+  font-size: 11px !important;
+}
+
+
+/* Jarak kelompok field */
+#batchItemsContainer .different-price-fields,
+#batchItemsContainer .batch-payment-fields {
+  margin-top: 3px !important;
+}
+
+
+/* Mobile */
+@media (max-width: 700px) {
+
+  #batchItemsContainer .batch-item {
+    padding: 10px !important;
+  }
+
+}
