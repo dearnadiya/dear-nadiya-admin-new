@@ -7083,15 +7083,9 @@ function loadRecap() {
       ></div>
 
 
-      <div
-        id="recapListContainer"
-      >
-
-        <p>
-          Pilih jenis rekap terlebih dahulu.
-        </p>
-
-      </div>
+      <div id="recapListContainer" style="display: none;">
+  <p>Pilih jenis rekap terlebih dahulu.</p>
+</div>
 
     </div>
 
@@ -7136,6 +7130,10 @@ function loadRecap() {
 
 document.getElementById(
   "recapCategoryContainer"
+).style.display = "block";
+
+document.getElementById(
+  "recapListContainer"
 ).style.display = "block";
 
 showRecapCategories(
