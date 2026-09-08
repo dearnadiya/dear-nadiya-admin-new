@@ -5823,3 +5823,26 @@ a {
   padding: 3px 7px;
   font-size: 11px;
 }
+
+/* ==========================================
+   BAGIAN ATAS FORM REKAP GO
+   ========================================== */
+
+#recapForm label {
+  margin-top: 5px;
+  margin-bottom: 2px;
+  font-size: 13px;
+}
+
+#recapForm input,
+#recapForm select {
+  min-height: 34px;
+  height: 34px;
+  padding: 5px 9px;
+  font-size: 13px;
+}
+
+#recapForm textarea {
+  padding: 5px 9px;
+  font-size: 13px;
+}
