@@ -566,6 +566,17 @@ function showPage(
 
   }
 
+   if (
+  page ===
+  "co-report"
+) {
+
+  loadCOReport();
+
+  return;
+
+}
+
 }
 
 
