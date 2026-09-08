@@ -5302,6 +5302,7 @@ async function loadCOReport() {
   pageTitle.textContent =
     "Laporan CO";
 
+
   pageContent.innerHTML = `
 
     <div class="panel">
@@ -5373,8 +5374,15 @@ async function loadCOReport() {
           batch_code,
           item_name,
           version,
-          quantity
-        `);
+          quantity,
+          created_at
+        `)
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
 
 
     if (error) {
@@ -5441,70 +5449,7 @@ async function loadCOReport() {
 
 
     /*
-      Hitung customer unik
-    */
-
-    const coCustomers =
-      new Set();
-
-    coRows.forEach(
-      function(row) {
-
-        coCustomers.add(
-          String(
-            row.customer_name || ""
-          ).trim()
-        );
-
-      }
-    );
-
-
-    /*
-      TAMPILKAN TOTAL CUSTOMER
-    */
-
-    const totalElement =
-      document.getElementById(
-        "coReportTotal"
-      );
-
-    if (totalElement) {
-
-      totalElement.textContent =
-        coCustomers.size;
-
-    }
-
-
-    /*
-      CONTAINER
-    */
-
-    const container =
-      document.getElementById(
-        "coReportContainer"
-      );
-
-
-    if (
-      coCustomers.size === 0
-    ) {
-
-      container.innerHTML = `
-        <p>
-          Tidak ada customer yang
-          menunggu konfirmasi packing.
-        </p>
-      `;
-
-      return;
-
-    }
-
-
-    /*
-      KELOMPOKKAN BARANG BERDASARKAN CUSTOMER
+      KELOMPOKKAN BERDASARKAN CUSTOMER
     */
 
     const customerGroups = {};
@@ -5543,230 +5488,532 @@ async function loadCOReport() {
 
 
     /*
-      TAMPILKAN CUSTOMER + BARANG
+      URUTKAN CUSTOMER BERDASARKAN
+      DATA YANG PERTAMA KALI MASUK
     */
 
-    container.innerHTML = `
+    const customerList =
+      Object.keys(
+        customerGroups
+      ).map(
+        function(customerName) {
 
-      <h3>
-        🛒 Customer Menunggu Packing
-      </h3>
-
-      <p>
-        ${coCustomers.size}
-        customer sudah CO dan belum
-        dikonfirmasi packing.
-      </p>
-
-
-      <div
-        style="
-          margin-top:20px;
-          display:flex;
-          flex-direction:column;
-          gap:16px;
-        "
-      >
-
-        ${Object.keys(customerGroups)
-          .map(function(customerName) {
-
-            const customerItems =
-              customerGroups[
-                customerName
-              ];
-
-            const customerKey =
+          const items =
+            customerGroups[
               customerName
-                .replace(
-                  /[^a-zA-Z0-9]/g,
-                  "_"
-                );
+            ];
 
+          const firstItem =
+            items.reduce(
+              function(first, item) {
 
-            return `
+                if (!first) {
+                  return item;
+                }
 
-              <div
-                style="
-                  padding:16px;
-                  border:1px solid #eee;
-                  border-radius:12px;
-                  background:#fff;
-                "
-              >
+                if (
+                  new Date(
+                    item.created_at
+                  ) <
+                  new Date(
+                    first.created_at
+                  )
+                ) {
+                  return item;
+                }
 
-                <div
-                  style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    gap:15px;
-                    margin-bottom:12px;
-                  "
-                >
+                return first;
 
-                  <strong>
-                    ${customerName}
-                  </strong>
-
-
-                  <label
-                    style="
-                      display:flex;
-                      align-items:center;
-                      gap:6px;
-                      cursor:pointer;
-                      font-size:13px;
-                      font-weight:600;
-                    "
-                  >
-
-                    <input
-  type="checkbox"
-  class="co-check-all"
-  data-customer="${customerKey}"
->
-                    Konfirmasi Semua
-
-                  </label>
-
-                </div>
-
-
-                <div
-                  style="
-                    display:flex;
-                    flex-direction:column;
-                    gap:8px;
-                  "
-                >
-
-                  ${customerItems
-                    .map(function(item) {
-
-                      return `
-
-                        <label
-                          style="
-                            display:flex;
-                            align-items:center;
-                            gap:10px;
-                            padding:10px 12px;
-                            border:1px solid #f0f0f0;
-                            border-radius:8px;
-                            background:#fafafa;
-                            cursor:pointer;
-                          "
-                        >
-
-                          <input
-                            type="checkbox"
-                            class="co-item-checkbox"
-                            data-customer-item="${customerKey}"
-                            data-recap-id="${item.id}"
-                          >
-
-                          <div
-                            style="
-                              display:flex;
-                              flex-direction:column;
-                              gap:3px;
-                              min-width:0;
-                            "
-                          >
-
-                            <strong>
-                              ${item.item_name || "-"}
-                            </strong>
-
-                            <span
-                              style="
-                                font-size:12px;
-                                color:#777;
-                              "
-                            >
-                              Batch:
-                              ${item.batch_code || "-"}
-                              ${item.version
-                                ? ` • ${item.version}`
-                                : ""}
-                              ${item.quantity
-                                ? ` • Qty ${item.quantity}`
-                                : ""}
-                            </span>
-
-                            <span
-                              style="
-                                font-size:12px;
-                                color:#b06b00;
-                              "
-                            >
-                              ⏳ Belum Dikonfirmasi
-                            </span>
-
-                          </div>
-
-                        </label>
-
-                      `;
-
-                    })
-                    .join("")}
-
-                </div>
-
-              </div>
-
-            `;
-
-          })
-          .join("")}
-
-      </div>
-
-    `;
-
-     /*
-  EVENT KONFIRMASI SEMUA
-*/
-
-container
-  .querySelectorAll(
-    ".co-check-all"
-  )
-  .forEach(
-    function(checkAll) {
-
-      checkAll.addEventListener(
-        "change",
-        function() {
-
-          const customerKey =
-            this.dataset.customer;
-
-          const checked =
-            this.checked;
-
-          container
-            .querySelectorAll(
-              '.co-item-checkbox[data-customer-item="' +
-              customerKey +
-              '"]'
-            )
-            .forEach(
-              function(itemCheckbox) {
-
-                itemCheckbox.checked =
-                  checked;
-
-              }
+              },
+              null
             );
+
+
+          return {
+            customerName:
+              customerName,
+
+            items:
+              items,
+
+            firstCreatedAt:
+              firstItem
+                ? firstItem.created_at
+                : null
+          };
 
         }
       );
 
+
+    customerList.sort(
+      function(a, b) {
+
+        const dateA =
+          a.firstCreatedAt
+            ? new Date(
+                a.firstCreatedAt
+              ).getTime()
+            : Infinity;
+
+        const dateB =
+          b.firstCreatedAt
+            ? new Date(
+                b.firstCreatedAt
+              ).getTime()
+            : Infinity;
+
+
+        return dateA - dateB;
+
+      }
+    );
+
+
+    /*
+      TOTAL CUSTOMER
+    */
+
+    const totalElement =
+      document.getElementById(
+        "coReportTotal"
+      );
+
+
+    if (totalElement) {
+
+      totalElement.textContent =
+        customerList.length;
+
     }
-  );
+
+
+    const container =
+      document.getElementById(
+        "coReportContainer"
+      );
+
+
+    /*
+      TIDAK ADA CUSTOMER
+    */
+
+    if (
+      customerList.length === 0
+    ) {
+
+      container.innerHTML = `
+        <p>
+          Tidak ada customer yang
+          menunggu konfirmasi packing.
+        </p>
+      `;
+
+      return;
+
+    }
+
+
+    /*
+      TAMPILKAN DAFTAR CUSTOMER
+    */
+
+    function renderCustomerList() {
+
+      container.innerHTML = `
+
+        <h3>
+          🛒 Customer Menunggu Packing
+        </h3>
+
+        <p>
+          ${customerList.length}
+          customer sudah CO dan belum
+          dikonfirmasi packing.
+        </p>
+
+
+        <div
+          style="
+            margin-top:20px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+          "
+        >
+
+          ${customerList
+            .map(
+              function(customer, index) {
+
+                return `
+
+                  <button
+                    type="button"
+                    class="co-customer-button"
+                    data-customer-index="${index}"
+                    style="
+                      width:100%;
+                      text-align:left;
+                      padding:14px 16px;
+                      border:1px solid #eee;
+                      border-radius:10px;
+                      background:#fff;
+                      cursor:pointer;
+                      display:flex;
+                      align-items:center;
+                      justify-content:space-between;
+                      gap:15px;
+                    "
+                  >
+
+                    <div
+                      style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        min-width:0;
+                      "
+                    >
+
+                      <strong
+                        style="
+                          min-width:28px;
+                        "
+                      >
+                        ${index + 1}.
+                      </strong>
+
+                      <strong>
+                        ${customer.customerName}
+                      </strong>
+
+                    </div>
+
+
+                    <span
+                      style="
+                        font-size:12px;
+                        color:#777;
+                        white-space:nowrap;
+                      "
+                    >
+                      ${customer.items.length}
+                      barang →
+                    </span>
+
+                  </button>
+
+                `;
+
+              }
+            )
+            .join("")}
+
+        </div>
+
+      `;
+
+
+      /*
+        EVENT PILIH CUSTOMER
+      */
+
+      container
+        .querySelectorAll(
+          ".co-customer-button"
+        )
+        .forEach(
+          function(button) {
+
+            button.addEventListener(
+              "click",
+              function() {
+
+                const index =
+                  Number(
+                    this.dataset.customerIndex
+                  );
+
+                const customer =
+                  customerList[
+                    index
+                  ];
+
+
+                renderCustomerDetail(
+                  customer
+                );
+
+              }
+            );
+
+          }
+        );
+
+    }
+
+
+    /*
+      DETAIL CUSTOMER
+    */
+
+    function renderCustomerDetail(
+      customer
+    ) {
+
+      const customerItems =
+        customer.items;
+
+
+      container.innerHTML = `
+
+        <div
+          style="
+            margin-bottom:18px;
+          "
+        >
+
+          <button
+            type="button"
+            id="coBackToCustomers"
+            style="
+              border:none;
+              background:none;
+              padding:0;
+              cursor:pointer;
+              font-size:14px;
+              font-weight:600;
+            "
+          >
+            ← Kembali ke Daftar Customer
+          </button>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:15px;
+            margin-bottom:18px;
+          "
+        >
+
+          <div>
+
+            <h3
+              style="
+                margin:0 0 5px 0;
+              "
+            >
+              ${customer.customerName}
+            </h3>
+
+            <p
+              style="
+                margin:0;
+                color:#777;
+              "
+            >
+              ${customerItems.length}
+              barang sudah CO
+            </p>
+
+          </div>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:7px;
+              cursor:pointer;
+              font-size:13px;
+              font-weight:600;
+              white-space:nowrap;
+            "
+          >
+
+            <input
+              type="checkbox"
+              id="coCheckAll"
+            >
+
+            Konfirmasi Semua
+
+          </label>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+          "
+        >
+
+          ${customerItems
+            .map(
+              function(item) {
+
+                return `
+
+                  <label
+                    style="
+                      display:flex;
+                      align-items:flex-start;
+                      gap:10px;
+                      padding:12px;
+                      border:1px solid #eee;
+                      border-radius:9px;
+                      background:#fafafa;
+                      cursor:pointer;
+                    "
+                  >
+
+                    <input
+                      type="checkbox"
+                      class="co-item-checkbox"
+                      data-recap-id="${item.id}"
+                      style="
+                        margin-top:3px;
+                      "
+                    >
+
+
+                    <div
+                      style="
+                        display:flex;
+                        flex-direction:column;
+                        gap:3px;
+                        min-width:0;
+                      "
+                    >
+
+                      <strong>
+                        ${item.item_name || "-"}
+                      </strong>
+
+
+                      <span
+                        style="
+                          font-size:12px;
+                          color:#777;
+                        "
+                      >
+                        Batch:
+                        ${item.batch_code || "-"}
+                        ${
+                          item.version
+                            ? ` • ${item.version}`
+                            : ""
+                        }
+                        ${
+                          item.quantity
+                            ? ` • Qty ${item.quantity}`
+                            : ""
+                        }
+                      </span>
+
+
+                      <span
+                        style="
+                          font-size:12px;
+                          color:#b06b00;
+                        "
+                      >
+                        ⏳ Belum Dikonfirmasi
+                      </span>
+
+                    </div>
+
+                  </label>
+
+                `;
+
+              }
+            )
+            .join("")}
+
+        </div>
+
+      `;
+
+
+      /*
+        KEMBALI KE DAFTAR CUSTOMER
+      */
+
+      const backButton =
+        document.getElementById(
+          "coBackToCustomers"
+        );
+
+
+      if (backButton) {
+
+        backButton.addEventListener(
+          "click",
+          function() {
+
+            renderCustomerList();
+
+          }
+        );
+
+      }
+
+
+      /*
+        KONFIRMASI SEMUA
+        BARU MENGUBAH CHECKBOX,
+        BELUM MENGUBAH DATABASE
+      */
+
+      const checkAll =
+        document.getElementById(
+          "coCheckAll"
+        );
+
+
+      if (checkAll) {
+
+        checkAll.addEventListener(
+          "change",
+          function() {
+
+            container
+              .querySelectorAll(
+                ".co-item-checkbox"
+              )
+              .forEach(
+                function(itemCheckbox) {
+
+                  itemCheckbox.checked =
+                    checkAll.checked;
+
+                }
+              );
+
+          }
+        );
+
+      }
+
+    }
+
+
+    /*
+      TAMPILKAN DAFTAR CUSTOMER
+    */
+
+    renderCustomerList();
+
 
   } catch (err) {
 
@@ -5778,7 +6025,6 @@ container
   }
 
 }
-
 /* ============================================
    REKAP GO
    ============================================ */
