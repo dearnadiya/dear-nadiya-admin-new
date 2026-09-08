@@ -5944,23 +5944,41 @@ async function loadCOReport() {
 
 
         <div
-          style="
-            margin-top:18px;
-            display:flex;
-            justify-content:flex-end;
-          "
-        >
+  style="
+    margin-top:18px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+  "
+>
 
-          <button
-            type="button"
-            id="coConfirmPackingButton"
-            class="btn-primary"
-          >
-            ✓ Konfirmasi Packing
-          </button>
+  <button
+    type="button"
+    id="coConfirmPackingButton"
+    class="btn-primary"
+  >
+    ✓ Konfirmasi Pesanan
+  </button>
 
-        </div>
 
+  <button
+    type="button"
+    id="coRejectPackingButton"
+    style="
+      border:1px solid #d66;
+      background:#fff;
+      color:#b33;
+      padding:10px 15px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+    "
+  >
+    ✕ Tidak Dikonfirmasi
+  </button>
+
+</div>
       `;
 
                    /*
