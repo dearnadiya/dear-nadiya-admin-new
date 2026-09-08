@@ -7076,10 +7076,7 @@ function loadRecap() {
       </div>
 
 
-      <div
-        id="recapCategoryContainer"
-      ></div>
-
+      <div id="recapCategoryContainer" style="display: none;"></div>
 
       <div
         id="recapFormContainer"
@@ -7135,9 +7132,13 @@ function loadRecap() {
 
 
           selectedRecapType =
-            button.dataset.recapType;
+  button.dataset.recapType;
 
-           showRecapCategories(
+document.getElementById(
+  "recapCategoryContainer"
+).style.display = "block";
+
+showRecapCategories(
   selectedRecapType
 );
            
