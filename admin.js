@@ -7905,6 +7905,9 @@ async function saveRecap(
 
   const recap = {
 
+     recap_type:
+    "Treasure",
+
     category:
       category,
 
