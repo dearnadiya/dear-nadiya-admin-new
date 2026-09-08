@@ -5487,18 +5487,59 @@ async function loadCOReport() {
 
     container.innerHTML = `
 
-      <h3>
-        🛒 Customer Menunggu Packing
-      </h3>
+  <h3>
+    🛒 Customer Menunggu Packing
+  </h3>
 
-      <p>
-        ${coCustomers.size}
-        customer sudah CO dan belum
-        dikonfirmasi packing.
-      </p>
+  <p>
+    ${coCustomers.size}
+    customer sudah CO dan belum
+    dikonfirmasi packing.
+  </p>
 
-    `;
+  <div
+    style="
+      margin-top:20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    "
+  >
 
+    ${Array.from(coCustomers)
+      .map(function(customerName) {
+
+        return `
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:15px;
+              padding:12px 15px;
+              border:1px solid #eee;
+              border-radius:10px;
+              background:#fff;
+            "
+          >
+
+            <strong>
+              ${customerName}
+            </strong>
+
+            <span>
+              ⏳ Belum Dikonfirmasi
+            </span>
+
+          </div>
+        `;
+
+      })
+      .join("")}
+
+  </div>
+
+`;
 
   } catch (err) {
 
