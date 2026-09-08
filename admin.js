@@ -5328,10 +5328,9 @@ async function loadCOReport() {
 
         <div class="stat-card">
 
-          <p>
-            Total Customer Sudah CO
-          </p>
-
+         <p>
+  🛒 Total Customer Sudah CO & Belum Dikonfirmasi Packing
+</p>
           <h2 id="coReportTotal">
             —
           </h2>
