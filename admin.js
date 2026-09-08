@@ -10297,21 +10297,42 @@ const batchDpDeadline =
           .value;
 
 
-      /* ======================================
-         SISA PEMBAYARAN
-         SELALU PER CUSTOMER
-         ====================================== */
+     /* ======================================
+   SISA PEMBAYARAN
+   ====================================== */
 
-      const remaining =
-        Number(
-          item
-            .querySelector(
-              ".batch-remaining"
-            )
-            .value
-        ) || 0;
+let remaining = 0;
 
+if (
+  priceMode === "same"
+) {
 
+  /*
+   * Harga sama untuk semua customer.
+   * Pelunasan juga sama untuk semua customer.
+   */
+
+  remaining =
+    commonPrice -
+    commonDp;
+
+} else {
+
+  /*
+   * Harga berbeda per customer.
+   */
+
+  remaining =
+    Number(
+      item
+        .querySelector(
+          ".batch-remaining"
+        )
+        .value
+    ) || 0;
+
+}
+       
       /* ======================================
          STATUS PEMBAYARAN
          SELALU PER CUSTOMER
