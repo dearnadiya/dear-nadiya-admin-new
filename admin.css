@@ -5726,36 +5726,53 @@ a {
    FORM CUSTOMER REKAP - COMPACT
    ========================================== */
 
-.batch-customer-item label {
+.batch-item {
+  padding: 10px 12px;
+}
+
+/* Header customer */
+.batch-item-header {
+  margin-bottom: 6px;
+}
+
+/* Label */
+.batch-item label {
   display: block;
-  margin-top: 6px;
-  margin-bottom: 3px;
-  font-size: 13px;
+  margin-top: 5px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
-.batch-customer-item input,
-.batch-customer-item select {
+/* Input & select */
+.batch-item input,
+.batch-item select {
   width: 100%;
   box-sizing: border-box;
-  min-height: 34px;
-  padding: 6px 9px;
-  font-size: 13px;
+  min-height: 32px;
+  height: 32px;
+  padding: 5px 8px;
+  font-size: 12px;
 }
 
-.batch-customer-item textarea {
+/* Textarea */
+.batch-item textarea {
   width: 100%;
   box-sizing: border-box;
-  padding: 6px 9px;
-  font-size: 13px;
+  min-height: 42px;
+  padding: 5px 8px;
+  font-size: 12px;
   resize: vertical;
-  min-height: 45px;
 }
 
-.batch-customer-item .different-price-fields,
-.batch-customer-item .batch-payment-fields {
-  margin-top: 4px;
+/* Kelompok field */
+.batch-item .different-price-fields,
+.batch-item .batch-payment-fields {
+  margin-top: 3px;
 }
 
-.batch-customer-item {
-  padding: 10px;
+/* Tombol hapus */
+.batch-item .remove-batch-item {
+  padding: 4px 8px;
+  font-size: 11px;
 }
