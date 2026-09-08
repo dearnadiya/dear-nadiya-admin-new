@@ -5591,3 +5591,43 @@ a {
   white-space: nowrap;
   border-radius: 8px;
 }
+
+/* ==========================================
+   REKAP GO - COLLAPSE BATCH
+   ========================================== */
+
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-deadlines,
+.recap-batch-card.recap-batch-collapsed
+.batch-tracking,
+.recap-batch-card.recap-batch-collapsed
+.product-table-wrapper {
+  display: none;
+}
+
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-header {
+  cursor: pointer;
+  position: relative;
+}
+
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-header::after {
+  content: "▶ Klik untuk buka";
+  font-size: 12px;
+  color: #666;
+  margin-left: 12px;
+}
+
+.recap-batch-card:not(.recap-batch-collapsed)
+.recap-batch-header {
+  cursor: pointer;
+}
+
+.recap-batch-card:not(.recap-batch-collapsed)
+.recap-batch-header::after {
+  content: "▼ Klik untuk tutup";
+  font-size: 12px;
+  color: #666;
+  margin-left: 12px;
+}
