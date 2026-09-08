@@ -7196,10 +7196,10 @@ function loadRecap() {
 }
 
 /* ============================================
-   PILIH KATEGORI REKAP
+   FORM TAMBAH KATEGORI REKAP
    ============================================ */
 
-function showRecapCategories(
+function showNewRecapCategoryForm(
   recapType
 ) {
 
@@ -7208,140 +7208,8 @@ function showRecapCategories(
       "recapCategoryContainer"
     );
 
-
   if (!container) {
     return;
-  }
-
-
-  if (
-    recapType ===
-    "Treasure"
-  ) {
-
-    container.innerHTML = `
-
-      <div
-        class="recap-category-buttons"
-        id="recapCategoryButtons"
-      >
-
-        <button
-          type="button"
-          class="active"
-          data-category="Truz"
-        >
-          Truz
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure KR"
-        >
-          Treasure KR
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure JP"
-        >
-          Treasure JP
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure CH"
-        >
-          Treasure CH
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure Thai"
-        >
-          Treasure Thai
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure Album"
-        >
-          Treasure Album
-        </button>
-
-
-        <button
-          type="button"
-          data-category="Treasure INA"
-        >
-          Treasure INA
-        </button>
-
-      </div>
-
-    `;
-
-
-    let selectedCategory =
-      "Truz";
-
-
-    const categoryButtons =
-      container.querySelectorAll(
-        "#recapCategoryButtons button"
-      );
-
-
-    categoryButtons.forEach(
-      function (button) {
-
-        button.addEventListener(
-          "click",
-          function () {
-
-            categoryButtons.forEach(
-              function (item) {
-
-                item.classList.remove(
-                  "active"
-                );
-
-              }
-            );
-
-
-            button.classList.add(
-              "active"
-            );
-
-
-            selectedCategory =
-              button.dataset.category;
-
-
-            loadRecapList(
-              selectedCategory
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-    loadRecapList(
-      selectedCategory
-    );
-
-
-    return;
-
   }
 
 
@@ -7349,34 +7217,122 @@ function showRecapCategories(
 
     <div class="welcome-card">
 
+      <h3>
+        ➕ Tambah Kategori
+      </h3>
+
       <p>
-        Kategori untuk
+        Type:
         <strong>
-          Rekap ${recapType}
+          Rekap ${escapeHTML(recapType)}
         </strong>
-        belum dibuat.
       </p>
+
+
+      <label>
+        Nama Kategori
+      </label>
+
+      <input
+        type="text"
+        id="newRecapCategory"
+        placeholder="Contoh: NCT DREAM"
+      >
+
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="primary-button"
+          id="saveNewRecapCategoryButton"
+        >
+          Simpan
+        </button>
+
+
+        <button
+          type="button"
+          id="cancelNewRecapCategoryButton"
+        >
+          Batal
+        </button>
+
+      </div>
+
+
+      <p
+        id="newRecapCategoryMessage"
+        class="login-error"
+      ></p>
 
     </div>
 
   `;
 
 
-  const listContainer =
+  const input =
     document.getElementById(
-      "recapListContainer"
+      "newRecapCategory"
     );
 
 
-  if (listContainer) {
+  const saveButton =
+    document.getElementById(
+      "saveNewRecapCategoryButton"
+    );
 
-    listContainer.innerHTML = `
 
-      <p>
-        Belum ada kategori.
-      </p>
+  const cancelButton =
+    document.getElementById(
+      "cancelNewRecapCategoryButton"
+    );
 
-    `;
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function () {
+
+        showRecapCategories(
+          recapType
+        );
+
+      }
+    );
+
+  }
+
+
+  if (saveButton) {
+
+    saveButton.addEventListener(
+      "click",
+      function () {
+
+        const category =
+          input.value.trim();
+
+
+        if (!category) {
+
+          alert(
+            "Nama kategori wajib diisi."
+          );
+
+          return;
+
+        }
+
+
+        alert(
+          "Kategori berhasil dibuat: " +
+          category
+        );
+
+      }
+    );
 
   }
 
