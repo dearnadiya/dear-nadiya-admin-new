@@ -5328,9 +5328,10 @@ async function loadCOReport() {
 
         <div class="stat-card">
 
-         <p>
-  🛒 Total Customer Sudah CO & Belum Dikonfirmasi Packing
-</p>
+          <p>
+            🛒 Total Customer Sudah CO & Belum Dikonfirmasi Packing
+          </p>
+
           <h2 id="coReportTotal">
             —
           </h2>
@@ -5365,9 +5366,14 @@ async function loadCOReport() {
       await supabaseClient
         .from("purchase_recap")
         .select(`
+          id,
           customer_name,
           customer_status,
-          packing_status
+          packing_status,
+          batch_code,
+          item_name,
+          version,
+          quantity
         `);
 
 
@@ -5396,47 +5402,59 @@ async function loadCOReport() {
 
 
     /*
-      Ambil hanya customer yang:
+      Hanya ambil barang yang:
 
       1. Sudah Checkout Shopee
       2. Belum dikonfirmasi packing
     */
 
-    const coCustomers =
-      new Set();
+    const coRows =
+      rows.filter(
+        function(row) {
 
-    rows.forEach(
-      function(row) {
+          const customerName =
+            String(
+              row.customer_name || ""
+            ).trim();
 
-        const customerName =
-          String(
-            row.customer_name || ""
-          ).trim();
+          const customerStatus =
+            String(
+              row.customer_status || ""
+            ).trim();
 
-        const customerStatus =
-          String(
-            row.customer_status || ""
-          ).trim();
-
-        const packingStatus =
-          String(
-            row.packing_status || ""
-          ).trim();
+          const packingStatus =
+            String(
+              row.packing_status || ""
+            ).trim();
 
 
-        if (
-          customerName &&
-          customerStatus ===
-            "Sudah Checkout Shopee" &&
-          packingStatus !==
-            "Sudah Dikonfirmasi"
-        ) {
-
-          coCustomers.add(
-            customerName
+          return (
+            customerName &&
+            customerStatus ===
+              "Sudah Checkout Shopee" &&
+            packingStatus !==
+              "Sudah Dikonfirmasi"
           );
 
         }
+      );
+
+
+    /*
+      Hitung customer unik
+    */
+
+    const coCustomers =
+      new Set();
+
+    coRows.forEach(
+      function(row) {
+
+        coCustomers.add(
+          String(
+            row.customer_name || ""
+          ).trim()
+        );
 
       }
     );
@@ -5460,7 +5478,7 @@ async function loadCOReport() {
 
 
     /*
-      TAMPILKAN STATUS
+      CONTAINER
     */
 
     const container =
@@ -5485,61 +5503,239 @@ async function loadCOReport() {
     }
 
 
+    /*
+      KELOMPOKKAN BARANG BERDASARKAN CUSTOMER
+    */
+
+    const customerGroups = {};
+
+
+    coRows.forEach(
+      function(row) {
+
+        const customerName =
+          String(
+            row.customer_name || ""
+          ).trim();
+
+
+        if (
+          !customerGroups[
+            customerName
+          ]
+        ) {
+
+          customerGroups[
+            customerName
+          ] = [];
+
+        }
+
+
+        customerGroups[
+          customerName
+        ].push(
+          row
+        );
+
+      }
+    );
+
+
+    /*
+      TAMPILKAN CUSTOMER + BARANG
+    */
+
     container.innerHTML = `
 
-  <h3>
-    🛒 Customer Menunggu Packing
-  </h3>
+      <h3>
+        🛒 Customer Menunggu Packing
+      </h3>
 
-  <p>
-    ${coCustomers.size}
-    customer sudah CO dan belum
-    dikonfirmasi packing.
-  </p>
+      <p>
+        ${coCustomers.size}
+        customer sudah CO dan belum
+        dikonfirmasi packing.
+      </p>
 
-  <div
-    style="
-      margin-top:20px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    "
-  >
 
-    ${Array.from(coCustomers)
-      .map(function(customerName) {
+      <div
+        style="
+          margin-top:20px;
+          display:flex;
+          flex-direction:column;
+          gap:16px;
+        "
+      >
 
-        return `
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              justify-content:space-between;
-              gap:15px;
-              padding:12px 15px;
-              border:1px solid #eee;
-              border-radius:10px;
-              background:#fff;
-            "
-          >
+        ${Object.keys(customerGroups)
+          .map(function(customerName) {
 
-            <strong>
-              ${customerName}
-            </strong>
+            const customerItems =
+              customerGroups[
+                customerName
+              ];
 
-            <span>
-              ⏳ Belum Dikonfirmasi
-            </span>
+            const customerKey =
+              customerName
+                .replace(
+                  /[^a-zA-Z0-9]/g,
+                  "_"
+                );
 
-          </div>
-        `;
 
-      })
-      .join("")}
+            return `
 
-  </div>
+              <div
+                style="
+                  padding:16px;
+                  border:1px solid #eee;
+                  border-radius:12px;
+                  background:#fff;
+                "
+              >
 
-`;
+                <div
+                  style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                  "
+                >
+
+                  <strong>
+                    ${customerName}
+                  </strong>
+
+
+                  <label
+                    style="
+                      display:flex;
+                      align-items:center;
+                      gap:6px;
+                      cursor:pointer;
+                      font-size:13px;
+                      font-weight:600;
+                    "
+                  >
+
+                    <input
+                      type="checkbox"
+                      class="co-check-all"
+                      data-customer="${customerKey}"
+                      onchange="
+                        document
+                          .querySelectorAll(
+                            '[data-customer-item="${customerKey}"]'
+                          )
+                          .forEach(function(cb) {
+                            cb.checked =
+                              this.checked;
+                          }.bind(this));
+                      "
+                    >
+
+                    Konfirmasi Semua
+
+                  </label>
+
+                </div>
+
+
+                <div
+                  style="
+                    display:flex;
+                    flex-direction:column;
+                    gap:8px;
+                  "
+                >
+
+                  ${customerItems
+                    .map(function(item) {
+
+                      return `
+
+                        <label
+                          style="
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:10px 12px;
+                            border:1px solid #f0f0f0;
+                            border-radius:8px;
+                            background:#fafafa;
+                            cursor:pointer;
+                          "
+                        >
+
+                          <input
+                            type="checkbox"
+                            class="co-item-checkbox"
+                            data-customer-item="${customerKey}"
+                            data-recap-id="${item.id}"
+                          >
+
+                          <div
+                            style="
+                              display:flex;
+                              flex-direction:column;
+                              gap:3px;
+                              min-width:0;
+                            "
+                          >
+
+                            <strong>
+                              ${item.item_name || "-"}
+                            </strong>
+
+                            <span
+                              style="
+                                font-size:12px;
+                                color:#777;
+                              "
+                            >
+                              Batch:
+                              ${item.batch_code || "-"}
+                              ${item.version
+                                ? ` • ${item.version}`
+                                : ""}
+                              ${item.quantity
+                                ? ` • Qty ${item.quantity}`
+                                : ""}
+                            </span>
+
+                            <span
+                              style="
+                                font-size:12px;
+                                color:#b06b00;
+                              "
+                            >
+                              ⏳ Belum Dikonfirmasi
+                            </span>
+
+                          </div>
+
+                        </label>
+
+                      `;
+
+                    })
+                    .join("")}
+
+                </div>
+
+              </div>
+
+            `;
+
+          })
+          .join("")}
+
+      </div>
+
+    `;
 
   } catch (err) {
 
