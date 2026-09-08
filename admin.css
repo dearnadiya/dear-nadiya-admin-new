@@ -5676,3 +5676,48 @@ a {
   color: #666;
   margin: 0 6px;
 }
+
+/* ==========================================
+   REKAP GO - PAGINATION CUSTOMER
+   ========================================== */
+
+.recap-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
+.recap-pagination button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.recap-pagination button.active {
+  font-weight: 700;
+}
+
+.recap-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.recap-pagination-info {
+  font-size: 12px;
+  color: #666;
+  margin: 0 6px;
+}
+
+.recap-batch-card.recap-batch-collapsed
+.recap-pagination {
+  display: none;
+}
