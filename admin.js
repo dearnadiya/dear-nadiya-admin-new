@@ -577,6 +577,14 @@ function showPage(
 
 }
 
+   if (
+  page ===
+  "co-archive"
+) {
+  loadCOArchive();
+  return;
+}
+
 }
 
 
