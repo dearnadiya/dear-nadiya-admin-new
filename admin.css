@@ -6464,3 +6464,20 @@ a {
   background: #f1f1f1;
   color: #777;
 }
+
+.po-row-claim-hint {
+  grid-column: 1 / -1;
+
+  margin-top: 4px;
+  padding: 7px 10px;
+
+  border-radius: 8px;
+
+  background: #f8f5ff;
+  border: 1px solid #e3d9f2;
+
+  color: #6b5878;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
