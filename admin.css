@@ -8347,3 +8347,591 @@ a {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - FINAL DESKTOP / TABLET
+   ========================================================= */
+
+@media (min-width: 769px) {
+
+  /* =========================
+     CONTAINER REKAP
+     ========================= */
+
+  #recapCategoryContainer,
+  #recapListContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+
+  /* =========================
+     KATEGORI
+     ========================= */
+
+  #recapCategoryContainer
+  .recap-category-buttons {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr)) !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 14px 0 20px !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-card {
+
+    display: flex !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    height: 105px !important;
+    min-height: 105px !important;
+    max-height: 105px !important;
+
+    margin: 0 !important;
+    padding: 10px !important;
+
+    box-sizing: border-box !important;
+
+    flex: none !important;
+
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 15px !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-icon {
+
+    font-size: 28px !important;
+
+    line-height: 1 !important;
+
+    margin: 0 0 7px !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-name {
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    font-size: 13px !important;
+
+    line-height: 1.25 !important;
+
+    text-align: center !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-arrow {
+
+    margin-top: 6px !important;
+
+    font-size: 14px !important;
+
+    line-height: 1 !important;
+  }
+
+
+  /* =========================
+     SEARCH
+     ========================= */
+
+  #recapListContainer
+  .recap-search {
+
+    width: 100% !important;
+
+    margin: 12px 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  #recapSearchInput {
+
+    width: 100% !important;
+
+    height: 44px !important;
+    min-height: 44px !important;
+
+    padding: 8px 13px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 11px !important;
+
+    font-size: 13px !important;
+  }
+
+
+  /* =========================
+     FILTER
+     ========================= */
+
+  #recapListContainer
+  .recap-filters {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-filters label {
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    gap: 5px !important;
+
+    margin: 0 !important;
+
+    font-size: 11px !important;
+  }
+
+
+  #recapListContainer
+  .recap-filters select {
+
+    width: 100% !important;
+
+    height: 38px !important;
+    min-height: 38px !important;
+
+    padding: 6px 9px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 9px !important;
+
+    font-size: 12px !important;
+  }
+
+
+  /* =========================
+     EXPORT
+     ========================= */
+
+  #recapListContainer
+  .recap-actions {
+
+    display: flex !important;
+
+    justify-content: flex-end !important;
+
+    width: 100% !important;
+
+    margin: 0 0 14px !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  #exportRecapButton {
+
+    width: auto !important;
+    min-width: 135px !important;
+
+    height: 38px !important;
+
+    padding: 7px 14px !important;
+
+    border-radius: 9px !important;
+
+    font-size: 12px !important;
+  }
+
+
+  /* =========================
+     HEADER LIST BATCH
+     ========================= */
+
+  #recapListContainer
+  .recap-batch-table-header {
+
+    display: grid !important;
+
+    grid-template-columns:
+      180px
+      minmax(0, 1fr)
+      45px !important;
+
+    width: 100% !important;
+
+    min-height: 44px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+
+    border-radius: 11px 11px 0 0 !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-code,
+  #recapListContainer
+  .recap-batch-table-name,
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    padding: 8px 11px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-name,
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    border-left: 1px solid rgba(100,70,120,.12) !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    justify-content: center !important;
+
+    font-size: 17px !important;
+  }
+
+
+  /* =========================
+     BATCH
+     ========================= */
+
+  #recapListContainer
+  .recap-batch-card {
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      180px
+      minmax(0, 1fr)
+      45px !important;
+
+    gap: 0 !important;
+
+    align-items: stretch !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    cursor: pointer !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child {
+
+    display: contents !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-header h3 {
+
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    min-height: 48px !important;
+
+    margin: 0 !important;
+
+    padding: 9px 11px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p {
+
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    min-height: 48px !important;
+
+    margin: 0 !important;
+
+    padding: 9px 11px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+
+    border-left: 1px solid rgba(100,70,120,.12) !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-header::after {
+
+    content: "→";
+
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 48px !important;
+
+    font-size: 18px !important;
+
+    font-weight: 700 !important;
+
+    border-left: 1px solid rgba(100,70,120,.12) !important;
+  }
+
+
+  /* Sembunyikan info tambahan
+     dari baris ringkas */
+
+  #recapListContainer
+  .recap-batch-customer-summary,
+  #recapListContainer
+  .recap-batch-deadlines,
+  #recapListContainer
+  .batch-tracking {
+
+    display: none !important;
+  }
+
+
+  /* =========================
+     DETAIL BATCH
+     ========================= */
+
+  #recapListContainer
+  .product-table-wrapper {
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .product-table {
+
+    width: max-content !important;
+
+    min-width: 1200px !important;
+
+    margin: 0 !important;
+
+    table-layout: auto !important;
+
+    border-collapse: collapse !important;
+  }
+
+
+  #recapListContainer
+  .product-table th,
+  #recapListContainer
+  .product-table td {
+
+    padding: 8px 9px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.3 !important;
+
+    vertical-align: middle !important;
+  }
+
+
+  #recapListContainer
+  .product-table th {
+
+    white-space: nowrap !important;
+
+    font-size: 11px !important;
+  }
+
+
+  #recapListContainer
+  .product-table td {
+
+    white-space: nowrap !important;
+  }
+
+}
+
+
+/* =========================================================
+   TABLET
+   769px - 900px
+   ========================================================= */
+
+@media (min-width: 769px) and (max-width: 900px) {
+
+  #recapCategoryContainer
+  .recap-category-buttons {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 9px !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-card {
+
+    height: 95px !important;
+    min-height: 95px !important;
+    max-height: 95px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-header,
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    grid-template-columns:
+      145px
+      minmax(0, 1fr)
+      40px !important;
+  }
+
+}
