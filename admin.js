@@ -15508,6 +15508,266 @@ async function saveMember(member = null) {
 }
 
 /* ============================================
+   TAMPILKAN DAFTAR MEMBER / VERSI
+   ============================================ */
+
+async function renderMemberList() {
+
+  const container =
+    document.getElementById(
+      "memberListContainer"
+    );
+
+  if (!container) return;
+
+
+  container.innerHTML = `
+    <p>
+      Memuat data member...
+    </p>
+  `;
+
+
+  try {
+
+    const result =
+      await supabaseClient
+        .from("po_members")
+        .select(`
+          id,
+          group_name,
+          member_name,
+          sort_order,
+          created_at
+        `)
+        .order(
+          "group_name",
+          {
+            ascending: true
+          }
+        )
+        .order(
+          "sort_order",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (result.error) {
+
+      console.error(
+        "Gagal mengambil master member:",
+        result.error
+      );
+
+      container.innerHTML = `
+        <div class="panel">
+          <p>
+            Gagal memuat data member.
+          </p>
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const members =
+      result.data || [];
+
+
+    if (members.length === 0) {
+
+      container.innerHTML = `
+        <div class="panel">
+          <p>
+            Belum ada data member / versi.
+          </p>
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <div class="panel-header">
+
+          <div>
+            <h3>
+              📋 Daftar Member / Versi
+            </h3>
+
+            <p>
+              ${members.length}
+              data tersedia
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            overflow-x:auto;
+          "
+        >
+
+          <table
+            style="
+              width:100%;
+              border-collapse:collapse;
+            "
+          >
+
+            <thead>
+
+              <tr>
+
+                <th
+                  style="
+                    text-align:left;
+                    padding:12px;
+                  "
+                >
+                  Group
+                </th>
+
+                <th
+                  style="
+                    text-align:left;
+                    padding:12px;
+                  "
+                >
+                  Member / Versi
+                </th>
+
+                <th
+                  style="
+                    text-align:center;
+                    padding:12px;
+                  "
+                >
+                  Urutan
+                </th>
+
+                <th
+                  style="
+                    text-align:center;
+                    padding:12px;
+                  "
+                >
+                  Aksi
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${members.map(function(item) {
+
+                return `
+
+                  <tr>
+
+                    <td
+                      style="
+                        padding:12px;
+                      "
+                    >
+                      ${escapeHTML(
+                        item.group_name || ""
+                      )}
+                    </td>
+
+
+                    <td
+                      style="
+                        padding:12px;
+                      "
+                    >
+                      ${escapeHTML(
+                        item.member_name || ""
+                      )}
+                    </td>
+
+
+                    <td
+                      style="
+                        padding:12px;
+                        text-align:center;
+                      "
+                    >
+                      ${Number(
+                        item.sort_order || 0
+                      )}
+                    </td>
+
+
+                    <td
+                      style="
+                        padding:12px;
+                        text-align:center;
+                      "
+                    >
+
+                      <button
+                        type="button"
+                        class="secondary-button"
+                        onclick='showMemberForm(${JSON.stringify(item)})'
+                      >
+                        ✏️ Edit
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                `;
+
+              }).join("")}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error renderMemberList:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="panel">
+        <p>
+          Terjadi kesalahan saat memuat data member.
+        </p>
+      </div>
+    `;
+
+  }
+
+}
+
+/* ============================================
    BAGIAN 6
    FINAL INITIALIZATION
    ============================================ */
