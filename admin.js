@@ -15129,9 +15129,11 @@ function showMemberForm(member = null) {
 
         <div>
           <h3>
-            ${isEdit
-              ? "✏️ Edit Member / Versi"
-              : "➕ Tambah Member / Versi"}
+            ${
+              isEdit
+                ? "✏️ Edit Member / Versi"
+                : "➕ Tambah Member / Versi"
+            }
           </h3>
 
           <p>
@@ -15179,7 +15181,7 @@ function showMemberForm(member = null) {
         </div>
 
 
-        <!-- MEMBER -->
+        <!-- MEMBER / VERSI -->
         <div class="form-group">
 
           <label>
@@ -15202,7 +15204,7 @@ function showMemberForm(member = null) {
         </div>
 
 
-        <!-- SORT ORDER -->
+        <!-- URUTAN -->
         <div class="form-group">
 
           <label>
@@ -15221,44 +15223,6 @@ function showMemberForm(member = null) {
                 : 0
             }"
           />
-
-        </div>
-
-
-        <!-- STATUS -->
-        <div class="form-group">
-
-          <label>
-            Status
-          </label>
-
-          <select id="memberIsActive">
-
-            <option
-              value="true"
-              ${
-                !isEdit ||
-                member.is_active !== false
-                  ? "selected"
-                  : ""
-              }
-            >
-              🟢 Aktif
-            </option>
-
-            <option
-              value="false"
-              ${
-                isEdit &&
-                member.is_active === false
-                  ? "selected"
-                  : ""
-              }
-            >
-              ⚪ Nonaktif
-            </option>
-
-          </select>
 
         </div>
 
@@ -15329,7 +15293,9 @@ function showMemberForm(member = null) {
       "click",
       function () {
 
-        container.style.display = "none";
+        container.style.display =
+          "none";
+
         container.innerHTML = "";
 
       }
@@ -15346,6 +15312,198 @@ function showMemberForm(member = null) {
     });
 
   }, 50);
+
+}
+
+/* ============================================
+   SIMPAN MEMBER / VERSI
+   ============================================ */
+
+async function saveMember(member = null) {
+
+  const groupInput =
+    document.getElementById(
+      "memberGroupName"
+    );
+
+  const memberInput =
+    document.getElementById(
+      "memberName"
+    );
+
+  const sortInput =
+    document.getElementById(
+      "memberSortOrder"
+    );
+
+
+  const groupName =
+    groupInput?.value.trim() || "";
+
+  const memberName =
+    memberInput?.value.trim() || "";
+
+  const sortOrder =
+    Number(
+      sortInput?.value || 0
+    );
+
+
+  /* ------------------------------------------
+     VALIDASI
+     ------------------------------------------ */
+
+  if (!groupName) {
+
+    alert(
+      "Group belum diisi."
+    );
+
+    groupInput?.focus();
+
+    return;
+
+  }
+
+
+  if (!memberName) {
+
+    alert(
+      "Member / Versi belum diisi."
+    );
+
+    memberInput?.focus();
+
+    return;
+
+  }
+
+
+  /* ------------------------------------------
+     DATA YANG DISIMPAN
+     ------------------------------------------ */
+
+  const memberData = {
+
+    group_name:
+      groupName,
+
+    member_name:
+      memberName,
+
+    sort_order:
+      sortOrder
+
+  };
+
+
+  try {
+
+    let result;
+
+
+    /* ----------------------------------------
+       EDIT DATA
+       ---------------------------------------- */
+
+    if (member?.id) {
+
+      result =
+        await supabaseClient
+          .from("po_members")
+          .update(
+            memberData
+          )
+          .eq(
+            "id",
+            member.id
+          )
+          .select();
+
+
+    }
+
+    /* ----------------------------------------
+       TAMBAH DATA BARU
+       ---------------------------------------- */
+
+    else {
+
+      result =
+        await supabaseClient
+          .from("po_members")
+          .insert(
+            memberData
+          )
+          .select();
+
+    }
+
+
+    /* ----------------------------------------
+       CEK ERROR
+       ---------------------------------------- */
+
+    if (result.error) {
+
+      console.error(
+        "Gagal menyimpan member:",
+        result.error
+      );
+
+      alert(
+        "Gagal menyimpan data member.\n\n" +
+        result.error.message
+      );
+
+      return;
+
+    }
+
+
+    /* ----------------------------------------
+       BERHASIL
+       ---------------------------------------- */
+
+    alert(
+      member?.id
+        ? "Member berhasil diperbarui."
+        : "Member berhasil ditambahkan."
+    );
+
+
+    const container =
+      document.getElementById(
+        "memberFormContainer"
+      );
+
+
+    if (container) {
+
+      container.style.display =
+        "none";
+
+      container.innerHTML = "";
+
+    }
+
+
+    await renderMemberList();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error saveMember:",
+      error
+    );
+
+    alert(
+      "Terjadi kesalahan saat menyimpan data."
+    );
+
+  }
 
 }
 
