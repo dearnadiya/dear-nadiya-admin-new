@@ -13042,11 +13042,10 @@ container.innerHTML = `
   let rowNumber = 0;
 
 
-  function addPORow(rowData = {}) {
-
-  const orderMode =
-    document.getElementById("poOrderMode")?.value ||
-    "manual";
+  function addPORow(
+  rowData = {},
+  orderMode = "manual"
+) {
     rowNumber++;
 
 
@@ -13360,23 +13359,29 @@ if (poDPMode) {
 /* Terapkan mode saat form pertama kali dibuka */
 updatePOPriceAndDPMode();
   
-   if (
-    existingRows.length > 0
-  ) {
+   const currentOrderMode =
+  document.getElementById("poOrderMode")?.value ||
+  "manual";
 
-    existingRows.forEach(
-      function (row) {
+if (existingRows.length > 0) {
 
-        addPORow(row);
+  existingRows.forEach(function (row) {
 
-      }
+    addPORow(
+      row,
+      currentOrderMode
     );
 
-  } else {
+  });
 
-    addPORow();
+} else {
 
-  }
+  addPORow(
+    {},
+    currentOrderMode
+  );
+
+}
 
 
   document
