@@ -13117,22 +13117,42 @@ container.innerHTML = `
     class="po-field-group"
   >
 
-    <label>
-      Qty
-    </label>
+ <div
+  class="po-field-group"
+>
+  <label>
+    Customer
+  </label>
 
-    <input
-      type="number"
-      class="po-row-quantity"
-      min="1"
-      value="${
-        rowData.quantity ||
-        1
-      }"
-    >
+  <input
+    type="text"
+    class="po-row-customer"
+    placeholder="Nama customer (opsional)"
+    value="${escapeHTML(
+      rowData.customer ||
+      ""
+    )}"
+  >
+</div>
 
-  </div>
 
+<div
+  class="po-field-group"
+>
+  <label>
+    Qty
+  </label>
+
+  <input
+    type="number"
+    class="po-row-quantity"
+    min="1"
+    value="${
+      rowData.quantity ||
+      1
+    }"
+  >
+</div>
 
   <div
     class="po-field-group po-row-price-group"
