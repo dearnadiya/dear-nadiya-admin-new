@@ -542,6 +542,14 @@ function showPage(
 
   }
 
+   if (
+  page ===
+  "members"
+) {
+  loadMembers();
+  return;
+}
+
 
   if (
     page ===
