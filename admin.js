@@ -7349,6 +7349,75 @@ function showRecapCategories(recapType) {
 
 }
 
+/* ==========================================
+   FORM TAMBAH MEMBER / VERSI KE BATCH
+   ========================================== */
+
+function showAddRecapMemberForm(batchCode) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="panel recap-form">
+
+      <h3>
+        ➕ Tambah Member / Versi
+      </h3>
+
+      <p>
+        Tambahkan customer atau member baru
+        ke batch:
+        <strong>
+          ${escapeHTML(batchCode)}
+        </strong>
+      </p>
+
+      <button
+        type="button"
+        class="secondary-button"
+        id="cancelAddRecapMemberButton"
+      >
+        ← Batal
+      </button>
+
+    </div>
+
+  `;
+
+  container.style.display =
+    "block";
+
+  const cancelButton =
+    document.getElementById(
+      "cancelAddRecapMemberButton"
+    );
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML = "";
+
+        container.style.display =
+          "none";
+
+      }
+    );
+
+  }
+
+}
+
 /* ============================================
    LOAD KATEGORI REKAP DARI DATABASE
    ============================================ */
