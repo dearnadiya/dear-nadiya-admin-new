@@ -13080,26 +13080,23 @@ container.innerHTML = `
 
 
   <div
-    class="po-field-group"
+  class="po-field-group"
+>
+  <label>
+    Member / Versi
+  </label>
+
+  <select
+    class="po-row-member"
   >
 
-    <label>
-      Member / Versi
-    </label>
+    <option value="">
+      Pilih Member / Versi
+    </option>
 
-    <input
-      type="text"
-      class="po-row-member"
-      placeholder="Contoh: Hyunsuk"
-      value="${escapeHTML(
-        rowData.member ||
-        rowData.version ||
-        ""
-      )}"
-    >
+  </select>
 
-  </div>
-
+</div>
 
   <div
     class="po-field-group"
