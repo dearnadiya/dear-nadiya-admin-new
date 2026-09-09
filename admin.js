@@ -13598,17 +13598,6 @@ if (poForm) {
 
 }
 
-   /* ==========================================
-   SIMPAN DRAFT EDIT OTOMATIS
-========================================== */
-
-if (isEdit) {
-
-  const poForm =
-    document.getElementById(
-      "poForm"
-    );
-
   if (poForm) {
 
     poForm.addEventListener(
