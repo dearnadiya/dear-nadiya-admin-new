@@ -7046,7 +7046,7 @@ function loadRecap() {
           class="active"
           data-recap-type="Treasure"
         >
-          🧸 Rekap Treasure
+          💎 Rekap Treasure
         </button>
 
 
