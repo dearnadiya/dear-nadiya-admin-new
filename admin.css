@@ -7196,3 +7196,549 @@ a {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - MOBILE FINAL
+   BATCH LIST SEPERTI CUSTOMER
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  /* =====================================================
+     1. KATEGORI
+     ===================================================== */
+
+  #recapCategoryContainer {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #recapCategoryContainer
+  .recap-category-buttons {
+
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    padding: 6px 2px 12px !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: none;
+  }
+
+  #recapCategoryContainer
+  .recap-category-buttons::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  /* Kartu kategori */
+  #recapCategoryContainer
+  .recap-category-card {
+
+    flex: 0 0 125px !important;
+
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+
+    min-height: 112px !important;
+
+    padding: 12px 8px !important;
+
+    box-sizing: border-box !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    text-align: center !important;
+
+    border-radius: 18px !important;
+
+    background: #fff !important;
+
+    border: 1px solid #ddd !important;
+
+    white-space: normal !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-icon {
+
+    display: block !important;
+
+    margin: 0 0 8px !important;
+
+    font-size: 28px !important;
+
+    line-height: 1 !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-name {
+
+    width: 100% !important;
+
+    min-height: 38px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 14px !important;
+
+    line-height: 1.25 !important;
+
+    text-align: center !important;
+
+    white-space: normal !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-arrow {
+
+    margin-top: 7px !important;
+
+    font-size: 15px !important;
+
+    line-height: 1 !important;
+  }
+
+
+  /* =====================================================
+     2. SEARCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-search {
+
+    width: 100% !important;
+
+    margin: 10px 0 12px !important;
+
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-search input {
+
+    width: 100% !important;
+
+    height: 42px !important;
+
+    padding: 8px 12px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 12px !important;
+
+    font-size: 12px !important;
+  }
+
+
+  /* =====================================================
+     3. FILTER
+     ===================================================== */
+
+  #recapListContainer
+  .recap-filters {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+
+    margin: 0 0 10px !important;
+
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-filters label {
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    gap: 4px !important;
+
+    margin: 0 !important;
+
+    font-size: 10px !important;
+
+    line-height: 1.2 !important;
+  }
+
+
+  #recapListContainer
+  .recap-filters select {
+
+    width: 100% !important;
+
+    height: 38px !important;
+
+    min-height: 38px !important;
+
+    padding: 6px 8px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 10px !important;
+
+    font-size: 11px !important;
+  }
+
+
+  /* =====================================================
+     4. EXPORT
+     ===================================================== */
+
+  #recapListContainer
+  .recap-actions {
+
+    margin: 0 0 12px !important;
+
+    padding: 0 !important;
+  }
+
+
+  #recapListContainer
+  #exportRecapButton {
+
+    width: 100% !important;
+
+    min-height: 42px !important;
+
+    height: 42px !important;
+
+    padding: 8px 12px !important;
+
+    border-radius: 12px !important;
+
+    font-size: 13px !important;
+  }
+
+
+  /* =====================================================
+     5. HEADER KOLOM BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-table-header {
+
+    display: grid !important;
+
+    grid-template-columns:
+      105px
+      minmax(0, 1fr)
+      36px !important;
+
+    width: 100% !important;
+
+    min-height: 38px !important;
+
+    box-sizing: border-box !important;
+
+    background: #faf7fb !important;
+
+    border: 1px solid rgba(100, 70, 120, 0.12) !important;
+
+    border-radius: 12px 12px 0 0 !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-code,
+
+  #recapListContainer
+  .recap-batch-table-name,
+
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    padding: 7px 9px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 10px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-name {
+
+    border-left:
+      1px solid rgba(100, 70, 120, 0.12) !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    justify-content: center !important;
+
+    border-left:
+      1px solid rgba(100, 70, 120, 0.12) !important;
+  }
+
+
+  /* =====================================================
+     6. BARIS BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card {
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+
+    border-left: 1px solid rgba(100, 70, 120, 0.12) !important;
+
+    border-right: 1px solid rgba(100, 70, 120, 0.12) !important;
+
+    border-bottom: 1px solid rgba(100, 70, 120, 0.12) !important;
+
+    overflow: hidden !important;
+  }
+
+
+  /* =====================================================
+     7. HEADER BATCH
+     KODE + NAMA BARANG SEJAJAR
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      105px
+      minmax(0, 1fr)
+      36px !important;
+
+    align-items: stretch !important;
+
+    gap: 0 !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: #fff !important;
+
+    border: none !important;
+
+    cursor: pointer !important;
+  }
+
+
+  /* Hilangkan wrapper supaya
+     h3 dan p bisa menjadi kolom */
+  #recapListContainer
+  .recap-batch-header > div:first-child {
+
+    display: contents !important;
+  }
+
+
+  /* Kode batch */
+  #recapListContainer
+  .recap-batch-header h3 {
+
+    grid-column: 1 !important;
+
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    min-height: 45px !important;
+
+    margin: 0 !important;
+
+    padding: 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* Nama barang */
+  #recapListContainer
+  .recap-batch-header > div:first-child > p {
+
+    grid-column: 2 !important;
+
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    min-height: 45px !important;
+
+    margin: 0 !important;
+
+    padding: 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 11px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+
+    border-left:
+      1px solid rgba(100, 70, 120, 0.12) !important;
+  }
+
+
+  /* Panah */
+  #recapListContainer
+  .recap-batch-header::after {
+
+    content: "→";
+
+    grid-column: 3 !important;
+
+    grid-row: 1 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    min-height: 45px !important;
+
+    font-size: 16px !important;
+
+    font-weight: 700 !important;
+
+    color: #6b4f75 !important;
+
+    border-left:
+      1px solid rgba(100, 70, 120, 0.12) !important;
+  }
+
+
+  /* Informasi tambahan disembunyikan
+     ketika batch masih collapsed */
+  #recapListContainer
+  .recap-batch-customer-summary,
+
+  #recapListContainer
+  .recap-batch-deadlines,
+
+  #recapListContainer
+  .batch-tracking {
+
+    display: none !important;
+  }
+
+
+  /* =====================================================
+     8. DETAIL TETAP BISA DIBUKA
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table-wrapper {
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: auto !important;
+  }
+
+}
