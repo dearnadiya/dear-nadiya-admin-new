@@ -7131,12 +7131,30 @@ function loadRecap() {
 
 
           button.classList.add(
-            "active"
-          );
+  "active"
+);
 
-
-          selectedRecapType =
+selectedRecapType =
   button.dataset.recapType;
+
+/* =========================
+   SEMBUNYIKAN TYPE REKAP
+   SETELAH DIPILIH
+========================= */
+
+const typeContainer =
+  document.getElementById(
+    "recapTypeButtons"
+  );
+
+if (typeContainer) {
+  typeContainer.style.display =
+    "none";
+}
+
+/* =========================
+   TAMPILKAN KATEGORI
+========================= */
 
 document.getElementById(
   "recapCategoryContainer"
