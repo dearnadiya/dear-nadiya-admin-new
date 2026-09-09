@@ -12022,6 +12022,13 @@ ${
 
   `;
 
+     // Otomatis scroll ke form Edit Rekap
+  setTimeout(function () {
+    container.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }, 50);
 
   document
     .getElementById(
