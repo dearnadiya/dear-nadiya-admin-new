@@ -12432,47 +12432,6 @@ async function loadOrders() {
   await loadPORunningList();
 await loadPOList();
    
-/* ==========================================
-   BUKA KEMBALI FORM EDIT TERAKHIR
-========================================== */
-
-const savedPO =
-  localStorage.getItem(
-    "dearNadiyaEditingPO"
-  );
-
-if (savedPO) {
-
-  try {
-
-    const poData =
-      JSON.parse(savedPO);
-
-    showPOForm(poData);
-
-    // Scroll otomatis ke form edit
-    document
-      .getElementById("poFormContainer")
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-  } catch (error) {
-
-    console.error(
-      "Gagal membuka kembali form edit:",
-      error
-    );
-
-    localStorage.removeItem(
-      "dearNadiyaEditingPO"
-    );
-
-  }
-
-}
-
 }
 
 /* ============================================
