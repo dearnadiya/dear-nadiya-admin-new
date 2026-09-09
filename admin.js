@@ -15768,6 +15768,75 @@ async function renderMemberList() {
 }
 
 /* ============================================
+   AMBIL MASTER MEMBER UNTUK PO
+   ============================================ */
+
+async function loadPOMembers(groupName = "") {
+
+  try {
+
+    let query =
+      supabaseClient
+        .from("po_members")
+        .select(`
+          id,
+          group_name,
+          member_name,
+          sort_order
+        `)
+        .order(
+          "sort_order",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (groupName) {
+
+      query =
+        query.eq(
+          "group_name",
+          groupName
+        );
+
+    }
+
+
+    const result =
+      await query;
+
+
+    if (result.error) {
+
+      console.error(
+        "Gagal mengambil master member PO:",
+        result.error
+      );
+
+      return [];
+
+    }
+
+
+    return result.data || [];
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Error loadPOMembers:",
+      error
+    );
+
+    return [];
+
+  }
+
+}
+
+/* ============================================
    BAGIAN 6
    FINAL INITIALIZATION
    ============================================ */
