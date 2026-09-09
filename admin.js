@@ -7546,9 +7546,41 @@ function showRecapCategories(
                 function(
                   category
                 ) {
+                   
+const categoryName =
+  category.category_name;
 
-                  return `
+let categoryIcon = "📦";
 
+if (categoryName === "Truz") {
+  categoryIcon = "💎";
+}
+
+else if (categoryName === "Treasure KR") {
+  categoryIcon = "🇰🇷";
+}
+
+else if (categoryName === "Treasure JP") {
+  categoryIcon = "🇯🇵";
+}
+
+else if (categoryName === "Treasure CH") {
+  categoryIcon = "🇨🇳";
+}
+
+else if (categoryName === "Treasure Thai") {
+  categoryIcon = "🇹🇭";
+}
+
+else if (categoryName === "Treasure Album") {
+  categoryIcon = "💿";
+}
+
+else if (categoryName === "Treasure INA") {
+  categoryIcon = "🇮🇩";
+}
+
+return `
                     <button
                       type="button"
                       class="recap-category-card"
@@ -7558,10 +7590,10 @@ function showRecapCategories(
                     >
 
                       <div
-                        class="recap-category-icon"
-                      >
-                        📦
-                      </div>
+  class="recap-category-icon"
+>
+  ${categoryIcon}
+</div>
 
 
                       <div
