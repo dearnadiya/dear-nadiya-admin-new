@@ -6047,6 +6047,13 @@ a {
   box-shadow: 0 3px 10px rgba(40, 35, 55, 0.05);
 }
 
+#poRowsContainer .po-item-row .po-row-qty-group {
+  grid-column: 1;
+}
+
+#poRowsContainer .po-item-row .po-row-note-group {
+  grid-column: 2;
+}
 
 /* HEADER FULL WIDTH */
 
