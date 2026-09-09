@@ -12107,156 +12107,151 @@ container.innerHTML = `
 
     row.innerHTML = `
 
-      <div
-        class="po-row-header"
-      >
-
-        <strong>
-          Item ${rowNumber}
-        </strong>
-
-
-        <button
-          type="button"
-          class="remove-po-row"
-        >
-          ✕ Hapus
-        </button>
-
-      </div>
-
-
-      <div
-        class="form-grid"
-      >
-
-        <div
-          class="form-group"
-        >
-
-          <label>
-            Member / Versi
-          </label>
-
-
-          <input
-            type="text"
-            class="po-row-member"
-            placeholder="Contoh: Hyunsuk"
-            value="${escapeHTML(
-              rowData.member ||
-              rowData.version ||
-              ""
-            )}"
-          >
-
-        </div>
-
-
-        <div
-          class="form-group"
-        >
-
-          <label>
-            Customer
-          </label>
-
-
-          <input
-            type="text"
-            class="po-row-customer"
-            placeholder="Nama Customer"
-            value="${escapeHTML(
-              rowData.customer ||
-              ""
-            )}"
-          >
-
-        </div>
-
-
-        <div
-          class="form-group"
-        >
-
-          <label>
-            Qty
-          </label>
-
-
-          <input
-            type="number"
-            class="po-row-quantity"
-            min="1"
-            value="${
-              rowData.quantity ||
-              1
-            }"
-          >
-
-        </div>
-
-
-        <div
-          class="form-group"
-        >
-
-        <div
-  class="form-group po-row-price-group"
->
-  <label>
-    Harga
-  </label>
-
-  <input
-    type="text"
-    class="po-row-price"
-    placeholder="Contoh: Rp150.000"
-    value="${escapeHTML(
-      rowData.price ||
-      ""
-    )}"
+  <div
+    class="po-row-header"
   >
-</div>
 
-<!-- DP PER MEMBER / VERSI -->
-<div
-  class="form-group po-row-dp-group"
->
-  <label>
-    DP
-  </label>
+    <strong>
+      Item ${rowNumber}
+    </strong>
 
-  <input
-    type="text"
-    class="po-row-dp"
-    placeholder="Contoh: Rp50.000"
-    value="${escapeHTML(
-      rowData.dp ||
-      ""
-    )}"
+    <button
+      type="button"
+      class="remove-po-row"
+    >
+      ✕ Hapus
+    </button>
+
+  </div>
+
+
+  <div
+    class="po-field-group"
   >
-</div>
-          <label>
-            Catatan
-          </label>
+
+    <label>
+      Member / Versi
+    </label>
+
+    <input
+      type="text"
+      class="po-row-member"
+      placeholder="Contoh: Hyunsuk"
+      value="${escapeHTML(
+        rowData.member ||
+        rowData.version ||
+        ""
+      )}"
+    >
+
+  </div>
 
 
-          <input
-            type="text"
-            class="po-row-note"
-            placeholder="Opsional"
-            value="${escapeHTML(
-              rowData.note ||
-              ""
-            )}"
-          >
+  <div
+    class="po-field-group"
+  >
 
-        </div>
+    <label>
+      Customer
+    </label>
 
-      </div>
+    <input
+      type="text"
+      class="po-row-customer"
+      placeholder="Nama Customer"
+      value="${escapeHTML(
+        rowData.customer ||
+        ""
+      )}"
+    >
 
-    `;
+  </div>
+
+
+  <div
+    class="po-field-group"
+  >
+
+    <label>
+      Qty
+    </label>
+
+    <input
+      type="number"
+      class="po-row-quantity"
+      min="1"
+      value="${
+        rowData.quantity ||
+        1
+      }"
+    >
+
+  </div>
+
+
+  <div
+    class="po-field-group po-row-price-group"
+  >
+
+    <label>
+      Harga
+    </label>
+
+    <input
+      type="text"
+      class="po-row-price"
+      placeholder="Contoh: Rp150.000"
+      value="${escapeHTML(
+        rowData.price ||
+        ""
+      )}"
+    >
+
+  </div>
+
+
+  <div
+    class="po-field-group po-row-dp-group"
+  >
+
+    <label>
+      DP
+    </label>
+
+    <input
+      type="text"
+      class="po-row-dp"
+      placeholder="Contoh: Rp50.000"
+      value="${escapeHTML(
+        rowData.dp ||
+        ""
+      )}"
+    >
+
+  </div>
+
+
+  <div
+    class="po-field-group po-row-note-group"
+  >
+
+    <label>
+      Catatan
+    </label>
+
+    <input
+      type="text"
+      class="po-row-note"
+      placeholder="Opsional"
+      value="${escapeHTML(
+        rowData.note ||
+        ""
+      )}"
+    >
+
+  </div>
+
+`;
 
 
     rowsContainer.appendChild(
