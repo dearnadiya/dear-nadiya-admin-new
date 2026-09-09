@@ -8785,6 +8785,36 @@ async function loadRecapList(
   container.innerHTML =
     html;
 
+             /* ==========================================
+   TAMBAH MEMBER / VERSI KE BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".add-recap-member-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        function(event) {
+
+          event.stopPropagation();
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          showAddRecapMemberForm(
+            batchCode
+          );
+
+        }
+      );
+
+    }
+  );
+
    /* ==========================================
    COLLAPSE / EXPAND BATCH
    ========================================== */
