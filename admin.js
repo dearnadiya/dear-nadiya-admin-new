@@ -8347,10 +8347,22 @@ async function loadRecapList(
       )}
     </p>
 
-    <p>
-  ${rows.length}
-  customer
-</p>
+    <div class="recap-batch-customer-summary">
+
+  <span>
+    ${rows.length}
+    customer
+  </span>
+
+  <button
+    type="button"
+    class="add-recap-member-button"
+    data-batch-code="${escapeHTML(batchCode)}"
+  >
+    ＋ Tambah Member / Versi
+  </button>
+
+</div>
 
 <div class="recap-batch-deadlines">
 
