@@ -15103,6 +15103,253 @@ async function loadMembers() {
 }
 
 /* ============================================
+   FORM TAMBAH / EDIT MEMBER
+   ============================================ */
+
+function showMemberForm(member = null) {
+
+  const container =
+    document.getElementById(
+      "memberFormContainer"
+    );
+
+  if (!container) return;
+
+
+  const isEdit = !!member;
+
+
+  container.style.display = "block";
+
+
+  container.innerHTML = `
+    <div class="panel" style="margin-bottom:20px;">
+
+      <div class="panel-header">
+
+        <div>
+          <h3>
+            ${isEdit
+              ? "✏️ Edit Member / Versi"
+              : "➕ Tambah Member / Versi"}
+          </h3>
+
+          <p>
+            ${
+              isEdit
+                ? "Perbarui data member / versi."
+                : "Tambahkan member / versi baru ke master data."
+            }
+          </p>
+        </div>
+
+      </div>
+
+
+      <div
+        class="form-grid"
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap:16px;
+        "
+      >
+
+        <!-- GROUP -->
+        <div class="form-group">
+
+          <label>
+            Group
+          </label>
+
+          <input
+            type="text"
+            id="memberGroupName"
+            placeholder="Contoh: Treasure"
+            value="${
+              isEdit
+                ? escapeHTML(
+                    member.group_name || ""
+                  )
+                : ""
+            }"
+          />
+
+        </div>
+
+
+        <!-- MEMBER -->
+        <div class="form-group">
+
+          <label>
+            Member / Versi
+          </label>
+
+          <input
+            type="text"
+            id="memberName"
+            placeholder="Contoh: Hyunsuk"
+            value="${
+              isEdit
+                ? escapeHTML(
+                    member.member_name || ""
+                  )
+                : ""
+            }"
+          />
+
+        </div>
+
+
+        <!-- SORT ORDER -->
+        <div class="form-group">
+
+          <label>
+            Urutan
+          </label>
+
+          <input
+            type="number"
+            id="memberSortOrder"
+            min="0"
+            value="${
+              isEdit
+                ? Number(
+                    member.sort_order || 0
+                  )
+                : 0
+            }"
+          />
+
+        </div>
+
+
+        <!-- STATUS -->
+        <div class="form-group">
+
+          <label>
+            Status
+          </label>
+
+          <select id="memberIsActive">
+
+            <option
+              value="true"
+              ${
+                !isEdit ||
+                member.is_active !== false
+                  ? "selected"
+                  : ""
+              }
+            >
+              🟢 Aktif
+            </option>
+
+            <option
+              value="false"
+              ${
+                isEdit &&
+                member.is_active === false
+                  ? "selected"
+                  : ""
+              }
+            >
+              ⚪ Nonaktif
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          gap:10px;
+          margin-top:20px;
+        "
+      >
+
+        <button
+          type="button"
+          class="primary-button"
+          id="saveMemberButton"
+        >
+          💾 Simpan
+        </button>
+
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelMemberButton"
+        >
+          Batal
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+
+  const saveButton =
+    document.getElementById(
+      "saveMemberButton"
+    );
+
+  const cancelButton =
+    document.getElementById(
+      "cancelMemberButton"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.addEventListener(
+      "click",
+      function () {
+
+        saveMember(
+          member
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function () {
+
+        container.style.display = "none";
+        container.innerHTML = "";
+
+      }
+    );
+
+  }
+
+
+  setTimeout(function () {
+
+    container.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+  }, 50);
+
+}
+
+/* ============================================
    BAGIAN 6
    FINAL INITIALIZATION
    ============================================ */
