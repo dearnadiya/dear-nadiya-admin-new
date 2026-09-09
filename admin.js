@@ -7350,10 +7350,12 @@ function showRecapCategories(recapType) {
 }
 
 /* ==========================================
-   FORM TAMBAH MEMBER / VERSI KE BATCH
+   TAMBAH MEMBER / VERSI KE BATCH EXISTING
    ========================================== */
 
-function showAddRecapMemberForm(batchCode) {
+async function showAddRecapMemberForm(
+  batchCode
+) {
 
   const container =
     document.getElementById(
@@ -7364,6 +7366,147 @@ function showAddRecapMemberForm(batchCode) {
     return;
   }
 
+
+  container.innerHTML = `
+    <div class="panel">
+      <p>Memuat data batch...</p>
+    </div>
+  `;
+
+  container.style.display =
+    "block";
+
+
+  /* ==========================================
+     AMBIL DATA BATCH
+     ========================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq(
+        "batch_code",
+        batchCode
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD BATCH:",
+      error
+    );
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Gagal memuat batch
+        </h3>
+
+        <p>
+          ${escapeHTML(
+            error.message
+          )}
+        </p>
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelAddRecapMemberButton"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="panel">
+
+        <h3>
+          Batch tidak ditemukan
+        </h3>
+
+        <p>
+          Batch
+          <strong>
+            ${escapeHTML(batchCode)}
+          </strong>
+          tidak ditemukan.
+        </p>
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelAddRecapMemberButton"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  /* ==========================================
+     DATA DASAR BATCH
+     ========================================== */
+
+  const batch =
+    data[0];
+
+
+  const recapType =
+    batch.recap_type ||
+    "Treasure";
+
+
+  const category =
+    batch.category ||
+    "";
+
+
+  const itemName =
+    batch.item_name ||
+    "";
+
+
+  const batchTracking =
+    batch.batch_tracking_status ||
+    batch.tracking_status ||
+    "";
+
+
+  /* ==========================================
+     FORM TAMBAH MEMBER
+     ========================================== */
+
   container.innerHTML = `
 
     <div class="panel recap-form">
@@ -7373,48 +7516,377 @@ function showAddRecapMemberForm(batchCode) {
       </h3>
 
       <p>
-        Tambahkan customer atau member baru
-        ke batch:
+        Tambahkan customer baru ke batch:
         <strong>
           ${escapeHTML(batchCode)}
         </strong>
       </p>
 
+
+      <!-- DATA BATCH -->
+
+      <div class="form-grid">
+
+        <div class="form-group">
+
+          <label>
+            Kategori
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(category)}"
+            disabled
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Nama Barang
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(itemName)}"
+            disabled
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Kode Batch
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(batchCode)}"
+            disabled
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Recap Type
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(recapType)}"
+            disabled
+          >
+
+        </div>
+
+      </div>
+
+
+      <hr>
+
+
+      <!-- CUSTOMER BARU -->
+
+      <div
+        id="addRecapMemberItemsContainer"
+      ></div>
+
+
       <button
         type="button"
-        class="secondary-button"
-        id="cancelAddRecapMemberButton"
+        class="primary-button"
+        id="addRecapMemberItemButton"
       >
-        ← Batal
+        ＋ Tambah Customer
       </button>
+
+
+      <div
+        class="form-actions"
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelAddRecapMemberButton"
+        >
+          ← Batal
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="saveAddRecapMemberButton"
+        >
+          💾 Simpan Member / Versi
+        </button>
+
+      </div>
+
+
+      <div
+        id="addRecapMemberMessage"
+      ></div>
 
     </div>
 
   `;
 
-  container.style.display =
-    "block";
 
-  const cancelButton =
+  /* ==========================================
+     TAMBAH CARD CUSTOMER
+     ========================================== */
+
+  const itemsContainer =
     document.getElementById(
-      "cancelAddRecapMemberButton"
+      "addRecapMemberItemsContainer"
     );
 
-  if (cancelButton) {
 
-    cancelButton.addEventListener(
+  let memberNumber = 0;
+
+
+  function addMemberCard() {
+
+    memberNumber++;
+
+
+    const item =
+      document.createElement(
+        "div"
+      );
+
+
+    item.className =
+      "batch-item";
+
+
+    item.innerHTML = `
+
+      <div class="batch-item-header">
+
+        <strong>
+          Member / Customer ${memberNumber}
+        </strong>
+
+        <button
+          type="button"
+          class="delete-button remove-add-member-item"
+        >
+          🗑️ Hapus
+        </button>
+
+      </div>
+
+
+      <label>
+        Customer
+      </label>
+
+      <input
+        type="text"
+        class="batch-customer"
+        placeholder="Nama customer"
+      >
+
+
+      <label>
+        Versi / Member
+      </label>
+
+      <input
+        type="text"
+        class="batch-version"
+        placeholder="Contoh: Hyunsuk"
+      >
+
+
+      <label>
+        Quantity
+      </label>
+
+      <input
+        type="number"
+        class="batch-quantity"
+        min="1"
+        value="1"
+      >
+
+
+      <div class="different-price-fields">
+
+        <label>
+          Harga Barang
+        </label>
+
+        <input
+          type="number"
+          class="batch-price"
+          min="0"
+          value="${Number(
+            batch.item_price || 0
+          )}"
+        >
+
+
+        <label>
+          DP
+        </label>
+
+        <input
+          type="number"
+          class="batch-dp"
+          min="0"
+          value="${Number(
+            batch.minimum_dp_amount ||
+            batch.dp_amount ||
+            0
+          )}"
+        >
+
+      </div>
+
+
+      <div class="batch-payment-fields">
+
+        <label>
+          Status DP
+        </label>
+
+        <select
+          class="batch-dp-status"
+        >
+
+          <option value="unpaid">
+            Belum Dibayar
+          </option>
+
+          <option value="paid">
+            Sudah Dibayar
+          </option>
+
+        </select>
+
+
+        <label>
+          Sisa Pembayaran
+        </label>
+
+        <input
+          type="number"
+          class="batch-remaining"
+          min="0"
+          value="${Math.max(
+            0,
+            Number(
+              batch.item_price || 0
+            ) -
+            Number(
+              batch.dp_amount || 0
+            )
+          )}"
+        >
+
+
+        <label>
+          Status Pembayaran
+        </label>
+
+        <select
+          class="batch-payment-status"
+        >
+
+          <option value="unpaid">
+            Belum Lunas
+          </option>
+
+          <option value="paid">
+            Lunas
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <label>
+        Catatan
+      </label>
+
+      <textarea
+        class="batch-note"
+        rows="2"
+        placeholder="Catatan..."
+      ></textarea>
+
+    `;
+
+
+    itemsContainer.appendChild(
+      item
+    );
+
+
+    item
+      .querySelector(
+        ".remove-add-member-item"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          item.remove();
+
+        }
+      );
+
+  }
+
+
+  /* CUSTOMER PERTAMA */
+
+  addMemberCard();
+
+
+  /* TAMBAH CUSTOMER */
+
+  document
+    .getElementById(
+      "addRecapMemberItemButton"
+    )
+    .addEventListener(
+      "click",
+      addMemberCard
+    );
+
+
+  /* ==========================================
+     BATAL
+     ========================================== */
+
+  document
+    .getElementById(
+      "cancelAddRecapMemberButton"
+    )
+    .addEventListener(
       "click",
       function() {
 
-        container.innerHTML = "";
+        container.innerHTML =
+          "";
 
         container.style.display =
           "none";
 
       }
     );
-
-  }
 
 }
 
