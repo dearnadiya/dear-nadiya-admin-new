@@ -14852,10 +14852,14 @@ const { data, error } = await supabaseClient
     }
 
     <th>
-      <span class="po-table-icon">📝</span>
-      Catatan
-    </th>
+  <span class="po-table-icon">📝</span>
+  Catatan
+</th>
 
+<th>
+  <span class="po-table-icon">📌</span>
+  Status
+</th>
   </tr>
 </thead>
 
@@ -14932,6 +14936,31 @@ ${
               "—"
             )}
           </td>
+
+          <!-- STATUS -->
+<td>
+  ${
+    item.customer &&
+    String(item.customer).trim()
+      ? `
+        <span class="po-status-claimed">
+          🔵 Sudah di-claim
+        </span>
+      `
+      : item.member &&
+        String(item.member).trim()
+        ? `
+          <span class="po-status-available">
+            🟢 Tersedia
+          </span>
+        `
+        : `
+          <span class="po-status-empty">
+            ⚪ Belum dikonfigurasi
+          </span>
+        `
+  }
+</td>
 
         </tr>
       `;
