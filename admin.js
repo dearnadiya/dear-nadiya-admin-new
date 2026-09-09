@@ -13080,7 +13080,7 @@ container.innerHTML = `
 
 
   <div
-  class="po-field-group"
+  class="po-field-group po-row-member-group"
 >
   <label>
     Member / Versi
@@ -13113,14 +13113,10 @@ container.innerHTML = `
 
 </div>
 
-  <div
-    class="po-field-group"
-  >
-
- <div
-  class="po-field-group"
->
-  <label>
+<div
+  class="po-field-group po-row-customer-group"
+>  
+<label>
     Customer
   </label>
 
