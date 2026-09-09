@@ -8147,3 +8147,203 @@ a {
   }
 
 }
+
+/* =========================================================
+   FIX KATEGORI REKAP GO
+   2 KARTU DALAM 1 BARIS
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #recapCategoryContainer
+  .recap-category-buttons {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    grid-auto-flow: row !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    margin: 0 !important;
+
+    padding: 6px 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-card {
+
+    display: flex !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+
+    height: 82px !important;
+
+    min-height: 82px !important;
+
+    max-height: 82px !important;
+
+    padding: 6px !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    flex: none !important;
+
+    border-radius: 13px !important;
+
+    overflow: hidden !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-icon {
+
+    font-size: 21px !important;
+
+    line-height: 1 !important;
+
+    margin: 0 0 4px !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-name {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    min-height: 25px !important;
+
+    font-size: 11px !important;
+
+    line-height: 1.15 !important;
+
+    text-align: center !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    overflow: hidden !important;
+
+    white-space: normal !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-arrow {
+
+    margin-top: 3px !important;
+
+    font-size: 12px !important;
+
+    line-height: 1 !important;
+  }
+
+}
+
+/* =========================================================
+   FIX DROPDOWN STATUS REKAP
+   TEKS HARUS TAMPIL UTUH
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #recapListContainer
+  .product-table
+  select.recap-status-select {
+
+    box-sizing: border-box !important;
+
+    height: 38px !important;
+
+    min-height: 38px !important;
+
+    padding-top: 5px !important;
+
+    padding-bottom: 5px !important;
+
+    padding-left: 8px !important;
+
+    padding-right: 30px !important;
+
+    font-size: 10px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+
+    text-overflow: clip !important;
+  }
+
+
+  /* =========================
+     STATUS DP
+     ========================= */
+
+  #recapListContainer
+  .product-table
+  .recap-dp-status {
+
+    width: 170px !important;
+
+    min-width: 170px !important;
+
+    max-width: 170px !important;
+  }
+
+
+  /* =========================
+     STATUS PEMBAYARAN
+     ========================= */
+
+  #recapListContainer
+  .product-table
+  .recap-payment-status {
+
+    width: 165px !important;
+
+    min-width: 165px !important;
+
+    max-width: 165px !important;
+  }
+
+
+  /* =========================
+     STATUS CUSTOMER / CO
+     ========================= */
+
+  #recapListContainer
+  .product-table
+  .recap-customer-status {
+
+    width: 220px !important;
+
+    min-width: 220px !important;
+
+    max-width: 220px !important;
+  }
+
+}
