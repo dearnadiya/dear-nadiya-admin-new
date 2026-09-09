@@ -7890,6 +7890,360 @@ async function showAddRecapMemberForm(
 
 }
 
+  /* ==========================================
+     SIMPAN MEMBER / VERSI KE BATCH EXISTING
+     ========================================== */
+
+  document
+    .getElementById(
+      "saveAddRecapMemberButton"
+    )
+    .addEventListener(
+      "click",
+      async function() {
+
+        const saveButton =
+          document.getElementById(
+            "saveAddRecapMemberButton"
+          );
+
+        const message =
+          document.getElementById(
+            "addRecapMemberMessage"
+          );
+
+
+        /* ======================================
+           VALIDASI
+           ====================================== */
+
+        if (saveButton) {
+
+          saveButton.disabled =
+            true;
+
+          saveButton.textContent =
+            "Menyimpan...";
+
+        }
+
+        if (message) {
+
+          message.textContent =
+            "Menyimpan member / versi...";
+
+        }
+
+
+        /* ======================================
+           AMBIL SEMUA MEMBER BARU
+           ====================================== */
+
+        const memberElements =
+          document.querySelectorAll(
+            "#addRecapMemberItemsContainer .batch-item"
+          );
+
+
+        if (
+          memberElements.length === 0
+        ) {
+
+          if (message) {
+
+            message.textContent =
+              "Minimal harus ada 1 customer.";
+
+          }
+
+          if (saveButton) {
+
+            saveButton.disabled =
+              false;
+
+            saveButton.textContent =
+              "💾 Simpan Member / Versi";
+
+          }
+
+          return;
+
+        }
+
+
+        const records = [];
+
+
+        /* ======================================
+           BENTUK DATA MEMBER BARU
+           ====================================== */
+
+        memberElements.forEach(
+          function(item) {
+
+            const customer =
+              item
+                .querySelector(
+                  ".batch-customer"
+                )
+                .value
+                .trim();
+
+
+            const version =
+              item
+                .querySelector(
+                  ".batch-version"
+                )
+                .value
+                .trim();
+
+
+            const quantity =
+              Number(
+                item
+                  .querySelector(
+                    ".batch-quantity"
+                  )
+                  .value
+              ) || 1;
+
+
+            const price =
+              Number(
+                item
+                  .querySelector(
+                    ".batch-price"
+                  )
+                  .value
+              ) || 0;
+
+
+            const dp =
+              Number(
+                item
+                  .querySelector(
+                    ".batch-dp"
+                  )
+                  .value
+              ) || 0;
+
+
+            const dpStatus =
+              item
+                .querySelector(
+                  ".batch-dp-status"
+                )
+                .value;
+
+
+            const remaining =
+              Math.max(
+                0,
+                price - dp
+              );
+
+
+            const paymentStatus =
+              item
+                .querySelector(
+                  ".batch-payment-status"
+                )
+                .value;
+
+
+            const note =
+              item
+                .querySelector(
+                  ".batch-note"
+                )
+                .value
+                .trim();
+
+
+            records.push({
+
+              recap_type:
+                recapType,
+
+              category:
+                category,
+
+              batch_code:
+                batchCode,
+
+              item_name:
+                itemName,
+
+              customer_name:
+                customer,
+
+              version:
+                version,
+
+              quantity:
+                quantity,
+
+              item_price:
+                price,
+
+              dp_amount:
+                dp,
+
+              dp_status:
+                dpStatus,
+
+              remaining_amount:
+                remaining,
+
+              payment_status:
+                paymentStatus,
+
+              tracking_status:
+                batchTracking,
+
+              batch_tracking_status:
+                batchTracking,
+
+              customer_status:
+                "Belum Checkout Shopee",
+
+              note:
+                note,
+
+              dp_deadline:
+                batch.dp_deadline ||
+                null,
+
+              co_deadline:
+                null
+
+            });
+
+          }
+        );
+
+
+        /* ======================================
+           CEK DATA KOSONG
+           ====================================== */
+
+        const incomplete =
+          records.find(
+            function(record) {
+
+              return (
+                !record.customer_name ||
+                !record.version
+              );
+
+            }
+          );
+
+
+        if (incomplete) {
+
+          if (message) {
+
+            message.textContent =
+              "Customer dan Versi / Member wajib diisi.";
+
+          }
+
+          if (saveButton) {
+
+            saveButton.disabled =
+              false;
+
+            saveButton.textContent =
+              "💾 Simpan Member / Versi";
+
+          }
+
+          return;
+
+        }
+
+
+        /* ======================================
+           SIMPAN KE BATCH YANG SAMA
+           ====================================== */
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .insert(
+              records
+            );
+
+
+        if (error) {
+
+          console.error(
+            "ERROR SAVE ADD MEMBER:",
+            error
+          );
+
+
+          if (message) {
+
+            message.textContent =
+              "Gagal menyimpan member: " +
+              error.message;
+
+          }
+
+
+          if (saveButton) {
+
+            saveButton.disabled =
+              false;
+
+            saveButton.textContent =
+              "💾 Simpan Member / Versi";
+
+          }
+
+          return;
+
+        }
+
+
+        /* ======================================
+           BERHASIL
+           ====================================== */
+
+        if (message) {
+
+          message.textContent =
+            "Member / Versi berhasil ditambahkan. ♥";
+
+        }
+
+
+        alert(
+          "Member / Versi berhasil ditambahkan ke batch."
+        );
+
+
+        container.innerHTML =
+          "";
+
+        container.style.display =
+          "none";
+
+
+        await loadRecapList(
+          category
+        );
+
+      }
+    );
+
 /* ============================================
    LOAD KATEGORI REKAP DARI DATABASE
    ============================================ */
