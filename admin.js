@@ -12684,6 +12684,49 @@ container.innerHTML = `
 
           </div>
 
+<!-- JENIS PESANAN -->
+<div
+  class="form-group"
+  style="grid-column:1 / -1;"
+>
+  <label>
+    Jenis Pesanan
+  </label>
+
+  <select id="poOrderMode">
+    <option
+      value="manual"
+      ${
+        po.order_mode !== "claim"
+          ? "selected"
+          : ""
+      }
+    >
+      📝 PO Manual
+    </option>
+
+    <option
+      value="claim"
+      ${
+        po.order_mode === "claim"
+          ? "selected"
+          : ""
+      }
+    >
+      🎟️ PO Claim Member
+    </option>
+  </select>
+
+  <small>
+    <strong>PO Manual:</strong>
+    Customer diisi oleh Admin secara manual.
+    <br>
+
+    <strong>PO Claim Member:</strong>
+    Member dapat dibuat tanpa customer terlebih dahulu
+    dan nantinya dapat di-claim.
+  </small>
+</div>
 
           <!-- TIPE HARGA -->
 <div
@@ -13568,6 +13611,13 @@ async function savePO(
       )
       .value;
 
+   const orderMode =
+  document
+    .getElementById(
+      "poOrderMode"
+    )
+    ?.value || "manual";
+
 
   const priceText =
     document
@@ -13915,6 +13965,9 @@ const dpMode =
 
   po_type:
     poType,
+
+     order_mode:
+  orderMode,
 
   price_mode:
     priceMode,
