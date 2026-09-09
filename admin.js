@@ -13086,38 +13086,32 @@ container.innerHTML = `
     Member / Versi
   </label>
 
-  <select
-    class="po-row-member"
-  >
-
-    <option value="">
-      Pilih Member / Versi
-    </option>
-
-  </select>
+  ${
+    orderMode === "claim"
+      ? `
+        <select
+          class="po-row-member"
+        >
+          <option value="">
+            Pilih Member / Versi
+          </option>
+        </select>
+      `
+      : `
+        <input
+          type="text"
+          class="po-row-member"
+          placeholder="Contoh: Hyunsuk"
+          value="${escapeHTML(
+            rowData.member ||
+            rowData.version ||
+            ""
+          )}"
+        >
+      `
+  }
 
 </div>
-
-  <div
-    class="po-field-group"
-  >
-
-    <label>
-      Customer
-    </label>
-
-    <input
-      type="text"
-      class="po-row-customer"
-      placeholder="Nama Customer"
-      value="${escapeHTML(
-        rowData.customer ||
-        ""
-      )}"
-    >
-
-  </div>
-
 
   <div
     class="po-field-group"
