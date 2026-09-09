@@ -13196,6 +13196,18 @@ container.innerHTML = `
 
   </div>
 
+  <div class="po-row-status">
+  ${
+    rowData.customer &&
+    String(rowData.customer).trim()
+      ? "🔵 Sudah Di-claim"
+      : rowData.member &&
+        String(rowData.member).trim()
+        ? "🟢 Tersedia"
+        : "⚪ Belum dikonfigurasi"
+  }
+</div>
+
 `;
 
 
