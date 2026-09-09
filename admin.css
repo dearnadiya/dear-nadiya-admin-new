@@ -6122,6 +6122,30 @@ a {
   font-size: 11px !important;
 }
 
+/* ==========================================
+   SUSUNAN FIELD BARIS PO
+========================================== */
+
+#poRowsContainer .po-item-row .po-row-qty-group {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+#poRowsContainer .po-item-row .po-row-note-group {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+#poRowsContainer .po-item-row .po-row-price-group {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+#poRowsContainer .po-item-row .po-row-dp-group {
+  grid-column: 2;
+  grid-row: 3;
+}
+
 
 /* ==========================================
    MOBILE
