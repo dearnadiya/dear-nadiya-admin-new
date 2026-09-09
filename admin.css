@@ -6047,14 +6047,56 @@ a {
   box-shadow: 0 3px 10px rgba(40, 35, 55, 0.05);
 }
 
+/* ==========================================
+   LAYOUT FIELD PO
+========================================== */
+
+#poRowsContainer .po-item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+/* Header Item */
+#poRowsContainer .po-item-row .po-row-header {
+  grid-column: 1 / -1;
+}
+
+/* Member */
+#poRowsContainer .po-item-row .po-row-member-group {
+  grid-column: 1;
+}
+
+/* Customer */
+#poRowsContainer .po-item-row .po-row-customer-group {
+  grid-column: 2;
+}
+
+/* Qty */
 #poRowsContainer .po-item-row .po-row-qty-group {
   grid-column: 1;
 }
 
+/* Catatan */
 #poRowsContainer .po-item-row .po-row-note-group {
   grid-column: 2;
 }
 
+/* Harga */
+#poRowsContainer .po-item-row .po-row-price-group {
+  grid-column: 1;
+}
+
+/* DP */
+#poRowsContainer .po-item-row .po-row-dp-group {
+  grid-column: 2;
+}
+
+/* Status */
+#poRowsContainer .po-item-row .po-row-status {
+  grid-column: 1 / -1;
+}
 /* HEADER FULL WIDTH */
 
 #poRowsContainer .po-row-header {
