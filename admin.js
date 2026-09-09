@@ -455,6 +455,8 @@ menuButtons.forEach(
       "click",
       function () {
 
+         saveCurrentPODraft();
+
         const page =
           button.dataset.page;
 
@@ -12439,6 +12441,28 @@ async function loadOrders() {
 
   await loadPORunningList();
 await loadPOList();
+
+   /* ==========================================
+   RESTORE DRAFT PO SAAT KEMBALI KE PESANAN
+========================================== */
+
+if (
+  window.dearNadiyaPODraft
+) {
+
+  const draft =
+    window.dearNadiyaPODraft;
+
+  showPOForm(
+    draft.existingPO
+      ? {
+          ...draft.existingPO,
+          ...draft
+        }
+      : draft
+  );
+
+}
    
 }
 
@@ -13547,6 +13571,33 @@ if (existingRows.length > 0) {
       }
     );
 
+   const poForm =
+  document.getElementById(
+    "poForm"
+  );
+
+if (poForm) {
+
+  poForm.addEventListener(
+    "input",
+    function () {
+
+      saveCurrentPODraft();
+
+    }
+  );
+
+  poForm.addEventListener(
+    "change",
+    function () {
+
+      saveCurrentPODraft();
+
+    }
+  );
+
+}
+
    /* ==========================================
    SIMPAN DRAFT EDIT OTOMATIS
 ========================================== */
@@ -13674,14 +13725,6 @@ if (isEdit) {
 
         };
 
-
-        localStorage.setItem(
-          "dearNadiyaEditingPO",
-          JSON.stringify(
-            draftPO
-          )
-        );
-
       }
     );
 
@@ -13689,6 +13732,151 @@ if (isEdit) {
 
 }
    
+}
+
+/* ==========================================
+   SIMPAN DRAFT PO DI MEMORI
+   Hanya bertahan selama halaman belum di-refresh
+========================================== */
+
+function saveCurrentPODraft() {
+
+  const form =
+    document.getElementById("poForm");
+
+  if (!form) {
+    return;
+  }
+
+  const rows = [];
+
+  document
+    .querySelectorAll(
+      "#poRowsContainer .po-item-row"
+    )
+    .forEach(function (row) {
+
+      rows.push({
+
+        member:
+          row
+            .querySelector(
+              ".po-row-member"
+            )
+            ?.value
+            ?.trim() || "",
+
+        customer:
+          row
+            .querySelector(
+              ".po-row-customer"
+            )
+            ?.value
+            ?.trim() || "",
+
+        quantity:
+          Number(
+            row
+              .querySelector(
+                ".po-row-quantity"
+              )
+              ?.value
+          ) || 1,
+
+        price:
+          row
+            .querySelector(
+              ".po-row-price"
+            )
+            ?.value
+            ?.trim() || "",
+
+        dp:
+          row
+            .querySelector(
+              ".po-row-dp"
+            )
+            ?.value
+            ?.trim() || "",
+
+        note:
+          row
+            .querySelector(
+              ".po-row-note"
+            )
+            ?.value
+            ?.trim() || ""
+
+      });
+
+    });
+
+
+  window.dearNadiyaPODraft = {
+
+    existingPO:
+      window.dearNadiyaPODraft?.existingPO ||
+      null,
+
+    title:
+      document
+        .getElementById("poTitle")
+        ?.value
+        ?.trim() || "",
+
+    order_mode:
+      document
+        .getElementById("poOrderMode")
+        ?.value || "manual",
+
+    po_type:
+      document
+        .getElementById("poType")
+        ?.value || "general",
+
+    price_mode:
+      document
+        .getElementById("poPriceMode")
+        ?.value || "same",
+
+    dp_mode:
+      document
+        .getElementById("poDPMode")
+        ?.value || "same",
+
+    price_text:
+      document
+        .getElementById("poPrice")
+        ?.value
+        ?.trim() || "",
+
+    dp_text:
+      document
+        .getElementById("poDP")
+        ?.value
+        ?.trim() || "",
+
+    close_date:
+      document
+        .getElementById("poCloseDate")
+        ?.value || "",
+
+    last_dp_date:
+      document
+        .getElementById("poLastDPDate")
+        ?.value || "",
+
+    description:
+      document
+        .getElementById("poDescription")
+        ?.value
+        ?.trim() || "",
+
+    list_data:
+      rows
+
+  };
+
 }
 
 
@@ -14205,10 +14393,9 @@ const dpMode =
     : "PO berhasil dibuat. ♥"
 );
 
-localStorage.removeItem(
-  "dearNadiyaEditingPO"
-);
-
+window.dearNadiyaPODraft =
+  null;
+   
 const poFormContainer =
   document.getElementById(
     "poFormContainer"
@@ -15041,9 +15228,13 @@ container
             return;
           }
 
-          localStorage.setItem(
-  "dearNadiyaEditingPO",
-  JSON.stringify(selectedPO)
+          window.dearNadiyaPODraft = {
+  existingPO: selectedPO,
+  ...selectedPO
+};
+
+showPOForm(
+  selectedPO
 );
 
 showPOForm(
