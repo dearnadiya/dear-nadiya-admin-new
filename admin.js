@@ -13200,15 +13200,98 @@ container.innerHTML = `
 
 
     rowsContainer.appendChild(
-      row
+  row
+);
+
+
+/* ==========================================
+   LOAD MASTER MEMBER UNTUK PO CLAIM
+========================================== */
+
+if (orderMode === "claim") {
+
+  const memberSelect =
+    row.querySelector(
+      ".po-row-member"
     );
 
+  if (memberSelect) {
 
-    row
-      .querySelector(
-        ".remove-po-row"
-      )
-      .addEventListener(
+    loadPOMembers()
+      .then(function (members) {
+
+        members.forEach(
+          function (member) {
+
+            const option =
+              document.createElement(
+                "option"
+              );
+
+            option.value =
+              member.member_name;
+
+            option.textContent =
+              member.member_name +
+              (
+                member.group_name
+                  ? " — " +
+                    member.group_name
+                  : ""
+              );
+
+            const currentMember =
+              String(
+                rowData.member ||
+                rowData.version ||
+                ""
+              ).trim();
+
+            if (
+              currentMember &&
+              currentMember ===
+                String(
+                  member.member_name ||
+                  ""
+                ).trim()
+            ) {
+
+              option.selected =
+                true;
+
+            }
+
+            memberSelect.appendChild(
+              option
+            );
+
+          }
+        );
+
+      })
+      .catch(function (error) {
+
+        console.error(
+          "Gagal mengisi dropdown member:",
+          error
+        );
+
+      });
+
+  }
+
+}
+
+
+/* ==========================================
+   HAPUS BARIS
+========================================== */
+
+row
+  .querySelector(
+    ".remove-po-row"
+  )
+  .addEventListener(
         "click",
         function () {
 
