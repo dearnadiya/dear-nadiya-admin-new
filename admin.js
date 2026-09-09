@@ -13385,18 +13385,25 @@ if (existingRows.length > 0) {
 
 
   document
-    .getElementById(
-      "addPORowButton"
-    )
-    .addEventListener(
-      "click",
-      function () {
+  .getElementById(
+    "addPORowButton"
+  )
+  .addEventListener(
+    "click",
+    function () {
 
-        addPORow();
+      const currentOrderMode =
+        document.getElementById(
+          "poOrderMode"
+        )?.value || "manual";
 
-      }
-    );
+      addPORow(
+        {},
+        currentOrderMode
+      );
 
+    }
+  );
 
   document
     .getElementById(
