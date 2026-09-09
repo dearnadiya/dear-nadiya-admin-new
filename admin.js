@@ -9589,6 +9589,26 @@ let html = `
 
   `;
 
+     html += `
+
+    <div class="recap-batch-table-header">
+
+      <div class="recap-batch-table-code">
+        Kode Batch
+      </div>
+
+      <div class="recap-batch-table-name">
+        Nama Barang
+      </div>
+
+      <div class="recap-batch-table-arrow">
+        →
+      </div>
+
+    </div>
+
+  `;
+
 
   Object.keys(
     batches
