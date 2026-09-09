@@ -7742,3 +7742,408 @@ a {
   }
 
 }
+
+/* =========================================================
+   REKAP GO MOBILE
+   KATEGORI 2 KOLOM
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #recapCategoryContainer
+  .recap-category-buttons {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+
+    padding: 6px 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-card {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    min-height: 88px !important;
+
+    height: 88px !important;
+
+    padding: 7px 5px !important;
+
+    box-sizing: border-box !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    border-radius: 14px !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-icon {
+
+    font-size: 22px !important;
+
+    line-height: 1 !important;
+
+    margin: 0 0 5px !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-name {
+
+    width: 100% !important;
+
+    min-height: 30px !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.2 !important;
+
+    text-align: center !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+  }
+
+
+  #recapCategoryContainer
+  .recap-category-arrow {
+
+    margin-top: 4px !important;
+
+    font-size: 13px !important;
+
+    line-height: 1 !important;
+  }
+
+}
+
+/* =========================================================
+   DETAIL BATCH MOBILE
+   TABEL LEBIH RAPAT + GARIS KOLOM
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #recapListContainer
+  .product-table-wrapper {
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    box-sizing: border-box !important;
+
+    border: 1px solid #e1dce3 !important;
+
+    border-radius: 10px !important;
+  }
+
+
+  #recapListContainer
+  .product-table {
+
+    width: max-content !important;
+
+    min-width: 900px !important;
+
+    border-collapse: collapse !important;
+
+    table-layout: auto !important;
+
+    margin: 0 !important;
+  }
+
+
+  /* Semua header dan cell */
+  #recapListContainer
+  .product-table th,
+
+  #recapListContainer
+  .product-table td {
+
+    padding: 7px 8px !important;
+
+    border-right:
+      1px solid #e1dce3 !important;
+
+    border-bottom:
+      1px solid #e1dce3 !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 11px !important;
+
+    line-height: 1.3 !important;
+
+    vertical-align: middle !important;
+  }
+
+
+  /* Garis kiri tabel */
+  #recapListContainer
+  .product-table th:first-child,
+
+  #recapListContainer
+  .product-table td:first-child {
+
+    border-left:
+      1px solid #e1dce3 !important;
+  }
+
+
+  /* Header */
+  #recapListContainer
+  .product-table th {
+
+    font-size: 10px !important;
+
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+
+    padding: 7px 8px !important;
+
+    background: #faf7fb !important;
+  }
+
+
+  /* Isi tabel */
+  #recapListContainer
+  .product-table td {
+
+    white-space: nowrap !important;
+  }
+
+
+  /* Barang */
+  #recapListContainer
+  .product-table th:nth-child(1),
+
+  #recapListContainer
+  .product-table td:nth-child(1) {
+
+    min-width: 115px !important;
+  }
+
+
+  /* Customer */
+  #recapListContainer
+  .product-table th:nth-child(2),
+
+  #recapListContainer
+  .product-table td:nth-child(2) {
+
+    min-width: 115px !important;
+  }
+
+
+  /* Member / Versi */
+  #recapListContainer
+  .product-table th:nth-child(3),
+
+  #recapListContainer
+  .product-table td:nth-child(3) {
+
+    min-width: 105px !important;
+  }
+
+
+  /* Qty */
+  #recapListContainer
+  .product-table th:nth-child(4),
+
+  #recapListContainer
+  .product-table td:nth-child(4) {
+
+    min-width: 48px !important;
+
+    text-align: center !important;
+  }
+
+
+  /* Harga */
+  #recapListContainer
+  .product-table th:nth-child(5),
+
+  #recapListContainer
+  .product-table td:nth-child(5) {
+
+    min-width: 100px !important;
+  }
+
+
+  /* DP */
+  #recapListContainer
+  .product-table th:nth-child(6),
+
+  #recapListContainer
+  .product-table td:nth-child(6) {
+
+    min-width: 100px !important;
+  }
+
+
+  /* Status DP */
+  #recapListContainer
+  .product-table th:nth-child(7),
+
+  #recapListContainer
+  .product-table td:nth-child(7) {
+
+    min-width: 150px !important;
+  }
+
+
+  /* Sisa */
+  #recapListContainer
+  .product-table th:nth-child(8),
+
+  #recapListContainer
+  .product-table td:nth-child(8) {
+
+    min-width: 100px !important;
+  }
+
+
+  /* Pembayaran */
+  #recapListContainer
+  .product-table th:nth-child(9),
+
+  #recapListContainer
+  .product-table td:nth-child(9) {
+
+    min-width: 150px !important;
+  }
+
+
+  /* Status Customer / CO */
+  #recapListContainer
+  .product-table th:nth-child(10),
+
+  #recapListContainer
+  .product-table td:nth-child(10) {
+
+    min-width: 185px !important;
+  }
+
+
+  /* Catatan */
+  #recapListContainer
+  .product-table th:nth-child(11),
+
+  #recapListContainer
+  .product-table td:nth-child(11) {
+
+    min-width: 100px !important;
+  }
+
+
+  /* Aksi */
+  #recapListContainer
+  .product-table th:nth-child(12),
+
+  #recapListContainer
+  .product-table td:nth-child(12) {
+
+    min-width: 125px !important;
+  }
+
+}
+
+/* =========================================================
+   DROPDOWN STATUS REKAP
+   AGAR TEKS TIDAK TERPOTONG
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #recapListContainer
+  .product-table
+  select.recap-status-select {
+
+    display: block !important;
+
+    width: 100% !important;
+
+    min-width: 140px !important;
+
+    height: 36px !important;
+
+    min-height: 36px !important;
+
+    padding: 5px 24px 5px 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 10px !important;
+
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+
+    text-overflow: clip !important;
+
+    border-radius: 8px !important;
+  }
+
+
+  /* Status DP */
+  #recapListContainer
+  .product-table
+  .recap-dp-status {
+
+    min-width: 150px !important;
+  }
+
+
+  /* Status Pelunasan */
+  #recapListContainer
+  .product-table
+  .recap-payment-status {
+
+    min-width: 150px !important;
+  }
+
+
+  /* Status CO / Customer */
+  #recapListContainer
+  .product-table
+  .recap-customer-status {
+
+    min-width: 185px !important;
+  }
+
+}
