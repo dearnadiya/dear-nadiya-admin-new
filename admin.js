@@ -7888,8 +7888,6 @@ async function showAddRecapMemberForm(
       }
     );
 
-}
-
   /* ==========================================
      SIMPAN MEMBER / VERSI KE BATCH EXISTING
      ========================================== */
@@ -8243,6 +8241,8 @@ async function showAddRecapMemberForm(
 
       }
     );
+   
+}
 
 /* ============================================
    LOAD KATEGORI REKAP DARI DATABASE
