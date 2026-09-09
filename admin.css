@@ -6182,3 +6182,173 @@ a {
 #poForm img {
   max-height: 180px !important;
 }
+
+/* ==========================================
+   TAMBAH PO
+   HEADER MENJADI 2 CARD PER BARIS
+   ========================================== */
+
+#poForm > .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+
+/* ==========================================
+   SEMUA FIELD HEADER = CARD
+   ========================================== */
+
+#poForm > .form-grid > .form-group {
+  grid-column: span 1 !important;
+
+  min-width: 0;
+  box-sizing: border-box;
+
+  padding: 10px !important;
+
+  border: 1px solid #e5e0e7;
+  border-radius: 14px;
+
+  background: #fff;
+
+  box-shadow:
+    0 3px 10px rgba(40, 35, 55, 0.05);
+}
+
+
+/* ==========================================
+   LABEL
+   ========================================== */
+
+#poForm > .form-grid > .form-group > label {
+  display: block;
+
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+
+/* ==========================================
+   INPUT & SELECT
+   ========================================== */
+
+#poForm > .form-grid > .form-group > input,
+#poForm > .form-grid > .form-group > select {
+  width: 100%;
+  box-sizing: border-box;
+
+  min-height: 34px !important;
+  height: 34px !important;
+
+  padding: 5px 8px !important;
+
+  font-size: 12px !important;
+}
+
+
+/* ==========================================
+   KETERANGAN / SMALL
+   ========================================== */
+
+#poForm > .form-grid > .form-group > small {
+  display: block;
+
+  margin-top: 5px;
+
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+}
+
+
+/* ==========================================
+   FOTO
+   ========================================== */
+
+#poForm #poImage {
+  width: 100%;
+
+  min-height: 32px !important;
+  height: 32px !important;
+
+  padding: 3px 6px !important;
+
+  font-size: 11px !important;
+}
+
+
+/* ==========================================
+   HARGA / DP HEADER
+   ========================================== */
+
+#poHeaderPriceGroup,
+#poHeaderDPGroup {
+  grid-column: span 1 !important;
+}
+
+
+/* ==========================================
+   DEADLINE
+   ========================================== */
+
+#poCloseDate,
+#poLastDPDate {
+  width: 100%;
+}
+
+
+/* ==========================================
+   DESKRIPSI = FULL WIDTH
+   ========================================== */
+
+#poForm #poDescription {
+  min-height: 60px !important;
+  height: 60px !important;
+
+  padding: 6px 8px !important;
+
+  font-size: 12px !important;
+}
+
+
+/* Parent Deskripsi tetap full */
+#poForm > .form-grid
+> .form-group:has(#poDescription) {
+  grid-column: 1 / -1 !important;
+}
+
+
+/* ==========================================
+   LIST MEMBER / CUSTOMER = FULL WIDTH
+   ========================================== */
+
+#poForm > .form-grid
+> .form-group:has(#poRowsContainer) {
+  grid-column: 1 / -1 !important;
+
+  padding: 0 !important;
+
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 700px) {
+
+  #poForm > .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #poForm > .form-grid > .form-group {
+    grid-column: 1 / -1 !important;
+  }
+
+}
