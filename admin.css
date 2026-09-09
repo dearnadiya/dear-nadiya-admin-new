@@ -6352,3 +6352,12 @@ a {
   }
 
 }
+
+.po-row-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  font-size: 13px;
+  font-weight: 600;
+}
