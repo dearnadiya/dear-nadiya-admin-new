@@ -6127,3 +6127,58 @@ a {
   }
 
 }
+
+/* ==========================================
+   TAMBAH PO - HEADER FORM COMPACT
+   TIDAK MENGUBAH CARD CUSTOMER
+   ========================================== */
+
+/* Semua label header */
+#poForm > .form-grid > .form-group label {
+  margin-top: 5px !important;
+  margin-bottom: 3px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+/* Input & select header */
+#poForm > .form-grid > .form-group input,
+#poForm > .form-grid > .form-group select {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 5px 8px !important;
+  font-size: 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Textarea deskripsi */
+#poForm > .form-grid > .form-group textarea {
+  min-height: 60px !important;
+  height: 60px !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  box-sizing: border-box !important;
+}
+
+/* Jarak antar form header */
+#poForm > .form-grid {
+  gap: 8px 10px !important;
+}
+
+/* Keterangan kecil */
+#poForm > .form-grid > .form-group small {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+/* Foto */
+#poImage {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 3px 6px !important;
+}
+
+/* Preview foto */
+#poForm img {
+  max-height: 180px !important;
+}
