@@ -12492,6 +12492,19 @@ function showPOForm(
   const po =
     existingPO || {};
 
+   /* ==========================================
+   SIMPAN PO YANG SEDANG DIKERJAKAN
+   UNTUK RESTORE SAAT KEMBALI KE PESANAN
+========================================== */
+
+if (existingPO) {
+  window.dearNadiyaEditingPO = {
+    ...existingPO
+  };
+} else {
+  window.dearNadiyaEditingPO = null;
+}
+
 
   let existingRows = [];
 
@@ -13804,9 +13817,9 @@ function saveCurrentPODraft() {
   window.dearNadiyaPODraft = {
 
     existingPO:
-      window.dearNadiyaPODraft?.existingPO ||
-      null,
-
+  window.dearNadiyaEditingPO ||
+  null,
+     
     title:
       document
         .getElementById("poTitle")
@@ -15226,9 +15239,6 @@ showPOForm(
   selectedPO
 );
 
-showPOForm(
-  selectedPO
-);
         }
       );
 
