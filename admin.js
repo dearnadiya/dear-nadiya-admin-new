@@ -13042,10 +13042,11 @@ container.innerHTML = `
   let rowNumber = 0;
 
 
-  function addPORow(
-    rowData = {}
-  ) {
+  function addPORow(rowData = {}) {
 
+  const orderMode =
+    document.getElementById("poOrderMode")?.value ||
+    "manual";
     rowNumber++;
 
 
