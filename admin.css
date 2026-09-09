@@ -6017,3 +6017,113 @@ a {
   }
 
 }
+
+/* ==========================================
+   TAMBAH PO - ITEM CARD COMPACT
+   ========================================== */
+
+#poRowsContainer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+#poRowsContainer .po-item-row {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  margin: 0 !important;
+  padding: 10px !important;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 10px;
+
+  border: 1px solid #e5e0e7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(40, 35, 55, 0.05);
+}
+
+
+/* HEADER FULL WIDTH */
+
+#poRowsContainer .po-row-header {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+  margin-bottom: 1px;
+}
+
+#poRowsContainer .po-row-header strong {
+  font-size: 13px;
+}
+
+
+/* FIELD */
+
+#poRowsContainer .po-field-group {
+  min-width: 0;
+}
+
+#poRowsContainer .po-field-group label {
+  display: block;
+
+  margin-top: 0 !important;
+  margin-bottom: 2px !important;
+
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+#poRowsContainer .po-field-group input {
+  width: 100%;
+  min-width: 0;
+
+  min-height: 32px !important;
+  height: 32px !important;
+
+  padding: 4px 7px !important;
+
+  box-sizing: border-box;
+
+  font-size: 12px !important;
+}
+
+
+/* CATATAN FULL WIDTH */
+
+#poRowsContainer .po-row-note-group {
+  grid-column: 1 / -1;
+}
+
+
+/* TOMBOL HAPUS */
+
+#poRowsContainer .remove-po-row {
+  min-height: 30px !important;
+  height: 30px !important;
+
+  padding: 3px 7px !important;
+
+  font-size: 11px !important;
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 700px) {
+
+  #poRowsContainer {
+    grid-template-columns: 1fr;
+  }
+
+}
