@@ -13137,7 +13137,7 @@ container.innerHTML = `
 
 
 <div
-  class="po-field-group"
+  class="po-field-group po-row-qty-group"
 >
   <label>
     Qty
