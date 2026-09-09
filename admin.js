@@ -13261,6 +13261,23 @@ container.innerHTML = `
   }
 </div>
 
+${
+  orderMode === "claim" &&
+  rowData.member &&
+  String(rowData.member).trim() &&
+  !(
+    rowData.customer &&
+    String(rowData.customer).trim()
+  )
+    ? `
+      <div class="po-row-claim-hint">
+        🎟️ Member tersedia — isi nama Customer
+        setelah claim melalui WhatsApp.
+      </div>
+    `
+    : ""
+}
+
 `;
 
 
