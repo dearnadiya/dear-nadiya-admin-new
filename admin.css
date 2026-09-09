@@ -7016,3 +7016,183 @@ a {
   }
 
 }
+
+/* =========================================================
+   REKAP GO
+   DAFTAR BATCH KOMPAK SEPERTI CUSTOMER
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  /* Area daftar batch */
+  #recapListContainer {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Setiap batch menjadi baris */
+  #recapListContainer .recap-batch-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    overflow: hidden !important;
+  }
+
+  /* Header batch menjadi area yang bisa diklik */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      105px
+      minmax(0, 1fr)
+      32px !important;
+
+    gap: 0 !important;
+
+    align-items: stretch !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: #fff !important;
+
+    border: none !important;
+  }
+
+
+  /* Bagian kiri:
+     kode batch */
+  #recapListContainer
+  .recap-batch-header > div:first-child {
+
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    justify-content: center !important;
+
+    padding: 9px 8px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+  }
+
+
+  /* Kode batch */
+  #recapListContainer
+  .recap-batch-header h3 {
+
+    margin: 0 !important;
+
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* Nama barang */
+  #recapListContainer
+  .recap-batch-header > div:first-child > p {
+
+    margin: 3px 0 0 !important;
+
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* Sembunyikan informasi tambahan
+     dari baris ringkas */
+  #recapListContainer
+  .recap-batch-customer-summary,
+
+  #recapListContainer
+  .recap-batch-deadlines {
+
+    display: none !important;
+  }
+
+
+  /* Tracking tidak ditampilkan
+     di baris ringkas */
+  #recapListContainer
+  .batch-tracking {
+
+    display: none !important;
+  }
+
+
+  /* Panah */
+  #recapListContainer
+  .recap-batch-header::after {
+
+    content: "→";
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 17px !important;
+    font-weight: 700 !important;
+
+    border-left:
+      1px solid rgba(100, 70, 120, 0.12);
+
+    color: #6b4f75;
+  }
+
+
+  /* Garis antar batch */
+  #recapListContainer
+  .recap-batch-card
+  + .recap-batch-card {
+
+    border-top:
+      1px solid rgba(100, 70, 120, 0.12) !important;
+  }
+
+
+  /* Detail customer tetap ada,
+     tetapi hanya muncul ketika
+     batch dibuka */
+  #recapListContainer
+  .recap-batch-card
+  .product-table-wrapper {
+
+    width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: auto !important;
+  }
+
+}
