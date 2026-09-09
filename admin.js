@@ -15024,6 +15024,85 @@ function formatDateTime(value) {
 }
 
 /* ============================================
+   MASTER MEMBER / VERSI
+   ============================================ */
+
+async function loadMembers() {
+
+  pageTitle.textContent =
+    "Master Member / Versi";
+
+
+  pageContent.innerHTML = `
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+          <h2>
+            👥 Master Member / Versi
+          </h2>
+
+          <p>
+            Kelola daftar member atau versi
+            yang nantinya digunakan pada form PO.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="addMemberButton"
+        >
+          ➕ Tambah
+        </button>
+
+      </div>
+
+
+      <div
+        id="memberFormContainer"
+        style="display:none;"
+      ></div>
+
+
+      <div
+        id="memberListContainer"
+      >
+        <p>
+          Memuat data...
+        </p>
+      </div>
+
+    </div>
+  `;
+
+
+  const addButton =
+    document.getElementById(
+      "addMemberButton"
+    );
+
+
+  if (addButton) {
+
+    addButton.addEventListener(
+      "click",
+      function () {
+
+        showMemberForm();
+
+      }
+    );
+
+  }
+
+
+  await renderMemberList();
+
+}
+
+/* ============================================
    BAGIAN 6
    FINAL INITIALIZATION
    ============================================ */
