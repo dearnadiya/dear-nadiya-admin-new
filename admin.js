@@ -7547,6 +7547,22 @@ function showRecapCategories(recapType) {
 
       </div>
 
+      <div
+  style="
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+  "
+>
+  <button
+    type="button"
+    class="primary-button"
+    id="addRecapCategoryButton"
+  >
+    ➕ Tambah Kategori
+  </button>
+</div>
+
     `;
 
 
