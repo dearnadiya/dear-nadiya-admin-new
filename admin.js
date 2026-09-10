@@ -10307,7 +10307,6 @@ if (backCategoryButton) {
 
 }
 
-
 /* ==========================================
    TAMBAH MEMBER / VERSI KE BATCH
    ========================================== */
@@ -10337,8 +10336,9 @@ container
 
     }
   );
-/* ==========================================
-   EDIT BATCH DARI HEADER
+
+   /* ==========================================
+   EDIT HEADER BATCH
    ========================================== */
 
 container
@@ -10361,51 +10361,20 @@ container
           const category =
             this.dataset.category;
 
-          if (!batchCode) {
-
+          if (
+            !batchCode ||
+            !category
+          ) {
             console.error(
-              "Kode batch tidak ditemukan."
+              "Batch Code atau Category tidak ditemukan."
             );
-
             return;
           }
 
-          const batchCard =
-            this.closest(
-              ".recap-batch-card"
-            );
-
-          if (!batchCard) {
-            return;
-          }
-
-          const firstEditButton =
-            batchCard.querySelector(
-              ".edit-recap-button"
-            );
-
-          if (!firstEditButton) {
-
-            console.error(
-              "Data customer dalam batch tidak ditemukan."
-            );
-
-            return;
-          }
-
-          const id =
-            firstEditButton.dataset.id;
-
-          if (!id) {
-
-            console.error(
-              "ID customer dalam batch tidak ditemukan."
-            );
-
-            return;
-          }
-
-          editRecap(id);
+          editBatchHeader(
+            batchCode,
+            category
+          );
 
         }
       );
@@ -12275,6 +12244,675 @@ function getTrackingOptions(
     "Arrived Admin",
     "Goods Arrive at Customer"
   ];
+
+}
+
+/* ============================================
+   EDIT HEADER BATCH
+   ============================================ */
+
+async function editBatchHeader(
+  batchCode,
+  category
+) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.style.display =
+    "block";
+
+  container.innerHTML = `
+    <div class="panel recap-form">
+
+      <h3>
+        ✏️ Edit Batch
+      </h3>
+
+      <p>
+        Mengubah data utama batch:
+        <strong>
+          ${escapeHTML(batchCode)}
+        </strong>
+      </p>
+
+      <div
+        id="editBatchLoading"
+      >
+        Memuat data batch...
+      </div>
+
+    </div>
+  `;
+
+
+  /* ==========================================
+     AMBIL SEMUA CUSTOMER DALAM BATCH
+     ========================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq(
+        "category",
+        category
+      )
+      .eq(
+        "batch_code",
+        batchCode
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD EDIT BATCH:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="panel">
+
+        <h3>
+          ❌ Gagal memuat batch
+        </h3>
+
+        <p>
+          ${escapeHTML(
+            error.message
+          )}
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    container.innerHTML = `
+      <div class="panel">
+
+        <h3>
+          Batch tidak ditemukan
+        </h3>
+
+        <p>
+          Batch
+          <strong>
+            ${escapeHTML(batchCode)}
+          </strong>
+          tidak memiliki data.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  /* ==========================================
+     DATA UTAMA BATCH
+     ========================================== */
+
+  const firstRow =
+    data[0];
+
+  const batchPrice =
+    Number(
+      firstRow.item_price
+    ) || 0;
+
+  const batchDp =
+    Number(
+      firstRow.minimum_dp_amount ||
+      firstRow.dp_amount ||
+      0
+    ) || 0;
+
+  const batchRemaining =
+    Math.max(
+      0,
+      batchPrice -
+      batchDp
+    );
+
+
+  const batchTracking =
+    firstRow.batch_tracking_status ||
+    firstRow.tracking_status ||
+    "";
+
+
+  /* ==========================================
+     FORM EDIT BATCH
+     ========================================== */
+
+  container.innerHTML = `
+
+    <div class="panel recap-form">
+
+      <h3>
+        ✏️ Edit Batch
+      </h3>
+
+      <p>
+        Batch:
+        <strong>
+          ${escapeHTML(batchCode)}
+        </strong>
+      </p>
+
+
+      <form
+        id="editBatchHeaderForm"
+      >
+
+        <label>
+          Kategori
+        </label>
+
+        <input
+          type="text"
+          value="${escapeHTML(
+            category
+          )}"
+          disabled
+        >
+
+
+        <label>
+          Kode Batch
+        </label>
+
+        <input
+          id="editBatchHeaderCode"
+          type="text"
+          value="${escapeHTML(
+            batchCode
+          )}"
+          required
+        >
+
+
+        <label>
+          Nama Barang
+        </label>
+
+        <input
+          id="editBatchHeaderItemName"
+          type="text"
+          value="${escapeHTML(
+            firstRow.item_name ||
+            ""
+          )}"
+          required
+        >
+
+
+        <label>
+          Harga Batch
+        </label>
+
+        <input
+          id="editBatchHeaderPrice"
+          type="number"
+          min="0"
+          value="${batchPrice}"
+          required
+        >
+
+
+        <label>
+          DP Batch
+        </label>
+
+        <input
+          id="editBatchHeaderDp"
+          type="number"
+          min="0"
+          value="${batchDp}"
+          required
+        >
+
+
+        <label>
+          Pelunasan / Sisa Pembayaran
+        </label>
+
+        <input
+          id="editBatchHeaderRemaining"
+          type="number"
+          min="0"
+          value="${batchRemaining}"
+          readonly
+        >
+
+        <small>
+          Pelunasan dihitung otomatis:
+          Harga Batch − DP Batch.
+        </small>
+
+
+        <label>
+          Deadline DP
+        </label>
+
+        <input
+          id="editBatchHeaderDpDeadline"
+          type="date"
+          value="${
+            firstRow.dp_deadline
+              ? String(
+                  firstRow.dp_deadline
+                ).substring(0, 10)
+              : ""
+          }"
+        >
+
+
+        <label>
+          Deadline Pelunasan
+        </label>
+
+        <input
+          id="editBatchHeaderPaymentDeadline"
+          type="date"
+          value="${
+            firstRow.payment_deadline
+              ? String(
+                  firstRow.payment_deadline
+                ).substring(0, 10)
+              : ""
+          }"
+        >
+
+
+        <label>
+          Deadline CO Shopee
+        </label>
+
+        <input
+          id="editBatchHeaderCoDeadline"
+          type="date"
+          value="${
+            firstRow.co_deadline
+              ? String(
+                  firstRow.co_deadline
+                ).substring(0, 10)
+              : ""
+          }"
+        >
+
+
+        <label>
+          Tracking Batch
+        </label>
+
+        <select
+          id="editBatchHeaderTracking"
+        >
+
+          ${getTrackingOptions(
+            category
+          ).map(
+            function(option) {
+
+              return `
+                <option
+                  value="${escapeHTML(
+                    option
+                  )}"
+                  ${
+                    batchTracking ===
+                    option
+                      ? "selected"
+                      : ""
+                  }
+                >
+                  ${escapeHTML(
+                    option
+                  )}
+                </option>
+              `;
+
+            }
+          ).join("")}
+
+        </select>
+
+
+        <div
+          class="form-actions"
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            💾 Simpan Perubahan Batch
+          </button>
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancelEditBatchHeader"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+        <p
+          id="editBatchHeaderMessage"
+          class="login-error"
+        ></p>
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     HITUNG PELUNASAN OTOMATIS
+     ========================================== */
+
+  function updateBatchHeaderRemaining() {
+
+    const price =
+      Number(
+        document
+          .getElementById(
+            "editBatchHeaderPrice"
+          )
+          .value
+      ) || 0;
+
+    const dp =
+      Number(
+        document
+          .getElementById(
+            "editBatchHeaderDp"
+          )
+          .value
+      ) || 0;
+
+    const remaining =
+      Math.max(
+        0,
+        price - dp
+      );
+
+    document
+      .getElementById(
+        "editBatchHeaderRemaining"
+      )
+      .value =
+      remaining;
+  }
+
+
+  document
+    .getElementById(
+      "editBatchHeaderPrice"
+    )
+    .addEventListener(
+      "input",
+      updateBatchHeaderRemaining
+    );
+
+
+  document
+    .getElementById(
+      "editBatchHeaderDp"
+    )
+    .addEventListener(
+      "input",
+      updateBatchHeaderRemaining
+    );
+
+
+  /* ==========================================
+     BATAL
+     ========================================== */
+
+  document
+    .getElementById(
+      "cancelEditBatchHeader"
+    )
+    .addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML =
+          "";
+
+        container.style.display =
+          "none";
+
+      }
+    );
+
+
+  /* ==========================================
+     SIMPAN EDIT BATCH
+     ========================================== */
+
+  document
+    .getElementById(
+      "editBatchHeaderForm"
+    )
+    .addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        const message =
+          document.getElementById(
+            "editBatchHeaderMessage"
+          );
+
+
+        message.textContent =
+          "Menyimpan perubahan batch...";
+
+
+        const newBatchCode =
+          document
+            .getElementById(
+              "editBatchHeaderCode"
+            )
+            .value
+            .trim();
+
+
+        const newItemName =
+          document
+            .getElementById(
+              "editBatchHeaderItemName"
+            )
+            .value
+            .trim();
+
+
+        const newPrice =
+          Number(
+            document
+              .getElementById(
+                "editBatchHeaderPrice"
+              )
+              .value
+          ) || 0;
+
+
+        const newDp =
+          Number(
+            document
+              .getElementById(
+                "editBatchHeaderDp"
+              )
+              .value
+          ) || 0;
+
+
+        const newRemaining =
+          Math.max(
+            0,
+            newPrice -
+            newDp
+          );
+
+
+        const newDpDeadline =
+          document
+            .getElementById(
+              "editBatchHeaderDpDeadline"
+            )
+            .value ||
+          null;
+
+
+        const newPaymentDeadline =
+          document
+            .getElementById(
+              "editBatchHeaderPaymentDeadline"
+            )
+            .value ||
+          null;
+
+
+        const newCoDeadline =
+          document
+            .getElementById(
+              "editBatchHeaderCoDeadline"
+            )
+            .value ||
+          null;
+
+
+        const newTracking =
+          document
+            .getElementById(
+              "editBatchHeaderTracking"
+            )
+            .value;
+
+
+        /* ======================================
+           UPDATE SEMUA CUSTOMER DALAM BATCH
+           ====================================== */
+
+        const {
+          error: updateError
+        } =
+          await supabaseClient
+            .from("purchase_recap")
+            .update({
+
+              batch_code:
+                newBatchCode,
+
+              item_name:
+                newItemName,
+
+              item_price:
+                newPrice,
+
+              minimum_dp_amount:
+                newDp,
+
+              dp_amount:
+                newDp,
+
+              remaining_amount:
+                newRemaining,
+
+              dp_deadline:
+                newDpDeadline,
+
+              payment_deadline:
+                newPaymentDeadline,
+
+              co_deadline:
+                newCoDeadline,
+
+              tracking_status:
+                newTracking,
+
+              batch_tracking_status:
+                newTracking
+
+            })
+            .eq(
+              "category",
+              category
+            )
+            .eq(
+              "batch_code",
+              batchCode
+            );
+
+
+        if (updateError) {
+
+          console.error(
+            "ERROR UPDATE BATCH:",
+            updateError
+          );
+
+          message.textContent =
+            "Gagal mengubah batch: " +
+            updateError.message;
+
+          return;
+        }
+
+
+        alert(
+          "Data batch berhasil diperbarui. ♥"
+        );
+
+
+        container.innerHTML =
+          "";
+
+        container.style.display =
+          "none";
+
+
+        await loadRecapList(
+          category
+        );
+
+      }
+    );
 
 }
 
