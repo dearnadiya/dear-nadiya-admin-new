@@ -8917,16 +8917,15 @@ function showRecapForm(category) {
 
         </select>
 
+<label>Sisa Pembayaran</label>
 
-        <label>Sisa Pembayaran</label>
-
-        <input
-          type="number"
-          class="batch-remaining"
-          min="0"
-          value="0"
-        >
-
+<input
+  type="number"
+  class="batch-remaining"
+  min="0"
+  value="0"
+  readonly
+>
 
         <label>Status Pembayaran</label>
 
