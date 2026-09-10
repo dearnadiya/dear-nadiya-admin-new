@@ -7639,11 +7639,10 @@ function showRecapCategories(recapType) {
        KLIK KATEGORI
        ========================================== */
 
-    const categoryButtons =
-      container.querySelectorAll(
-        "#recapCategoryButtons button"
-      );
-
+const categoryButtons =
+  container.querySelectorAll(
+    "#recapCategoryButtons > .recap-category-wrapper > .recap-category-card"
+  );
 
     categoryButtons.forEach(
       function(button) {
