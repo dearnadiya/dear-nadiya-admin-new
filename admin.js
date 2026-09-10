@@ -9504,8 +9504,6 @@ async function loadRecapList(
   return;
 
   }
-  }
-
 
   /* ==========================================
      KELOMPOKKAN BERDASARKAN BATCH
