@@ -8125,27 +8125,6 @@ async function showAddRecapMemberForm(
 
         </select>
 
-
-        <label>
-          Sisa Pembayaran
-        </label>
-
-        <input
-          type="number"
-          class="batch-remaining"
-          min="0"
-          value="${Math.max(
-            0,
-            Number(
-              batch.item_price || 0
-            ) -
-            Number(
-              batch.dp_amount || 0
-            )
-          )}"
-        >
-
-
         <label>
           Status Pembayaran
         </label>
@@ -11745,29 +11724,39 @@ if (
   priceMode === "same"
 ) {
 
-  /*
-   * Harga sama untuk semua customer.
-   * Pelunasan juga sama untuk semua customer.
-   */
-
   remaining =
-    commonPrice -
-    commonDp;
+    Math.max(
+      0,
+      commonPrice -
+      commonDp
+    );
 
 } else {
 
-  /*
-   * Harga berbeda per customer.
-   */
-
-  remaining =
+  const customerPrice =
     Number(
       item
         .querySelector(
-          ".batch-remaining"
+          ".batch-price"
         )
         .value
     ) || 0;
+
+  const customerDp =
+    Number(
+      item
+        .querySelector(
+          ".batch-dp"
+        )
+        .value
+    ) || 0;
+
+  remaining =
+    Math.max(
+      0,
+      customerPrice -
+      customerDp
+    );
 
 }
        
