@@ -10947,3 +10947,328 @@ button {
   }
 
 }
+
+/* =========================================================
+   FINAL MOBILE BATCH
+   - BAGIAN ATAS TIDAK IKUT SCROLL
+   - HANYA AREA TABEL BATCH YANG SCROLL
+   - EDIT MENJADI KOLOM SENDIRI
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* =====================================================
+     JANGAN SCROLL SELURUH REKAP
+     ===================================================== */
+
+  #recapListContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     AREA BATCH SAJA YANG SCROLL
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card {
+
+    width: 760px !important;
+    min-width: 760px !important;
+    max-width: none !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    margin: 0 !important;
+  }
+
+
+  /*
+     Karena daftar batch belum punya wrapper khusus,
+     kita jadikan area yang menampung batch sebagai
+     area horizontal.
+  */
+
+  #recapListContainer
+  .recap-batch-card:first-of-type {
+    margin-top: 0 !important;
+  }
+
+
+  /* =====================================================
+     HEADER BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 760px !important;
+    min-width: 760px !important;
+    max-width: none !important;
+
+    height: 52px !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      125px
+      minmax(300px, 1fr)
+      80px
+      175px
+      40px !important;
+
+    align-items: center !important;
+
+    gap: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     WRAPPER KODE + NAMA
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child {
+
+    display: contents !important;
+  }
+
+
+  /* =====================================================
+     KOLOM KODE BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  h3 {
+
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: 125px !important;
+    min-width: 125px !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     KOLOM NAMA BARANG
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p {
+
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: 100% !important;
+    min-width: 300px !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* Nama barang */
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p
+  > span {
+
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     KOLOM EDIT SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+
+    justify-self: center !important;
+
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 5px 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+
+    z-index: 20 !important;
+  }
+
+
+  /* =====================================================
+     KOLOM TAMBAH MEMBER SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-customer-summary {
+
+    display: contents !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-customer-summary
+  > span {
+
+    display: none !important;
+  }
+
+
+  #recapListContainer
+  .add-recap-member-button {
+
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+
+    justify-self: center !important;
+
+    width: 165px !important;
+    min-width: 165px !important;
+    max-width: 165px !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 5px 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     KOLOM PANAH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header::after {
+
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+
+    width: 40px !important;
+    min-width: 40px !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     DETAIL TABLE
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table-wrapper {
+
+    width: 760px !important;
+    max-width: none !important;
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table {
+
+    width: 760px !important;
+    min-width: 760px !important;
+    max-width: none !important;
+
+    box-sizing: border-box !important;
+  }
+
+}
