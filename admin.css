@@ -9588,78 +9588,205 @@ td:last-child {
 }
 
 /* ============================================
+   FIX NAMA KATEGORI REKAP GO
+   Jangan potong isi kartu
+   ============================================ */
+
+.recap-category-card {
+  height: auto !important;
+  min-height: 105px !important;
+  overflow: visible !important;
+  box-sizing: border-box;
+}
+
+.recap-category-card .recap-category-icon,
+.recap-category-card .recap-category-name,
+.recap-category-card .recap-category-arrow {
+  overflow: visible !important;
+}
+
+.recap-category-card .recap-category-name {
+  display: block !important;
+  height: auto !important;
+  min-height: 20px;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: normal !important;
+}
+
+/* Desktop / laptop */
+@media (min-width: 701px) {
+  .recap-category-card {
+    min-height: 105px !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .recap-category-card {
+    min-height: 105px !important;
+  }
+}
+
+/* ============================================
    REKAP GO - MOBILE
-   TOMBOL EDIT HEADER
+   BATCH HEADER HORIZONTAL SCROLL
    ============================================ */
 
 @media (max-width: 700px) {
 
   .recap-batch-header {
-    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    white-space: nowrap !important;
+
+    padding-bottom: 6px;
+
+    box-sizing: border-box;
+
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* Area kode batch + nama barang */
+  /*
+   * Ratakan isi utama header menjadi
+   * satu baris yang bisa digeser.
+   */
   .recap-batch-header > div:first-child {
-    width: 100%;
-    box-sizing: border-box;
-    padding-right: 58px;
+    display: contents !important;
   }
 
   /* Kode batch */
   .recap-batch-header h3 {
-    margin-right: 0;
-    line-height: 1.3;
-  }
+    flex: 0 0 auto !important;
 
-  /* Baris nama barang */
-  .recap-batch-header > div:first-child > p {
-    display: block !important;
-    width: 100%;
     margin: 0 !important;
-    line-height: 1.4;
+
+    white-space: nowrap !important;
+    word-break: normal !important;
+
+    font-size: 15px !important;
   }
 
-  /* Tombol EDIT dibuat kecil dan berada di kanan header */
-  .recap-batch-header .edit-batch-header-button {
-    position: absolute !important;
-    top: 0;
-    right: 0;
-
+  /* Nama barang + Edit */
+  .recap-batch-header > div:first-child > p {
     display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
+
+    flex: 0 0 auto !important;
+
+    align-items: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
 
     width: auto !important;
-    min-width: 48px !important;
-    height: 30px;
 
-    padding: 4px 7px !important;
+    white-space: nowrap !important;
+  }
+
+  .recap-batch-header
+  > div:first-child
+  > p
+  > span {
+    flex: 0 0 auto !important;
+
+    white-space: nowrap !important;
+
+    max-width: none !important;
+  }
+
+  /* Tombol Edit */
+  .recap-batch-header
+  .edit-batch-header-button {
+    position: static !important;
+
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: auto !important;
+
+    height: 28px !important;
+
+    padding: 4px 8px !important;
+
     margin: 0 !important;
 
     font-size: 11px !important;
+
     line-height: 1 !important;
+
     white-space: nowrap !important;
 
-    z-index: 20;
+    z-index: 10 !important;
   }
 
-  /* Area Tambah Member / Versi tetap di bawah */
+  /* Jumlah customer + Tambah Member */
   .recap-batch-customer-summary {
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    flex-wrap: wrap;
+    display: inline-flex !important;
+
+    flex: 0 0 auto !important;
+
+    align-items: center !important;
+
+    justify-content: flex-start !important;
+
+    gap: 8px !important;
+
+    width: auto !important;
+
+    margin: 0 !important;
+
+    white-space: nowrap !important;
   }
 
-  .recap-batch-customer-summary .add-recap-member-button {
-    flex: 0 0 auto;
-    width: auto !important;
-    max-width: 100%;
-    font-size: 11px;
-    padding: 5px 8px;
-    white-space: nowrap;
+  .recap-batch-customer-summary > span {
+    flex: 0 0 auto !important;
+
+    white-space: nowrap !important;
   }
+
+  .recap-batch-customer-summary
+  .add-recap-member-button {
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+
+    padding: 5px 8px !important;
+
+    margin: 0 !important;
+
+    font-size: 11px !important;
+
+    white-space: nowrap !important;
+  }
+
+  /* Deadline tetap satu baris */
+  .recap-batch-deadlines {
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+
+    white-space: nowrap !important;
+  }
+
+  .recap-batch-deadlines p {
+    white-space: nowrap !important;
+
+    margin: 0 0 4px 0 !important;
+  }
+
 }
