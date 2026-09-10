@@ -13243,369 +13243,367 @@ const isSamePriceMode =
   isSamePrice &&
   isSameDp;
 
-  container.innerHTML = `
+container.innerHTML = `
 
-    <div
-      class="panel recap-form"
+  <div
+    class="panel recap-form"
+  >
+
+    <h3>
+      ✏️ Edit Rekap GO
+    </h3>
+
+    <form
+      id="editRecapForm"
     >
 
-      <h3>
-        ✏️ Edit Rekap GO
-      </h3>
+      <!-- ======================================
+           KATEGORI
+           ====================================== -->
 
+      <label>
+        Kategori
+      </label>
 
-      <form
-        id="editRecapForm"
+      <input
+        type="text"
+        value="${escapeHTML(
+          data.category || ""
+        )}"
+        disabled
       >
 
-        <label>
-          Kategori
-        </label>
 
-        <input
-          type="text"
-          value="${escapeHTML(
-            data.category ||
-            ""
-          )}"
-          disabled
+      <!-- ======================================
+           FIELD TERSEMBUNYI
+           UNTUK MENJAGA KOMPATIBILITAS
+           SAVE LAMA
+           ====================================== -->
+
+      <input
+        type="hidden"
+        id="editBatchCode"
+        value="${escapeHTML(
+          data.batch_code || ""
+        )}"
+      >
+
+      <input
+        type="hidden"
+        id="editItemName"
+        value="${escapeHTML(
+          data.item_name || ""
+        )}"
+      >
+
+      <input
+        type="hidden"
+        id="editPaymentDeadline"
+        value="${
+          data.payment_deadline
+            ? String(
+                data.payment_deadline
+              ).substring(0, 10)
+            : ""
+        }"
+      >
+
+      <input
+        type="hidden"
+        id="editCoDeadline"
+        value="${
+          data.co_deadline
+            ? String(
+                data.co_deadline
+              ).substring(0, 10)
+            : ""
+        }"
+      >
+
+
+      <!-- ======================================
+           CUSTOMER
+           ====================================== -->
+
+      <label>
+        Customer
+      </label>
+
+      <input
+        id="editCustomerName"
+        type="text"
+        value="${escapeHTML(
+          data.customer_name || ""
+        )}"
+        required
+      >
+
+
+      <!-- ======================================
+           VERSI / MEMBER
+           ====================================== -->
+
+      <label>
+        Versi / Member
+      </label>
+
+      <input
+        id="editVersion"
+        type="text"
+        value="${escapeHTML(
+          data.version || ""
+        )}"
+      >
+
+
+      <!-- ======================================
+           QUANTITY
+           ====================================== -->
+
+      <label>
+        Quantity
+      </label>
+
+      <input
+        id="editQuantity"
+        type="number"
+        min="1"
+        value="${
+          data.quantity || 1
+        }"
+        required
+      >
+
+
+      <!-- ======================================
+           HARGA & DP
+           HANYA UNTUK HARGA BERBEDA
+           ====================================== -->
+
+      ${
+        isSamePriceMode
+          ? ""
+          : `
+
+            <label>
+              Harga Barang
+            </label>
+
+            <input
+              id="editItemPrice"
+              type="number"
+              min="0"
+              value="${
+                data.item_price || 0
+              }"
+            >
+
+
+            <label>
+              DP
+            </label>
+
+            <input
+              id="editDpAmount"
+              type="number"
+              min="0"
+              value="${
+                data.minimum_dp_amount ??
+                data.dp_amount ??
+                0
+              }"
+            >
+
+          `
+      }
+
+
+      <!-- ======================================
+           HIDDEN HARGA / DP
+           UNTUK MODE HARGA SAMA
+           ====================================== -->
+
+      ${
+        isSamePriceMode
+          ? `
+
+            <input
+              type="hidden"
+              id="editItemPrice"
+              value="${
+                data.item_price || 0
+              }"
+            >
+
+            <input
+              type="hidden"
+              id="editDpAmount"
+              value="${
+                data.minimum_dp_amount ??
+                data.dp_amount ??
+                0
+              }"
+              />
+
+          `
+          : ""
+      }
+
+
+      <!-- ======================================
+           HIDDEN STATUS DP
+           AKAN OTOMATIS
+           ====================================== -->
+
+      <input
+        type="hidden"
+        id="editDpStatus"
+        value="${
+          data.dp_status || "unpaid"
+        }"
+      >
+
+
+      <!-- ======================================
+           PELUNASAN PER CUSTOMER
+           ====================================== -->
+
+      <label>
+        Pelunasan
+      </label>
+
+      <input
+        id="editRemaining"
+        type="number"
+        step="1"
+        value="${
+          data.remaining_amount ?? 0
+        }"
+        readonly
+      >
+
+      <small>
+        Pelunasan dihitung otomatis berdasarkan
+        pembayaran customer.
+      </small>
+
+
+      <!-- ======================================
+           HIDDEN STATUS PELUNASAN
+           AKAN OTOMATIS
+           ====================================== -->
+
+      <input
+        type="hidden"
+        id="editPaymentStatus"
+        value="${
+          data.payment_status || "unpaid"
+        }"
+      >
+
+
+      <!-- ======================================
+           STATUS CUSTOMER
+           ====================================== -->
+
+      <label>
+        Status Customer
+      </label>
+
+      <select
+        id="editCustomerStatus"
+      >
+
+        <option
+          value="Belum Checkout Shopee"
+          ${
+            data.customer_status ===
+            "Belum Checkout Shopee"
+              ? "selected"
+              : ""
+          }
         >
+          ⏳ Belum Checkout Shopee
+        </option>
 
-
-        <label>
-          Kode Batch
-        </label>
-
-        <input
-          id="editBatchCode"
-          type="text"
-          value="${escapeHTML(
-            data.batch_code ||
-            ""
-          )}"
-          required
+        <option
+          value="Sudah Checkout Shopee"
+          ${
+            data.customer_status ===
+            "Sudah Checkout Shopee"
+              ? "selected"
+              : ""
+          }
         >
+          🛒 Sudah Checkout Shopee
+        </option>
 
-
-        <label>
-          Nama Barang
-        </label>
-
-        <input
-          id="editItemName"
-          type="text"
-          value="${escapeHTML(
-            data.item_name ||
-            ""
-          )}"
-          required
+        <option
+          value="Sudah Menerima Barang"
+          ${
+            data.customer_status ===
+            "Sudah Menerima Barang"
+              ? "selected"
+              : ""
+          }
         >
+          📦 Sudah Menerima Barang
+        </option>
+
+      </select>
 
 
-        <label>
-          Customer
-        </label>
+      <!-- ======================================
+           CATATAN
+           ====================================== -->
 
-        <input
-          id="editCustomerName"
-          type="text"
-          value="${escapeHTML(
-            data.customer_name ||
-            ""
-          )}"
-          required
+      <label>
+        Catatan
+      </label>
+
+      <textarea
+        id="editNote"
+        rows="3"
+      >${escapeHTML(
+        data.note || ""
+      )}</textarea>
+
+
+      <!-- ======================================
+           TOMBOL
+           ====================================== -->
+
+      <div
+        class="form-actions"
+      >
+
+        <button
+          type="submit"
+          class="primary-button"
         >
+          💾 Simpan Perubahan
+        </button>
 
-
-        <label>
-          Versi / Member
-        </label>
-
-        <input
-          id="editVersion"
-          type="text"
-          value="${escapeHTML(
-            data.version ||
-            ""
-          )}"
+        <button
+          type="button"
+          id="cancelEditRecap"
         >
+          Batal
+        </button>
+
+      </div>
 
 
-        <label>
-          Quantity
-        </label>
+      <p
+        id="editRecapMessage"
+        class="login-error"
+      ></p>
 
-        <input
-          id="editQuantity"
-          type="number"
-          min="1"
-          value="${
-            data.quantity ||
-            1
-          }"
-          required
-        >
+    </form>
 
+  </div>
 
-        <label>
-          Harga Barang
-        </label>
-
-        <input
-          id="editItemPrice"
-          type="number"
-          min="0"
-          value="${
-            data.item_price ||
-            0
-          }"
-        >
-
-
-        <label>
-          DP
-        </label>
-
-        <input
-          id="editDpAmount"
-          type="number"
-          min="0"
-          value="${
-            data.dp_amount ||
-            0
-          }"
-        >
-
-
-        <label>
-          Status DP
-        </label>
-
-        <select
-          id="editDpStatus"
-        >
-
-          <option
-            value="unpaid"
-            ${
-              data.dp_status ===
-              "unpaid"
-                ? "selected"
-                : ""
-            }
-          >
-            Belum Dibayar
-          </option>
-
-          <option
-            value="paid"
-            ${
-              data.dp_status ===
-              "paid"
-                ? "selected"
-                : ""
-            }
-          >
-            Sudah Dibayar
-          </option>
-
-        </select>
-
-
-        <label>
-          Sisa Pembayaran
-        </label>
-
-        <input
-          id="editRemaining"
-          type="number"
-          min="0"
-          value="${
-            data.remaining_amount ||
-            0
-          }"
-        >
-
-
-        <label>
-          Status Pelunasan
-        </label>
-
-        <select
-          id="editPaymentStatus"
-        >
-
-          <option
-            value="unpaid"
-            ${
-              data.payment_status ===
-              "unpaid"
-                ? "selected"
-                : ""
-            }
-          >
-            Belum Lunas
-          </option>
-
-          <option
-            value="paid"
-            ${
-              data.payment_status ===
-              "paid"
-                ? "selected"
-                : ""
-            }
-          >
-            Sudah Lunas
-          </option>
-
-        </select>
-
-        <label>
-  Status Customer
-</label>
-
-<select
-  id="editCustomerStatus"
->
-
-  <option
-    value="Belum Checkout Shopee"
-    ${
-      data.customer_status ===
-      "Belum Checkout Shopee"
-        ? "selected"
-        : ""
-    }
-  >
-    ⏳ Belum Checkout Shopee
-  </option>
-
-  <option
-    value="Sudah Checkout Shopee"
-    ${
-      data.customer_status ===
-      "Sudah Checkout Shopee"
-        ? "selected"
-        : ""
-    }
-  >
-    🛒 Sudah Checkout Shopee
-  </option>
-
-  <option
-    value="Sudah Menerima Barang"
-    ${
-      data.customer_status ===
-      "Sudah Menerima Barang"
-        ? "selected"
-        : ""
-    }
-  >
-    📦 Sudah Menerima Barang
-  </option>
-
-</select>
-
-        <label>
-          Catatan
-        </label>
-
-        <textarea
-          id="editNote"
-          rows="3"
-        >${escapeHTML(
-          data.note ||
-          ""
-        )}</textarea>
-
-<label>
-  Deadline Pelunasan
-</label>
-
-<input
-  id="editPaymentDeadline"
-  type="date"
-  value="${
-    data.payment_deadline ||
-    ""
-  }"
-  ${
-    canSetPaymentDeadline
-      ? ""
-      : "disabled"
-  }
->
-
-${
-  canSetPaymentDeadline
-    ? ""
-    : `<small>
-        Deadline Pelunasan dapat diisi setelah
-        tracking mencapai Arrived WH INA.
-      </small>`
-}
-
-<label>
-  Deadline CO Shopee
-</label>
-
-<input
-  id="editCoDeadline"
-  type="date"
-  value="${
-  data.co_deadline
-    ? String(data.co_deadline).substring(0, 10)
-    : ""
-   }"  
-
-${
-    canSetCoDeadline
-      ? ""
-      : "disabled"
-  }
->
-
-${
-  canSetCoDeadline
-    ? ""
-    : `<small>
-        Deadline CO Shopee dapat diisi setelah
-        tracking mencapai Arrived Admin.
-      </small>`
-}
-        <div
-          class="form-actions"
-        >
-
-          <button
-            type="submit"
-            class="primary-button"
-          >
-            💾 Simpan Perubahan
-          </button>
-
-
-          <button
-            type="button"
-            id="cancelEditRecap"
-          >
-            Batal
-          </button>
-
-        </div>
-
-
-        <p
-          id="editRecapMessage"
-          class="login-error"
-        ></p>
-
-      </form>
-
-    </div>
-
-  `;
+`;
 
      // Otomatis scroll ke form Edit Rekap
   setTimeout(function () {
