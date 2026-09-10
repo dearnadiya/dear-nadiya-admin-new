@@ -8213,9 +8213,9 @@ deleteCategoryButtons.forEach(
   function(button) {
 
     button.addEventListener(
-      "click",
-      function(event) {
-
+  "click",
+  async function(event) {
+     
         event.preventDefault();
         event.stopPropagation();
 
