@@ -7693,6 +7693,133 @@ selectedRecapCategory =
       }
     );
 
+         /* ==========================================
+       TAMBAH KATEGORI
+       ========================================== */
+
+    const addRecapCategoryButton =
+      container.querySelector(
+        "#addRecapCategoryButton"
+      );
+
+    if (addRecapCategoryButton) {
+
+      addRecapCategoryButton.addEventListener(
+        "click",
+        function() {
+
+          container.innerHTML = `
+
+            <div class="recap-navigation">
+
+              <button
+                type="button"
+                class="recap-back-button"
+                id="cancelAddRecapCategory"
+              >
+                ← Kembali ke Kategori
+              </button>
+
+              <h3 class="recap-current-title">
+                ➕ Tambah Kategori
+              </h3>
+
+            </div>
+
+            <div class="panel">
+
+              <div class="form-group">
+
+                <label>
+                  Type Rekap
+                </label>
+
+                <input
+                  type="text"
+                  value="${escapeHTML(recapType)}"
+                  readonly
+                >
+
+              </div>
+
+              <div class="form-group">
+
+                <label>
+                  Nama Kategori
+                </label>
+
+                <input
+                  type="text"
+                  id="newRecapCategoryName"
+                  placeholder="Contoh: Treasure KR"
+                  autocomplete="off"
+                >
+
+              </div>
+
+              <div
+                style="
+                  margin-top: 16px;
+                  display: flex;
+                  gap: 10px;
+                "
+              >
+
+                <button
+                  type="button"
+                  class="primary-button"
+                  id="saveNewRecapCategory"
+                >
+                  💾 Simpan Kategori
+                </button>
+
+                <button
+                  type="button"
+                  class="secondary-button"
+                  id="cancelNewRecapCategory"
+                >
+                  Batal
+                </button>
+
+              </div>
+
+            </div>
+
+          `;
+
+          const backButtons = [
+            container.querySelector(
+              "#cancelAddRecapCategory"
+            ),
+            container.querySelector(
+              "#cancelNewRecapCategory"
+            )
+          ];
+
+          backButtons.forEach(
+            function(button) {
+
+              if (!button) return;
+
+              button.addEventListener(
+                "click",
+                function() {
+
+                  showRecapCategories(
+                    recapType
+                  );
+
+                }
+              );
+
+            }
+          );
+
+        }
+      );
+
+    }
+
   }).catch(function(error) {
 
     console.error(
