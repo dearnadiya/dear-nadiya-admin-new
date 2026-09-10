@@ -12399,6 +12399,28 @@ async function editBatchHeader(
       batchDp
     );
 
+   const isSamePriceModeHeader =
+  data.length > 0 &&
+  data.every(function(row) {
+
+    const rowPrice =
+      Number(
+        row.item_price
+      ) || 0;
+
+    const rowDp =
+      Number(
+        row.minimum_dp_amount ??
+        row.dp_amount ??
+        0
+      ) || 0;
+
+    return (
+      rowPrice === batchPrice &&
+      rowDp === batchDp
+    );
+
+  });
 
   const batchTracking =
     firstRow.batch_tracking_status ||
@@ -12472,49 +12494,54 @@ async function editBatchHeader(
         >
 
 
-        <label>
-          Harga Batch
-        </label>
+        ${
+  isSamePriceModeHeader
+    ? `
 
-        <input
-          id="editBatchHeaderPrice"
-          type="number"
-          min="0"
-          value="${batchPrice}"
-          required
-        >
+      <label>
+        Harga Batch
+      </label>
 
+      <input
+        id="editBatchHeaderPrice"
+        type="number"
+        min="0"
+        value="${batchPrice}"
+        required
+      >
 
-        <label>
-          DP Batch
-        </label>
+      <label>
+        DP Batch
+      </label>
 
-        <input
-          id="editBatchHeaderDp"
-          type="number"
-          min="0"
-          value="${batchDp}"
-          required
-        >
+      <input
+        id="editBatchHeaderDp"
+        type="number"
+        min="0"
+        value="${batchDp}"
+        required
+      >
 
+      <label>
+        Pelunasan / Sisa Pembayaran
+      </label>
 
-        <label>
-          Pelunasan / Sisa Pembayaran
-        </label>
+      <input
+        id="editBatchHeaderRemaining"
+        type="number"
+        min="0"
+        value="${batchRemaining}"
+        readonly
+      >
 
-        <input
-          id="editBatchHeaderRemaining"
-          type="number"
-          min="0"
-          value="${batchRemaining}"
-          readonly
-        >
+      <small>
+        Pelunasan dihitung otomatis:
+        Harga Batch − DP Batch.
+      </small>
 
-        <small>
-          Pelunasan dihitung otomatis:
-          Harga Batch − DP Batch.
-        </small>
-
+    `
+    : ""
+}
 
         <label>
           Deadline DP
@@ -12762,154 +12789,183 @@ async function editBatchHeader(
             .trim();
 
 
-        const newPrice =
-          Number(
-            document
-              .getElementById(
-                "editBatchHeaderPrice"
-              )
-              .value
-          ) || 0;
-
-
-        const newDp =
-          Number(
-            document
-              .getElementById(
-                "editBatchHeaderDp"
-              )
-              .value
-          ) || 0;
-
-/* ======================================
-   HITUNG PEMBAYARAN AKTUAL CUSTOMER
+        /* ======================================
+   HARGA & DP
+   HANYA UNTUK HARGA SAMA
    ====================================== */
 
-const oldDpTarget =
-  Number(
-    firstRow.minimum_dp_amount ||
-    firstRow.dp_amount ||
-    0
-  ) || 0;
-
+let newPrice = null;
+let newDp = null;
 let totalDpPaid = 0;
 let totalPelunasanPaid = 0;
+let newDpStatus = null;
+let newRemaining = null;
+let newPaymentStatus = null;
 
-/* Ambil seluruh histori pembayaran batch */
-for (const row of data) {
+if (isSamePriceModeHeader) {
 
-  const {
-    data: historyAllocations,
-    error: historyError
-  } =
-    await supabaseClient
-      .from("dn_payment_allocations")
-      .select(
-        "allocated_amount, payment_part, allocation_status, created_at"
-      )
-      .eq(
-        "recap_id",
-        row.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: true
-        }
+  newPrice =
+    Number(
+      document
+        .getElementById(
+          "editBatchHeaderPrice"
+        )
+        .value
+    ) || 0;
+
+
+  newDp =
+    Number(
+      document
+        .getElementById(
+          "editBatchHeaderDp"
+        )
+        .value
+    ) || 0;
+
+
+  /* ======================================
+     HITUNG PEMBAYARAN AKTUAL CUSTOMER
+     ====================================== */
+
+  const oldDpTarget =
+    Number(
+      firstRow.minimum_dp_amount ??
+      firstRow.dp_amount ??
+      0
+    ) || 0;
+
+
+  /* Ambil histori pembayaran batch */
+
+  for (const row of data) {
+
+    const {
+      data: historyAllocations,
+      error: historyError
+    } =
+      await supabaseClient
+        .from(
+          "dn_payment_allocations"
+        )
+        .select(
+          "allocated_amount, payment_part, allocation_status, created_at"
+        )
+        .eq(
+          "recap_id",
+          row.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (historyError) {
+
+      console.error(
+        "ERROR FETCH PAYMENT HISTORY:",
+        historyError
       );
 
-  if (historyError) {
+      message.textContent =
+        "Gagal mengambil histori pembayaran: " +
+        historyError.message;
 
-    console.error(
-      "ERROR FETCH PAYMENT HISTORY:",
-      historyError
-    );
+      return;
+    }
 
-    message.textContent =
-      "Gagal mengambil histori pembayaran: " +
-      historyError.message;
 
-    return;
+    for (
+      const history of
+      historyAllocations || []
+    ) {
+
+      const amount =
+        Number(
+          history.allocated_amount
+        ) || 0;
+
+
+      if (
+        history.payment_part ===
+        "dp"
+      ) {
+
+        totalDpPaid +=
+          amount;
+
+        continue;
+      }
+
+
+      if (
+        history.payment_part ===
+        "pelunasan"
+      ) {
+
+        totalPelunasanPaid +=
+          amount;
+
+        continue;
+      }
+
+
+      if (
+        history.payment_part ===
+        "both"
+      ) {
+
+        const dpNeeded =
+          Math.max(
+            oldDpTarget -
+            totalDpPaid,
+            0
+          );
+
+
+        const dpPortion =
+          Math.min(
+            amount,
+            dpNeeded
+          );
+
+
+        const pelunasanPortion =
+          Math.max(
+            amount -
+            dpPortion,
+            0
+          );
+
+
+        totalDpPaid +=
+          dpPortion;
+
+        totalPelunasanPaid +=
+          pelunasanPortion;
+      }
+
+    }
+
   }
 
-  for (
-    const history of
-    historyAllocations || []
-  ) {
 
-    const amount =
-      Number(
-        history.allocated_amount
-      ) || 0;
-
-    if (
-      history.payment_part ===
-      "dp"
-    ) {
-
-      totalDpPaid +=
-        amount;
-
-      continue;
-    }
-
-    if (
-      history.payment_part ===
-      "pelunasan"
-    ) {
-
-      totalPelunasanPaid +=
-        amount;
-
-      continue;
-    }
-
-    if (
-      history.payment_part ===
-      "both"
-    ) {
-
-      const dpNeeded =
-        Math.max(
-          oldDpTarget -
-          totalDpPaid,
-          0
-        );
-
-      const dpPortion =
-        Math.min(
-          amount,
-          dpNeeded
-        );
-
-      const pelunasanPortion =
-        Math.max(
-          amount -
-          dpPortion,
-          0
-        );
-
-      totalDpPaid +=
-        dpPortion;
-
-      totalPelunasanPaid +=
-        pelunasanPortion;
-    }
-  }
-}
-
-/* ======================================
-   STATUS DP BERDASARKAN DP TARGET BARU
-   ====================================== */
-
-let newDpStatus =
-  "unpaid";
-
-if (
-  totalDpPaid > 0
-) {
+  /* ======================================
+     STATUS DP
+     BERDASARKAN DP TARGET BARU
+     ====================================== */
 
   if (
+    totalDpPaid <= 0
+  ) {
+
+    newDpStatus =
+      "unpaid";
+
+  } else if (
     totalDpPaid >= newDp
   ) {
 
@@ -12920,31 +12976,32 @@ if (
 
     newDpStatus =
       "insufficient";
+
   }
+
+
+  /* ======================================
+     PELUNASAN BERDASARKAN PEMBAYARAN AKTUAL
+     UNTUK HARGA SAMA
+     ====================================== */
+
+  const totalActualPaid =
+    totalDpPaid +
+    totalPelunasanPaid;
+
+
+  newRemaining =
+    newPrice -
+    totalActualPaid;
+
+
+  newPaymentStatus =
+    newPrice > 0 &&
+    totalActualPaid >= newPrice
+      ? "paid"
+      : "unpaid";
+
 }
-
-/* ======================================
-   PELUNASAN BERDASARKAN TOTAL BAYAR AKTUAL
-   BOLEH NEGATIF
-   ====================================== */
-
-const totalActualPaid =
-  totalDpPaid +
-  totalPelunasanPaid;
-
-const newRemaining =
-  newPrice -
-  totalActualPaid;
-
-/* ======================================
-   STATUS PEMBAYARAN
-   ====================================== */
-
-const newPaymentStatus =
-  newPrice > 0 &&
-  totalActualPaid >= newPrice
-    ? "paid"
-    : "unpaid";
         
         const newDpDeadline =
           document
@@ -12982,64 +13039,69 @@ const newPaymentStatus =
 
 
         /* ======================================
-           UPDATE SEMUA CUSTOMER DALAM BATCH
-           ====================================== */
+   UPDATE SEMUA CUSTOMER DALAM BATCH
+   ====================================== */
 
-        const {
-          error: updateError
-        } =
-          await supabaseClient
-            .from("purchase_recap")
-            .update({
+const updateData = {
 
-              batch_code:
-                newBatchCode,
+  batch_code:
+    newBatchCode,
 
-              item_name:
-                newItemName,
+  item_name:
+    newItemName,
 
-              item_price:
-                newPrice,
+  dp_deadline:
+    newDpDeadline,
 
-              minimum_dp_amount:
-                newDp,
+  payment_deadline:
+    newPaymentDeadline,
 
-              dp_amount:
-  totalDpPaid,
+  co_deadline:
+    newCoDeadline,
 
-dp_status:
-  newDpStatus,
+  tracking_status:
+    newTracking,
 
-remaining_amount:
-  newRemaining,
+  batch_tracking_status:
+    newTracking
 
-payment_status:
-  newPaymentStatus,
-              dp_deadline:
-                newDpDeadline,
+};
 
-              payment_deadline:
-                newPaymentDeadline,
+/* ======================================
+   HARGA & DP
+   HANYA JIKA HARGA SAMA
+   ====================================== */
 
-              co_deadline:
-                newCoDeadline,
+if (isSamePriceModeHeader) {
 
-              tracking_status:
-                newTracking,
+  updateData.item_price =
+    newPrice;
 
-              batch_tracking_status:
-                newTracking
+  updateData.minimum_dp_amount =
+    newDp;
 
-            })
-            .eq(
-              "category",
-              category
-            )
-            .eq(
-              "batch_code",
-              batchCode
-            );
+  updateData.dp_amount =
+    totalDpPaid;
 
+  updateData.dp_status =
+    newDpStatus;
+
+  updateData.remaining_amount =
+    newRemaining;
+
+  updateData.payment_status =
+    newPaymentStatus;
+
+}
+
+const {
+  error: updateError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .update(updateData)
+    .eq("category", category)
+    .eq("batch_code", batchCode);
 
         if (updateError) {
 
