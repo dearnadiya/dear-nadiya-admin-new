@@ -7278,12 +7278,6 @@ if (
   savedRecapState.category
 ) {
 
-  selectedRecapType =
-    savedRecapState.type;
-
-  selectedRecapCategory =
-    savedRecapState.category;
-
   showRecapCategories(
     savedRecapState.type
   );
