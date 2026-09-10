@@ -10066,3 +10066,321 @@ td:last-child {
   }
 
 }
+
+/* =========================================================
+   FINAL FIX
+   REKAP GO MOBILE
+   SCROLL UNTUK 1 TABEL PENUH
+   BUKAN PER BARIS
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* =====================================================
+     AREA UTAMA REKAP
+     SATU-SATUNYA AREA YANG BOLEH SCROLL HORIZONTAL
+     ===================================================== */
+
+  #recapListContainer {
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    scrollbar-width: thin !important;
+  }
+
+
+  /* =====================================================
+     SEMUA BATCH BERADA DALAM SATU AREA
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: none !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    margin: 0 !important;
+  }
+
+
+  /* =====================================================
+     HEADER BATCH
+     JANGAN SCROLL SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 100% !important;
+    min-width: 850px !important;
+
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    gap: 0 !important;
+
+    box-sizing: border-box !important;
+
+    /*
+     * PENTING:
+     * HEADER TIDAK BOLEH MENJADI SCROLLER
+     */
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     WRAPPER ISI HEADER
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child {
+
+    display: contents !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+  }
+
+
+  /* =====================================================
+     KODE BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  h3 {
+
+    flex: 0 0 105px !important;
+
+    width: 105px !important;
+    min-width: 105px !important;
+
+    height: 48px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 10px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     NAMA BARANG + EDIT
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p {
+
+    display: inline-flex !important;
+
+    flex: 0 0 auto !important;
+
+    align-items: center !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+    padding: 0 10px !important;
+
+    gap: 7px !important;
+
+    box-sizing: border-box !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* Nama barang */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p
+  > span {
+
+    flex: 0 0 auto !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* =====================================================
+     EDIT
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+
+    height: 30px !important;
+
+    margin: 0 !important;
+    padding: 4px 8px !important;
+
+    font-size: 11px !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+
+    z-index: 20 !important;
+  }
+
+
+  /* =====================================================
+     TAMBAH MEMBER
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-customer-summary {
+
+    display: contents !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-customer-summary
+  > span {
+
+    display: none !important;
+  }
+
+
+  #recapListContainer
+  .add-recap-member-button {
+
+    flex: 0 0 auto !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    height: 30px !important;
+
+    margin: 0 8px !important;
+    padding: 4px 8px !important;
+
+    font-size: 11px !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     PANAH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header::after {
+
+    flex: 0 0 34px !important;
+
+    width: 34px !important;
+    min-width: 34px !important;
+
+    height: 48px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    position: static !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     DETAIL TABLE
+     TETAP MENGIKUTI LEBAR BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table-wrapper {
+
+    width: 100% !important;
+    max-width: none !important;
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: none !important;
+
+    box-sizing: border-box !important;
+  }
+
+}
