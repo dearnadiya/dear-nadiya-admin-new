@@ -10337,7 +10337,82 @@ container
 
     }
   );
+/* ==========================================
+   EDIT BATCH DARI HEADER
+   ========================================== */
 
+container
+  .querySelectorAll(
+    ".edit-batch-header-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        function(event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          const category =
+            this.dataset.category;
+
+          if (!batchCode) {
+
+            console.error(
+              "Kode batch tidak ditemukan."
+            );
+
+            return;
+          }
+
+          const batchCard =
+            this.closest(
+              ".recap-batch-card"
+            );
+
+          if (!batchCard) {
+            return;
+          }
+
+          const firstEditButton =
+            batchCard.querySelector(
+              ".edit-recap-button"
+            );
+
+          if (!firstEditButton) {
+
+            console.error(
+              "Data customer dalam batch tidak ditemukan."
+            );
+
+            return;
+          }
+
+          const id =
+            firstEditButton.dataset.id;
+
+          if (!id) {
+
+            console.error(
+              "ID customer dalam batch tidak ditemukan."
+            );
+
+            return;
+          }
+
+          editRecap(id);
+
+        }
+      );
+
+    }
+  );
+   
    /* ==========================================
    COLLAPSE / EXPAND BATCH
    ========================================== */
@@ -12245,15 +12320,17 @@ async function editRecap(
   }
 
 
-  const container =
-    document.getElementById(
-      "recapFormContainer"
-    );
+const container =
+  document.getElementById(
+    "recapFormContainer"
+  );
 
+if (!container) {
+  return;
+}
 
-  if (!container) {
-    return;
-  }
+/* TAMPILKAN FORM EDIT */
+container.style.display = "block";
 
 
   const trackingOptions =
