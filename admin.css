@@ -11581,11 +11581,11 @@ button {
 }
 
 /* =========================================================
-   REKAP GO — FIX HEADER BATCH FINAL
-   1 BARIS:
-   Kode Batch | Nama Barang | Edit | Tambah Member / Versi | →
+   REKAP GO — FIX HEADER BATCH V2
+   Kode | Nama Barang | Edit | Tambah Member / Versi | →
    ========================================================= */
 
+/* AREA SCROLL SATU TABEL */
 #recapListContainer .recap-batch-scroll {
   width: 100% !important;
   max-width: 100% !important;
@@ -11594,8 +11594,9 @@ button {
   box-sizing: border-box !important;
 }
 
+
 /* =========================================================
-   HEADER JUDUL KOLOM
+   HEADER JUDUL
    ========================================================= */
 
 #recapListContainer .recap-batch-table-header {
@@ -11608,20 +11609,18 @@ button {
     175px
     45px !important;
 
-  width: max-content !important;
+  width: 625px !important;
   min-width: 625px !important;
 
   height: 58px !important;
-  min-height: 58px !important;
 
   box-sizing: border-box !important;
-
-  align-items: stretch !important;
 
   overflow: visible !important;
 }
 
-/* Semua judul kolom */
+
+/* semua kolom judul */
 #recapListContainer .recap-batch-table-header > div {
   display: flex !important;
 
@@ -11637,19 +11636,24 @@ button {
   text-align: center !important;
 
   border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
-/* Kolom terakhir tidak perlu garis kanan */
-#recapListContainer
-.recap-batch-table-header
-.recap-batch-table-arrow {
+
+/* Nama Barang */
+#recapListContainer .recap-batch-table-name {
+  justify-content: center !important;
+}
+
+
+/* kolom terakhir */
+#recapListContainer .recap-batch-table-arrow {
   border-right: none !important;
 }
 
 
 /* =========================================================
-   HEADER SETIAP BATCH
+   BARIS BATCH
    ========================================================= */
 
 #recapListContainer
@@ -11665,6 +11669,8 @@ button {
     175px
     45px !important;
 
+  position: relative !important;
+
   width: 625px !important;
   min-width: 625px !important;
 
@@ -11674,23 +11680,21 @@ button {
   margin: 0 !important;
   padding: 0 !important;
 
-  gap: 0 !important;
-
   box-sizing: border-box !important;
 
-  align-items: stretch !important;
+  gap: 0 !important;
 
   overflow: visible !important;
+
+  align-items: center !important;
 }
 
 
 /* =========================================================
-   PENTING
-   Wrapper kode + nama jangan menjadi satu kolom
+   WRAPPER DALAM HEADER
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 > div:first-child {
 
@@ -11699,11 +11703,10 @@ button {
 
 
 /* =========================================================
-   KODE BATCH
+   KODE BATCH — KOLOM 1
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 h3 {
 
@@ -11715,11 +11718,10 @@ h3 {
   align-items: center !important;
   justify-content: center !important;
 
-  width: 100% !important;
-  min-width: 0 !important;
+  width: 105px !important;
+  min-width: 105px !important;
 
   height: 58px !important;
-  min-height: 58px !important;
 
   margin: 0 !important;
   padding: 8px !important;
@@ -11732,17 +11734,15 @@ h3 {
   text-overflow: ellipsis !important;
 
   border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
 
 /* =========================================================
-   P WRAPPER NAMA + EDIT
-   WAJIB display: contents
+   P JANGAN MENGGANGGU GRID
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 p {
 
@@ -11751,14 +11751,12 @@ p {
 
 
 /* =========================================================
-   NAMA BARANG
+   NAMA BARANG — KOLOM 2
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
-p
-> span {
+p > span {
 
   grid-column: 2 !important;
   grid-row: 1 !important;
@@ -11768,11 +11766,10 @@ p
   align-items: center !important;
   justify-content: flex-start !important;
 
-  width: 100% !important;
-  min-width: 0 !important;
+  width: 220px !important;
+  min-width: 220px !important;
 
   height: 58px !important;
-  min-height: 58px !important;
 
   margin: 0 !important;
   padding: 8px 12px !important;
@@ -11785,30 +11782,28 @@ p
   text-overflow: ellipsis !important;
 
   border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
 
 /* =========================================================
-   TOMBOL EDIT
-   HARUS SEJAJAR DENGAN NAMA BARANG
+   EDIT — KOLOM 3
+   POSISI ABSOLUT AGAR TIDAK HILANG
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 .edit-batch-header-button {
-
-  grid-column: 3 !important;
-  grid-row: 1 !important;
 
   display: flex !important;
 
   align-items: center !important;
   justify-content: center !important;
 
-  align-self: center !important;
-  justify-self: center !important;
+  position: absolute !important;
+
+  left: 330px !important;
+  top: 13px !important;
 
   width: 70px !important;
   min-width: 70px !important;
@@ -11822,22 +11817,20 @@ p
 
   box-sizing: border-box !important;
 
+  z-index: 50 !important;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+
   white-space: nowrap !important;
-
-  position: relative !important;
-  z-index: 10 !important;
-
-  border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
 }
 
 
 /* =========================================================
-   CUSTOMER SUMMARY
+   TAMBAH MEMBER / VERSI — KOLOM 4
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 .recap-batch-customer-summary {
 
@@ -11845,9 +11838,7 @@ p
 }
 
 
-/* Jumlah customer tidak ditampilkan di baris batch */
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 .recap-batch-customer-summary
 > span {
@@ -11856,12 +11847,7 @@ p
 }
 
 
-/* =========================================================
-   TAMBAH MEMBER / VERSI
-   ========================================================= */
-
 #recapListContainer
-.recap-batch-card
 .recap-batch-header
 .add-recap-member-button {
 
@@ -11873,37 +11859,34 @@ p
   align-items: center !important;
   justify-content: center !important;
 
-  align-self: center !important;
   justify-self: center !important;
+  align-self: center !important;
 
   width: 165px !important;
   min-width: 165px !important;
   max-width: 165px !important;
 
   height: 32px !important;
-  min-height: 32px !important;
 
   margin: 0 !important;
   padding: 5px 8px !important;
 
   box-sizing: border-box !important;
 
+  z-index: 20 !important;
+
   white-space: nowrap !important;
 
-  position: relative !important;
-  z-index: 10 !important;
-
   border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
 
 /* =========================================================
-   PANAH
+   PANAH — KOLOM 5
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
 .recap-batch-header::after {
 
   content: "→" !important;
@@ -11920,7 +11903,6 @@ p
   min-width: 45px !important;
 
   height: 58px !important;
-  min-height: 58px !important;
 
   margin: 0 !important;
   padding: 0 !important;
@@ -11931,45 +11913,40 @@ p
   font-weight: 700 !important;
 
   border-left:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
 
 /* =========================================================
-   GARIS PEMBATAS ANTAR KOLOM
+   GARIS ANTAR KOLOM
    ========================================================= */
 
 #recapListContainer
-.recap-batch-card
-.recap-batch-header
-h3,
-#recapListContainer
-.recap-batch-card
-.recap-batch-header
-p > span,
-#recapListContainer
-.recap-batch-card
-.recap-batch-header
-.edit-batch-header-button,
-#recapListContainer
-.recap-batch-card
-.recap-batch-header
-.add-recap-member-button {
-
+.recap-batch-table-header
+.recap-batch-table-code {
   border-right:
-    1px solid rgba(100, 70, 120, 0.16) !important;
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
-
-/* =========================================================
-   JANGAN BIARKAN BATCH HEADER MEMBUAT SCROLL SENDIRI
-   ========================================================= */
+#recapListContainer
+.recap-batch-table-header
+.recap-batch-table-name {
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+}
 
 #recapListContainer
-.recap-batch-card
-.recap-batch-header {
+.recap-batch-table-header
+.recap-batch-table-edit {
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+}
 
-  overflow: visible !important;
+#recapListContainer
+.recap-batch-table-header
+.recap-batch-table-member {
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
 }
 
 
@@ -11979,7 +11956,8 @@ p > span,
 
 @media (max-width: 700px) {
 
-  #recapListContainer .recap-batch-scroll {
+  #recapListContainer
+  .recap-batch-scroll {
 
     width: 100% !important;
     max-width: 100% !important;
@@ -11990,6 +11968,7 @@ p > span,
     -webkit-overflow-scrolling: touch !important;
   }
 
+
   #recapListContainer
   .recap-batch-table-header {
 
@@ -11997,12 +11976,25 @@ p > span,
     min-width: 625px !important;
   }
 
+
   #recapListContainer
   .recap-batch-card
   .recap-batch-header {
 
     width: 625px !important;
     min-width: 625px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    left: 330px !important;
+    top: 13px !important;
+
+    width: 70px !important;
+    min-width: 70px !important;
   }
 
 }
