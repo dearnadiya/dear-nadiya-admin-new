@@ -11327,3 +11327,175 @@ button {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - HEADER KOLOM BATCH
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-table-header {
+
+    width: 555px !important;
+    min-width: 555px !important;
+    max-width: 555px !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      105px
+      155px
+      75px
+      175px
+      45px !important;
+
+    align-items: center !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* KODE BATCH */
+
+  #recapListContainer
+  .recap-batch-table-code {
+
+    grid-column: 1 !important;
+
+    width: 105px !important;
+    min-width: 105px !important;
+
+    padding: 0 10px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* NAMA BARANG
+     HANYA SEDIKIT LEBIH BESAR DARI KODE */
+
+  #recapListContainer
+  .recap-batch-table-name {
+
+    grid-column: 2 !important;
+
+    width: 155px !important;
+    min-width: 155px !important;
+
+    padding: 0 10px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* HEADER EDIT */
+
+  #recapListContainer
+  .recap-batch-table-edit {
+
+    grid-column: 3 !important;
+
+    width: 75px !important;
+    min-width: 75px !important;
+
+    text-align: center !important;
+
+    font-size: 12px !important;
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* HEADER TAMBAH MEMBER */
+
+  #recapListContainer
+  .recap-batch-table-member {
+
+    grid-column: 4 !important;
+
+    width: 175px !important;
+    min-width: 175px !important;
+
+    text-align: center !important;
+
+    font-size: 11px !important;
+    font-weight: 700 !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* PANAH */
+
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    grid-column: 5 !important;
+
+    width: 45px !important;
+    min-width: 45px !important;
+
+    text-align: center !important;
+
+    font-size: 16px !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* SAMAKAN LEBAR BARIS DATA
+     DENGAN HEADER */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-card {
+
+    width: 555px !important;
+    min-width: 555px !important;
+    max-width: 555px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 555px !important;
+    min-width: 555px !important;
+    max-width: 555px !important;
+
+    grid-template-columns:
+      105px
+      155px
+      75px
+      175px
+      45px !important;
+  }
+
+}
