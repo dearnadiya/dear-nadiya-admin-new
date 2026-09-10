@@ -7011,6 +7011,8 @@ async function loadCOArchive() {
    REKAP GO
    ============================================ */
 
+let dearNadiyaSelectedRecapCategory = "";
+
 function loadRecap() {
 
   pageTitle.textContent =
@@ -7122,9 +7124,10 @@ function loadRecap() {
 
 
   let selectedRecapType =
-    "Treasure";
+  "Treasure";
 
-
+let selectedRecapCategory = "";
+   
   const typeButtons =
     document.querySelectorAll(
       "#recapTypeButtons button"
@@ -7184,41 +7187,26 @@ function loadRecap() {
 
 
   if (addButton) {
+  addButton.addEventListener(
+    "click",
+    function () {
 
-    addButton.addEventListener(
-      "click",
-      function () {
+      if (!selectedRecapCategory) {
 
-        const activeCategoryButton =
-          document.querySelector(
-            "#recapCategoryButtons button.active"
-          );
-
-
-        if (!activeCategoryButton) {
-
-          alert(
-            "Pilih kategori terlebih dahulu."
-          );
-
-          return;
-
-        }
-
-
-        const selectedCategory =
-          activeCategoryButton.dataset.category;
-
-
-        showRecapForm(
-          selectedCategory
+        alert(
+          "Pilih kategori terlebih dahulu."
         );
 
+        return;
       }
-    );
 
-  }
+      showRecapForm(
+        selectedRecapCategory
+      );
 
+    }
+  );
+}
 
   /* =====================================
      AWALNYA HANYA TYPE REKAP
@@ -7619,9 +7607,11 @@ function showRecapCategories(recapType) {
           "click",
           function() {
 
-            const selectedCategory =
-              button.dataset.category;
+           const selectedCategory =
+  button.dataset.category;
 
+selectedRecapCategory =
+  selectedCategory;
 
             /* ===============================
                SEMBUNYIKAN KATEGORI
