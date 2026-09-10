@@ -10919,3 +10919,411 @@ button {
   }
 
 }
+
+/* =========================================================
+   FINAL MOBILE REKAP GO
+   SCROLL HANYA AREA DAFTAR BATCH
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* =====================================================
+     1. CONTAINER ATAS TIDAK IKUT SCROLL
+     ===================================================== */
+
+  #recapListContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     2. INI SATU-SATUNYA AREA YANG BOLEH SCROLL
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll {
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    box-sizing: border-box !important;
+
+    scrollbar-width: thin !important;
+  }
+
+
+  /* =====================================================
+     3. SEMUA BATCH MEMILIKI LEBAR YANG SAMA
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-card {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: 850px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+
+  /* =====================================================
+     4. HEADER BATCH = 5 KOLOM
+     
+     Kode | Nama | Edit | Tambah Member | →
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: 850px !important;
+
+    height: 52px !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      125px
+      minmax(0, 1fr)
+      80px
+      175px
+      45px !important;
+
+    align-items: center !important;
+
+    gap: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  /* =====================================================
+     5. HEADER TIDAK BOLEH MENJADI SCROLL SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header {
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+
+  /* =====================================================
+     6. PEMBUNGKUS KODE + NAMA + CUSTOMER
+        DIBUKA AGAR ISINYA MENJADI GRID ITEM
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header
+  > div:first-child {
+
+    display: contents !important;
+  }
+
+
+  /* =====================================================
+     7. KODE BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header
+  h3 {
+
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* =====================================================
+     8. PEMBUNGKUS NAMA BARANG
+        DIBUKA AGAR SPAN + EDIT TERPISAH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header
+  > div:first-child
+  > p {
+
+    display: contents !important;
+  }
+
+
+  /* =====================================================
+     9. NAMA BARANG = KOLOM SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header
+  > div:first-child
+  > p
+  > span {
+
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    text-overflow: ellipsis !important;
+  }
+
+
+  /* =====================================================
+     10. EDIT = KOLOM SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+
+    justify-self: center !important;
+
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 5px 7px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 12px !important;
+
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+
+    z-index: 10 !important;
+  }
+
+
+  /* =====================================================
+     11. CUSTOMER SUMMARY
+        SPAN JUMLAH CUSTOMER DISEMBUNYIKAN
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-customer-summary {
+
+    display: contents !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-customer-summary
+  > span {
+
+    display: none !important;
+  }
+
+
+  /* =====================================================
+     12. TAMBAH MEMBER / VERSI = KOLOM SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .add-recap-member-button {
+
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+
+    justify-self: center !important;
+
+    width: 165px !important;
+    min-width: 165px !important;
+    max-width: 165px !important;
+
+    height: 34px !important;
+
+    margin: 0 !important;
+    padding: 5px 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 11px !important;
+
+    white-space: nowrap !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     13. PANAH = KOLOM SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header::after {
+
+    content: "→" !important;
+
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+
+    width: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+
+    height: 52px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 18px !important;
+
+    color: #555 !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     14. DEADLINE JANGAN MENGGANGGU HEADER
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-deadlines {
+
+    width: 850px !important;
+    max-width: 850px !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     15. TRACKING MENGIKUTI LEBAR BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .batch-tracking {
+
+    width: 850px !important;
+    min-width: 850px !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     16. TABEL CUSTOMER
+        TIDAK MEMBUAT SCROLL SENDIRI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table-wrapper {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: 850px !important;
+
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table {
+
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: 850px !important;
+
+    box-sizing: border-box !important;
+  }
+
+}
