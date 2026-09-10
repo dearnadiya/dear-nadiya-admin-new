@@ -13701,15 +13701,15 @@ container.innerHTML = `
                 .value
             ) || 0,
 
-          dp_amount:
-            Number(
-              document
-                .getElementById(
-                  "editDpAmount"
-                )
-                .value
-            ) || 0,
-
+          minimum_dp_amount:
+  Number(
+    document
+      .getElementById(
+        "editDpAmount"
+      )
+      .value
+  ) || 0,
+           
           dp_status:
             document
               .getElementById(
