@@ -9790,3 +9790,279 @@ td:last-child {
   }
 
 }
+
+/* =========================================================
+   FINAL FIX - BATCH REKAP GO MOBILE
+   SATU BARIS + BISA DIGESER KE KANAN
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* =====================================================
+     CONTAINER BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     HEADER BATCH
+     SATU BARIS HORIZONTAL
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    display: flex !important;
+
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    gap: 0 !important;
+
+    box-sizing: border-box !important;
+
+    /*
+     * INI YANG MEMBUAT BARIS BISA DIGESER
+     */
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    white-space: nowrap !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    scrollbar-width: thin !important;
+  }
+
+
+  /* =====================================================
+     WRAPPER H3 + P
+     JANGAN MENJADI BLOK/COLUMN
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child {
+
+    display: contents !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+  }
+
+
+  /* =====================================================
+     KODE BATCH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  h3 {
+
+    flex: 0 0 auto !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    height: 48px !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 10px !important;
+
+    box-sizing: border-box !important;
+
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+
+  /* =====================================================
+     NAMA BARANG + EDIT
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p {
+
+    display: inline-flex !important;
+
+    flex: 0 0 auto !important;
+
+    align-items: center !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+    padding: 0 10px !important;
+
+    gap: 7px !important;
+
+    box-sizing: border-box !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* Nama barang */
+  #recapListContainer
+  .recap-batch-header
+  > div:first-child
+  > p
+  > span {
+
+    flex: 0 0 auto !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    white-space: nowrap !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* =====================================================
+     TOMBOL EDIT HEADER
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    position: static !important;
+
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: max-content !important;
+
+    height: 30px !important;
+
+    margin: 0 !important;
+    padding: 4px 8px !important;
+
+    font-size: 11px !important;
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+
+    z-index: 20 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     TAMBAH MEMBER / VERSI
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-customer-summary {
+
+    display: contents !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-customer-summary
+  > span {
+
+    display: none !important;
+  }
+
+
+  #recapListContainer
+  .add-recap-member-button {
+
+    flex: 0 0 auto !important;
+
+    width: max-content !important;
+    min-width: max-content !important;
+
+    height: 30px !important;
+
+    margin: 0 8px !important;
+    padding: 4px 8px !important;
+
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+
+    white-space: nowrap !important;
+
+    box-sizing: border-box !important;
+
+    position: static !important;
+  }
+
+
+  /* =====================================================
+     PANAH
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-header::after {
+
+    flex: 0 0 34px !important;
+
+    width: 34px !important;
+    min-width: 34px !important;
+
+    height: 48px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    position: static !important;
+
+    margin: 0 !important;
+
+    font-size: 17px !important;
+
+    box-sizing: border-box !important;
+  }
+
+}
