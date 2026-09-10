@@ -9259,3 +9259,70 @@ a {
   white-space: nowrap !important;
   cursor: pointer !important;
 }
+
+/* =========================================
+   TOMBOL TAMBAH MEMBER / VERSI
+   TETAP TERLIHAT DI HEADER BATCH
+========================================= */
+
+#recapListContainer
+.recap-batch-header {
+  position: relative !important;
+}
+
+/* Container tombol */
+#recapListContainer
+.recap-batch-customer-summary {
+  display: block !important;
+
+  position: absolute !important;
+
+  right: 42px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  width: auto !important;
+  min-width: max-content !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  z-index: 5 !important;
+}
+
+/* Jumlah customer tidak perlu ditampilkan
+   di baris compact */
+#recapListContainer
+.recap-batch-customer-summary > span {
+  display: none !important;
+}
+
+/* Tombol */
+#recapListContainer
+.add-recap-member-button {
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: auto !important;
+  min-width: max-content !important;
+
+  padding: 6px 10px !important;
+
+  margin: 0 !important;
+
+  border-radius: 8px !important;
+
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+
+  white-space: nowrap !important;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  position: relative !important;
+  z-index: 10 !important;
+}
