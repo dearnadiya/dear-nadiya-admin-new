@@ -7693,123 +7693,125 @@ selectedRecapCategory =
       }
     );
 
-         /* ==========================================
-       TAMBAH KATEGORI
-       ========================================== */
+     /* ==========================================
+   TAMBAH KATEGORI
+   ========================================== */
 
-    const addRecapCategoryButton =
-      container.querySelector(
-        "#addRecapCategoryButton"
-      );
+const addRecapCategoryButton =
+  container.querySelector(
+    "#addRecapCategoryButton"
+  );
 
-    if (addRecapCategoryButton) {
+if (addRecapCategoryButton) {
 
-      addRecapCategoryButton.addEventListener(
-        "click",
-        function() {
+  addRecapCategoryButton.addEventListener(
+    "click",
+    function() {
 
-          container.innerHTML = `
+      container.innerHTML = `
 
-            <div class="recap-navigation">
+        <div class="recap-navigation">
 
-              <button
-                type="button"
-                class="recap-back-button"
-                id="cancelAddRecapCategory"
-              >
-                ← Kembali ke Kategori
-              </button>
+          <button
+            type="button"
+            class="recap-back-button"
+            id="cancelAddRecapCategory"
+          >
+            ← Kembali ke Kategori
+          </button>
 
-              <h3 class="recap-current-title">
-                ➕ Tambah Kategori
-              </h3>
+          <h3 class="recap-current-title">
+            ➕ Tambah Kategori
+          </h3>
 
-            </div>
+        </div>
 
-            <div class="panel">
+        <div class="panel">
 
-              <div class="form-group">
+          <div class="form-group">
 
-                <label>
-                  Type Rekap
-                </label>
+            <label>
+              Type Rekap
+            </label>
 
-                <input
-                  type="text"
-                  value="${escapeHTML(recapType)}"
-                  readonly
-                >
+            <input
+              type="text"
+              value="${escapeHTML(recapType)}"
+              readonly
+            >
 
-              </div>
+          </div>
 
-              <div class="form-group">
+          <div class="form-group">
 
-                <label>
-                  Nama Kategori
-                </label>
+            <label>
+              Nama Kategori
+            </label>
 
-                <input
-                  type="text"
-                  id="newRecapCategoryName"
-                  placeholder="Contoh: Treasure KR"
-                  autocomplete="off"
-                >
+            <input
+              type="text"
+              id="newRecapCategoryName"
+              placeholder="Contoh: Treasure KR"
+              autocomplete="off"
+            >
 
-              </div>
+          </div>
 
-              <div
-                style="
-                  margin-top: 16px;
-                  display: flex;
-                  gap: 10px;
-                "
-              >
+          <div
+            style="
+              margin-top: 16px;
+              display: flex;
+              gap: 10px;
+            "
+          >
 
-                <button
-                  type="button"
-                  class="primary-button"
-                  id="saveNewRecapCategory"
-                >
-                  💾 Simpan Kategori
-                </button>
+            <button
+              type="button"
+              class="primary-button"
+              id="saveNewRecapCategory"
+            >
+              💾 Simpan Kategori
+            </button>
 
-                <button
-                  type="button"
-                  class="secondary-button"
-                  id="cancelNewRecapCategory"
-                >
-                  Batal
-                </button>
+            <button
+              type="button"
+              class="secondary-button"
+              id="cancelNewRecapCategory"
+            >
+              Batal
+            </button>
 
-              </div>
+          </div>
 
-            </div>
+        </div>
 
-          `;
+      `;
 
-          const backButtons = [
-            container.querySelector(
-              "#cancelAddRecapCategory"
-            ),
-            container.querySelector(
-              "#cancelNewRecapCategory"
-            )
-          ];
 
-          backButtons.forEach(
-            function(button) {
+      /* ==========================================
+         TOMBOL KEMBALI / BATAL
+         ========================================== */
 
-              if (!button) return;
+      const backButtons = [
+        container.querySelector(
+          "#cancelAddRecapCategory"
+        ),
+        container.querySelector(
+          "#cancelNewRecapCategory"
+        )
+      ];
 
-              button.addEventListener(
-                "click",
-                function() {
+      backButtons.forEach(
+        function(button) {
 
-                  showRecapCategories(
-                    recapType
-                  );
+          if (!button) return;
 
-                }
+          button.addEventListener(
+            "click",
+            function() {
+
+              showRecapCategories(
+                recapType
               );
 
             }
@@ -7818,98 +7820,108 @@ selectedRecapCategory =
         }
       );
 
-                 /* ==========================================
-             SIMPAN KATEGORI BARU
-             ========================================== */
 
-          const saveNewRecapCategory =
-            container.querySelector(
-              "#saveNewRecapCategory"
+      /* ==========================================
+         SIMPAN KATEGORI BARU
+         ========================================== */
+
+      const saveNewRecapCategory =
+        container.querySelector(
+          "#saveNewRecapCategory"
+        );
+
+      if (saveNewRecapCategory) {
+
+        saveNewRecapCategory.addEventListener(
+          "click",
+          async function() {
+
+            const input =
+              container.querySelector(
+                "#newRecapCategoryName"
+              );
+
+            if (!input) return;
+
+            const categoryName =
+              input.value.trim();
+
+            if (!categoryName) {
+
+              alert(
+                "Nama kategori belum diisi."
+              );
+
+              input.focus();
+
+              return;
+            }
+
+
+            saveNewRecapCategory.disabled =
+              true;
+
+            saveNewRecapCategory.textContent =
+              "Menyimpan...";
+
+
+            const {
+              error
+            } =
+              await supabaseClient
+                .from("recap_categories")
+                .insert([
+                  {
+                    recap_type:
+                      recapType,
+
+                    category_name:
+                      categoryName
+                  }
+                ]);
+
+
+            if (error) {
+
+              console.error(
+                "Gagal menyimpan kategori:",
+                error
+              );
+
+              alert(
+                "Gagal menyimpan kategori: " +
+                error.message
+              );
+
+              saveNewRecapCategory.disabled =
+                false;
+
+              saveNewRecapCategory.textContent =
+                "💾 Simpan Kategori";
+
+              return;
+            }
+
+
+            alert(
+              "Kategori berhasil ditambahkan. ♥"
             );
 
-          if (saveNewRecapCategory) {
 
-            saveNewRecapCategory.addEventListener(
-              "click",
-              async function() {
-
-                const input =
-                  container.querySelector(
-                    "#newRecapCategoryName"
-                  );
-
-                if (!input) return;
-
-                const categoryName =
-                  input.value.trim();
-
-                if (!categoryName) {
-
-                  alert(
-                    "Nama kategori belum diisi."
-                  );
-
-                  input.focus();
-
-                  return;
-                }
-
-                saveNewRecapCategory.disabled =
-                  true;
-
-                saveNewRecapCategory.textContent =
-                  "Menyimpan...";
-
-                const {
-                  error
-                } =
-                  await supabaseClient
-                    .from("recap_categories")
-                    .insert([
-                      {
-                        recap_type:
-                          recapType,
-                        category_name:
-                          categoryName
-                      }
-                    ]);
-
-                if (error) {
-
-                  console.error(
-                    "Gagal menyimpan kategori:",
-                    error
-                  );
-
-                  alert(
-                    "Gagal menyimpan kategori: " +
-                    error.message
-                  );
-
-                  saveNewRecapCategory.disabled =
-                    false;
-
-                  saveNewRecapCategory.textContent =
-                    "💾 Simpan Kategori";
-
-                  return;
-                }
-
-                alert(
-                  "Kategori berhasil ditambahkan. ♥"
-                );
-
-                showRecapCategories(
-                  recapType
-                );
-
-              }
+            showRecapCategories(
+              recapType
             );
 
           }
+        );
+
+      }
 
     }
+  );
 
+}
+     
   }).catch(function(error) {
 
     console.error(
