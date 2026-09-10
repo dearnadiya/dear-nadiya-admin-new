@@ -7510,38 +7510,67 @@ function showRecapCategories(recapType) {
 
             return `
 
-              <button
-                type="button"
-                class="recap-category-card"
-                data-category="${escapeHTML(
-                  categoryName
-                )}"
-              >
+  <div class="recap-category-wrapper">
 
-                <div
-                  class="recap-category-icon"
-                >
-                  ${icon}
-                </div>
+    <button
+      type="button"
+      class="recap-category-card"
+      data-category="${escapeHTML(
+        categoryName
+      )}"
+    >
 
-                <div
-                  class="recap-category-name"
-                >
-                  ${escapeHTML(
-                    categoryName
-                  )}
-                </div>
+      <div
+        class="recap-category-icon"
+      >
+        ${icon}
+      </div>
 
-                <div
-                  class="recap-category-arrow"
-                >
-                  →
-                </div>
+      <div
+        class="recap-category-name"
+      >
+        ${escapeHTML(
+          categoryName
+        )}
+      </div>
 
-              </button>
+      <div
+        class="recap-category-arrow"
+      >
+        →
+      </div>
 
-            `;
+    </button>
 
+    <div class="recap-category-actions">
+
+      <button
+        type="button"
+        class="secondary-button edit-recap-category-button"
+        data-id="${category.id}"
+        data-category="${escapeHTML(
+          categoryName
+        )}"
+      >
+        ✏️ Edit
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button delete-recap-category-button"
+        data-id="${category.id}"
+        data-category="${escapeHTML(
+          categoryName
+        )}"
+      >
+        🗑️ Hapus
+      </button>
+
+    </div>
+
+  </div>
+
+`;
           }
         ).join("")}
 
