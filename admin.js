@@ -13493,10 +13493,9 @@ container.innerHTML = `
 >
 
       <small>
-        Pelunasan dihitung otomatis berdasarkan
-        pembayaran customer.
-      </small>
-
+  Pelunasan dihitung otomatis berdasarkan
+  Harga - DP Target.
+</small>
 
       <!-- ======================================
            HIDDEN STATUS PELUNASAN
@@ -13637,6 +13636,71 @@ container.innerHTML = `
       }
     );
 
+   /* ==========================================
+   HITUNG PELUNASAN OTOMATIS
+   HARGA BERBEDA
+   Harga - DP Target
+   ========================================== */
+
+const editPriceInput =
+  document.getElementById(
+    "editItemPrice"
+  );
+
+const editDpInput =
+  document.getElementById(
+    "editDpAmount"
+  );
+
+const editRemainingInput =
+  document.getElementById(
+    "editRemaining"
+  );
+
+function updateEditRemaining() {
+
+  // Hanya berlaku untuk Harga Berbeda
+  if (isSamePriceMode) {
+    return;
+  }
+
+  const price =
+    Number(
+      editPriceInput?.value
+    ) || 0;
+
+  const dpTarget =
+    Number(
+      editDpInput?.value
+    ) || 0;
+
+  const remaining =
+    Math.max(
+      0,
+      price - dpTarget
+    );
+
+  if (editRemainingInput) {
+    editRemainingInput.value =
+      remaining;
+  }
+}
+
+if (!isSamePriceMode) {
+
+  editPriceInput?.addEventListener(
+    "input",
+    updateEditRemaining
+  );
+
+  editDpInput?.addEventListener(
+    "input",
+    updateEditRemaining
+  );
+
+  // Hitung nilai awal saat form dibuka
+  updateEditRemaining();
+}
 
   document
     .getElementById(
