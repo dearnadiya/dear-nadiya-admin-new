@@ -11716,6 +11716,7 @@ const batchDpDeadline =
 
      /* ======================================
    SISA PEMBAYARAN
+   OTOMATIS HARGA - DP
    ====================================== */
 
 let remaining = 0;
@@ -11723,6 +11724,11 @@ let remaining = 0;
 if (
   priceMode === "same"
 ) {
+
+  /*
+   * Harga dan DP sama untuk semua customer.
+   * Sisa pembayaran dihitung otomatis.
+   */
 
   remaining =
     Math.max(
@@ -11733,29 +11739,16 @@ if (
 
 } else {
 
-  const customerPrice =
-    Number(
-      item
-        .querySelector(
-          ".batch-price"
-        )
-        .value
-    ) || 0;
-
-  const customerDp =
-    Number(
-      item
-        .querySelector(
-          ".batch-dp"
-        )
-        .value
-    ) || 0;
+  /*
+   * Harga dan DP berbeda per customer.
+   * Sisa pembayaran dihitung otomatis.
+   */
 
   remaining =
     Math.max(
       0,
-      customerPrice -
-      customerDp
+      price -
+      dp
     );
 
 }
