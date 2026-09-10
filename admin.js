@@ -7950,6 +7950,256 @@ if (addRecapCategoryButton) {
   );
 
 }
+
+         /* ==========================================
+       EDIT KATEGORI
+       ========================================== */
+
+    const editCategoryButtons =
+      container.querySelectorAll(
+        ".edit-recap-category-button"
+      );
+
+    editCategoryButtons.forEach(
+      function(button) {
+
+        button.addEventListener(
+          "click",
+          function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const categoryId =
+              this.dataset.id;
+
+            const currentName =
+              this.dataset.category;
+
+            if (!categoryId) {
+              console.error(
+                "ID kategori tidak ditemukan."
+              );
+              return;
+            }
+
+            container.innerHTML = `
+
+              <div class="recap-navigation">
+
+                <button
+                  type="button"
+                  class="recap-back-button"
+                  id="cancelEditRecapCategory"
+                >
+                  ← Kembali ke Kategori
+                </button>
+
+                <h3 class="recap-current-title">
+                  ✏️ Edit Kategori
+                </h3>
+
+              </div>
+
+              <div class="panel">
+
+                <div class="form-group">
+
+                  <label>
+                    Type Rekap
+                  </label>
+
+                  <input
+                    type="text"
+                    value="${escapeHTML(
+                      recapType
+                    )}"
+                    readonly
+                  >
+
+                </div>
+
+                <div class="form-group">
+
+                  <label>
+                    Nama Kategori
+                  </label>
+
+                  <input
+                    type="text"
+                    id="editRecapCategoryName"
+                    value="${escapeHTML(
+                      currentName
+                    )}"
+                    autocomplete="off"
+                  >
+
+                </div>
+
+                <div
+                  style="
+                    margin-top: 16px;
+                    display: flex;
+                    gap: 10px;
+                  "
+                >
+
+                  <button
+                    type="button"
+                    class="primary-button"
+                    id="saveEditRecapCategory"
+                  >
+                    💾 Simpan Perubahan
+                  </button>
+
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelEditRecapCategoryButton"
+                  >
+                    Batal
+                  </button>
+
+                </div>
+
+              </div>
+
+            `;
+
+
+            /* ======================================
+               TOMBOL KEMBALI
+               ====================================== */
+
+            const cancelButtons = [
+              container.querySelector(
+                "#cancelEditRecapCategory"
+              ),
+              container.querySelector(
+                "#cancelEditRecapCategoryButton"
+              )
+            ];
+
+            cancelButtons.forEach(
+              function(cancelButton) {
+
+                if (!cancelButton) return;
+
+                cancelButton.addEventListener(
+                  "click",
+                  function() {
+
+                    showRecapCategories(
+                      recapType
+                    );
+
+                  }
+                );
+
+              }
+            );
+
+
+            /* ======================================
+               SIMPAN PERUBAHAN
+               ====================================== */
+
+            const saveButton =
+              container.querySelector(
+                "#saveEditRecapCategory"
+              );
+
+            if (saveButton) {
+
+              saveButton.addEventListener(
+                "click",
+                async function() {
+
+                  const input =
+                    container.querySelector(
+                      "#editRecapCategoryName"
+                    );
+
+                  if (!input) return;
+
+                  const newName =
+                    input.value.trim();
+
+                  if (!newName) {
+
+                    alert(
+                      "Nama kategori belum diisi."
+                    );
+
+                    input.focus();
+
+                    return;
+                  }
+
+
+                  saveButton.disabled =
+                    true;
+
+                  saveButton.textContent =
+                    "Menyimpan...";
+
+
+                  const {
+                    error
+                  } =
+                    await supabaseClient
+                      .from("recap_categories")
+                      .update({
+                        category_name:
+                          newName
+                      })
+                      .eq(
+                        "id",
+                        categoryId
+                      );
+
+
+                  if (error) {
+
+                    console.error(
+                      "Gagal mengubah kategori:",
+                      error
+                    );
+
+                    alert(
+                      "Gagal mengubah kategori: " +
+                      error.message
+                    );
+
+                    saveButton.disabled =
+                      false;
+
+                    saveButton.textContent =
+                      "💾 Simpan Perubahan";
+
+                    return;
+                  }
+
+
+                  alert(
+                    "Kategori berhasil diubah. ♥"
+                  );
+
+
+                  showRecapCategories(
+                    recapType
+                  );
+
+                }
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
      
   }).catch(function(error) {
 
