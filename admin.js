@@ -7315,9 +7315,7 @@ function showRecapTypeSelection() {
    TAMPILKAN KATEGORI REKAP
    ============================================ */
 
-function showRecapCategories(
-  recapType
-) {
+function showRecapCategories(recapType) {
 
   const container =
     document.getElementById(
@@ -7334,392 +7332,381 @@ function showRecapCategories(
       "recapListContainer"
     );
 
-  const formContainer =
-    document.getElementById(
-      "recapFormContainer"
-    );
-
-  const addButton =
-    document.getElementById(
-      "addRecapButton"
-    );
+  if (!container) return;
 
 
-  if (!container) {
-    return;
-  }
+  /* ==========================================
+     ATUR TAMPILAN
+     ========================================== */
 
-
-  /* =====================================
-     TAMPILKAN KATEGORI
-     ===================================== */
+  container.style.display = "block";
 
   if (typeContainer) {
-
-    typeContainer.style.display =
-      "none";
-
+    typeContainer.style.display = "none";
   }
-
 
   if (listContainer) {
-
-    listContainer.style.display =
-      "none";
-
-    listContainer.innerHTML =
-      "";
-
+    listContainer.style.display = "none";
+    listContainer.innerHTML = "";
   }
 
 
-  if (formContainer) {
+  /* ==========================================
+     ICON KATEGORI
+     ========================================== */
 
-    formContainer.innerHTML =
-      "";
+  const categoryIcons = {
 
-    formContainer.style.display =
-      "none";
+    "Truz": "💎",
 
-  }
+    "Treasure KR": "🇰🇷",
+    "Treasure JP": "🇯🇵",
+    "Treasure CH": "🇨🇳",
+    "Treasure Thai": "🇹🇭",
+    "Treasure Album": "💿",
+    "Treasure INA": "🇮🇩",
 
+    "NCT": "💚",
+    "Lngshot": "🏹",
+    "Cortis": "⭐",
+    "Babymonster": "🖤",
+    "Ateez": "🏴‍☠️",
 
-  if (addButton) {
+    "Tabungan Lightstick": "💡",
+    "Tabungan Album": "💿",
 
-    addButton.style.display =
-      "inline-flex";
+    "Jastip Korea": "🇰🇷",
+    "Jastip Jepang": "🇯🇵",
+    "Jastip Thailand": "🇹🇭",
+    "Jastip China": "🇨🇳"
 
-  }
-
-
-  container.style.display =
-    "block";
-
-
-  /* =====================================
-     LABEL TYPE
-     ===================================== */
-
-  let typeLabel =
-    recapType;
-
-
-  if (recapType === "Treasure") {
-
-    typeLabel =
-      "💎 Rekap Treasure";
-
-  } else if (
-    recapType === "Multi Group"
-  ) {
-
-    typeLabel =
-      "👥 Rekap Multi Group";
-
-  } else if (
-    recapType === "Tabungan"
-  ) {
-
-    typeLabel =
-      "💰 Rekap Tabungan";
-
-  } else if (
-    recapType === "Jastip"
-  ) {
-
-    typeLabel =
-      "📦 Rekap Jastip";
-
-  }
+  };
 
 
-  /* =====================================
+  /* ==========================================
      LOAD KATEGORI
-     ===================================== */
+     ========================================== */
 
   loadRecapCategories(
     recapType
-  ).then(
-    function(categories) {
+  ).then(function(categories) {
 
-
-      if (
-        !categories ||
-        categories.length === 0
-      ) {
-
-        container.innerHTML = `
-
-          <div
-            class="recap-navigation-header"
-          >
-
-            <button
-              type="button"
-              class="recap-back-category"
-              id="recapBackType"
-            >
-              ← Kembali ke Type Rekap
-            </button>
-
-            <div
-              class="recap-current-category"
-            >
-              ${escapeHTML(typeLabel)}
-            </div>
-
-          </div>
-
-
-          <div class="welcome-card">
-
-            <p>
-              Kategori untuk
-              <strong>
-                ${escapeHTML(typeLabel)}
-              </strong>
-              belum dibuat.
-            </p>
-
-          </div>
-
-        `;
-
-
-        const backButton =
-          document.getElementById(
-            "recapBackType"
-          );
-
-
-        if (backButton) {
-
-          backButton.addEventListener(
-            "click",
-            showRecapTypeSelection
-          );
-
-        }
-
-
-        return;
-
-      }
-
-
-      /* =================================
-         HEADER KATEGORI
-         ================================= */
+    if (
+      !categories ||
+      categories.length === 0
+    ) {
 
       container.innerHTML = `
-
-        <div
-          class="recap-navigation-header"
-        >
+        <div class="recap-navigation">
 
           <button
             type="button"
-            class="recap-back-category"
+            class="recap-back-button"
             id="recapBackType"
           >
             ← Kembali ke Type Rekap
           </button>
 
-
-          <div
-            class="recap-current-category"
-          >
-            ${escapeHTML(typeLabel)}
-          </div>
-
-        </div>
-
-
-        <div
-          class="recap-category-list"
-          id="recapCategoryButtons"
-        >
-
-          ${
-            categories
-              .map(
-                function(
-                  category
-                ) {
-                   
-const categoryName =
-  category.category_name;
-
-let categoryIcon = "📦";
-
-if (categoryName === "Truz") {
-  categoryIcon = "💎";
-}
-
-else if (categoryName === "Treasure KR") {
-  categoryIcon = "🇰🇷";
-}
-
-else if (categoryName === "Treasure JP") {
-  categoryIcon = "🇯🇵";
-}
-
-else if (categoryName === "Treasure CH") {
-  categoryIcon = "🇨🇳";
-}
-
-else if (categoryName === "Treasure Thai") {
-  categoryIcon = "🇹🇭";
-}
-
-else if (categoryName === "Treasure Album") {
-  categoryIcon = "💿";
-}
-
-else if (categoryName === "Treasure INA") {
-  categoryIcon = "🇮🇩";
-}
-
-return `
-                    <button
-                      type="button"
-                      class="recap-category-card"
-                      data-category="${escapeHTML(
-                        category.category_name
-                      )}"
-                    >
-
-                      <div
-  class="recap-category-icon"
->
-  ${categoryIcon}
-</div>
-
-
-                      <div
-                        class="recap-category-name"
-                      >
-                        ${escapeHTML(
-                          category.category_name
-                        )}
-                      </div>
-
-
-                      <div
-                        class="recap-category-arrow"
-                      >
-                        →
-                      </div>
-
-                    </button>
-
-                  `;
-
-                }
-              )
-              .join("")
-          }
+          <h3>
+            ${escapeHTML(
+              "Rekap " + recapType
+            )}
+          </h3>
 
         </div>
 
+        <div class="welcome-card">
+
+          <p>
+            Kategori untuk
+            <strong>
+              Rekap ${escapeHTML(
+                recapType
+              )}
+            </strong>
+            belum dibuat.
+          </p>
+
+        </div>
       `;
-
-
-      /* =================================
-         KEMBALI KE TYPE
-         ================================= */
 
       const backButton =
         document.getElementById(
           "recapBackType"
         );
 
-
       if (backButton) {
 
         backButton.addEventListener(
           "click",
-          showRecapTypeSelection
+          function() {
+
+            container.style.display =
+              "none";
+
+            container.innerHTML =
+              "";
+
+            if (typeContainer) {
+              typeContainer.style.display =
+                "grid";
+            }
+
+            if (listContainer) {
+              listContainer.style.display =
+                "none";
+
+              listContainer.innerHTML =
+                "";
+            }
+
+          }
         );
 
       }
 
-
-      /* =================================
-         KLIK KATEGORI
-         ================================= */
-
-      const categoryButtons =
-        container.querySelectorAll(
-          "#recapCategoryButtons button"
-        );
+      return;
+    }
 
 
-      categoryButtons.forEach(
-        function(button) {
+    /* ==========================================
+       RENDER KATEGORI
+       ========================================== */
 
-          button.addEventListener(
-            "click",
-            function() {
+    container.innerHTML = `
 
-              const selectedCategory =
-                button.dataset.category;
+      <div class="recap-navigation">
+
+        <button
+          type="button"
+          class="recap-back-button"
+          id="recapBackType"
+        >
+          ← Kembali ke Type Rekap
+        </button>
+
+        <h3 class="recap-current-title">
+          ${
+            recapType === "Treasure"
+              ? "💎"
+              : recapType === "Multi Group"
+                ? "👥"
+                : recapType === "Tabungan"
+                  ? "💰"
+                  : "📦"
+          }
+
+          Rekap ${escapeHTML(
+            recapType
+          )}
+        </h3>
+
+      </div>
 
 
-              /* =========================
-                 SEMBUNYIKAN KATEGORI
-                 ========================= */
+      <div
+        class="recap-category-buttons"
+        id="recapCategoryButtons"
+      >
 
-              container.style.display =
-                "none";
+        ${categories.map(
+          function(category) {
+
+            const categoryName =
+              category.category_name;
+
+            const icon =
+              categoryIcons[
+                categoryName
+              ] || "📦";
+
+            return `
+
+              <button
+                type="button"
+                class="recap-category-card"
+                data-category="${escapeHTML(
+                  categoryName
+                )}"
+              >
+
+                <div
+                  class="recap-category-icon"
+                >
+                  ${icon}
+                </div>
+
+                <div
+                  class="recap-category-name"
+                >
+                  ${escapeHTML(
+                    categoryName
+                  )}
+                </div>
+
+                <div
+                  class="recap-category-arrow"
+                >
+                  →
+                </div>
+
+              </button>
+
+            `;
+
+          }
+        ).join("")}
+
+      </div>
+
+    `;
 
 
-              /* =========================
-                 TAMPILKAN DAFTAR BATCH
-                 ========================= */
+    /* ==========================================
+       KEMBALI KE TYPE REKAP
+       ========================================== */
 
-              if (listContainer) {
+    const backTypeButton =
+      document.getElementById(
+        "recapBackType"
+      );
 
-                listContainer.style.display =
-                  "block";
+    if (backTypeButton) {
 
-              }
+      backTypeButton.addEventListener(
+        "click",
+        function() {
 
+          container.style.display =
+            "none";
 
-              loadRecapList(
-                selectedCategory
-              );
+          container.innerHTML =
+            "";
 
-            }
-          );
+          if (listContainer) {
+            listContainer.style.display =
+              "none";
+
+            listContainer.innerHTML =
+              "";
+          }
+
+          if (typeContainer) {
+            typeContainer.style.display =
+              "grid";
+          }
 
         }
       );
 
     }
-  ).catch(
-    function(error) {
 
-      console.error(
-        "Error saat memuat kategori:",
-        error
+
+    /* ==========================================
+       KLIK KATEGORI
+       ========================================== */
+
+    const categoryButtons =
+      container.querySelectorAll(
+        "#recapCategoryButtons button"
       );
 
 
-      container.innerHTML = `
+    categoryButtons.forEach(
+      function(button) {
 
-        <div class="welcome-card">
+        button.addEventListener(
+          "click",
+          function() {
 
-          <p>
-            ❌ Gagal memuat kategori rekap.
-          </p>
+            const selectedCategory =
+              button.dataset.category;
 
-        </div>
 
-      `;
+            /* ===============================
+               SEMBUNYIKAN KATEGORI
+               =============================== */
 
-    }
-  );
+            container.style.display =
+              "none";
+
+
+            /* ===============================
+               TAMPILKAN LIST BATCH
+               =============================== */
+
+            if (listContainer) {
+
+              listContainer.style.display =
+                "block";
+
+              listContainer.innerHTML = `
+
+                <div class="recap-navigation">
+
+                  <button
+                    type="button"
+                    class="recap-back-button"
+                    id="recapBackCategory"
+                  >
+                    ← Kembali ke Kategori
+                  </button>
+
+                  <h3
+                    class="recap-current-title"
+                  >
+                    ${escapeHTML(
+                      selectedCategory
+                    )}
+                  </h3>
+
+                </div>
+
+                <div id="recapBatchContent">
+                  <p>
+                    Memuat data rekap...
+                  </p>
+                </div>
+
+              `;
+
+            }
+
+
+            /* ===============================
+               LOAD DATA REKAP
+               =============================== */
+
+            loadRecapList(
+              selectedCategory
+            );
+
+          }
+        );
+
+      }
+    );
+
+  }).catch(function(error) {
+
+    console.error(
+      "Error saat memuat kategori:",
+      error
+    );
+
+    container.innerHTML = `
+
+      <div class="welcome-card">
+
+        <p>
+          ❌ Gagal memuat kategori rekap.
+        </p>
+
+      </div>
+
+    `;
+
+  });
 
 }
 
