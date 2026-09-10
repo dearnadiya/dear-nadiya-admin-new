@@ -9397,31 +9397,113 @@ async function loadRecapList(
 
 
   if (
-    !data ||
-    data.length === 0
-  ) {
+  !data ||
+  data.length === 0
+) {
 
-    container.innerHTML = `
+  container.innerHTML = `
+    <div class="recap-navigation">
 
-      <div class="panel">
+      <button
+        type="button"
+        class="recap-back-button"
+        id="recapBackCategory"
+      >
+        ← Kembali ke Kategori
+      </button>
 
-        <h3>
-          Belum ada data Rekap GO
-        </h3>
+      <h3 class="recap-current-title">
+        ${escapeHTML(category)}
+      </h3>
 
-        <p>
-          Belum ada data untuk kategori
-          ${escapeHTML(
+    </div>
+
+    <div class="recap-search">
+
+      <input
+        type="text"
+        id="recapSearchInput"
+        placeholder="🔍 Cari batch / customer / barang / member..."
+      >
+
+      <div
+        id="recapSearchResult"
+        class="recap-search-result"
+      ></div>
+
+    </div>
+
+    <div class="recap-empty-state">
+
+      <h3>
+        📦 Belum ada data Rekap GO
+      </h3>
+
+      <p>
+        Belum ada batch untuk kategori
+        <strong>
+          ${escapeHTML(category)}
+        </strong>.
+      </p>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="emptyAddRecapButton"
+      >
+        ➕ Tambah Batch
+      </button>
+
+    </div>
+  `;
+
+  const backButton =
+    container.querySelector(
+      "#recapBackCategory"
+    );
+
+  if (backButton) {
+    backButton.addEventListener(
+      "click",
+      function() {
+
+        container.style.display =
+          "none";
+
+        container.innerHTML =
+          "";
+
+        showRecapCategories(
+          getRecapTypeFromCategory(
             category
-          )}.
-        </p>
+          )
+        );
 
-      </div>
+      }
+    );
+  }
 
-    `;
+  const emptyAddButton =
+    container.querySelector(
+      "#emptyAddRecapButton"
+    );
 
-    return;
+  if (emptyAddButton) {
+    emptyAddButton.addEventListener(
+      "click",
+      function() {
 
+        showRecapForm(
+          category
+        );
+
+      }
+    );
+  }
+
+  return;
+
+  }
   }
 
 
