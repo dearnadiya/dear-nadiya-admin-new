@@ -12704,6 +12704,8 @@ async function editBatchHeader(
   }
 
 
+  if (isSamePriceModeHeader) {
+
   document
     .getElementById(
       "editBatchHeaderPrice"
@@ -12723,6 +12725,7 @@ async function editBatchHeader(
       updateBatchHeaderRemaining
     );
 
+}
 
   /* ==========================================
      BATAL
