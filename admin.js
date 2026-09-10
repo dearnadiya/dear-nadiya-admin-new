@@ -10376,9 +10376,9 @@ let html = `
   `;
 
      html += `
+  <div class="recap-batch-scroll">
 
     <div class="recap-batch-table-header">
-
       <div class="recap-batch-table-code">
         Kode Batch
       </div>
@@ -10390,10 +10390,8 @@ let html = `
       <div class="recap-batch-table-arrow">
         →
       </div>
-
     </div>
-
-  `;
+`;
 
 
   Object.keys(
@@ -10905,6 +10903,10 @@ let html = `
 
     }
   );
+
+   html += `
+  </div>
+`;
 
 container.innerHTML =
   html;
