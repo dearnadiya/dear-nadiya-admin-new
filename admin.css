@@ -9586,3 +9586,101 @@ td:last-child {
   }
 
 }
+
+/* ============================================
+   REKAP GO - BATCH HEADER
+   PERBAIKAN TOMBOL EDIT
+   ============================================ */
+
+.recap-batch-header {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.recap-batch-header > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.recap-batch-header h3 {
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.recap-batch-header p {
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recap-batch-header .edit-batch-header-button {
+  position: relative;
+  z-index: 5;
+
+  flex: 0 0 auto !important;
+
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+
+  white-space: nowrap !important;
+
+  padding: 5px 10px !important;
+  min-width: max-content;
+
+  cursor: pointer;
+}
+
+
+/* ============================================
+   TABLET & DESKTOP
+   ============================================ */
+
+@media (min-width: 701px) {
+
+  .recap-batch-header > div:first-child {
+    overflow: visible;
+  }
+
+  .recap-batch-header .edit-batch-header-button {
+    margin-left: 2px;
+  }
+
+}
+
+
+/* ============================================
+   MOBILE
+   ============================================ */
+
+@media (max-width: 700px) {
+
+  .recap-batch-header {
+    width: 100%;
+    gap: 10px !important;
+  }
+
+  .recap-batch-header > div:first-child {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .recap-batch-header p {
+    align-items: center !important;
+  }
+
+  .recap-batch-header .edit-batch-header-button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+}
