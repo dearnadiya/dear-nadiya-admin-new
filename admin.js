@@ -8242,13 +8242,65 @@ deleteCategoryButtons.forEach(
           );
 
         if (!confirmed) {
-          return;
-        }
+  return;
+}
 
-        alert(
-          "Konfirmasi diterima. Fungsi hapus akan diproses pada tahap berikutnya."
-        );
 
+/* ======================================
+   HAPUS KATEGORI DARI SUPABASE
+   ====================================== */
+
+button.disabled = true;
+
+button.textContent =
+  "Menghapus...";
+
+
+const {
+  error
+} =
+  await supabaseClient
+    .from("recap_categories")
+    .delete()
+    .eq(
+      "id",
+      categoryId
+    );
+
+
+if (error) {
+
+  console.error(
+    "Gagal menghapus kategori:",
+    error
+  );
+
+  alert(
+    "Gagal menghapus kategori: " +
+    error.message
+  );
+
+  button.disabled = false;
+
+  button.textContent =
+    "🗑️ Hapus";
+
+  return;
+}
+
+
+alert(
+  "Kategori berhasil dihapus. ♥"
+);
+
+
+/* ======================================
+   MUAT ULANG DAFTAR KATEGORI
+   ====================================== */
+
+showRecapCategories(
+  recapType
+);
       }
     );
 
