@@ -9260,58 +9260,100 @@ a {
   cursor: pointer !important;
 }
 
-/* =========================================
-   TOMBOL TAMBAH MEMBER / VERSI
-   TETAP TERLIHAT DI HEADER BATCH
-========================================= */
+/* =====================================================
+   REKAP GO - HEADER BATCH
+   TOMBOL TAMBAH MEMBER TIDAK MENUMPUK EDIT
+===================================================== */
 
 #recapListContainer
+.recap-batch-card
 .recap-batch-header {
+
+  display: grid !important;
+
+  grid-template-columns:
+    105px
+    minmax(0, 1fr)
+    max-content
+    36px !important;
+
+  align-items: stretch !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 0 !important;
+
   position: relative !important;
 }
 
-/* Container tombol */
+
+/* Wrapper tetap transparan
+   agar isi header menjadi item grid */
+#recapListContainer
+.recap-batch-header > div:first-child {
+
+  display: contents !important;
+}
+
+
+/* =====================================================
+   TAMBAH MEMBER / VERSI
+===================================================== */
+
 #recapListContainer
 .recap-batch-customer-summary {
-  display: block !important;
 
-  position: absolute !important;
+  display: contents !important;
 
-  right: 42px !important;
-  top: 50% !important;
-
-  transform: translateY(-50%) !important;
+  position: static !important;
+  transform: none !important;
 
   width: auto !important;
-  min-width: max-content !important;
+  min-width: 0 !important;
 
   margin: 0 !important;
   padding: 0 !important;
-
-  z-index: 5 !important;
 }
 
-/* Jumlah customer tidak perlu ditampilkan
+
+/* Jumlah customer tidak ditampilkan
    di baris compact */
 #recapListContainer
 .recap-batch-customer-summary > span {
+
   display: none !important;
 }
 
-/* Tombol */
+
+/* Tombol Tambah Member */
 #recapListContainer
 .add-recap-member-button {
+
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+
   display: inline-flex !important;
 
   align-items: center !important;
   justify-content: center !important;
 
-  width: auto !important;
+  align-self: center !important;
+
+  width: max-content !important;
   min-width: max-content !important;
 
+  height: auto !important;
+
+  margin: 0 6px !important;
   padding: 6px 10px !important;
 
-  margin: 0 !important;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  transform: none !important;
+
+  z-index: 2 !important;
 
   border-radius: 8px !important;
 
@@ -9323,6 +9365,64 @@ a {
   visibility: visible !important;
   opacity: 1 !important;
 
-  position: relative !important;
-  z-index: 10 !important;
+  box-sizing: border-box !important;
+}
+
+
+/* =====================================================
+   PANAH HEADER
+===================================================== */
+
+#recapListContainer
+.recap-batch-header::after {
+
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  min-height: 45px !important;
+
+  position: static !important;
+
+  margin: 0 !important;
+}
+
+
+/* =====================================================
+   TOMBOL EDIT CUSTOMER
+   JANGAN MEMENUHI SELURUH BARIS
+===================================================== */
+
+#recapListContainer
+.recap-batch-card
+.product-table
+td:last-child {
+
+  width: 150px !important;
+  min-width: 150px !important;
+
+  white-space: nowrap !important;
+}
+
+
+/* Edit dan Hapus tetap tombol normal */
+#recapListContainer
+.recap-batch-card
+.edit-recap-button,
+#recapListContainer
+.recap-batch-card
+.delete-recap-button {
+
+  display: inline-flex !important;
+
+  width: auto !important;
+  min-width: 70px !important;
+
+  margin: 2px !important;
+
+  white-space: nowrap !important;
 }
