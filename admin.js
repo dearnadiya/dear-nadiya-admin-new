@@ -10899,39 +10899,42 @@ if (recapPaymentFilter) {
 
    /* ==========================================
    TOMBOL EDIT REKAP GO
-   EVENT DELEGATION
+   LISTENER LANGSUNG
    ========================================== */
 
-container.addEventListener(
-  "click",
-  function (event) {
+container
+  .querySelectorAll(
+    ".edit-recap-button"
+  )
+  .forEach(
+    function(button) {
 
-    const editButton =
-      event.target.closest(
-        ".edit-recap-button"
+      button.addEventListener(
+        "click",
+        async function(event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const id =
+            this.dataset.id;
+
+          if (!id) {
+
+            console.error(
+              "ID Rekap GO tidak ditemukan."
+            );
+
+            return;
+          }
+
+          await editRecap(id);
+
+        }
       );
 
-    if (!editButton) {
-      return;
     }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const id =
-      editButton.dataset.id;
-
-    if (!id) {
-      console.error(
-        "ID Rekap GO tidak ditemukan."
-      );
-      return;
-    }
-
-    editRecap(id);
-
-  }
-);
+  );
    
    /* ==========================================
    AUTO SAVE STATUS REKAP GO
