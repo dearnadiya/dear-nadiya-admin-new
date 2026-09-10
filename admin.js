@@ -8199,6 +8199,61 @@ if (addRecapCategoryButton) {
 
       }
     );
+
+     /* ==========================================
+   HAPUS KATEGORI
+   ========================================== */
+
+const deleteCategoryButtons =
+  container.querySelectorAll(
+    ".delete-recap-category-button"
+  );
+
+deleteCategoryButtons.forEach(
+  function(button) {
+
+    button.addEventListener(
+      "click",
+      function(event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const categoryId =
+          this.dataset.id;
+
+        const categoryName =
+          this.dataset.category;
+
+        if (!categoryId) {
+
+          console.error(
+            "ID kategori tidak ditemukan."
+          );
+
+          return;
+        }
+
+        const confirmed =
+          confirm(
+            "Yakin ingin menghapus kategori \"" +
+            categoryName +
+            "\"?"
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        alert(
+          "Konfirmasi diterima. Fungsi hapus akan diproses pada tahap berikutnya."
+        );
+
+      }
+    );
+
+  }
+);
      
   }).catch(function(error) {
 
