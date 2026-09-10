@@ -7818,6 +7818,96 @@ selectedRecapCategory =
         }
       );
 
+                 /* ==========================================
+             SIMPAN KATEGORI BARU
+             ========================================== */
+
+          const saveNewRecapCategory =
+            container.querySelector(
+              "#saveNewRecapCategory"
+            );
+
+          if (saveNewRecapCategory) {
+
+            saveNewRecapCategory.addEventListener(
+              "click",
+              async function() {
+
+                const input =
+                  container.querySelector(
+                    "#newRecapCategoryName"
+                  );
+
+                if (!input) return;
+
+                const categoryName =
+                  input.value.trim();
+
+                if (!categoryName) {
+
+                  alert(
+                    "Nama kategori belum diisi."
+                  );
+
+                  input.focus();
+
+                  return;
+                }
+
+                saveNewRecapCategory.disabled =
+                  true;
+
+                saveNewRecapCategory.textContent =
+                  "Menyimpan...";
+
+                const {
+                  error
+                } =
+                  await supabaseClient
+                    .from("recap_categories")
+                    .insert([
+                      {
+                        recap_type:
+                          recapType,
+                        category_name:
+                          categoryName
+                      }
+                    ]);
+
+                if (error) {
+
+                  console.error(
+                    "Gagal menyimpan kategori:",
+                    error
+                  );
+
+                  alert(
+                    "Gagal menyimpan kategori: " +
+                    error.message
+                  );
+
+                  saveNewRecapCategory.disabled =
+                    false;
+
+                  saveNewRecapCategory.textContent =
+                    "💾 Simpan Kategori";
+
+                  return;
+                }
+
+                alert(
+                  "Kategori berhasil ditambahkan. ♥"
+                );
+
+                showRecapCategories(
+                  recapType
+                );
+
+              }
+            );
+
+          }
+
     }
 
   }).catch(function(error) {
