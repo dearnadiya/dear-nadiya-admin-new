@@ -9630,26 +9630,34 @@ let html = `
        ===================================== -->
 
   <div
-    class="recap-navigation-header"
+  class="recap-navigation-header"
+>
+
+  <button
+    type="button"
+    class="recap-back-category"
+    id="recapBackCategory"
   >
-
-    <button
-      type="button"
-      class="recap-back-category"
-      id="recapBackCategory"
-    >
-      ← Kembali ke Kategori
-    </button>
+    ← Kembali ke Kategori
+  </button>
 
 
-    <div
-      class="recap-current-category"
-    >
-      ${escapeHTML(category)}
-    </div>
-
+  <div
+    class="recap-current-category"
+  >
+    ${escapeHTML(category)}
   </div>
 
+
+  <button
+    type="button"
+    class="primary-button"
+    id="addRecapBatchButton"
+  >
+    ➕ Tambah Batch
+  </button>
+
+</div>
 
   <!-- =====================================
        SEARCH
@@ -11213,6 +11221,29 @@ batchTrackingButtons.forEach(
   }
 );
 
+/* ==========================================
+   TAMBAH BATCH
+   ========================================== */
+
+const addRecapBatchButton =
+  container.querySelector(
+    "#addRecapBatchButton"
+  );
+
+if (addRecapBatchButton) {
+
+  addRecapBatchButton.addEventListener(
+    "click",
+    function() {
+
+      showRecapForm(
+        category
+      );
+
+    }
+  );
+
+}
 
   /* ==========================================
      SEARCH REKAP
