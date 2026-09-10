@@ -9805,13 +9805,34 @@ let html = `
       )}
     </h3>
 
-    <p>
-      ${escapeHTML(
-        rows[0]?.item_name ||
-        "Nama barang belum tersedia"
-      )}
-    </p>
+    <p
+  style="
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  "
+>
+  <span>
+    ${escapeHTML(
+      rows[0]?.item_name ||
+      "Nama barang belum tersedia"
+    )}
+  </span>
 
+  <button
+    type="button"
+    class="primary-button edit-batch-header-button"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
+    style="
+      padding:4px 10px;
+      font-size:12px;
+    "
+  >
+    ✏️ Edit
+  </button>
+</p>
     <div class="recap-batch-customer-summary">
 
   <span>
