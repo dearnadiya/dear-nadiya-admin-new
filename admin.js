@@ -13151,6 +13151,98 @@ const canSetCoDeadline =
   currentTracking === "Arrived Admin" ||
   currentTracking === "Goods Arrive at Customer";
 
+   /* ==========================================
+   DETEKSI MODE HARGA BATCH
+   ========================================== */
+
+const {
+  data: batchRows,
+  error: batchRowsError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      id,
+      item_price,
+      minimum_dp_amount,
+      dp_amount
+    `)
+    .eq(
+      "category",
+      data.category
+    )
+    .eq(
+      "batch_code",
+      data.batch_code
+    );
+
+if (batchRowsError) {
+
+  console.error(
+    "ERROR LOAD BATCH ROWS FOR EDIT:",
+    batchRowsError
+  );
+
+  alert(
+    "Gagal membaca data batch: " +
+    batchRowsError.message
+  );
+
+  return;
+}
+
+const rowsForMode =
+  batchRows || [];
+
+const firstBatchRow =
+  rowsForMode[0] || data;
+
+const firstBatchPrice =
+  Number(
+    firstBatchRow.item_price
+  ) || 0;
+
+const firstBatchDp =
+  Number(
+    firstBatchRow.minimum_dp_amount ??
+    firstBatchRow.dp_amount ??
+    0
+  ) || 0;
+
+const isSamePrice =
+  rowsForMode.length > 0 &&
+  rowsForMode.every(
+    function(row) {
+
+      return (
+        Number(
+          row.item_price
+        ) || 0
+      ) === firstBatchPrice;
+
+    }
+  );
+
+const isSameDp =
+  rowsForMode.length > 0 &&
+  rowsForMode.every(
+    function(row) {
+
+      return (
+        Number(
+          row.minimum_dp_amount ??
+          row.dp_amount ??
+          0
+        ) || 0
+      ) === firstBatchDp;
+
+    }
+  );
+
+const isSamePriceMode =
+  isSamePrice &&
+  isSameDp;
+
   container.innerHTML = `
 
     <div
