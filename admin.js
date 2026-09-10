@@ -7008,57 +7008,6 @@ async function loadCOArchive() {
 
 }
 
-/* ==========================================
-   SIMPAN POSISI REKAP GO
-   ========================================== */
-
-function saveRecapNavigationState(
-  updates = {}
-) {
-
-  let currentState = {};
-
-  try {
-    currentState =
-      JSON.parse(
-        localStorage.getItem(
-          "dearNadiyaRecapState"
-        ) || "{}"
-      );
-  } catch (error) {
-    currentState = {};
-  }
-
-  const newState = {
-    ...currentState,
-    ...updates
-  };
-
-  localStorage.setItem(
-    "dearNadiyaRecapState",
-    JSON.stringify(newState)
-  );
-}
-
-
-function getRecapNavigationState() {
-
-  try {
-
-    return JSON.parse(
-      localStorage.getItem(
-        "dearNadiyaRecapState"
-      ) || "{}"
-    );
-
-  } catch (error) {
-
-    return {};
-
-  }
-
-}
-
 /* ============================================
    REKAP GO
    ============================================ */
@@ -7216,13 +7165,6 @@ let selectedRecapCategory = "";
          selectedRecapType =
   button.dataset.recapType;
 
-saveRecapNavigationState({
-  type: selectedRecapType,
-  category: "",
-  batchCode: "",
-  batchOpen: false,
-  mode: "category"
-});
 
 showRecapCategories(
   selectedRecapType
@@ -7270,23 +7212,7 @@ showRecapCategories(
      AWALNYA HANYA TYPE REKAP
      ===================================== */
 
- const savedRecapState =
-  getRecapNavigationState();
-
-if (
-  savedRecapState.type &&
-  savedRecapState.category
-) {
-
-  showRecapCategories(
-    savedRecapState.type
-  );
-
-} else {
-
   showRecapTypeSelection();
-
-}
 
 }
 
@@ -7730,13 +7656,6 @@ const categoryButtons =
 selectedRecapCategory =
   selectedCategory;
 
-saveRecapNavigationState({
-  type: selectedRecapType,
-  category: selectedCategory,
-  batchCode: "",
-  batchOpen: false,
-  mode: "batch-list"
-});
              
             /* ===============================
                SEMBUNYIKAN KATEGORI
@@ -11099,31 +11018,6 @@ container
     "recap-batch-collapsed"
   );
 
-const batchCode =
-  card
-    .querySelector(
-      ".recap-batch-header h3"
-    )
-    ?.textContent
-    .trim() || "";
-
-if (isCollapsed) {
-
-  saveRecapNavigationState({
-    batchCode: "",
-    batchOpen: false,
-    mode: "batch-list"
-  });
-
-} else {
-
-  saveRecapNavigationState({
-    batchCode: batchCode,
-    batchOpen: true,
-    mode: "batch-detail"
-  });
-
-}
           if (isCollapsed) {
 
             if (tracking) {
