@@ -8651,6 +8651,8 @@ function showRecapForm(category) {
 
   if (!container) return;
 
+   container.style.display = "block";
+
   container.innerHTML = `
 
     <div class="panel recap-form">
