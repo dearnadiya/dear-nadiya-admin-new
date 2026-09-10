@@ -13473,14 +13473,24 @@ container.innerHTML = `
       </label>
 
       <input
-        id="editRemaining"
-        type="number"
-        step="1"
-        value="${
-          data.remaining_amount ?? 0
-        }"
-        readonly
-      >
+  id="editRemaining"
+  type="number"
+  step="1"
+  value="${
+    Math.max(
+      0,
+      (Number(data.item_price) || 0) -
+      (
+        Number(
+          data.minimum_dp_amount ??
+          data.dp_amount ??
+          0
+        ) || 0
+      )
+    )
+  }"
+  readonly
+>
 
       <small>
         Pelunasan dihitung otomatis berdasarkan
