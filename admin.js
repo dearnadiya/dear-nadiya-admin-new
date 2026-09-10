@@ -10940,7 +10940,7 @@ container
 
     }
   );
-   
+
    /* ==========================================
    COLLAPSE / EXPAND BATCH
    ========================================== */
@@ -10952,14 +10952,52 @@ container
   .forEach(
     function(header) {
 
+      const card =
+        header.closest(
+          ".recap-batch-card"
+        );
+
+      if (!card) {
+        return;
+      }
+
+      const tracking =
+        card.querySelector(
+          ".batch-tracking"
+        );
+
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
+      /* Kondisi awal:
+         batch tertutup */
+      if (
+        card.classList.contains(
+          "recap-batch-collapsed"
+        )
+      ) {
+
+        if (tracking) {
+          tracking.style.display =
+            "none";
+        }
+
+        if (tableWrapper) {
+          tableWrapper.style.display =
+            "none";
+        }
+
+      }
+
       header.addEventListener(
         "click",
         function(event) {
 
           /*
-           * Jangan tutup/buka batch
-           * ketika user berinteraksi
-           * dengan select atau tombol.
+           * Jangan buka/tutup batch
+           * ketika klik tombol atau select.
            */
           if (
             event.target.closest(
@@ -10969,18 +11007,42 @@ container
             return;
           }
 
-          const card =
-            header.closest(
-              ".recap-batch-card"
+          const isCollapsed =
+            card.classList.toggle(
+              "recap-batch-collapsed"
             );
 
-          if (!card) {
-            return;
+          if (isCollapsed) {
+
+            if (tracking) {
+              tracking.style.display =
+                "none";
+            }
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "none";
+            }
+
+          } else {
+
+            if (tracking) {
+              tracking.style.display =
+                "";
+            }
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "";
+            }
+
           }
 
-          card.classList.toggle(
-            "recap-batch-collapsed"
-          );
+        }
+      );
+
+    }
+  );
 
         }
       );
