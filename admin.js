@@ -7717,6 +7717,7 @@ async function showAddRecapMemberForm(
     return;
   }
 
+   container.style.display = "block";
 
   container.innerHTML = `
     <div class="panel">
