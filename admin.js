@@ -2883,6 +2883,7 @@ async function loadPaymentArchive() {
   </select>
 
 </div>
+
       <div class="product-table-wrapper">
 
         <table class="product-table">
@@ -10430,53 +10431,34 @@ let html = `
           )}"
         >
 
-          <div
-  class="recap-batch-header"
->
+         <div class="recap-batch-header">
 
-  <div>
+  <!-- KOLOM 1: KODE BATCH -->
+  <h3>
+    ${escapeHTML(batchCode)}
+  </h3>
 
-    <h3>
+  <!-- KOLOM 2: NAMA BARANG -->
+  <div class="recap-batch-item-name">
+    <span>
       ${escapeHTML(
-        batchCode
+        rows[0]?.item_name ||
+        "Nama barang belum tersedia"
       )}
-    </h3>
+    </span>
+  </div>
 
-    <p
-  style="
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
-  "
->
-  <span>
-    ${escapeHTML(
-      rows[0]?.item_name ||
-      "Nama barang belum tersedia"
-    )}
-  </span>
-
+  <!-- KOLOM 3: EDIT -->
   <button
     type="button"
     class="primary-button edit-batch-header-button"
     data-batch-code="${escapeHTML(batchCode)}"
     data-category="${escapeHTML(category)}"
-    style="
-      padding:4px 10px;
-      font-size:12px;
-    "
   >
     ✏️ Edit
   </button>
-</p>
-    <div class="recap-batch-customer-summary">
 
-  <span>
-    ${rows.length}
-    customer
-  </span>
-
+  <!-- KOLOM 4: TAMBAH MEMBER / VERSI -->
   <button
     type="button"
     class="add-recap-member-button"
@@ -10485,105 +10467,123 @@ let html = `
     ＋ Tambah Member / Versi
   </button>
 
-</div>
-
-<div class="recap-batch-deadlines">
-
-  <p>
-    💰 Deadline DP:
-    <strong>
-      ${
-        rows[0]?.dp_deadline
-          ? new Date(
-              rows[0].dp_deadline +
-              "T00:00:00"
-            ).toLocaleDateString(
-              "id-ID",
-              {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-              }
-            )
-          : "—"
-      }
-    </strong>
-  </p>
-
-  <p>
-    💳 Deadline Pelunasan:
-    <strong>
-      ${
-        rows[0]?.payment_deadline
-          ? new Date(
-              rows[0].payment_deadline +
-              "T00:00:00"
-            ).toLocaleDateString(
-              "id-ID",
-              {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-              }
-            )
-          : "—"
-      }
-    </strong>
-  </p>
-
- <p>
-  🛒 Deadline CO Shopee:
-  <strong>
-    ${
-      rows[0]?.co_deadline
-        ? (() => {
-            const dateValue =
-              String(rows[0].co_deadline).substring(0, 10);
-
-            const parts =
-              dateValue.split("-");
-
-            if (parts.length !== 3) {
-              return "—";
-            }
-
-            const [year, month, day] =
-              parts;
-
-            const date = new Date(
-              Number(year),
-              Number(month) - 1,
-              Number(day)
-            );
-
-            return isNaN(date.getTime())
-              ? "—"
-              : date.toLocaleDateString(
-                  "id-ID",
-                  {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                  }
-                );
-          })()
-        : "—"
-    }
-  </strong>
-</p>
+  <!-- KOLOM 5: PANAH -->
+  <div class="recap-batch-arrow">
+    →
+  </div>
 
 </div>
 
+<div class="recap-batch-details">
+
+  <div class="recap-batch-customer-summary">
+
+    <span>
+      ${rows.length}
+      customer
+    </span>
+
+  </div>
+
+  <div class="recap-batch-deadlines">
+
+    <p>
+      💰 Deadline DP:
+      <strong>
+        ${
+          rows[0]?.dp_deadline
+            ? new Date(
+                rows[0].dp_deadline +
+                "T00:00:00"
+              ).toLocaleDateString(
+                "id-ID",
+                {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric"
+                }
+              )
+            : "—"
+        }
+      </strong>
+    </p>
+
+    <p>
+      💳 Deadline Pelunasan:
+      <strong>
+        ${
+          rows[0]?.payment_deadline
+            ? new Date(
+                rows[0].payment_deadline +
+                "T00:00:00"
+              ).toLocaleDateString(
+                "id-ID",
+                {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric"
+                }
+              )
+            : "—"
+        }
+      </strong>
+    </p>
+
+    <p>
+      🛒 Deadline CO Shopee:
+      <strong>
+        ${
+          rows[0]?.co_deadline
+            ? (() => {
+                const dateValue =
+                  String(
+                    rows[0].co_deadline
+                  ).substring(0, 10);
+
+                const parts =
+                  dateValue.split("-");
+
+                if (parts.length !== 3) {
+                  return "—";
+                }
+
+                const [year, month, day] =
+                  parts;
+
+                const date =
+                  new Date(
+                    Number(year),
+                    Number(month) - 1,
+                    Number(day)
+                  );
+
+                return isNaN(
+                  date.getTime()
+                )
+                  ? "—"
+                  : date.toLocaleDateString(
+                      "id-ID",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                      }
+                    );
+              })()
+            : "—"
+        }
+      </strong>
+    </p>
+
+  </div>
+
 </div>
 
-  <div
-    class="batch-tracking"
-  >
+<div class="batch-tracking">
 
-    <small>
-      TRACKING BATCH
-    </small>
-
+  <small>
+    TRACKING BATCH
+  </small>
     <select
       class="batch-tracking-select"
       data-batch-code="${escapeHTML(
