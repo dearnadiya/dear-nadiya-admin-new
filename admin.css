@@ -9227,3 +9227,35 @@ a {
   }
 
 }
+
+/* =========================================
+   REKAP GO - TOMBOL TAMBAH MEMBER / VERSI
+   PASTIKAN SELALU TERLIHAT
+========================================= */
+
+.recap-batch-customer-summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  min-width: max-content !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.recap-batch-customer-summary > span {
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+.add-recap-member-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: max-content !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
