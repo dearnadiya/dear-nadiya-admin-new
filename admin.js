@@ -7008,6 +7008,57 @@ async function loadCOArchive() {
 
 }
 
+/* ==========================================
+   SIMPAN POSISI REKAP GO
+   ========================================== */
+
+function saveRecapNavigationState(
+  updates = {}
+) {
+
+  let currentState = {};
+
+  try {
+    currentState =
+      JSON.parse(
+        localStorage.getItem(
+          "dearNadiyaRecapState"
+        ) || "{}"
+      );
+  } catch (error) {
+    currentState = {};
+  }
+
+  const newState = {
+    ...currentState,
+    ...updates
+  };
+
+  localStorage.setItem(
+    "dearNadiyaRecapState",
+    JSON.stringify(newState)
+  );
+}
+
+
+function getRecapNavigationState() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        "dearNadiyaRecapState"
+      ) || "{}"
+    );
+
+  } catch (error) {
+
+    return {};
+
+  }
+
+}
+
 /* ============================================
    REKAP GO
    ============================================ */
@@ -7162,14 +7213,20 @@ let selectedRecapCategory = "";
           );
 
 
-          selectedRecapType =
-            button.dataset.recapType;
+         selectedRecapType =
+  button.dataset.recapType;
 
+saveRecapNavigationState({
+  type: selectedRecapType,
+  category: "",
+  batchCode: "",
+  batchOpen: false,
+  mode: "category"
+});
 
-          showRecapCategories(
-            selectedRecapType
-          );
-
+showRecapCategories(
+  selectedRecapType
+);
         }
       );
 
@@ -7213,10 +7270,25 @@ let selectedRecapCategory = "";
      AWALNYA HANYA TYPE REKAP
      ===================================== */
 
+ const savedRecapState =
+  getRecapNavigationState();
+
+if (
+  savedRecapState.type &&
+  savedRecapState.category
+) {
+
+  showRecapCategories(
+    savedRecapState.type
+  );
+
+} else {
+
   showRecapTypeSelection();
 
 }
 
+}
 
 /* ============================================
    KEMBALI KE TYPE REKAP
@@ -7658,6 +7730,14 @@ const categoryButtons =
 selectedRecapCategory =
   selectedCategory;
 
+saveRecapNavigationState({
+  type: selectedRecapType,
+  category: selectedCategory,
+  batchCode: "",
+  batchOpen: false,
+  mode: "batch-list"
+});
+             
             /* ===============================
                SEMBUNYIKAN KATEGORI
                =============================== */
@@ -10380,6 +10460,7 @@ let html = `
   <div class="recap-batch-scroll">
 
     <div class="recap-batch-table-header">
+
       <div class="recap-batch-table-code">
         Kode Batch
       </div>
@@ -10388,12 +10469,20 @@ let html = `
         Nama Barang
       </div>
 
+      <div class="recap-batch-table-edit">
+        Edit
+      </div>
+
+      <div class="recap-batch-table-member">
+        Tambah Member / Versi
+      </div>
+
       <div class="recap-batch-table-arrow">
         →
       </div>
+
     </div>
 `;
-
 
   Object.keys(
     batches
@@ -10565,8 +10654,6 @@ let html = `
     </button>
 
   </div>
-
-</div>
 
           <div
             class="product-table-wrapper"
@@ -10940,7 +11027,7 @@ container
 
     }
   );
-   
+
    /* ==========================================
    COLLAPSE / EXPAND BATCH
    ========================================== */
@@ -10952,14 +11039,52 @@ container
   .forEach(
     function(header) {
 
+      const card =
+        header.closest(
+          ".recap-batch-card"
+        );
+
+      if (!card) {
+        return;
+      }
+
+      const tracking =
+        card.querySelector(
+          ".batch-tracking"
+        );
+
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
+      /* Kondisi awal:
+         batch tertutup */
+      if (
+        card.classList.contains(
+          "recap-batch-collapsed"
+        )
+      ) {
+
+        if (tracking) {
+          tracking.style.display =
+            "none";
+        }
+
+        if (tableWrapper) {
+          tableWrapper.style.display =
+            "none";
+        }
+
+      }
+
       header.addEventListener(
         "click",
         function(event) {
 
           /*
-           * Jangan tutup/buka batch
-           * ketika user berinteraksi
-           * dengan select atau tombol.
+           * Jangan buka/tutup batch
+           * ketika klik tombol atau select.
            */
           if (
             event.target.closest(
@@ -10969,18 +11094,61 @@ container
             return;
           }
 
-          const card =
-            header.closest(
-              ".recap-batch-card"
-            );
+          const isCollapsed =
+  card.classList.toggle(
+    "recap-batch-collapsed"
+  );
 
-          if (!card) {
-            return;
+const batchCode =
+  card
+    .querySelector(
+      ".recap-batch-header h3"
+    )
+    ?.textContent
+    .trim() || "";
+
+if (isCollapsed) {
+
+  saveRecapNavigationState({
+    batchCode: "",
+    batchOpen: false,
+    mode: "batch-list"
+  });
+
+} else {
+
+  saveRecapNavigationState({
+    batchCode: batchCode,
+    batchOpen: true,
+    mode: "batch-detail"
+  });
+
+}
+          if (isCollapsed) {
+
+            if (tracking) {
+              tracking.style.display =
+                "none";
+            }
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "none";
+            }
+
+          } else {
+
+            if (tracking) {
+              tracking.style.display =
+                "";
+            }
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "";
+            }
+
           }
-
-          card.classList.toggle(
-            "recap-batch-collapsed"
-          );
 
         }
       );
