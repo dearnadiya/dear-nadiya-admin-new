@@ -9043,7 +9043,85 @@ function showRecapForm(category) {
 
   }
 
+/* ==========================================
+   UPDATE SISA PEMBAYARAN OTOMATIS
+   ========================================== */
 
+function updateBatchRemaining() {
+
+  const mode =
+    document.getElementById(
+      "batchPriceMode"
+    )?.value || "same";
+
+  const items =
+    document.querySelectorAll(
+      "#batchItemsContainer .batch-item"
+    );
+
+  let commonPrice = 0;
+  let commonDp = 0;
+
+  if (mode === "same") {
+
+    commonPrice =
+      Number(
+        document.getElementById(
+          "batchCommonPrice"
+        )?.value
+      ) || 0;
+
+    commonDp =
+      Number(
+        document.getElementById(
+          "batchCommonDp"
+        )?.value
+      ) || 0;
+  }
+
+  items.forEach(function(item) {
+
+    let price = commonPrice;
+    let dp = commonDp;
+
+    if (mode === "different") {
+
+      price =
+        Number(
+          item
+            .querySelector(
+              ".batch-price"
+            )?.value
+        ) || 0;
+
+      dp =
+        Number(
+          item
+            .querySelector(
+              ".batch-dp"
+            )?.value
+        ) || 0;
+    }
+
+    const remaining =
+      Math.max(
+        0,
+        price - dp
+      );
+
+    const remainingInput =
+      item.querySelector(
+        ".batch-remaining"
+      );
+
+    if (remainingInput) {
+      remainingInput.value =
+        remaining;
+    }
+
+  });
+}
+   
   /* ==========================================
      CUSTOMER PERTAMA
      ========================================== */
@@ -9074,7 +9152,39 @@ function showRecapForm(category) {
       updatePriceMode
     );
 
+   /* ==========================================
+   SISA PEMBAYARAN UPDATE OTOMATIS
+   ========================================== */
 
+document
+  .getElementById("batchCommonPrice")
+  ?.addEventListener(
+    "input",
+    updateBatchRemaining
+  );
+
+document
+  .getElementById("batchCommonDp")
+  ?.addEventListener(
+    "input",
+    updateBatchRemaining
+  );
+
+itemsContainer.addEventListener(
+  "input",
+  function(event) {
+
+    if (
+      event.target.matches(
+        ".batch-price, .batch-dp"
+      )
+    ) {
+      updateBatchRemaining();
+    }
+
+  }
+);
+   
   /* ==========================================
      BATAL
      ========================================== */
