@@ -10715,32 +10715,42 @@ if (recapPaymentFilter) {
 
 }
 
-     /* ==========================================
+   /* ==========================================
    TOMBOL EDIT REKAP GO
+   EVENT DELEGATION
    ========================================== */
 
-container
-  .querySelectorAll(
-    ".edit-recap-button"
-  )
-  .forEach(
-    function (button) {
+container.addEventListener(
+  "click",
+  function (event) {
 
-      button.addEventListener(
-        "click",
-        function () {
-
-          const id =
-            this.dataset.id;
-
-          editRecap(id);
-
-        }
+    const editButton =
+      event.target.closest(
+        ".edit-recap-button"
       );
 
+    if (!editButton) {
+      return;
     }
-  );
 
+    event.preventDefault();
+    event.stopPropagation();
+
+    const id =
+      editButton.dataset.id;
+
+    if (!id) {
+      console.error(
+        "ID Rekap GO tidak ditemukan."
+      );
+      return;
+    }
+
+    editRecap(id);
+
+  }
+);
+   
    /* ==========================================
    AUTO SAVE STATUS REKAP GO
    ========================================== */
@@ -11205,33 +11215,6 @@ batchTrackingButtons.forEach(
     );
 
   }
-
-
-  /* ==========================================
-     TOMBOL EDIT
-     ========================================== */
-
-  container
-    .querySelectorAll(
-      ".edit-recap-button"
-    )
-    .forEach(
-      function (button) {
-
-        button.addEventListener(
-          "click",
-          function () {
-
-            editRecap(
-              this.dataset.id
-            );
-
-          }
-        );
-
-      }
-    );
-
 
   /* ==========================================
      TOMBOL HAPUS
