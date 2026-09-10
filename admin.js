@@ -12781,15 +12781,171 @@ async function editBatchHeader(
               .value
           ) || 0;
 
+/* ======================================
+   HITUNG PEMBAYARAN AKTUAL CUSTOMER
+   ====================================== */
 
-        const newRemaining =
-          Math.max(
-            0,
-            newPrice -
-            newDp
-          );
+const oldDpTarget =
+  Number(
+    firstRow.minimum_dp_amount ||
+    firstRow.dp_amount ||
+    0
+  ) || 0;
 
+let totalDpPaid = 0;
+let totalPelunasanPaid = 0;
 
+/* Ambil seluruh histori pembayaran batch */
+for (const row of data) {
+
+  const {
+    data: historyAllocations,
+    error: historyError
+  } =
+    await supabaseClient
+      .from("dn_payment_allocations")
+      .select(
+        "allocated_amount, payment_part, allocation_status, created_at"
+      )
+      .eq(
+        "recap_id",
+        row.id
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+  if (historyError) {
+
+    console.error(
+      "ERROR FETCH PAYMENT HISTORY:",
+      historyError
+    );
+
+    message.textContent =
+      "Gagal mengambil histori pembayaran: " +
+      historyError.message;
+
+    return;
+  }
+
+  for (
+    const history of
+    historyAllocations || []
+  ) {
+
+    const amount =
+      Number(
+        history.allocated_amount
+      ) || 0;
+
+    if (
+      history.payment_part ===
+      "dp"
+    ) {
+
+      totalDpPaid +=
+        amount;
+
+      continue;
+    }
+
+    if (
+      history.payment_part ===
+      "pelunasan"
+    ) {
+
+      totalPelunasanPaid +=
+        amount;
+
+      continue;
+    }
+
+    if (
+      history.payment_part ===
+      "both"
+    ) {
+
+      const dpNeeded =
+        Math.max(
+          oldDpTarget -
+          totalDpPaid,
+          0
+        );
+
+      const dpPortion =
+        Math.min(
+          amount,
+          dpNeeded
+        );
+
+      const pelunasanPortion =
+        Math.max(
+          amount -
+          dpPortion,
+          0
+        );
+
+      totalDpPaid +=
+        dpPortion;
+
+      totalPelunasanPaid +=
+        pelunasanPortion;
+    }
+  }
+}
+
+/* ======================================
+   STATUS DP BERDASARKAN DP TARGET BARU
+   ====================================== */
+
+let newDpStatus =
+  "unpaid";
+
+if (
+  totalDpPaid > 0
+) {
+
+  if (
+    totalDpPaid >= newDp
+  ) {
+
+    newDpStatus =
+      "paid";
+
+  } else {
+
+    newDpStatus =
+      "insufficient";
+  }
+}
+
+/* ======================================
+   PELUNASAN BERDASARKAN TOTAL BAYAR AKTUAL
+   BOLEH NEGATIF
+   ====================================== */
+
+const totalActualPaid =
+  totalDpPaid +
+  totalPelunasanPaid;
+
+const newRemaining =
+  newPrice -
+  totalActualPaid;
+
+/* ======================================
+   STATUS PEMBAYARAN
+   ====================================== */
+
+const newPaymentStatus =
+  newPrice > 0 &&
+  totalActualPaid >= newPrice
+    ? "paid"
+    : "unpaid";
+        
         const newDpDeadline =
           document
             .getElementById(
@@ -12849,11 +13005,16 @@ async function editBatchHeader(
                 newDp,
 
               dp_amount:
-                newDp,
+  totalDpPaid,
 
-              remaining_amount:
-                newRemaining,
+dp_status:
+  newDpStatus,
 
+remaining_amount:
+  newRemaining,
+
+payment_status:
+  newPaymentStatus,
               dp_deadline:
                 newDpDeadline,
 
