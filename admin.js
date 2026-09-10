@@ -10433,147 +10433,66 @@ let html = `
 
          <div class="recap-batch-header">
 
-  <!-- KOLOM 1: KODE BATCH -->
-  <h3>
-    ${escapeHTML(batchCode)}
-  </h3>
+  <div>
 
-  <!-- KOLOM 2: NAMA BARANG -->
-  <div class="recap-batch-item-name">
-    <span>
-      ${escapeHTML(
-        rows[0]?.item_name ||
-        "Nama barang belum tersedia"
-      )}
-    </span>
-  </div>
+    <h3>
+      ${escapeHTML(batchCode)}
+    </h3>
 
-  <!-- KOLOM 3: EDIT -->
-  <button
-    type="button"
-    class="primary-button edit-batch-header-button"
-    data-batch-code="${escapeHTML(batchCode)}"
-    data-category="${escapeHTML(category)}"
-  >
-    ✏️ Edit
-  </button>
+    <p
+      style="
+        display:flex;
+        align-items:center;
+        gap:8px;
+        flex-wrap:wrap;
+      "
+    >
 
-  <!-- KOLOM 4: TAMBAH MEMBER / VERSI -->
-  <button
-    type="button"
-    class="add-recap-member-button"
-    data-batch-code="${escapeHTML(batchCode)}"
-  >
-    ＋ Tambah Member / Versi
-  </button>
+      <span>
+        ${escapeHTML(
+          rows[0]?.item_name ||
+          "Nama barang belum tersedia"
+        )}
+      </span>
 
-  <!-- KOLOM 5: PANAH -->
-  <div class="recap-batch-arrow">
-    →
-  </div>
+      <button
+        type="button"
+        class="primary-button edit-batch-header-button"
+        data-batch-code="${escapeHTML(batchCode)}"
+        data-category="${escapeHTML(category)}"
+        style="
+          padding:4px 10px;
+          font-size:12px;
+        "
+      >
+        ✏️ Edit
+      </button>
 
-</div>
-
-<div class="recap-batch-details">
-
-  <div class="recap-batch-customer-summary">
-
-    <span>
-      ${rows.length}
-      customer
-    </span>
-
-  </div>
-
-  <div class="recap-batch-deadlines">
-
-    <p>
-      💰 Deadline DP:
-      <strong>
-        ${
-          rows[0]?.dp_deadline
-            ? new Date(
-                rows[0].dp_deadline +
-                "T00:00:00"
-              ).toLocaleDateString(
-                "id-ID",
-                {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                }
-              )
-            : "—"
-        }
-      </strong>
     </p>
 
-    <p>
-      💳 Deadline Pelunasan:
-      <strong>
-        ${
-          rows[0]?.payment_deadline
-            ? new Date(
-                rows[0].payment_deadline +
-                "T00:00:00"
-              ).toLocaleDateString(
-                "id-ID",
-                {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                }
-              )
-            : "—"
-        }
-      </strong>
-    </p>
+    <div class="recap-batch-customer-summary">
 
-    <p>
-      🛒 Deadline CO Shopee:
-      <strong>
-        ${
-          rows[0]?.co_deadline
-            ? (() => {
-                const dateValue =
-                  String(
-                    rows[0].co_deadline
-                  ).substring(0, 10);
+      <span>
+        ${rows.length}
+        customer
+      </span>
 
-                const parts =
-                  dateValue.split("-");
+      <button
+        type="button"
+        class="add-recap-member-button"
+        data-batch-code="${escapeHTML(batchCode)}"
+      >
+        ＋ Tambah Member / Versi
+      </button>
 
-                if (parts.length !== 3) {
-                  return "—";
-                }
+    </div>
 
-                const [year, month, day] =
-                  parts;
+    <div class="recap-batch-deadlines">
 
-                const date =
-                  new Date(
-                    Number(year),
-                    Number(month) - 1,
-                    Number(day)
-                  );
+      <!-- PERTAHANKAN SELURUH ISI DEADLINE
+           YANG SEKARANG SUDAH ADA DI FILE -->
 
-                return isNaN(
-                  date.getTime()
-                )
-                  ? "—"
-                  : date.toLocaleDateString(
-                      "id-ID",
-                      {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric"
-                      }
-                    );
-              })()
-            : "—"
-        }
-      </strong>
-    </p>
+    </div>
 
   </div>
 
