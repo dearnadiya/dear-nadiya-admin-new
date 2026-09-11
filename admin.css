@@ -12318,3 +12318,145 @@ p > span {
   }
 
 }
+
+/* =========================================================
+   TABEL ARSIP PESANAN
+   ========================================================= */
+
+#poArchiveContainer {
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  box-sizing: border-box;
+}
+
+#poArchiveContainer .po-archive-table-header,
+#poArchiveContainer .po-archive-table-row {
+  display: grid !important;
+
+  grid-template-columns:
+    90px
+    minmax(220px, 1fr)
+    130px
+    80px
+    100px
+    110px
+    45px;
+
+  min-width: 775px;
+  box-sizing: border-box;
+}
+
+/* Header */
+
+#poArchiveContainer .po-archive-table-header {
+  align-items: center;
+  min-height: 42px;
+
+  padding: 8px 10px;
+
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  border-bottom: none;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Baris */
+
+#poArchiveContainer .po-archive-table-row {
+  align-items: center;
+  min-height: 42px;
+
+  padding: 8px 10px;
+
+  background: #fff;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+
+  font-size: 13px;
+
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+#poArchiveContainer .po-archive-table-row:hover {
+  background: #fff7fb;
+}
+
+/* Semua cell */
+
+#poArchiveContainer .po-archive-cell {
+  min-width: 0;
+  box-sizing: border-box;
+
+  padding-right: 10px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Nama barang */
+
+#poArchiveContainer .po-archive-title {
+  font-weight: 600;
+}
+
+/* Angka */
+
+#poArchiveContainer .po-archive-member,
+#poArchiveContainer .po-archive-customer {
+  text-align: center;
+}
+
+/* Status */
+
+#poArchiveContainer .po-archive-status {
+  display: flex;
+  align-items: center;
+}
+
+#poArchiveContainer .po-archive-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background: #eaf8ee;
+  border: 1px solid #b9dfc0;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+/* Panah */
+
+#poArchiveContainer .po-archive-arrow {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Mobile / tablet */
+
+@media (max-width: 700px) {
+
+  #poArchiveContainer {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #poArchiveContainer .po-archive-table-header,
+  #poArchiveContainer .po-archive-table-row {
+    min-width: 775px;
+  }
+
+}
