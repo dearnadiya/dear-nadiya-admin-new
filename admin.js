@@ -17160,87 +17160,120 @@ async function loadPOClaimList() {
         )
         .join("");
 
-         /* ==========================================
-       KLIK KARTU PO MASIH BISA CLAIM
-       ========================================== */
+/* ==========================================
+   KLIK KARTU PO MASIH BISA CLAIM
+   ========================================== */
 
-    container
-      .querySelectorAll(
-        ".po-claim-card"
-      )
-      .forEach(
-        function (card) {
+container
+  .querySelectorAll(
+    ".po-claim-card"
+  )
+  .forEach(
+    function (card) {
 
-          card.addEventListener(
-            "click",
-            function () {
+      card.addEventListener(
+        "click",
+        async function () {
 
-              const poId =
-                this.dataset.poId;
+          const poId =
+            this.dataset.poId;
 
-              if (!poId) {
-                return;
-              }
+          if (!poId) {
+            return;
+          }
 
-              const poListContainer =
-                document.getElementById(
-                  "poListContainer"
-                );
+          try {
 
-              if (!poListContainer) {
-                return;
-              }
+            /* Ambil PO langsung berdasarkan ID.
+               Tidak menggunakan loadPOList()
+               karena PO ini sudah melewati deadline. */
 
-              /* Tampilkan area detail PO */
-              poListContainer.style.display =
-                "block";
-
-              /* Sembunyikan semua detail PO */
-              poListContainer
-                .querySelectorAll(
-                  ".po-card"
+            const { data: po, error } =
+              await supabaseClient
+                .from("po_posts")
+                .select("*")
+                .eq(
+                  "id",
+                  poId
                 )
-                .forEach(
-                  function (poCard) {
+                .single();
 
-                    if (
-                      String(
-                        poCard.dataset.poId
-                      ) ===
-                      String(poId)
-                    ) {
+            if (error) {
+              console.error(
+                "Gagal mengambil detail PO claim:",
+                error
+              );
 
-                      poCard.style.display =
-                        "";
+              alert(
+                "Gagal membuka PO: " +
+                error.message
+              );
 
-                    } else {
+              return;
+            }
 
-                      poCard.style.display =
-                        "none";
+            if (!po) {
+              alert(
+                "Data PO tidak ditemukan."
+              );
 
-                    }
+              return;
+            }
 
-                  }
-                );
+            /* Sembunyikan daftar PO biasa */
+            const poListContainer =
+              document.getElementById(
+                "poListContainer"
+              );
 
-              /* Scroll ke detail */
-              setTimeout(
-                function () {
+            if (poListContainer) {
+              poListContainer.style.display =
+                "none";
+            }
 
-                  poListContainer.scrollIntoView({
+            /* Buka form PO yang sudah ada */
+            showPOForm(po);
+
+            /* Scroll ke form */
+            setTimeout(
+              function () {
+
+                const poFormContainer =
+                  document.getElementById(
+                    "poFormContainer"
+                  );
+
+                if (poFormContainer) {
+
+                  poFormContainer.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
                   });
 
-                },
-                100
-              );
+                }
 
-            }
-          );
+              },
+              100
+            );
+
+          } catch (error) {
+
+            console.error(
+              "Error membuka PO claim:",
+              error
+            );
+
+            alert(
+              "Terjadi kesalahan saat membuka PO."
+            );
+
+          }
 
         }
       );
+
+    }
+  );
 
   } catch (error) {
 
