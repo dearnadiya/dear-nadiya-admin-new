@@ -14844,9 +14844,8 @@ async function loadOrders() {
   }
 
   await loadPORunningList();
-
 await loadPOClaimList();
-
+await loadPOArchiveList();
 await loadPOList();
    
    /* ==========================================
