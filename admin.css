@@ -12469,3 +12469,47 @@ p > span {
   }
 
 }
+
+/* =========================================================
+   FIX STRUKTUR TABEL ARSIP PESANAN
+   ========================================================= */
+
+#poArchiveContainer {
+  display: block !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Header dan setiap data harus menjadi baris masing-masing */
+
+#poArchiveContainer .po-archive-table-header,
+#poArchiveContainer .po-archive-table-row {
+  display: grid !important;
+
+  grid-template-columns:
+    90px
+    minmax(220px, 1fr)
+    130px
+    80px
+    100px
+    110px
+    45px;
+
+  min-width: 775px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Pastikan setiap row berdiri sendiri */
+
+#poArchiveContainer .po-archive-table-header {
+  position: relative !important;
+  flex: none !important;
+}
+
+#poArchiveContainer .po-archive-table-row {
+  position: relative !important;
+  flex: none !important;
+}
