@@ -11743,22 +11743,18 @@ button {
   }
    
   /* Nama barang */
-  #recapListContainer
-  .recap-batch-header
-  > div:first-child
-  > p {
+#recapListContainer
+.recap-batch-header
+> div:first-child {
+  display: contents !important;
+}
 
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-
-    width: 100% !important;
-    min-width: 0 !important;
-
-    margin: 0 !important;
-
-    box-sizing: border-box !important;
-  }
-
+#recapListContainer
+.recap-batch-header
+> div:first-child
+> p {
+  display: contents !important;
+}
 
   /* Tambah Member / Versi */
   #recapListContainer
