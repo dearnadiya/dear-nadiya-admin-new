@@ -14800,6 +14800,11 @@ async function loadOrders() {
     </p>
   </div>
 
+  <div
+  id="poArchiveDetailContainer"
+  style="display:none;"
+></div>
+
 </div>
 
       <div
@@ -17542,6 +17547,332 @@ async function loadPOArchiveList() {
           }
         )
         .join("");
+
+         /* ==========================================
+       KLIK ARSIP PESANAN
+       ========================================== */
+
+    container
+      .querySelectorAll(
+        ".po-archive-card"
+      )
+      .forEach(
+        function (card) {
+
+          card.addEventListener(
+            "click",
+            async function () {
+
+              const poId =
+                this.dataset.poId;
+
+              if (!poId) {
+                return;
+              }
+
+              try {
+
+                const { data: po, error } =
+                  await supabaseClient
+                    .from("po_posts")
+                    .select("*")
+                    .eq(
+                      "id",
+                      poId
+                    )
+                    .single();
+
+                if (error) {
+                  throw error;
+                }
+
+                if (!po) {
+                  alert(
+                    "Data arsip pesanan tidak ditemukan."
+                  );
+                  return;
+                }
+
+                let rows =
+                  po.list_data || [];
+
+                if (
+                  typeof rows ===
+                  "string"
+                ) {
+                  try {
+                    rows =
+                      JSON.parse(rows);
+                  } catch (error) {
+                    rows = [];
+                  }
+                }
+
+                if (
+                  !Array.isArray(rows)
+                ) {
+                  rows = [];
+                }
+
+                const poListContainer =
+                  document.getElementById(
+                    "poListContainer"
+                  );
+
+                if (!poListContainer) {
+                  return;
+                }
+
+                /* Sembunyikan daftar PO lama */
+                poListContainer.style.display =
+                  "none";
+
+                /* Tampilkan detail arsip */
+                const archiveDetail =
+                  document.getElementById(
+                    "poArchiveDetailContainer"
+                  );
+
+                if (!archiveDetail) {
+                  return;
+                }
+
+                archiveDetail.style.display =
+                  "block";
+
+                archiveDetail.innerHTML = `
+                  <div class="panel">
+
+                    <div class="panel-header">
+
+                      <div>
+                        <h2>
+                          📦 Arsip Pesanan
+                        </h2>
+
+                        <p>
+                          ${escapeHTML(
+                            po.title ||
+                            "PO"
+                          )}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        class="secondary-button"
+                        id="backToPOArchiveButton"
+                      >
+                        ← Kembali ke Arsip
+                      </button>
+
+                    </div>
+
+                    <div class="po-archive-detail">
+
+                      <div class="po-archive-detail-info">
+
+                        <div>
+                          <span>Nama PO</span>
+                          <strong>
+                            ${escapeHTML(
+                              po.title ||
+                              "—"
+                            )}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Tanggal Selesai</span>
+                          <strong>
+                            ${
+                              po.close_date
+                                ? new Date(
+                                    po.close_date
+                                  ).toLocaleDateString(
+                                    "id-ID",
+                                    {
+                                      day: "2-digit",
+                                      month: "long",
+                                      year: "numeric"
+                                    }
+                                  )
+                                : "—"
+                            }
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Status</span>
+                          <strong>
+                            ✅ Selesai
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div class="po-archive-detail-table">
+
+                        <table class="product-table">
+
+                          <thead>
+                            <tr>
+                              <th>No</th>
+                              <th>Member / Versi</th>
+                              <th>Customer</th>
+                              <th>Qty</th>
+                              <th>Catatan</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+
+                            ${
+                              rows.length > 0
+                                ? rows.map(
+                                    function (
+                                      row,
+                                      index
+                                    ) {
+
+                                      return `
+                                        <tr>
+
+                                          <td>
+                                            ${
+                                              index +
+                                              1
+                                            }
+                                          </td>
+
+                                          <td>
+                                            ${escapeHTML(
+                                              row.member ||
+                                              "—"
+                                            )}
+                                          </td>
+
+                                          <td>
+                                            ${escapeHTML(
+                                              row.customer ||
+                                              "—"
+                                            )}
+                                          </td>
+
+                                          <td>
+                                            ${escapeHTML(
+                                              String(
+                                                row.quantity ||
+                                                1
+                                              )
+                                            )}
+                                          </td>
+
+                                          <td>
+                                            ${escapeHTML(
+                                              row.note ||
+                                              "—"
+                                            )}
+                                          </td>
+
+                                        </tr>
+                                      `;
+
+                                    }
+                                  ).join("")
+                                : `
+                                  <tr>
+                                    <td
+                                      colspan="5"
+                                      style="
+                                        text-align:center;
+                                      "
+                                    >
+                                      Tidak ada data customer.
+                                    </td>
+                                  </tr>
+                                `
+                            }
+
+                          </tbody>
+
+                        </table>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+                `;
+
+                const backButton =
+                  document.getElementById(
+                    "backToPOArchiveButton"
+                  );
+
+                if (backButton) {
+
+                  backButton.addEventListener(
+                    "click",
+                    function () {
+
+                      archiveDetail.innerHTML =
+                        "";
+
+                      archiveDetail.style.display =
+                        "none";
+
+                      const archiveContainer =
+                        document.getElementById(
+                          "poArchiveContainer"
+                        );
+
+                      if (
+                        archiveContainer
+                      ) {
+
+                        archiveContainer.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start"
+                        });
+
+                      }
+
+                    }
+                  );
+
+                }
+
+                setTimeout(
+                  function () {
+
+                    archiveDetail.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                    });
+
+                  },
+                  100
+                );
+
+              } catch (error) {
+
+                console.error(
+                  "Gagal membuka arsip pesanan:",
+                  error
+                );
+
+                alert(
+                  "Gagal membuka arsip pesanan."
+                );
+
+              }
+
+            }
+          );
+
+        }
+      );
 
   } catch (error) {
 
