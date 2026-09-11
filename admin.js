@@ -16266,6 +16266,9 @@ async function savePO(
       "poOrderMode"
     )
     ?.value || "manual";
+   
+   const batchStatus =
+  document.getElementById("poBatchStatus")?.value || "available";
 
 
   const priceText =
@@ -16618,6 +16621,9 @@ const dpMode =
      order_mode:
   orderMode,
 
+     batch_status:
+   batchStatus,
+     
   price_mode:
     priceMode,
 
