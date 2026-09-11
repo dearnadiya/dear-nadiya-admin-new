@@ -17378,6 +17378,9 @@ async function loadPOArchiveList() {
           }
         );
 
+     console.log("ARCHIVE DATA:", data);
+console.log("ARCHIVE ERROR:", error);
+
     if (error) {
       throw error;
     }
