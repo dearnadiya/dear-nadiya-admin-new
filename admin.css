@@ -13400,3 +13400,115 @@ p > span {
   }
 
 }
+
+/* =========================================================
+   REKAP GO — SEJAJARKAN HEADER & BARIS BATCH
+   ========================================================= */
+
+/* Hilangkan padding horizontal pada kartu batch */
+#recapListContainer
+.recap-batch-card {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+
+/* Header dan isi harus mulai dari titik yang sama */
+#recapListContainer
+.recap-batch-table-header,
+#recapListContainer
+.recap-batch-card
+.recap-batch-header {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+
+/* Pastikan isi batch tidak mendapat offset tambahan */
+#recapListContainer
+.recap-batch-card
+.recap-batch-header {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+
+/* =========================================================
+   EDIT — KEMBALIKAN KE KOLOM EDIT
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.edit-batch-header-button {
+  position: static !important;
+
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+
+  align-self: center !important;
+  justify-self: center !important;
+
+  transform: none !important;
+
+  margin: 0 !important;
+
+  width: 70px !important;
+  min-width: 70px !important;
+  max-width: 70px !important;
+
+  height: 32px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   TAMBAH MEMBER / VERSI — KOLOM 4
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.add-recap-member-button {
+  position: static !important;
+
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+
+  align-self: center !important;
+  justify-self: center !important;
+
+  transform: none !important;
+
+  margin: 0 !important;
+
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  #recapListContainer
+  .recap-batch-card {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+}
