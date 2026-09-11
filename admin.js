@@ -17467,89 +17467,102 @@ console.log("ARCHIVE ERROR:", error);
       return;
     }
 
-    container.innerHTML =
-      archivedPOs
-        .map(
-          function (po) {
+     const archiveTableHeader = `
+  <div class="po-archive-table-header">
 
-            return `
-              <div
-                class="po-running-card po-archive-card"
-                data-po-id="${escapeHTML(
-                  String(po.id)
-                )}"
-              >
+    <div>Kode PO</div>
+    <div>Nama Barang</div>
+    <div>Tanggal Selesai</div>
+    <div>Member</div>
+    <div>Customer</div>
+    <div>Status</div>
+    <div></div>
 
-                <div
-                  class="po-running-card-image"
-                >
+  </div>
+`;
 
-                  ${
-                    po.image_url
-                      ? `
-                        <img
-                          src="${escapeHTML(
-                            po.image_url
-                          )}"
-                          alt="${escapeHTML(
-                            po.title ||
-                            "Foto PO"
-                          )}"
-                        >
-                      `
-                      : `
-                        <div
-                          class="po-running-card-no-image"
-                        >
-                          📦
-                        </div>
-                      `
-                  }
+  container.innerHTML =
+  archiveTableHeader +
+  archivedPOs.map(function(po) {
+     
+  let listData = po.list_data || [];
 
-                </div>
+  if (typeof listData === "string") {
+    try {
+      listData = JSON.parse(listData);
+    } catch (error) {
+      listData = [];
+    }
+  }
 
-                <div
-                  class="po-running-card-info"
-                >
+  if (!Array.isArray(listData)) {
+    listData = [];
+  }
 
-                  <h4>
-                    ${escapeHTML(
-                      po.title ||
-                      "PO"
-                    )}
-                  </h4>
+  const totalMember = listData.filter(function(row) {
+    return row && row.member;
+  }).length;
 
-                  <p>
-                    Selesai:
-                    ${
-                      po.close_date
-                        ? new Date(
-                            po.close_date
-                          ).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "2-digit",
-                              month: "long",
-                              year: "numeric"
-                            }
-                          )
-                        : "—"
-                    }
-                  </p>
+  const totalCustomer = listData.filter(function(row) {
+    return (
+      row &&
+      row.customer &&
+      String(row.customer).trim()
+    );
+  }).length;
 
-                  <strong>
-                    ✅ Pesanan selesai
-                  </strong>
+  const closeDate = po.close_date
+    ? new Date(po.close_date).toLocaleDateString(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }
+      )
+    : "—";
 
-                </div>
+  return `
+    <div
+      class="po-archive-table-row"
+      data-po-id="${escapeHTML(String(po.id))}"
+    >
 
-              </div>
-            `;
+      <div class="po-archive-cell po-archive-code">
+        ${escapeHTML(String(po.id))}
+      </div>
 
-          }
-        )
-        .join("");
+      <div class="po-archive-cell po-archive-title">
+        ${escapeHTML(String(po.title || "—"))}
+      </div>
 
+      <div class="po-archive-cell po-archive-date">
+        ${closeDate}
+      </div>
+
+      <div class="po-archive-cell po-archive-member">
+        ${totalMember}
+      </div>
+
+      <div class="po-archive-cell po-archive-customer">
+        ${totalCustomer}
+      </div>
+
+      <div class="po-archive-cell po-archive-status">
+        <span class="po-archive-status-badge">
+          ✅ Selesai
+        </span>
+      </div>
+
+      <div class="po-archive-cell po-archive-arrow">
+        →
+      </div>
+
+    </div>
+  `;
+
+}).join("");
+     
          /* ==========================================
        KLIK ARSIP PESANAN
        ========================================== */
