@@ -12513,3 +12513,99 @@ p > span {
   position: relative !important;
   flex: none !important;
 }
+
+/* =========================================================
+   RAPIIKAN TABEL BATCH REKAP GO
+   ========================================================= */
+
+#recapListContainer .recap-batch-scroll {
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-sizing: border-box !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Header dan setiap batch menggunakan grid yang sama */
+
+#recapListContainer .recap-batch-table-header,
+#recapListContainer .recap-batch-card {
+  display: grid !important;
+
+  grid-template-columns:
+    125px
+    260px
+    95px
+    190px
+    55px;
+
+  min-width: 725px !important;
+  box-sizing: border-box !important;
+}
+
+/* Header */
+
+#recapListContainer .recap-batch-table-header {
+  align-items: center;
+
+  min-height: 50px;
+
+  padding: 8px 14px;
+
+  box-sizing: border-box !important;
+}
+
+/* Isi batch */
+
+#recapListContainer .recap-batch-card {
+  align-items: center;
+
+  padding: 8px 14px;
+
+  box-sizing: border-box !important;
+}
+
+/* Kolom */
+
+#recapListContainer .recap-batch-table-code,
+#recapListContainer .recap-batch-table-name,
+#recapListContainer .recap-batch-table-edit,
+#recapListContainer .recap-batch-table-member,
+#recapListContainer .recap-batch-table-arrow {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Nama barang diberi ruang lebih */
+
+#recapListContainer .recap-batch-table-name {
+  padding-right: 20px !important;
+  white-space: normal !important;
+}
+
+/* Edit */
+
+#recapListContainer .recap-batch-table-edit {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Tambah Member / Versi */
+
+#recapListContainer .recap-batch-table-member {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Panah */
+
+#recapListContainer .recap-batch-table-arrow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
