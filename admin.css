@@ -11998,3 +11998,163 @@ p > span {
   }
 
 }
+
+/* =========================================================
+   REKAP GO — RAPATKAN SEARCH & FILTER
+   ========================================================= */
+
+#recapListContainer .recap-search {
+  margin-top: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+
+/* Jarak hasil pencarian jangan mendorong filter terlalu jauh */
+#recapListContainer .recap-search-result {
+  margin-top: 3px !important;
+  margin-bottom: 3px !important;
+}
+
+
+/* FILTER */
+#recapListContainer .recap-filters {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  gap: 8px !important;
+}
+
+
+/* Label filter lebih rapat */
+#recapListContainer .recap-filters label {
+  gap: 3px !important;
+}
+
+
+/* =========================================================
+   RAPATKAN JARAK SEBELUM TABEL
+   ========================================================= */
+
+#recapListContainer .recap-actions {
+  margin-top: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+
+/* =========================================================
+   HEADER TABEL BATCH
+   ========================================================= */
+
+#recapListContainer .recap-batch-table-header {
+
+  grid-template-columns:
+    105px
+    210px
+    80px
+    175px
+    45px !important;
+
+  width: 615px !important;
+  min-width: 615px !important;
+}
+
+
+/* =========================================================
+   BARIS BATCH HARUS SAMA PERSIS DENGAN HEADER
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header {
+
+  grid-template-columns:
+    105px
+    210px
+    80px
+    175px
+    45px !important;
+
+  width: 615px !important;
+  min-width: 615px !important;
+}
+
+
+/* Nama barang */
+#recapListContainer
+.recap-batch-header
+p > span {
+
+  width: 210px !important;
+  min-width: 210px !important;
+}
+
+
+/* Posisi tombol Edit */
+#recapListContainer
+.recap-batch-header
+.edit-batch-header-button {
+
+  left: 315px !important;
+}
+
+
+/* Tombol Tambah Member */
+#recapListContainer
+.recap-batch-header
+.add-recap-member-button {
+
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  #recapListContainer .recap-search {
+    margin-top: 4px !important;
+    margin-bottom: 2px !important;
+  }
+
+  #recapListContainer .recap-search-result {
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  #recapListContainer .recap-filters {
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    gap: 7px !important;
+  }
+
+  #recapListContainer .recap-actions {
+    margin-top: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  #recapListContainer
+  .recap-batch-table-header {
+
+    width: 615px !important;
+    min-width: 615px !important;
+  }
+
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
+
+    width: 615px !important;
+    min-width: 615px !important;
+  }
+
+  #recapListContainer
+  .recap-batch-header
+  .edit-batch-header-button {
+
+    left: 315px !important;
+  }
+
+}
