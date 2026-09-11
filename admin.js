@@ -17160,6 +17160,88 @@ async function loadPOClaimList() {
         )
         .join("");
 
+         /* ==========================================
+       KLIK KARTU PO MASIH BISA CLAIM
+       ========================================== */
+
+    container
+      .querySelectorAll(
+        ".po-claim-card"
+      )
+      .forEach(
+        function (card) {
+
+          card.addEventListener(
+            "click",
+            function () {
+
+              const poId =
+                this.dataset.poId;
+
+              if (!poId) {
+                return;
+              }
+
+              const poListContainer =
+                document.getElementById(
+                  "poListContainer"
+                );
+
+              if (!poListContainer) {
+                return;
+              }
+
+              /* Tampilkan area detail PO */
+              poListContainer.style.display =
+                "block";
+
+              /* Sembunyikan semua detail PO */
+              poListContainer
+                .querySelectorAll(
+                  ".po-card"
+                )
+                .forEach(
+                  function (poCard) {
+
+                    if (
+                      String(
+                        poCard.dataset.poId
+                      ) ===
+                      String(poId)
+                    ) {
+
+                      poCard.style.display =
+                        "";
+
+                    } else {
+
+                      poCard.style.display =
+                        "none";
+
+                    }
+
+                  }
+                );
+
+              /* Scroll ke detail */
+              setTimeout(
+                function () {
+
+                  poListContainer.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                  });
+
+                },
+                100
+              );
+
+            }
+          );
+
+        }
+      );
+
   } catch (error) {
 
     console.error(
