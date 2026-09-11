@@ -14759,6 +14759,25 @@ async function loadOrders() {
   </div>
 </div>
 
+<div class="po-running-section po-claim-section">
+  <div class="po-running-section-header">
+    <div>
+      <h3>🎟️ Masih Bisa Claim</h3>
+      <p>
+        PO yang sudah melewati deadline tetapi masih memiliki
+        member yang belum di-claim.
+      </p>
+    </div>
+  </div>
+
+  <div
+    id="poClaimContainer"
+    class="po-running-scroll"
+  >
+    <p>Memuat PO yang masih bisa di-claim...</p>
+  </div>
+</div>
+
       <div
         id="poFormContainer"
       ></div>
@@ -14796,8 +14815,11 @@ async function loadOrders() {
   }
 
   await loadPORunningList();
-await loadPOList();
 
+await loadPOClaimList();
+
+await loadPOList();
+   
    /* ==========================================
    RESTORE DRAFT PO SAAT KEMBALI KE PESANAN
 ========================================== */
@@ -16886,6 +16908,273 @@ container
       </div>
     `;
   }
+}
+
+/* ============================================
+   LOAD PO MASIH BISA CLAIM
+   PO sudah melewati deadline tetapi masih
+   memiliki member yang belum di-claim.
+   ============================================ */
+
+async function loadPOClaimList() {
+
+  const container =
+    document.getElementById(
+      "poClaimContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+    <p>
+      Memuat PO yang masih bisa di-claim...
+    </p>
+  `;
+
+  try {
+
+    const now =
+      new Date().toISOString();
+
+    const { data, error } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          image_url,
+          close_date,
+          last_dp_date,
+          created_at,
+          order_mode,
+          list_data
+        `)
+        .eq(
+          "order_mode",
+          "claim"
+        )
+        .not(
+          "close_date",
+          "is",
+          null
+        )
+        .lt(
+          "close_date",
+          now
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    const claimablePOs =
+      (data || []).filter(
+        function (po) {
+
+          let rows =
+            po.list_data || [];
+
+          if (
+            typeof rows ===
+            "string"
+          ) {
+            try {
+              rows =
+                JSON.parse(
+                  rows
+                );
+            } catch (error) {
+              rows = [];
+            }
+          }
+
+          if (
+            !Array.isArray(rows)
+          ) {
+            rows = [];
+          }
+
+          return rows.some(
+            function (row) {
+
+              return (
+                row &&
+                row.member &&
+                String(
+                  row.member
+                ).trim() &&
+                !(
+                  row.customer &&
+                  String(
+                    row.customer
+                  ).trim()
+                )
+              );
+
+            }
+          );
+
+        }
+      );
+
+    if (
+      claimablePOs.length === 0
+    ) {
+
+      container.innerHTML = `
+        <div class="po-running-empty">
+          Tidak ada PO yang masih bisa di-claim.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      claimablePOs
+        .map(
+          function (po) {
+
+            let rows =
+              po.list_data || [];
+
+            if (
+              typeof rows ===
+              "string"
+            ) {
+              try {
+                rows =
+                  JSON.parse(
+                    rows
+                  );
+              } catch (error) {
+                rows = [];
+              }
+            }
+
+            if (
+              !Array.isArray(rows)
+            ) {
+              rows = [];
+            }
+
+            const availableCount =
+              rows.filter(
+                function (row) {
+
+                  return (
+                    row &&
+                    row.member &&
+                    String(
+                      row.member
+                    ).trim() &&
+                    !(
+                      row.customer &&
+                      String(
+                        row.customer
+                      ).trim()
+                    )
+                  );
+
+                }
+              ).length;
+
+            return `
+              <div
+                class="po-running-card po-claim-card"
+                data-po-id="${escapeHTML(
+                  String(po.id)
+                )}"
+              >
+
+                <div class="po-running-card-image">
+
+                  ${
+                    po.image_url
+                      ? `
+                        <img
+                          src="${escapeHTML(
+                            po.image_url
+                          )}"
+                          alt="${escapeHTML(
+                            po.title ||
+                            "Foto PO"
+                          )}"
+                        >
+                      `
+                      : `
+                        <div class="po-running-card-no-image">
+                          📦
+                        </div>
+                      `
+                  }
+
+                </div>
+
+                <div class="po-running-card-info">
+
+                  <h4>
+                    ${escapeHTML(
+                      po.title ||
+                      "PO"
+                    )}
+                  </h4>
+
+                  <p>
+                    Selesai:
+                    ${
+                      po.close_date
+                        ? new Date(
+                            po.close_date
+                          ).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric"
+                            }
+                          )
+                        : "—"
+                    }
+                  </p>
+
+                  <strong>
+                    🟢 ${availableCount}
+                    member masih tersedia
+                  </strong>
+
+                </div>
+
+              </div>
+            `;
+
+          }
+        )
+        .join("");
+
+  } catch (error) {
+
+    console.error(
+      "Gagal memuat PO masih bisa claim:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="po-running-empty">
+        Gagal memuat PO yang masih bisa di-claim.
+      </div>
+    `;
+
+  }
+
 }
 
 /* ============================================
