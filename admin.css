@@ -12526,8 +12526,6 @@ p > span {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Header dan setiap batch menggunakan grid yang sama */
-
 /* =========================================================
    BATCH REKAP GO — LEBIH PADAT & KOLOM SEJAJAR
    ========================================================= */
@@ -12561,7 +12559,7 @@ p > span {
 
   min-height: 50px;
 
-  padding: 4px 14px;
+  padding: 8px 14px;
 
   box-sizing: border-box !important;
 }
@@ -12571,7 +12569,7 @@ p > span {
 #recapListContainer .recap-batch-card {
   align-items: center;
 
-  padding: 4px 14px;
+  padding: 8px 14px;
 
   box-sizing: border-box !important;
 }
@@ -12609,7 +12607,7 @@ p > span {
   align-items: center !important;
   justify-content: center !important;
 
-  padding-left: 5px !important;
+   padding-left: 5px !important;
   padding-right: 5px !important;
 }
 
@@ -12619,6 +12617,20 @@ p > span {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+#recapListContainer
+.recap-batch-header
+.edit-batch-header-button {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+
+  width: auto !important;
+  min-width: 70px !important;
+  max-width: none !important;
+
+  margin: 0 !important;
 }
 
 /* =========================================================
