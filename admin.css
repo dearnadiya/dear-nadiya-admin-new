@@ -13132,3 +13132,271 @@ p > span {
   }
 
 }
+
+/* =========================================================
+   REKAP GO — FINAL RAPAPIKAN KOLOM BATCH
+   HEADER DAN ISI HARUS SEJAJAR
+   ========================================================= */
+
+#recapListContainer .recap-batch-table-header,
+#recapListContainer .recap-batch-card .recap-batch-header {
+
+  display: grid !important;
+
+  grid-template-columns:
+    105px
+    210px
+    80px
+    175px
+    45px !important;
+
+  width: 615px !important;
+  min-width: 615px !important;
+  max-width: 615px !important;
+
+  box-sizing: border-box !important;
+
+  gap: 0 !important;
+}
+
+
+/* =========================================================
+   HEADER KOLOM
+   ========================================================= */
+
+#recapListContainer .recap-batch-table-header > div {
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  min-width: 0 !important;
+
+  padding: 6px 6px !important;
+
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+}
+
+
+/* =========================================================
+   ISI — KODE BATCH
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+> div:first-child {
+
+  display: contents !important;
+}
+
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+h3 {
+
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+
+  width: 105px !important;
+  min-width: 105px !important;
+  max-width: 105px !important;
+
+  height: 58px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+  padding: 8px !important;
+
+  box-sizing: border-box !important;
+
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+
+  overflow: hidden !important;
+}
+
+
+/* =========================================================
+   ISI — NAMA BARANG
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+p {
+
+  display: contents !important;
+}
+
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+p > span {
+
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+
+  width: 210px !important;
+  min-width: 210px !important;
+  max-width: 210px !important;
+
+  height: 58px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  margin: 0 !important;
+  padding: 8px 10px !important;
+
+  box-sizing: border-box !important;
+
+  border-right:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+
+  overflow: hidden !important;
+
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+
+/* =========================================================
+   ISI — EDIT
+   JANGAN ABSOLUTE LAGI
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.edit-batch-header-button {
+
+  position: static !important;
+
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+
+  justify-self: center !important;
+  align-self: center !important;
+
+  width: 70px !important;
+  min-width: 70px !important;
+  max-width: 70px !important;
+
+  height: 32px !important;
+
+  margin: 0 !important;
+  padding: 4px 8px !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  z-index: 20 !important;
+}
+
+
+/* =========================================================
+   ISI — TAMBAH MEMBER / VERSI
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.recap-batch-customer-summary {
+
+  display: contents !important;
+}
+
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.recap-batch-customer-summary > span {
+
+  display: none !important;
+}
+
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header
+.add-recap-member-button {
+
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+
+  justify-self: center !important;
+  align-self: center !important;
+
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
+
+  height: 32px !important;
+
+  margin: 0 !important;
+  padding: 5px 8px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   PANAH
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card
+.recap-batch-header::after {
+
+  grid-column: 5 !important;
+  grid-row: 1 !important;
+
+  width: 45px !important;
+  min-width: 45px !important;
+  max-width: 45px !important;
+
+  height: 58px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box !important;
+
+  border-left:
+    1px solid rgba(100, 70, 120, 0.18) !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   TETAP SATU TABEL HORIZONTAL
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  #recapListContainer .recap-batch-table-header,
+  #recapListContainer .recap-batch-card .recap-batch-header {
+
+    width: 615px !important;
+    min-width: 615px !important;
+    max-width: 615px !important;
+  }
+
+}
