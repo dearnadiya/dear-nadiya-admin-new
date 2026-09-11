@@ -10831,7 +10831,7 @@ button {
     width: 100% !important;
     max-width: 100% !important;
 
-    overflow-x: auto !important;
+    overflow-x: visible !important;
     overflow-y: visible !important;
 
     -webkit-overflow-scrolling: touch !important;
