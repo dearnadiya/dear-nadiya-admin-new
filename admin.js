@@ -14778,6 +14778,30 @@ async function loadOrders() {
   </div>
 </div>
 
+<div class="po-running-section po-archive-section">
+
+  <div class="po-running-section-header">
+    <div>
+      <h3>📦 Arsip Pesanan</h3>
+
+      <p>
+        PO yang sudah selesai dan tidak memiliki
+        member yang masih bisa di-claim.
+      </p>
+    </div>
+  </div>
+
+  <div
+    id="poArchiveContainer"
+    class="po-running-scroll"
+  >
+    <p>
+      Memuat arsip pesanan...
+    </p>
+  </div>
+
+</div>
+
       <div
         id="poFormContainer"
       ></div>
@@ -17285,6 +17309,250 @@ container
     container.innerHTML = `
       <div class="po-running-empty">
         Gagal memuat PO yang masih bisa di-claim.
+      </div>
+    `;
+
+  }
+
+}
+
+/* ============================================
+   LOAD ARSIP PESANAN
+   PO sudah melewati deadline dan seluruh
+   member sudah memiliki customer.
+   ============================================ */
+
+async function loadPOArchiveList() {
+
+  const container =
+    document.getElementById(
+      "poArchiveContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+    <p>
+      Memuat arsip pesanan...
+    </p>
+  `;
+
+  try {
+
+    const now =
+      new Date().toISOString();
+
+    const { data, error } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          image_url,
+          close_date,
+          last_dp_date,
+          created_at,
+          order_mode,
+          list_data
+        `)
+        .not(
+          "close_date",
+          "is",
+          null
+        )
+        .lt(
+          "close_date",
+          now
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    const archivedPOs =
+      (data || []).filter(
+        function (po) {
+
+          let rows =
+            po.list_data || [];
+
+          if (
+            typeof rows ===
+            "string"
+          ) {
+
+            try {
+
+              rows =
+                JSON.parse(
+                  rows
+                );
+
+            } catch (error) {
+
+              rows = [];
+
+            }
+
+          }
+
+          if (
+            !Array.isArray(
+              rows
+            )
+          ) {
+
+            rows = [];
+
+          }
+
+          /*
+           * Arsip jika:
+           * - tidak ada member kosong
+           * - semua member yang dikonfigurasi
+           *   sudah memiliki customer
+           */
+
+          const hasAvailableMember =
+            rows.some(
+              function (row) {
+
+                return (
+                  row &&
+                  row.member &&
+                  String(
+                    row.member
+                  ).trim() &&
+                  !(
+                    row.customer &&
+                    String(
+                      row.customer
+                    ).trim()
+                  )
+                );
+
+              }
+            );
+
+          return !hasAvailableMember;
+
+        }
+      );
+
+    if (
+      archivedPOs.length === 0
+    ) {
+
+      container.innerHTML = `
+        <div class="po-running-empty">
+          Belum ada arsip pesanan.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      archivedPOs
+        .map(
+          function (po) {
+
+            return `
+              <div
+                class="po-running-card po-archive-card"
+                data-po-id="${escapeHTML(
+                  String(po.id)
+                )}"
+              >
+
+                <div
+                  class="po-running-card-image"
+                >
+
+                  ${
+                    po.image_url
+                      ? `
+                        <img
+                          src="${escapeHTML(
+                            po.image_url
+                          )}"
+                          alt="${escapeHTML(
+                            po.title ||
+                            "Foto PO"
+                          )}"
+                        >
+                      `
+                      : `
+                        <div
+                          class="po-running-card-no-image"
+                        >
+                          📦
+                        </div>
+                      `
+                  }
+
+                </div>
+
+                <div
+                  class="po-running-card-info"
+                >
+
+                  <h4>
+                    ${escapeHTML(
+                      po.title ||
+                      "PO"
+                    )}
+                  </h4>
+
+                  <p>
+                    Selesai:
+                    ${
+                      po.close_date
+                        ? new Date(
+                            po.close_date
+                          ).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "2-digit",
+                              month: "long",
+                              year: "numeric"
+                            }
+                          )
+                        : "—"
+                    }
+                  </p>
+
+                  <strong>
+                    ✅ Pesanan selesai
+                  </strong>
+
+                </div>
+
+              </div>
+            `;
+
+          }
+        )
+        .join("");
+
+  } catch (error) {
+
+    console.error(
+      "Gagal memuat arsip pesanan:",
+      error
+    );
+
+    container.innerHTML = `
+      <div class="po-running-empty">
+        Gagal memuat arsip pesanan.
       </div>
     `;
 
