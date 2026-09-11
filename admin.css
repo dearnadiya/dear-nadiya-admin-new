@@ -12336,15 +12336,24 @@ p > span {
 
   grid-template-columns:
     90px
-    minmax(220px, 1fr)
+    220px
     130px
     80px
     100px
     110px
     45px;
 
+  width: 100%;
   min-width: 775px;
   box-sizing: border-box;
+}
+
+#poArchiveContainer .po-archive-table-header {
+  grid-row: auto;
+}
+
+#poArchiveContainer .po-archive-table-row {
+  grid-row: auto;
 }
 
 /* Header */
