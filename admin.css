@@ -12561,7 +12561,7 @@ p > span {
 
   min-height: 50px;
 
-  padding: 4px 8px;
+  padding: 4px 14px;
 
   box-sizing: border-box !important;
 }
@@ -12571,7 +12571,7 @@ p > span {
 #recapListContainer .recap-batch-card {
   align-items: center;
 
-  padding: 8px 14px;
+  padding: 4px 14px;
 
   box-sizing: border-box !important;
 }
