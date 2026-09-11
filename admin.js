@@ -15179,6 +15179,42 @@ container.innerHTML = `
   </small>
 </div>
 
+<div
+  class="form-group"
+  style="grid-column:1 / -1;"
+>
+  <label>Status Batch</label>
+
+  <select id="poBatchStatus">
+    <option
+      value="available"
+      ${
+        po.batch_status !== "full"
+          ? "selected"
+          : ""
+      }
+    >
+      🟢 Masih Tersedia
+    </option>
+
+    <option
+      value="full"
+      ${
+        po.batch_status === "full"
+          ? "selected"
+          : ""
+      }
+    >
+      🔴 Batch Full
+    </option>
+  </select>
+
+  <small>
+    Pilih <strong>Batch Full</strong> jika kuota barang
+    sudah habis meskipun waktu PO masih berjalan.
+  </small>
+</div>
+
           <!-- TIPE HARGA -->
 <div
   class="form-group"
