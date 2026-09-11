@@ -12079,3 +12079,56 @@ button {
   }
 
 }
+
+/* =========================================================
+   FIX MOBILE — SCROLL HANYA TABEL CUSTOMER
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  #recapListContainer
+  .recap-batch-scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table {
+    width: 850px !important;
+    min-width: 850px !important;
+    max-width: none !important;
+  }
+
+}
