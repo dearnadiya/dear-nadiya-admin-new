@@ -15644,14 +15644,15 @@ container.innerHTML = `
     </label>
 
     <input
-      type="text"
-      class="po-row-price"
-      placeholder="Contoh: Rp150.000"
-      value="${escapeHTML(
-        rowData.price ||
-        ""
-      )}"
-    >
+  type="text"
+  class="po-row-price"
+  placeholder="Contoh: Rp50.000"
+  value="${escapeHTML(
+    rowData.price ||
+    ""
+  )}"
+  data-unit-price=""
+>
 
   </div>
 
@@ -15665,14 +15666,15 @@ container.innerHTML = `
     </label>
 
     <input
-      type="text"
-      class="po-row-dp"
-      placeholder="Contoh: Rp50.000"
-      value="${escapeHTML(
-        rowData.dp ||
-        ""
-      )}"
-    >
+  type="text"
+  class="po-row-dp"
+  placeholder="Contoh: Rp20.000"
+  value="${escapeHTML(
+    rowData.dp ||
+    ""
+  )}"
+  data-unit-dp=""
+>
 
   </div>
 
@@ -15732,7 +15734,6 @@ ${
     rowsContainer.appendChild(
   row
 );
-
 
 /* ==========================================
    LOAD MASTER MEMBER UNTUK PO CLAIM
