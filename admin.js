@@ -19593,8 +19593,52 @@ const remaining =
     price - dp
   );
 
-              return {
 
+/* ==========================================
+   PO ARSIP SELALU MENJADI REKAP BARU
+   ========================================== */
+
+const recapDataType =
+  "baru";
+
+let arrivedAdminAt =
+  null;
+
+let coDeadline =
+  null;
+
+
+/*
+  Jika saat dikonfirmasi
+  status tracking sudah Arrived Admin,
+  catat waktu dan hitung Deadline CO +3 bulan.
+*/
+
+if (
+  trackingStatus ===
+  "Arrived Admin"
+) {
+
+  const now =
+    new Date();
+
+  arrivedAdminAt =
+    now.toISOString();
+
+  const deadline =
+    new Date(now);
+
+  deadline.setMonth(
+    deadline.getMonth() + 3
+  );
+
+  coDeadline =
+    deadline.toISOString();
+
+}
+
+
+return {
                 recap_type:
                   recapType,
 
@@ -19653,12 +19697,18 @@ const remaining =
                   ).trim(),
 
                 dp_deadline:
-                  po.last_dp_date ||
-                  null,
+  po.last_dp_date ||
+  null,
 
-                co_deadline:
-                  null
+recap_data_type:
+  recapDataType,
 
+co_deadline:
+  coDeadline,
+
+arrived_admin_at:
+  arrivedAdminAt
+   
               };
 
             });
