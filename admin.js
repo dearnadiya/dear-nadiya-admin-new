@@ -19303,173 +19303,125 @@ async function renderMemberList() {
 
     container.innerHTML = `
 
-      <div class="panel">
+  <div class="panel">
 
-        <div class="panel-header">
+    <div class="panel-header">
 
-          <div>
-            <h3>
-              📋 Daftar Member / Versi
-            </h3>
+      <div>
+        <h3>
+          📋 Jenis Member / Versi
+        </h3>
 
-            <p>
-              ${members.length}
-              data tersedia
-            </p>
-          </div>
-
-        </div>
-
-
-        <div
-          style="
-            overflow-x:auto;
-          "
-        >
-
-          <table
-            style="
-              width:100%;
-              border-collapse:collapse;
-            "
-          >
-
-            <thead>
-
-              <tr>
-
-                <th
-                  style="
-                    text-align:left;
-                    padding:12px;
-                  "
-                >
-                  Group
-                </th>
-
-                <th
-                  style="
-                    text-align:left;
-                    padding:12px;
-                  "
-                >
-                  Member / Versi
-                </th>
-
-                <th
-                  style="
-                    text-align:center;
-                    padding:12px;
-                  "
-                >
-                  Urutan
-                </th>
-
-                <th
-                  style="
-                    text-align:center;
-                    padding:12px;
-                  "
-                >
-                  Aksi
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              ${members.map(function(item) {
-
-                return `
-
-                  <tr>
-
-                    <td
-                      style="
-                        padding:12px;
-                      "
-                    >
-                      ${escapeHTML(
-                        item.group_name || ""
-                      )}
-                    </td>
-
-
-                    <td
-                      style="
-                        padding:12px;
-                      "
-                    >
-                      ${escapeHTML(
-                        item.member_name || ""
-                      )}
-                    </td>
-
-
-                    <td
-                      style="
-                        padding:12px;
-                        text-align:center;
-                      "
-                    >
-                      ${Number(
-                        item.sort_order || 0
-                      )}
-                    </td>
-
-
-                    <td
-                      style="
-                        padding:12px;
-                        text-align:center;
-                      "
-                    >
-
-                      <div
-  style="
-    display:flex;
-    gap:6px;
-    justify-content:center;
-    flex-wrap:wrap;
-  "
->
-  <button
-    type="button"
-    class="secondary-button"
-    onclick='showMemberForm(${JSON.stringify(item)})'
-  >
-    ✏️ Edit
-  </button>
-
-  <button
-    type="button"
-    class="secondary-button"
-    onclick="deleteMember(${Number(item.id)})"
-  >
-    🗑️ Hapus
-  </button>
-</div>
-                    </td>
-
-                  </tr>
-
-                `;
-
-              }).join("")}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+        <p>
+          Pilih jenis untuk melihat daftar
+          member / versi.
+        </p>
       </div>
 
-    `;
+    </div>
 
+
+    <div
+      id="memberGroupButtons"
+      style="
+        display:grid;
+        grid-template-columns:
+          repeat(
+            auto-fit,
+            minmax(180px, 1fr)
+          );
+        gap:12px;
+        width:100%;
+      "
+    >
+
+      ${
+        groups.map(function(groupName) {
+
+          const groupCount =
+            members.filter(function(item) {
+
+              return String(
+                item.group_name || ""
+              ).trim() === groupName;
+
+            }).length;
+
+
+          return `
+
+            <button
+              type="button"
+              class="member-group-card"
+              data-group="${escapeHTML(groupName)}"
+              style="
+                width:100%;
+                min-height:105px;
+                padding:16px;
+                border:1px solid #e4dceb;
+                border-radius:14px;
+                background:#fff;
+                cursor:pointer;
+                text-align:center;
+                box-sizing:border-box;
+              "
+            >
+
+              <div
+                style="
+                  font-size:28px;
+                  margin-bottom:7px;
+                "
+              >
+                👥
+              </div>
+
+
+              <div
+                style="
+                  font-size:15px;
+                  font-weight:700;
+                  color:#20233f;
+                "
+              >
+                ${escapeHTML(groupName)}
+              </div>
+
+
+              <div
+                style="
+                  margin-top:4px;
+                  font-size:12px;
+                  color:#777;
+                "
+              >
+                ${groupCount}
+                member / versi
+              </div>
+
+
+              <div
+                style="
+                  margin-top:5px;
+                  font-size:13px;
+                "
+              >
+                Lihat →
+              </div>
+
+            </button>
+
+          `;
+
+        }).join("")
+      }
+
+    </div>
+
+  </div>
+
+`;
+     
   }
 
   catch (error) {
