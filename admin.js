@@ -6146,6 +6146,49 @@ async function loadCOReport() {
 
         }
 
+         /* ======================================
+   SIMPAN TANGGAL CO
+   SAAT ADMIN MENGONFIRMASI
+   LAPORAN CO CUSTOMER
+   ====================================== */
+
+if (
+  result === "Dikonfirmasi"
+) {
+
+  const tanggalCO =
+    new Date().toISOString();
+
+  const {
+    error: tanggalCoError
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .update({
+        tanggal_co:
+          tanggalCO
+      })
+      .in(
+        "id",
+        recapIds
+      );
+
+  if (tanggalCoError) {
+
+    console.error(
+      "ERROR UPDATE TANGGAL CO:",
+      tanggalCoError
+    );
+
+    alert(
+      "Pesanan berhasil diproses, tetapi tanggal CO gagal disimpan: " +
+      tanggalCoError.message
+    );
+
+    return;
+  }
+}
+
 
         /*
           Berhasil
@@ -10626,6 +10669,14 @@ let html = `
                   </th>
 
                   <th>
+                    Deadline CO
+                  </th>
+
+                  <th>
+                    Tanggal CO
+                  </th>
+
+                  <th>
                     Catatan
                   </th>
 
@@ -10777,6 +10828,30 @@ let html = `
       📦 Sudah Menerima Barang
     </option>
   </select>
+</td>
+
+                        <td>
+  ${
+    row.co_deadline
+      ? String(row.co_deadline).substring(0, 10)
+      : "—"
+  }
+</td>
+
+<td>
+  ${
+    row.tanggal_co
+      ? String(row.tanggal_co).substring(0, 10)
+      : "—"
+  }
+</td>
+
+                        <td>
+  ${
+    row.tanggal_co
+      ? String(row.tanggal_co).substring(0, 10)
+      : "—"
+  }
 </td>
 
                         <td>
@@ -13070,6 +13145,11 @@ async function editBatchHeader(
     firstRow.tracking_status ||
     "";
 
+   const arrivedAdminAt =
+  firstRow.arrived_admin_at || null;
+
+const existingCoDeadline =
+  firstRow.co_deadline || null;
 
   /* ==========================================
      FORM EDIT BATCH
@@ -13221,21 +13301,26 @@ async function editBatchHeader(
 
 
         <label>
-          Deadline CO Shopee
-        </label>
+  Deadline CO Shopee
+</label>
 
-        <input
-          id="editBatchHeaderCoDeadline"
-          type="date"
-          value="${
-            firstRow.co_deadline
-              ? String(
-                  firstRow.co_deadline
-                ).substring(0, 10)
-              : ""
-          }"
-        >
+<input
+  id="editBatchHeaderCoDeadline"
+  type="date"
+  value="${
+    firstRow.co_deadline
+      ? String(
+          firstRow.co_deadline
+        ).substring(0, 10)
+      : ""
+  }"
+  readonly
+>
 
+<small>
+  Otomatis dihitung 3 bulan sejak Tracking berubah menjadi
+  <strong>Arrived Admin</strong>.
+</small>
 
         <label>
           Tracking Batch
@@ -13683,13 +13768,62 @@ if (isSamePriceModeHeader) {
             )
             .value;
 
+         /* ======================================
+   OTOMATIS DEADLINE CO
+   3 BULAN SEJAK ARRIVED ADMIN
+   ====================================== */
+
+let newArrivedAdminAt =
+  arrivedAdminAt;
+
+let newCoDeadline =
+  existingCoDeadline;
+
+const now = new Date();
+
+/*
+ * Baru masuk ke Arrived Admin
+ */
+if (
+  newTracking === "Arrived Admin" &&
+  batchTracking !== "Arrived Admin"
+) {
+  newArrivedAdminAt =
+    now.toISOString();
+
+  const deadline =
+    new Date(now);
+
+  deadline.setMonth(
+    deadline.getMonth() + 3
+  );
+
+  newCoDeadline =
+    deadline.toISOString();
+}
+
+/*
+ * Masih Arrived Admin
+ * → jangan reset tanggal
+ */
+else if (
+  newTracking === "Arrived Admin" &&
+  batchTracking === "Arrived Admin"
+) {
+   
+  newArrivedAdminAt =
+    arrivedAdminAt;
+
+  newCoDeadline =
+    existingCoDeadline;
+}
+
 
         /* ======================================
    UPDATE SEMUA CUSTOMER DALAM BATCH
    ====================================== */
 
 const updateData = {
-
   batch_code:
     newBatchCode,
 
@@ -13705,14 +13839,16 @@ const updateData = {
   co_deadline:
     newCoDeadline,
 
+  arrived_admin_at:
+    newArrivedAdminAt,
+
   tracking_status:
     newTracking,
 
   batch_tracking_status:
     newTracking
-
 };
-
+         
 /* ======================================
    HARGA & DP
    HANYA JIKA HARGA SAMA
