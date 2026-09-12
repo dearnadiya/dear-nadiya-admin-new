@@ -12147,3 +12147,55 @@ button {
   line-height: 1.2 !important;
   font-weight: 700 !important;
 }
+
+/* ============================================
+   MASTER MEMBER / VERSI — GROUP CARD
+   ============================================ */
+
+.member-group-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.member-group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.member-group-card:active {
+  transform: translateY(0);
+}
+
+
+/* LAPTOP / TABLET BESAR — 4 CARD */
+
+@media (min-width: 769px) {
+
+  #memberGroupButtons {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr)) !important;
+
+    gap: 12px !important;
+  }
+
+}
+
+
+/* HP — 2 CARD */
+
+@media (max-width: 768px) {
+
+  #memberGroupButtons {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 8px !important;
+  }
+
+  .member-group-card {
+    min-height: 100px !important;
+    padding: 12px !important;
+  }
+
+}
