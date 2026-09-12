@@ -18966,26 +18966,21 @@ if (archiveRecapSubmitButton) {
   Number(row.quantity) || 1;
 
 
-/* ==============================
-   HARGA
-============================== */
-
 let price = 0;
 
-if (po.price_mode === "different") {
+/* Harga dari baris customer */
+price =
+  Number(
+    String(
+      row.price || ""
+    ).replace(
+      /[^\d]/g,
+      ""
+    )
+  ) || 0;
 
-  price =
-    Number(
-      String(
-        row.price || ""
-      ).replace(
-        /[^\d]/g,
-        ""
-      )
-    ) || 0;
-
-} else {
-
+/* Jika row kosong, fallback ke harga header */
+if (price === 0) {
   const unitPrice =
     Number(
       String(
@@ -18998,30 +18993,24 @@ if (po.price_mode === "different") {
 
   price =
     unitPrice * quantity;
-
 }
 
 
-/* ==============================
-   DP
-============================== */
-
 let dp = 0;
 
-if (po.dp_mode === "different") {
+/* DP dari baris customer */
+dp =
+  Number(
+    String(
+      row.dp || ""
+    ).replace(
+      /[^\d]/g,
+      ""
+    )
+  ) || 0;
 
-  dp =
-    Number(
-      String(
-        row.dp || ""
-      ).replace(
-        /[^\d]/g,
-        ""
-      )
-    ) || 0;
-
-} else {
-
+/* Jika row kosong, fallback ke DP header */
+if (dp === 0) {
   const unitDP =
     Number(
       String(
@@ -19034,7 +19023,6 @@ if (po.dp_mode === "different") {
 
   dp =
     unitDP * quantity;
-
 }
 
 
@@ -19043,13 +19031,6 @@ const remaining =
     0,
     price - dp
   );
-
-              const remaining =
-                Math.max(
-                  0,
-                  price - dp
-                );
-
 
               return {
 
