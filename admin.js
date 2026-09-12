@@ -15794,10 +15794,6 @@ if (poTypeNow === "general") {
 
     if (savedDP > 0) {
 
-      const unitDP =
-        savedDP /
-        originalQty;
-
      const unitDP =
   Number(
     dpInput.dataset.unitDP
