@@ -10956,14 +10956,6 @@ let html = `
   }
 </td>
 
-<td>
-  ${
-    row.tanggal_co
-      ? String(row.tanggal_co).substring(0, 10)
-      : "—"
-  }
-</td>
-
                         <td>
   ${
     row.tanggal_co
