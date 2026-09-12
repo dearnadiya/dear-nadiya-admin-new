@@ -15735,127 +15735,156 @@ ${
   row
 );
 
-     /* ==========================================
-   TOTAL HARGA & DP — GENERAL PO
+  /* ==========================================
+   GENERAL PO — HITUNG TOTAL DARI QTY
 ========================================== */
 
-const quantityInput =
-  row.querySelector(".po-row-quantity");
+const poTypeNow =
+  document.getElementById("poType")?.value ||
+  "general";
 
-const priceInput =
-  row.querySelector(".po-row-price");
+if (poTypeNow === "general") {
 
-const dpInput =
-  row.querySelector(".po-row-dp");
+  const quantityInput =
+    row.querySelector(
+      ".po-row-quantity"
+    );
 
+  const priceInput =
+    row.querySelector(
+      ".po-row-price"
+    );
 
-function updateGeneralRowTotal() {
-
-  const poType =
-    document.getElementById("poType")?.value ||
-    "general";
-
-  /* Hanya General PO */
-  if (poType !== "general") {
-    return;
-  }
-
-  const qty =
-    Math.max(
-      1,
-      Number(quantityInput?.value) || 1
+  const dpInput =
+    row.querySelector(
+      ".po-row-dp"
     );
 
 
   /* ==============================
-     HARGA PER CUSTOMER
+     SIMPAN HARGA SATUAN
+     DARI DATA YANG SUDAH ADA
   ============================== */
+
+  const originalQty =
+    Math.max(
+      1,
+      Number(rowData.quantity) || 1
+    );
+
 
   if (priceInput) {
 
-    let unitPrice =
-      Number(
-        priceInput.dataset.unitPrice
+    const savedPrice =
+      parsePONominal(
+        rowData.price
       );
 
-    if (!unitPrice) {
+    if (savedPrice > 0) {
 
-      unitPrice =
-        parsePONominal(
-          priceInput.value
-        );
-
-    }
-
-    if (unitPrice > 0) {
+      const unitPrice =
+        savedPrice /
+        originalQty;
 
       priceInput.dataset.unitPrice =
         String(unitPrice);
 
-      priceInput.value =
-        formatPONominal(
-          unitPrice * qty
-        );
-
     }
 
   }
 
 
-  /* ==============================
-     DP PER CUSTOMER
-  ============================== */
-
   if (dpInput) {
 
-    let unitDP =
-      Number(
-        dpInput.dataset.unitDp
+    const savedDP =
+      parsePONominal(
+        rowData.dp
       );
 
-    if (!unitDP) {
+    if (savedDP > 0) {
 
-      unitDP =
-        parsePONominal(
-          dpInput.value
-        );
-
-    }
-
-    if (unitDP > 0) {
+      const unitDP =
+        savedDP /
+        originalQty;
 
       dpInput.dataset.unitDp =
         String(unitDP);
 
-      dpInput.value =
-        formatPONominal(
-          unitDP * qty
-        );
+    }
+
+  }
+
+
+  function updateGeneralRowTotal() {
+
+    const qty =
+      Math.max(
+        1,
+        Number(
+          quantityInput?.value
+        ) || 1
+      );
+
+
+    /* ==============================
+       HARGA
+    ============================== */
+
+    if (priceInput) {
+
+      const unitPrice =
+        Number(
+          priceInput.dataset.unitPrice
+        ) || 0;
+
+      if (unitPrice > 0) {
+
+        priceInput.value =
+          formatPONominal(
+            unitPrice * qty
+          );
+
+      }
+
+    }
+
+
+    /* ==============================
+       DP
+    ============================== */
+
+    if (dpInput) {
+
+      const unitDP =
+        Number(
+          dpInput.dataset.unitDp
+        ) || 0;
+
+      if (unitDP > 0) {
+
+        dpInput.value =
+          formatPONominal(
+            unitDP * qty
+          );
+
+      }
 
     }
 
   }
 
-}
 
+  if (quantityInput) {
 
-/* ==========================================
-   QTY BERUBAH
-========================================== */
+    quantityInput.addEventListener(
+      "input",
+      updateGeneralRowTotal
+    );
 
-if (quantityInput) {
-
-  quantityInput.addEventListener(
-    "input",
-    function() {
-
-      updateGeneralRowTotal();
-
-    }
-  );
+  }
 
 }
-
+     
 /* ==========================================
    LOAD MASTER MEMBER UNTUK PO CLAIM
 ========================================== */
