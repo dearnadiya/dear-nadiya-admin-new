@@ -17531,7 +17531,7 @@ container
               "none";
           }
 
-          showPOForm(po);
+          showPODetailAdmin(po);
 
         } catch (error) {
 
