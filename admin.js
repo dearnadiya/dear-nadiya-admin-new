@@ -18294,7 +18294,7 @@ console.log("ARCHIVE ERROR:", error);
 
     container
       .querySelectorAll(
-        ".po-archive-card"
+        ".po-archive-table-row"
       )
       .forEach(
         function (card) {
