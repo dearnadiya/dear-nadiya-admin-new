@@ -18649,12 +18649,15 @@ console.log("ARCHIVE ERROR:", error);
     >
       <label>Status Tracking</label>
 
-      <input
-        type="text"
-        id="archiveRecapTrackingStatus"
-        placeholder="Isi status tracking hasil PO"
-      >
+      <select id="archiveRecapTrackingStatus">
+  <option value="">
+    Pilih Status Tracking
+  </option>
+</select>
 
+<small>
+  Pilih status tracking sesuai alur Rekap GO.
+</small>
       <small>
         Status tracking dikonfirmasi Admin
         saat PO dimasukkan ke Rekap GO.
@@ -18688,6 +18691,62 @@ const archiveRecapCategory =
   document.getElementById(
     "archiveRecapCategory"
   );
+
+const archiveRecapTrackingStatus =
+  document.getElementById(
+    "archiveRecapTrackingStatus"
+  );
+
+if (
+  archiveRecapCategory &&
+  archiveRecapTrackingStatus
+) {
+  function updateArchiveRecapTracking() {
+
+    const category =
+      archiveRecapCategory.value;
+
+    archiveRecapTrackingStatus.innerHTML = `
+      <option value="">
+        Pilih Status Tracking
+      </option>
+    `;
+
+    if (!category) {
+      return;
+    }
+
+    const trackingOptions =
+      getTrackingOptions(category);
+
+    trackingOptions.forEach(
+      function(option) {
+
+        const trackingOption =
+          document.createElement("option");
+
+        trackingOption.value =
+          option;
+
+        trackingOption.textContent =
+          option;
+
+        archiveRecapTrackingStatus.appendChild(
+          trackingOption
+        );
+
+      }
+    );
+
+  }
+
+  archiveRecapCategory.addEventListener(
+    "change",
+    updateArchiveRecapTracking
+  );
+
+  updateArchiveRecapTracking();
+}
 
 
 if (
