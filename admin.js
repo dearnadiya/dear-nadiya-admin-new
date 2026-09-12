@@ -15361,7 +15361,7 @@ container.innerHTML = `
 
 
             <input
-              type="datetime-local"
+              type="date"
               id="poCloseDate"
               value="${
   po.close_date
