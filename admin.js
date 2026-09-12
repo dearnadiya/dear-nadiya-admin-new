@@ -19440,6 +19440,34 @@ members.forEach(function(item) {
   </div>
 
 `;
+
+     /* ============================================
+   AKSI KLIK KARTU GROUP
+   ============================================ */
+
+const groupButtons =
+  container.querySelectorAll(
+    ".member-group-card"
+  );
+
+groupButtons.forEach(function(button) {
+
+  button.addEventListener(
+    "click",
+    function() {
+
+      const groupName =
+        button.dataset.group || "";
+
+      showMemberGroup(
+        groupName,
+        members
+      );
+
+    }
+  );
+
+});
      
   }
 
