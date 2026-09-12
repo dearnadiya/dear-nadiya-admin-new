@@ -12132,3 +12132,18 @@ button {
   }
 
 }
+
+.po-batch-full-notice {
+  display: inline-flex !important;
+  align-items: center;
+  width: fit-content !important;
+
+  padding: 3px 8px !important;
+  margin-top: 5px !important;
+
+  border-radius: 999px !important;
+
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
