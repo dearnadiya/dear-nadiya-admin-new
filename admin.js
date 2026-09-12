@@ -15200,11 +15200,24 @@ function showPODetailAdmin(po) {
                                   "different"
                                     ? `
                                       <td>
-                                        ${escapeHTML(
-                                          item.price ||
-                                          "—"
-                                        )}
-                                      </td>
+  ${
+    po.po_type === "general"
+      ? formatPONominal(
+          parsePONominal(
+            item.price
+          ) *
+          (
+            Number(
+              item.quantity
+            ) || 1
+          )
+        )
+      : escapeHTML(
+          item.price ||
+          "—"
+        )
+  }
+</td>
                                     `
                                     : ""
                                 }
@@ -15214,11 +15227,24 @@ function showPODetailAdmin(po) {
                                   "different"
                                     ? `
                                       <td>
-                                        ${escapeHTML(
-                                          item.dp ||
-                                          "—"
-                                        )}
-                                      </td>
+  ${
+    po.po_type === "general"
+      ? formatPONominal(
+          parsePONominal(
+            item.dp
+          ) *
+          (
+            Number(
+              item.quantity
+            ) || 1
+          )
+        )
+      : escapeHTML(
+          item.dp ||
+          "—"
+        )
+  }
+</td>
                                     `
                                     : ""
                                 }
