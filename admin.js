@@ -16418,6 +16418,43 @@ if (poTypeNow === "general") {
   updateGeneralRowTotal();
 
 }     
+
+/* ==========================================
+   WAR / MEMBER — HARGA MENGIKUTI HEADER
+========================================== */
+
+if (poTypeNow === "war") {
+
+  const priceInput =
+    row.querySelector(".po-row-price");
+
+  const headerPriceInput =
+    document.getElementById("poPrice");
+
+  function updateWarRowPrice() {
+    if (!priceInput || !headerPriceInput) {
+      return;
+    }
+
+    priceInput.value =
+      headerPriceInput.value || "";
+  }
+
+  if (headerPriceInput) {
+    headerPriceInput.addEventListener(
+      "input",
+      updateWarRowPrice
+    );
+
+    headerPriceInput.addEventListener(
+      "change",
+      updateWarRowPrice
+    );
+  }
+
+  updateWarRowPrice();
+}
+     
 /* ==========================================
    LOAD MASTER MEMBER UNTUK PO CLAIM
 ========================================== */
