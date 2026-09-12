@@ -13675,63 +13675,90 @@ const existingCoDeadline =
       updateBatchHeaderRemaining
     );
 
-       document
-  .getElementById(
-    "editBatchHeaderRecapDataType"
-  )
-  .addEventListener(
-    "change",
-    function(event) {
-
-      const coDeadlineInput =
-        document.getElementById(
-          "editBatchHeaderCoDeadline"
-        );
-
-      const coDeadlineInfo =
-        document.getElementById(
-          "editBatchHeaderCoDeadlineInfo"
-        );
-
-      if (!coDeadlineInput) {
-        return;
-      }
-
-      if (
-        event.target.value ===
-        "lama"
-      ) {
-
-        coDeadlineInput.readOnly =
-          false;
-
-        coDeadlineInput.disabled =
-          false;
-
-        if (coDeadlineInfo) {
-          coDeadlineInfo.textContent =
-            "Rekap Lama: Deadline CO dapat diisi manual.";
-        }
-
-      } else {
-
-        coDeadlineInput.readOnly =
-          true;
-
-        coDeadlineInput.disabled =
-          false;
-
-        if (coDeadlineInfo) {
-          coDeadlineInfo.textContent =
-            "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.";
-        }
-
-      }
-
-    }
-  );
 }
 
+
+/* ==========================================
+   MODE REKAP LAMA / BARU
+   ========================================== */
+
+const recapDataTypeSelect =
+  document.getElementById(
+    "editBatchHeaderRecapDataType"
+  );
+
+const coDeadlineInput =
+  document.getElementById(
+    "editBatchHeaderCoDeadline"
+  );
+
+const coDeadlineInfo =
+  document.getElementById(
+    "editBatchHeaderCoDeadlineInfo"
+  );
+
+
+function updateEditCoDeadlineMode() {
+
+  if (
+    !recapDataTypeSelect ||
+    !coDeadlineInput
+  ) {
+    return;
+  }
+
+
+  if (
+    recapDataTypeSelect.value ===
+    "lama"
+  ) {
+
+    coDeadlineInput.readOnly =
+      false;
+
+    coDeadlineInput.disabled =
+      false;
+
+    if (coDeadlineInfo) {
+
+      coDeadlineInfo.textContent =
+        "Rekap Lama: Deadline CO dapat diisi manual.";
+
+    }
+
+  } else {
+
+    coDeadlineInput.readOnly =
+      true;
+
+    coDeadlineInput.disabled =
+      false;
+
+    if (coDeadlineInfo) {
+
+      coDeadlineInfo.textContent =
+        "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.";
+
+    }
+
+  }
+
+}
+
+
+if (recapDataTypeSelect) {
+
+  recapDataTypeSelect.addEventListener(
+    "change",
+    updateEditCoDeadlineMode
+  );
+
+}
+
+
+/* Terapkan kondisi awal */
+updateEditCoDeadlineMode();
+   
   /* ==========================================
      BATAL
      ========================================== */
