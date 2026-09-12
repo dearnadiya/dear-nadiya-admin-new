@@ -15136,27 +15136,13 @@ function showPODetailAdmin(po) {
   Qty
 </th>
 
-                      ${
-                        priceMode ===
-                        "different"
-                          ? `
-                            <th>
-                              Harga
-                            </th>
-                          `
-                          : ""
-                      }
+                      <th>
+  Harga
+</th>
 
-                      ${
-                        dpMode ===
-                        "different"
-                          ? `
-                            <th>
-                              DP
-                            </th>
-                          `
-                          : ""
-                      }
+<th>
+  DP
+</th>
 
                       <th>
                         Catatan
