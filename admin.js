@@ -15836,6 +15836,27 @@ row
   }
 
    /* ==========================================
+   HITUNG NILAI RUPIAH
+========================================== */
+
+function parsePONominal(value) {
+
+  return Number(
+    String(value || "")
+      .replace(/[^\d]/g, "")
+  ) || 0;
+
+}
+
+
+function formatPONominal(value) {
+
+  return Number(value || 0)
+    .toLocaleString("id-ID");
+
+}
+
+   /* ==========================================
    MODE HARGA & DP
 ========================================== */
 
