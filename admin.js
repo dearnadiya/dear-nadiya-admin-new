@@ -14930,17 +14930,75 @@ function showPODetailAdmin(po) {
 
         <div>
 
-          <h2>
-            📦 ${escapeHTML(
-              po.title ||
-              "Detail PO"
-            )}
-          </h2>
+          <div
+  style="
+    display:flex;
+    align-items:center;
+    gap:12px;
+  "
+>
 
-          <p>
-            Detail PO berjalan
-          </p>
+  ${
+    po.image_url
+      ? `
+        <img
+          src="${escapeHTML(
+            po.image_url
+          )}"
+          alt="Foto PO"
+          style="
+            width:64px;
+            height:64px;
+            object-fit:cover;
+            border-radius:10px;
+            border:1px solid #e4dceb;
+            flex-shrink:0;
+          "
+        >
+      `
+      : `
+        <div
+          style="
+            width:64px;
+            height:64px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:#f5f3fa;
+            border-radius:10px;
+            font-size:28px;
+            flex-shrink:0;
+          "
+        >
+          📦
+        </div>
+      `
+  }
 
+  <div>
+
+    <h2
+      style="
+        margin:0;
+      "
+    >
+      📦 ${escapeHTML(
+        po.title ||
+        "Detail PO"
+      )}
+    </h2>
+
+    <p
+      style="
+        margin:4px 0 0;
+      "
+    >
+      Detail PO berjalan
+    </p>
+
+  </div>
+
+</div>
         </div>
 
         <button
