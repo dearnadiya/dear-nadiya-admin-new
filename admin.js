@@ -18044,31 +18044,35 @@ container
                 "none";
             }
 
-            /* Buka form PO yang sudah ada */
-            showPOForm(po);
+/* ==========================================
+   TAMPILKAN DETAIL PO CLAIM
+   TIDAK LANGSUNG MASUK FORM EDIT
+========================================== */
 
-            /* Scroll ke form */
-            setTimeout(
-              function () {
+showPODetailAdmin(po);
 
-                const poFormContainer =
-                  document.getElementById(
-                    "poFormContainer"
-                  );
+/* Scroll ke detail */
+setTimeout(
+  function () {
 
-                if (poFormContainer) {
+    const poFormContainer =
+      document.getElementById(
+        "poFormContainer"
+      );
 
-                  poFormContainer.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                  });
+    if (poFormContainer) {
 
-                }
+      poFormContainer.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
 
-              },
-              100
-            );
+    }
 
+  },
+  100
+);
+             
           } catch (error) {
 
             console.error(
