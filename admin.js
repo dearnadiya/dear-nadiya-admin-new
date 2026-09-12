@@ -15245,20 +15245,19 @@ function showPODetailAdmin(po) {
     `
 }
 
-                                ${
-                                  dpMode ===
-                                  "different"
-                                    ? `
-                                      <td>
-  ${escapeHTML(
-    item.price ||
-    "—"
-  )}
+                               <td>
+  ${
+    dpMode === "different"
+      ? escapeHTML(
+          item.dp ||
+          "—"
+        )
+      : escapeHTML(
+          po.dp_text ||
+          "—"
+        )
+  }
 </td>
-                                    `
-                                    : ""
-                                }
-
                                 <td>
                                   ${escapeHTML(
                                     item.note ||
