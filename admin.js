@@ -14790,19 +14790,15 @@ async function loadOrders() {
     </div>
   </div>
 
-  <div class="po-archive-toggle-wrapper">
+ <div class="po-archive-toggle-wrapper">
   <button
     type="button"
     id="poArchiveToggleButton"
     class="po-archive-toggle-button"
     title="Buka Arsip Pesanan"
   >
-    📦
+    📦 Arsip Pesanan
   </button>
-
-  <span class="po-archive-toggle-label">
-    Arsip Pesanan
-  </span>
 </div>
 
 <div
