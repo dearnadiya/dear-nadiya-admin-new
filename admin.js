@@ -17122,8 +17122,7 @@ async function loadPORunningList() {
         </div>
       </div>
     `).join("");
-
-     // ==========================================
+// ==========================================
 // KLIK KARTU PO BERJALAN
 // ==========================================
 
@@ -17133,127 +17132,63 @@ container
 
     card.addEventListener(
       "click",
-      function () {
+      async function () {
 
         const poId =
           this.dataset.poId;
 
-        const poListContainer =
-          document.getElementById(
-            "poListContainer"
-          );
-
-        if (!poListContainer) {
+        if (!poId) {
           return;
         }
 
-        // Tampilkan area detail
-        poListContainer.style.display =
-          "block";
+        try {
 
-        // Sembunyikan semua detail PO
-        poListContainer
-          .querySelectorAll(".po-card")
-          .forEach(
-            function (poCard) {
+          const {
+            data: po,
+            error
+          } =
+            await supabaseClient
+              .from("po_posts")
+              .select("*")
+              .eq("id", poId)
+              .single();
 
-              if (
-                String(
-                  poCard.dataset.poId
-                ) === String(poId)
-              ) {
+          if (error) {
 
-                poCard.style.display =
-                  "";
-
-              } else {
-
-                poCard.style.display =
-                  "none";
-
-              }
-
-            }
-          );
-
-        // Buat tombol kembali jika belum ada
-        let backButton =
-          document.getElementById(
-            "backToPORunningButton"
-          );
-
-        if (!backButton) {
-
-          backButton =
-            document.createElement(
-              "button"
+            console.error(
+              "Gagal mengambil PO:",
+              error
             );
 
-          backButton.type =
-            "button";
-
-          backButton.id =
-            "backToPORunningButton";
-
-          backButton.className =
-            "secondary-button";
-
-          backButton.textContent =
-            "← Kembali ke PO Berjalan";
-
-          poListContainer
-            .insertBefore(
-              backButton,
-              poListContainer.firstChild
+            alert(
+              "Gagal membuka PO: " +
+              error.message
             );
 
-        }
+            return;
+          }
 
-        // Fungsi kembali ke daftar kartu
-        backButton.onclick =
-          function () {
+          const poListContainer =
+            document.getElementById(
+              "poListContainer"
+            );
 
-            poListContainer
-              .querySelectorAll(
-                ".po-card"
-              )
-              .forEach(
-                function (poCard) {
-
-                  poCard.style.display =
-                    "";
-
-                }
-              );
-
+          if (poListContainer) {
             poListContainer.style.display =
               "none";
+          }
 
-            window.scrollTo({
-              top: 0,
-              behavior: "smooth"
-            });
+          showPOForm(po);
 
-          };
+        } catch (error) {
 
-        // Scroll ke detail PO yang dipilih
-        const selectedCard =
-          poListContainer.querySelector(
-            `.po-card[data-po-id="${poId}"]`
+          console.error(
+            "ERROR BUKA PO:",
+            error
           );
 
-        if (selectedCard) {
-
-          setTimeout(
-            function () {
-
-              selectedCard.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-              });
-
-            },
-            100
+          alert(
+            "Gagal membuka PO."
           );
 
         }
@@ -17262,7 +17197,7 @@ container
     );
 
   });
-
+     
   } catch (error) {
     console.error("Gagal memuat PO berjalan:", error);
 
