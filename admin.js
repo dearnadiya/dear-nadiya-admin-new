@@ -15735,6 +15735,76 @@ ${
   row
 );
 
+     /* ==========================================
+   GENERAL PO — HITUNG TOTAL DARI QTY
+========================================== */
+
+const poTypeNow =
+  document.getElementById("poType")?.value ||
+  "general";
+
+if (poTypeNow === "general") {
+
+  const quantityInput =
+    row.querySelector(
+      ".po-row-quantity"
+    );
+
+  const priceInput =
+    row.querySelector(
+      ".po-row-price"
+    );
+
+  const dpInput =
+    row.querySelector(
+      ".po-row-dp"
+    );
+
+  const originalQty =
+    Math.max(
+      1,
+      Number(rowData.quantity) || 1
+    );
+
+  if (priceInput) {
+
+    const savedPrice =
+      parsePONominal(
+        rowData.price
+      );
+
+    if (savedPrice > 0) {
+
+      const unitPrice =
+        savedPrice /
+        originalQty;
+
+      priceInput.dataset.unitPrice =
+        String(unitPrice);
+
+    }
+  }
+
+  if (dpInput) {
+
+    const savedDP =
+      parsePONominal(
+        rowData.dp
+      );
+
+    if (savedDP > 0) {
+
+      const unitDP =
+        savedDP /
+        originalQty;
+
+      dpInput.dataset.unitDP =
+        String(unitDP);
+
+    }
+  }
+}
+
   /* ==========================================
    GENERAL PO — HITUNG TOTAL DARI QTY
 ========================================== */
