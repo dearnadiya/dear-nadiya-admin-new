@@ -13675,6 +13675,56 @@ const existingCoDeadline =
       updateBatchHeaderRemaining
     );
 
+       document
+    .getElementById(
+      "editBatchHeaderRecapDataType"
+    )
+    .addEventListener(
+      "change",
+      function() {
+
+        const recapType =
+          this.value;
+
+        const coDeadlineInput =
+          document.getElementById(
+            "editBatchHeaderCoDeadline"
+          );
+
+        const coDeadlineInfo =
+          document.getElementById(
+            "editBatchHeaderCoDeadlineInfo"
+          );
+
+        if (
+          recapType ===
+          "lama"
+        ) {
+
+          coDeadlineInput
+            .removeAttribute(
+              "readonly"
+            );
+
+          coDeadlineInfo.textContent =
+            "Rekap Lama: Deadline CO dapat diisi manual.";
+
+        } else {
+
+          coDeadlineInput
+            .setAttribute(
+              "readonly",
+              "readonly"
+            );
+
+          coDeadlineInfo.textContent =
+            "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.";
+
+        }
+
+      }
+    );
+
 }
 
   /* ==========================================
