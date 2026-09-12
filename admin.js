@@ -18542,8 +18542,242 @@ console.log("ARCHIVE ERROR:", error);
 
                     </div>
 
+<div
+  class="po-recap-confirmation"
+  style="
+    margin-top:20px;
+    padding:18px;
+    border:1px solid #e4dceb;
+    border-radius:12px;
+    background:#faf8fc;
+  "
+>
+
+  <h3 style="margin:0 0 6px;">
+    📊 Konfirmasi Rekap GO
+  </h3>
+
+  <p style="margin:0 0 16px;">
+    Tentukan tujuan Rekap GO setelah PO selesai.
+  </p>
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap:14px;
+    "
+  >
+
+    <div class="form-group">
+      <label>Type Rekap</label>
+
+      <select id="archiveRecapType">
+        <option value="">
+          Pilih Type Rekap
+        </option>
+
+        <option value="Treasure">
+          💎 Treasure
+        </option>
+
+        <option value="Multi Group">
+          👥 Multi Group
+        </option>
+
+        <option value="Tabungan">
+          💰 Tabungan
+        </option>
+
+        <option value="Jastip">
+          📦 Jastip
+        </option>
+      </select>
+    </div>
+
+
+    <div class="form-group">
+      <label>Kategori Rekap</label>
+
+      <select
+        id="archiveRecapCategory"
+        disabled
+      >
+        <option value="">
+          Pilih Type Rekap terlebih dahulu
+        </option>
+      </select>
+    </div>
+
+
+    <div class="form-group">
+      <label>Kode Batch</label>
+
+      <input
+        type="text"
+        id="archiveRecapBatchCode"
+        placeholder="Contoh: TKR-260912-001"
+      >
+    </div>
+
+
+    <div class="form-group">
+      <label>Batas DP</label>
+
+      <input
+        type="text"
+        value="${
+          po.last_dp_date
+            ? formatDateTime(
+                po.last_dp_date
+              )
+            : "—"
+        }"
+        readonly
+      >
+
+      <small>
+        Otomatis mengikuti Batas DP pada PO.
+      </small>
+    </div>
+
+
+    <div
+      class="form-group"
+      style="grid-column:1 / -1;"
+    >
+      <label>Status Tracking</label>
+
+      <input
+        type="text"
+        id="archiveRecapTrackingStatus"
+        placeholder="Isi status tracking hasil PO"
+      >
+
+      <small>
+        Status tracking dikonfirmasi Admin
+        saat PO dimasukkan ke Rekap GO.
+      </small>
+    </div>
+
+  </div>
+
+
+  <button
+    type="button"
+    id="archiveRecapSubmitButton"
+    class="primary-button"
+    disabled
+    style="margin-top:16px;"
+  >
+    📥 Masukkan ke Rekap GO
+  </button>
+
+</div>
+
                   </div>
                 `;
+
+                 const archiveRecapType =
+  document.getElementById(
+    "archiveRecapType"
+  );
+
+const archiveRecapCategory =
+  document.getElementById(
+    "archiveRecapCategory"
+  );
+
+
+if (
+  archiveRecapType &&
+  archiveRecapCategory
+) {
+
+  archiveRecapType.addEventListener(
+    "change",
+    async function () {
+
+      const recapType =
+        this.value;
+
+      archiveRecapCategory.innerHTML = `
+        <option value="">
+          Memuat kategori...
+        </option>
+      `;
+
+      archiveRecapCategory.disabled =
+        true;
+
+
+      if (!recapType) {
+
+        archiveRecapCategory.innerHTML = `
+          <option value="">
+            Pilih Type Rekap terlebih dahulu
+          </option>
+        `;
+
+        return;
+      }
+
+
+      const categories =
+        await loadRecapCategories(
+          recapType
+        );
+
+
+      if (!categories.length) {
+
+        archiveRecapCategory.innerHTML = `
+          <option value="">
+            Belum ada kategori
+          </option>
+        `;
+
+        return;
+      }
+
+
+      archiveRecapCategory.innerHTML = `
+        <option value="">
+          Pilih Kategori Rekap
+        </option>
+
+        ${
+          categories
+            .map(
+              function (category) {
+
+                return `
+                  <option
+                    value="${escapeHTML(
+                      category.category_name
+                    )}"
+                  >
+                    ${escapeHTML(
+                      category.category_name
+                    )}
+                  </option>
+                `;
+
+              }
+            )
+            .join("")
+        }
+      `;
+
+
+      archiveRecapCategory.disabled =
+        false;
+
+    }
+  );
+
+}
 
                 const backButton =
                   document.getElementById(
