@@ -15209,20 +15209,25 @@ function showPODetailAdmin(po) {
   }
 </td>
 
-                                ${
-                                  priceMode ===
-                                  "different"
-                                    ? `
-                                      <td>
-  ${escapeHTML(
-    item.price ||
-    "—"
-  )}
+                                <td>
+  ${
+    priceMode === "different"
+      ? escapeHTML(
+          item.price ||
+          "—"
+        )
+      : formatPONominal(
+          parsePONominal(
+            po.price_text
+          ) *
+          (
+            Number(
+              item.quantity
+            ) || 1
+          )
+        )
+  }
 </td>
-                                    `
-                                    : ""
-                                }
-
                                 ${
                                   dpMode ===
                                   "different"
