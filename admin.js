@@ -13751,16 +13751,6 @@ if (isSamePriceModeHeader) {
             .value ||
           null;
 
-
-        const newCoDeadline =
-          document
-            .getElementById(
-              "editBatchHeaderCoDeadline"
-            )
-            .value ||
-          null;
-
-
         const newTracking =
           document
             .getElementById(
