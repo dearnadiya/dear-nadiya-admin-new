@@ -18962,27 +18962,87 @@ if (archiveRecapSubmitButton) {
                 ) || 1;
 
 
-              const price =
-                Number(
-                  String(
-                    row.price || ""
-                  ).replace(
-                    /[^\d]/g,
-                    ""
-                  )
-                ) || 0;
+              const quantity =
+  Number(row.quantity) || 1;
 
 
-              const dp =
-                Number(
-                  String(
-                    row.dp || ""
-                  ).replace(
-                    /[^\d]/g,
-                    ""
-                  )
-                ) || 0;
+/* ==============================
+   HARGA
+============================== */
 
+let price = 0;
+
+if (po.price_mode === "different") {
+
+  price =
+    Number(
+      String(
+        row.price || ""
+      ).replace(
+        /[^\d]/g,
+        ""
+      )
+    ) || 0;
+
+} else {
+
+  const unitPrice =
+    Number(
+      String(
+        po.price_text || ""
+      ).replace(
+        /[^\d]/g,
+        ""
+      )
+    ) || 0;
+
+  price =
+    unitPrice * quantity;
+
+}
+
+
+/* ==============================
+   DP
+============================== */
+
+let dp = 0;
+
+if (po.dp_mode === "different") {
+
+  dp =
+    Number(
+      String(
+        row.dp || ""
+      ).replace(
+        /[^\d]/g,
+        ""
+      )
+    ) || 0;
+
+} else {
+
+  const unitDP =
+    Number(
+      String(
+        po.dp_text || ""
+      ).replace(
+        /[^\d]/g,
+        ""
+      )
+    ) || 0;
+
+  dp =
+    unitDP * quantity;
+
+}
+
+
+const remaining =
+  Math.max(
+    0,
+    price - dp
+  );
 
               const remaining =
                 Math.max(
