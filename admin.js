@@ -16431,15 +16431,17 @@ if (poTypeNow === "war") {
   const headerPriceInput =
     document.getElementById("poPrice");
 
-  function updateWarRowPrice() {
-    if (!priceInput || !headerPriceInput) {
-      return;
-    }
-
-    priceInput.value =
-      headerPriceInput.value || "";
+function updateWarRowPrice() {
+  if (!priceInput || !headerPriceInput) {
+    return;
   }
 
+  priceInput.value =
+    headerPriceInput.value || "";
+
+  priceInput.readOnly = true;
+}
+   
   if (headerPriceInput) {
     headerPriceInput.addEventListener(
       "input",
@@ -16453,6 +16455,56 @@ if (poTypeNow === "war") {
   }
 
   updateWarRowPrice();
+}
+
+     /* ==========================================
+   WAR / MEMBER — DP MENGIKUTI HEADER
+========================================== */
+
+if (
+  poTypeNow === "war"
+) {
+
+  const dpInput =
+    row.querySelector(
+      ".po-row-dp"
+    );
+
+  const headerDPInput =
+    document.getElementById(
+      "poDP"
+    );
+
+  function updateWarRowDP() {
+
+    if (
+      !dpInput ||
+      !headerDPInput
+    ) {
+      return;
+    }
+
+    dpInput.value =
+      headerDPInput.value || "";
+
+    dpInput.readOnly = true;
+  }
+
+  if (headerDPInput) {
+
+    headerDPInput.addEventListener(
+      "input",
+      updateWarRowDP
+    );
+
+    headerDPInput.addEventListener(
+      "change",
+      updateWarRowDP
+    );
+
+  }
+
+  updateWarRowDP();
 }
      
 /* ==========================================
