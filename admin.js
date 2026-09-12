@@ -8526,6 +8526,18 @@ async function showAddRecapMemberForm(
     batch.tracking_status ||
     "";
 
+   const recapDataType =
+  batch.recap_data_type ||
+  "baru";
+
+const batchCoDeadline =
+  batch.co_deadline ||
+  null;
+
+const batchArrivedAdminAt =
+  batch.arrived_admin_at ||
+  null;
+
 
   /* ==========================================
      FORM TAMBAH MEMBER
@@ -9113,12 +9125,18 @@ async function showAddRecapMemberForm(
                 note,
 
               dp_deadline:
-                batch.dp_deadline ||
-                null,
+  batch.dp_deadline ||
+  null,
 
-              co_deadline:
-                null
+recap_data_type:
+  recapDataType,
 
+co_deadline:
+  batchCoDeadline,
+
+arrived_admin_at:
+  batchArrivedAdminAt
+               
             });
 
           }
