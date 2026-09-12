@@ -19300,6 +19300,25 @@ async function renderMemberList() {
 
     }
 
+     /* ============================================
+   KELOMPOKKAN MEMBER BERDASARKAN GROUP
+   ============================================ */
+
+const groups = [];
+
+members.forEach(function(item) {
+
+  const groupName =
+    String(item.group_name || "").trim();
+
+  if (
+    groupName &&
+    !groups.includes(groupName)
+  ) {
+    groups.push(groupName);
+  }
+
+});
 
     container.innerHTML = `
 
