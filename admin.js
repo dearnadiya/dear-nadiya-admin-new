@@ -15735,7 +15735,7 @@ ${
   row
 );
 
-     /* ==========================================
+/* ==========================================
    GENERAL PO — HITUNG TOTAL DARI QTY
 ========================================== */
 
@@ -15766,6 +15766,11 @@ if (poTypeNow === "general") {
       Number(rowData.quantity) || 1
     );
 
+
+  /* ==============================
+     HARGA SATUAN AWAL
+  ============================== */
+
   if (priceInput) {
 
     const savedPrice =
@@ -15785,6 +15790,11 @@ if (poTypeNow === "general") {
     }
   }
 
+
+  /* ==============================
+     DP SATUAN AWAL
+  ============================== */
+
   if (dpInput) {
 
     const savedDP =
@@ -15794,15 +15804,174 @@ if (poTypeNow === "general") {
 
     if (savedDP > 0) {
 
-     const unitDP =
-  Number(
-    dpInput.dataset.unitDP
-  ) || 0;
-       
+      const unitDP =
+        savedDP /
+        originalQty;
+
+      dpInput.dataset.unitDP =
+        String(unitDP);
+
     }
   }
-}
-     
+
+
+  /* ==============================
+     HITUNG TOTAL
+  ============================== */
+
+  function updateGeneralRowTotal() {
+
+    const qty =
+      Math.max(
+        1,
+        Number(
+          quantityInput?.value
+        ) || 1
+      );
+
+
+    /* ==============================
+       HARGA
+    ============================== */
+
+    if (priceInput) {
+
+      const unitPrice =
+        Number(
+          priceInput.dataset.unitPrice
+        ) || 0;
+
+      if (unitPrice > 0) {
+
+        priceInput.value =
+          formatPONominal(
+            unitPrice * qty
+          );
+
+      }
+    }
+
+
+    /* ==============================
+       DP
+    ============================== */
+
+    if (dpInput) {
+
+      const unitDP =
+        Number(
+          dpInput.dataset.unitDP
+        ) || 0;
+
+      if (unitDP > 0) {
+
+        dpInput.value =
+          formatPONominal(
+            unitDP * qty
+          );
+
+      }
+    }
+  }
+
+
+  /* ==============================
+     QTY BERUBAH
+  ============================== */
+
+  if (quantityInput) {
+
+    quantityInput.addEventListener(
+      "input",
+      function () {
+
+        updateGeneralRowTotal();
+
+      }
+    );
+
+  }
+
+
+  /* ==============================
+     HARGA DIINPUT ADMIN
+     → DIANGGAP HARGA SATUAN
+  ============================== */
+
+  if (priceInput) {
+
+    priceInput.addEventListener(
+      "input",
+      function () {
+
+        const typedPrice =
+          parsePONominal(
+            priceInput.value
+          );
+
+        if (typedPrice > 0) {
+
+          priceInput.dataset.unitPrice =
+            String(typedPrice);
+
+          updateGeneralRowTotal();
+
+        } else {
+
+          priceInput.dataset.unitPrice =
+            "";
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ==============================
+     DP DIINPUT ADMIN
+     → DIANGGAP DP SATUAN
+  ============================== */
+
+  if (dpInput) {
+
+    dpInput.addEventListener(
+      "input",
+      function () {
+
+        const typedDP =
+          parsePONominal(
+            dpInput.value
+          );
+
+        if (typedDP > 0) {
+
+          dpInput.dataset.unitDP =
+            String(typedDP);
+
+          updateGeneralRowTotal();
+
+        } else {
+
+          dpInput.dataset.unitDP =
+            "";
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ==============================
+     TAMPILKAN TOTAL AWAL
+  ============================== */
+
+  updateGeneralRowTotal();
+
+}     
 /* ==========================================
    LOAD MASTER MEMBER UNTUK PO CLAIM
 ========================================== */
