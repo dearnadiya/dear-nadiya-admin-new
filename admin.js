@@ -19428,14 +19428,30 @@ async function renderMemberList() {
                       "
                     >
 
-                      <button
-                        type="button"
-                        class="secondary-button"
-                        onclick='showMemberForm(${JSON.stringify(item)})'
-                      >
-                        ✏️ Edit
-                      </button>
+                      <div
+  style="
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    flex-wrap:wrap;
+  "
+>
+  <button
+    type="button"
+    class="secondary-button"
+    onclick='showMemberForm(${JSON.stringify(item)})'
+  >
+    ✏️ Edit
+  </button>
 
+  <button
+    type="button"
+    class="secondary-button"
+    onclick="deleteMember(${Number(item.id)})"
+  >
+    🗑️ Hapus
+  </button>
+</div>
                     </td>
 
                   </tr>
@@ -19473,6 +19489,66 @@ async function renderMemberList() {
 
   }
 
+}
+
+/* ============================================
+   HAPUS MEMBER / VERSI
+   ============================================ */
+
+async function deleteMember(id) {
+
+  if (!id) {
+    return;
+  }
+
+  const yakin =
+    confirm(
+      "Yakin ingin menghapus member / versi ini?"
+    );
+
+  if (!yakin) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("po_members")
+      .delete()
+      .eq("id", id)
+      .select("id");
+
+  if (error) {
+
+    console.error(
+      "Gagal menghapus member / versi:",
+      error
+    );
+
+    alert(
+      "Gagal menghapus member / versi: " +
+      error.message
+    );
+
+    return;
+  }
+
+  if (!data || data.length === 0) {
+
+    alert(
+      "Data tidak terhapus. Periksa izin DELETE di Supabase."
+    );
+
+    return;
+  }
+
+  alert(
+    "Member / versi berhasil dihapus. ♥"
+  );
+
+  await renderMemberList();
 }
 
 /* ============================================
