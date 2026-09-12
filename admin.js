@@ -18671,7 +18671,6 @@ console.log("ARCHIVE ERROR:", error);
     type="button"
     id="archiveRecapSubmitButton"
     class="primary-button"
-    disabled
     style="margin-top:16px;"
   >
     📥 Masukkan ke Rekap GO
