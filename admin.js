@@ -16792,6 +16792,7 @@ async function loadPORunningList() {
         image_url,
         close_date,
         last_dp_date,
+        batch_status,
         created_at
       `)
       .or(`close_date.is.null,close_date.gte.${now}`)
