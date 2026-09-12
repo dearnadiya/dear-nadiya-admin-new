@@ -18673,6 +18673,7 @@ console.log("ARCHIVE ERROR:", error);
     class="primary-button"
     style="margin-top:16px;"
   >
+  
     📥 Masukkan ke Rekap GO
   </button>
 
@@ -18831,6 +18832,315 @@ if (
 
       archiveRecapCategory.disabled =
         false;
+
+    }
+  );
+
+}
+
+/* ==========================================
+   MASUKKAN ARSIP PO KE REKAP GO
+========================================== */
+
+const archiveRecapSubmitButton =
+  document.getElementById(
+    "archiveRecapSubmitButton"
+  );
+
+if (archiveRecapSubmitButton) {
+
+  archiveRecapSubmitButton.addEventListener(
+    "click",
+    async function () {
+
+      const recapType =
+        document.getElementById(
+          "archiveRecapType"
+        )?.value || "";
+
+      const category =
+        document.getElementById(
+          "archiveRecapCategory"
+        )?.value || "";
+
+      const batchCode =
+        document.getElementById(
+          "archiveRecapBatchCode"
+        )?.value
+          .trim() || "";
+
+      const trackingStatus =
+        document.getElementById(
+          "archiveRecapTrackingStatus"
+        )?.value || "";
+
+
+      /* ==============================
+         VALIDASI
+      ============================== */
+
+      if (!recapType) {
+        alert(
+          "Silakan pilih Type Rekap."
+        );
+        return;
+      }
+
+
+      if (!category) {
+        alert(
+          "Silakan pilih Kategori Rekap."
+        );
+        return;
+      }
+
+
+      if (!batchCode) {
+        alert(
+          "Silakan isi Kode Batch."
+        );
+        return;
+      }
+
+
+      if (!trackingStatus) {
+        alert(
+          "Silakan pilih Status Tracking."
+        );
+        return;
+      }
+
+
+      if (
+        !rows ||
+        !rows.length
+      ) {
+        alert(
+          "Tidak ada data customer dari PO ini."
+        );
+        return;
+      }
+
+
+      const yakin =
+        confirm(
+          "Masukkan seluruh data PO ini ke Rekap GO?"
+        );
+
+
+      if (!yakin) {
+        return;
+      }
+
+
+      archiveRecapSubmitButton.disabled =
+        true;
+
+      archiveRecapSubmitButton.textContent =
+        "⏳ Menyimpan...";
+
+
+      try {
+
+        const recapRows =
+          rows
+            .filter(function(row) {
+
+              return (
+                row.customer &&
+                String(
+                  row.customer
+                ).trim()
+              );
+
+            })
+            .map(function(row) {
+
+              const quantity =
+                Number(
+                  row.quantity
+                ) || 1;
+
+
+              const price =
+                Number(
+                  String(
+                    row.price || ""
+                  ).replace(
+                    /[^\d]/g,
+                    ""
+                  )
+                ) || 0;
+
+
+              const dp =
+                Number(
+                  String(
+                    row.dp || ""
+                  ).replace(
+                    /[^\d]/g,
+                    ""
+                  )
+                ) || 0;
+
+
+              const remaining =
+                Math.max(
+                  0,
+                  price - dp
+                );
+
+
+              return {
+
+                recap_type:
+                  recapType,
+
+                category:
+                  category,
+
+                batch_code:
+                  batchCode,
+
+                item_name:
+                  po.title || "",
+
+                customer_name:
+                  String(
+                    row.customer || ""
+                  ).trim(),
+
+                version:
+                  String(
+                    row.member || ""
+                  ).trim(),
+
+                quantity:
+                  quantity,
+
+                item_price:
+                  price,
+
+                minimum_dp_amount:
+                  dp,
+
+                dp_amount:
+                  0,
+
+                dp_status:
+                  "unpaid",
+
+                remaining_amount:
+                  remaining,
+
+                payment_status:
+                  "unpaid",
+
+                tracking_status:
+                  trackingStatus,
+
+                batch_tracking_status:
+                  trackingStatus,
+
+                customer_status:
+                  "Belum Checkout Shopee",
+
+                note:
+                  String(
+                    row.note || ""
+                  ).trim(),
+
+                dp_deadline:
+                  po.last_dp_date ||
+                  null,
+
+                co_deadline:
+                  null
+
+              };
+
+            });
+
+
+        if (
+          !recapRows.length
+        ) {
+          alert(
+            "Tidak ada customer yang dapat dimasukkan ke Rekap GO."
+          );
+
+          archiveRecapSubmitButton.disabled =
+            false;
+
+          archiveRecapSubmitButton.textContent =
+            "📥 Masukkan ke Rekap GO";
+
+          return;
+        }
+
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .insert(
+              recapRows
+            );
+
+
+        if (error) {
+
+          console.error(
+            "ERROR MASUKKAN PO KE REKAP:",
+            error
+          );
+
+          alert(
+            "Gagal memasukkan PO ke Rekap GO:\n" +
+            error.message
+          );
+
+          archiveRecapSubmitButton.disabled =
+            false;
+
+          archiveRecapSubmitButton.textContent =
+            "📥 Masukkan ke Rekap GO";
+
+          return;
+        }
+
+
+        alert(
+          "PO berhasil dimasukkan ke Rekap GO. ♥"
+        );
+
+
+        archiveRecapSubmitButton.textContent =
+          "✅ Sudah Masuk Rekap GO";
+
+
+      } catch (error) {
+
+        console.error(
+          "ERROR KONFIRMASI REKAP:",
+          error
+        );
+
+        alert(
+          "Terjadi kesalahan saat memasukkan PO ke Rekap GO."
+        );
+
+
+        archiveRecapSubmitButton.disabled =
+          false;
+
+        archiveRecapSubmitButton.textContent =
+          "📥 Masukkan ke Rekap GO";
+
+      }
 
     }
   );
