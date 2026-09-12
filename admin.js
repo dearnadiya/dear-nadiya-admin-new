@@ -19492,6 +19492,159 @@ async function renderMemberList() {
 }
 
 /* ============================================
+   TAMPILKAN MEMBER / VERSI DALAM SATU GROUP
+   ============================================ */
+
+function showMemberGroup(groupName, members) {
+
+  const container =
+    document.getElementById("memberListContainer");
+
+  if (!container) {
+    return;
+  }
+
+  const groupMembers =
+    members.filter(function(item) {
+      return String(item.group_name || "").trim() === groupName;
+    });
+
+  container.innerHTML = `
+    <div style="
+      margin-bottom:14px;
+    ">
+      <button
+        type="button"
+        class="secondary-button"
+        id="backToMemberGroupsButton"
+      >
+        ← Kembali ke Jenis
+      </button>
+    </div>
+
+    <div style="
+      margin-bottom:14px;
+    ">
+      <h3 style="
+        margin:0;
+      ">
+        👥 ${escapeHTML(groupName)}
+      </h3>
+
+      <p style="
+        margin:4px 0 0;
+        color:#777;
+        font-size:13px;
+      ">
+        ${groupMembers.length} member / versi
+      </p>
+    </div>
+
+    <div style="
+      width:100%;
+      overflow-x:auto;
+    ">
+      <table style="
+        width:100%;
+        min-width:600px;
+        border-collapse:collapse;
+      ">
+        <thead>
+          <tr>
+            <th style="padding:10px;text-align:left;">
+              Member / Versi
+            </th>
+
+            <th style="padding:10px;text-align:center;">
+              Urutan
+            </th>
+
+            <th style="padding:10px;text-align:center;">
+              Aksi
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${
+            groupMembers.map(function(item) {
+
+              return `
+                <tr>
+
+                  <td style="padding:10px;">
+                    ${escapeHTML(
+                      String(item.member_name || "—")
+                    )}
+                  </td>
+
+                  <td style="
+                    padding:10px;
+                    text-align:center;
+                  ">
+                    ${Number(item.sort_order) || 0}
+                  </td>
+
+                  <td style="
+                    padding:10px;
+                    text-align:center;
+                  ">
+
+                    <div style="
+                      display:flex;
+                      gap:6px;
+                      justify-content:center;
+                      flex-wrap:wrap;
+                    ">
+
+                      <button
+                        type="button"
+                        class="secondary-button"
+                        onclick='showMemberForm(${JSON.stringify(item)})'
+                      >
+                        ✏️ Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="deleteMember(${Number(item.id)})"
+                      >
+                        🗑️ Hapus
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+              `;
+
+            }).join("")
+          }
+
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const backButton =
+    document.getElementById(
+      "backToMemberGroupsButton"
+    );
+
+  if (backButton) {
+    backButton.addEventListener(
+      "click",
+      function() {
+        renderMemberList();
+      }
+    );
+  }
+}
+
+/* ============================================
    HAPUS MEMBER / VERSI
    ============================================ */
 
