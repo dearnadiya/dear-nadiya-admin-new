@@ -18957,12 +18957,6 @@ if (archiveRecapSubmitButton) {
             .map(function(row) {
 
               const quantity =
-                Number(
-                  row.quantity
-                ) || 1;
-
-
-              const quantity =
   Number(row.quantity) || 1;
 
 
