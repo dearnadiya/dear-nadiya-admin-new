@@ -16565,21 +16565,10 @@ function updatePOPriceAndDPMode() {
      HARGA PER MEMBER / VERSI
   ========================================== */
 
-  document
-    .querySelectorAll(
-      ".po-row-price-group"
-    )
-    .forEach(
-      function (group) {
-
-        group.style.display =
-          priceMode === "different"
-            ? ""
-            : "none";
-
-      }
-    );
-
+ document.querySelectorAll(".po-row-price-group")
+  .forEach(function(group) {
+    group.style.display = "";
+  });
 
   /* ==========================================
      DP HEADER
@@ -16604,21 +16593,10 @@ function updatePOPriceAndDPMode() {
      DP PER MEMBER / VERSI
   ========================================== */
 
-  document
-    .querySelectorAll(
-      ".po-row-dp-group"
-    )
-    .forEach(
-      function (group) {
-
-        group.style.display =
-          dpMode === "different"
-            ? ""
-            : "none";
-
-      }
-    );
-
+  document.querySelectorAll(".po-row-dp-group")
+  .forEach(function(group) {
+    group.style.display = "";
+  });
 }
 
    /* ==========================================
