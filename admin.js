@@ -10,7 +10,6 @@
    Rekap GO
    ============================================ */
 
-
 /* ============================================
    ELEMENT
    ============================================ */
@@ -16844,6 +16843,16 @@ async function loadPORunningList() {
                 : (po.last_dp_date || "-")}
             </strong>
           </p>
+
+          ${
+  po.batch_status === "full"
+    ? `
+      <div class="po-batch-full-notice">
+        🔴 BATCH FULL
+      </div>
+    `
+    : ""
+}
         </div>
       </div>
     `).join("");
