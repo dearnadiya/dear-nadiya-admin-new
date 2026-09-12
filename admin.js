@@ -17407,7 +17407,7 @@ container
    member sudah memiliki customer.
    ============================================ */
 
-async function loadPOArchiveList() {
+async function loadPOArchiveList(showData = false) {
 
   const container =
     document.getElementById(
@@ -17417,6 +17417,35 @@ async function loadPOArchiveList() {
   if (!container) {
     return;
   }
+
+   if (!showData) {
+  container.innerHTML = `
+    <button
+      type="button"
+      id="poArchiveToggleButton"
+      class="po-archive-toggle-button"
+      title="Buka Arsip Pesanan"
+    >
+      📦
+    </button>
+  `;
+
+  const archiveButton =
+    document.getElementById(
+      "poArchiveToggleButton"
+    );
+
+  if (archiveButton) {
+    archiveButton.addEventListener(
+      "click",
+      function () {
+        loadPOArchiveList(true);
+      }
+    );
+  }
+
+  return;
+}
 
   container.innerHTML = `
     <p>
