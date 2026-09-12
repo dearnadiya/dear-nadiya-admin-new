@@ -14879,6 +14879,358 @@ if (
 }
 
 /* ============================================
+   DETAIL PO BERJALAN
+============================================ */
+
+function showPODetailAdmin(po) {
+
+  const container =
+    document.getElementById(
+      "poFormContainer"
+    );
+
+  if (!container || !po) {
+    return;
+  }
+
+  let listData = [];
+
+  try {
+
+    listData =
+      Array.isArray(po.list_data)
+        ? po.list_data
+        : JSON.parse(
+            po.list_data || "[]"
+          );
+
+  } catch (error) {
+
+    listData = [];
+
+  }
+
+
+  const priceMode =
+    po.price_mode || "same";
+
+  const dpMode =
+    po.dp_mode || "same";
+
+
+  container.style.display =
+    "block";
+
+
+  container.innerHTML = `
+
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+
+          <h2>
+            📦 ${escapeHTML(
+              po.title ||
+              "Detail PO"
+            )}
+          </h2>
+
+          <p>
+            Detail PO berjalan
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="editSelectedPOButton"
+        >
+          ✏️ Edit PO
+        </button>
+
+      </div>
+
+
+      <div class="po-meta">
+
+        ${
+          priceMode !== "different" &&
+          po.price_text
+            ? `
+              <div>
+                <strong>Harga:</strong>
+                ${escapeHTML(
+                  po.price_text
+                )}
+              </div>
+            `
+            : ""
+        }
+
+
+        ${
+          dpMode !== "different" &&
+          po.dp_text
+            ? `
+              <div>
+                <strong>DP:</strong>
+                ${escapeHTML(
+                  po.dp_text
+                )}
+              </div>
+            `
+            : ""
+        }
+
+
+        ${
+          po.close_date
+            ? `
+              <div>
+                <strong>
+                  ⏰ Batas PO:
+                </strong>
+                ${formatDateTime(
+                  po.close_date
+                )}
+              </div>
+            `
+            : ""
+        }
+
+
+        ${
+          po.last_dp_date
+            ? `
+              <div>
+                <strong>
+                  💳 Batas DP:
+                </strong>
+                ${formatDateTime(
+                  po.last_dp_date
+                )}
+              </div>
+            `
+            : ""
+        }
+
+      </div>
+
+
+      ${
+        po.description
+          ? `
+            <div
+              class="po-description"
+              style="margin-top:15px;"
+            >
+              ${escapeHTML(
+                po.description
+              )}
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        listData.length
+          ? `
+
+            <div
+              class="po-result-section"
+              style="margin-top:20px;"
+            >
+
+              <h4>
+                📋 Daftar Pesanan
+              </h4>
+
+
+              <div
+                class="product-table-wrapper"
+              >
+
+                <table
+                  class="product-table"
+                >
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Member / Versi
+                      </th>
+
+                      <th>
+                        Customer
+                      </th>
+
+                      <th>
+                        Qty
+                      </th>
+
+                      ${
+                        priceMode ===
+                        "different"
+                          ? `
+                            <th>
+                              Harga
+                            </th>
+                          `
+                          : ""
+                      }
+
+                      ${
+                        dpMode ===
+                        "different"
+                          ? `
+                            <th>
+                              DP
+                            </th>
+                          `
+                          : ""
+                      }
+
+                      <th>
+                        Catatan
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    ${
+                      listData
+                        .map(
+                          function(item) {
+
+                            return `
+
+                              <tr>
+
+                                <td>
+                                  ${escapeHTML(
+                                    item.member ||
+                                    "—"
+                                  )}
+                                </td>
+
+                                <td>
+                                  ${escapeHTML(
+                                    item.customer ||
+                                    "—"
+                                  )}
+                                </td>
+
+                                <td>
+                                  ${
+                                    item.quantity ||
+                                    1
+                                  }
+                                </td>
+
+                                ${
+                                  priceMode ===
+                                  "different"
+                                    ? `
+                                      <td>
+                                        ${escapeHTML(
+                                          item.price ||
+                                          "—"
+                                        )}
+                                      </td>
+                                    `
+                                    : ""
+                                }
+
+                                ${
+                                  dpMode ===
+                                  "different"
+                                    ? `
+                                      <td>
+                                        ${escapeHTML(
+                                          item.dp ||
+                                          "—"
+                                        )}
+                                      </td>
+                                    `
+                                    : ""
+                                }
+
+                                <td>
+                                  ${escapeHTML(
+                                    item.note ||
+                                    "—"
+                                  )}
+                                </td>
+
+                              </tr>
+
+                            `;
+
+                          }
+                        )
+                        .join("")
+                    }
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          `
+          : `
+            <div
+              class="po-empty-result"
+              style="margin-top:20px;"
+            >
+              Belum ada daftar pesanan.
+            </div>
+          `
+      }
+
+    </div>
+
+  `;
+
+
+  const editButton =
+    document.getElementById(
+      "editSelectedPOButton"
+    );
+
+  if (editButton) {
+
+    editButton.addEventListener(
+      "click",
+      function() {
+
+        window.dearNadiyaPODraft = {
+          existingPO: po,
+          ...po
+        };
+
+        showPOForm(po);
+
+      }
+    );
+
+  }
+
+}
+
+/* ============================================
    FORM PO
    ============================================ */
 
@@ -17122,6 +17474,7 @@ async function loadPORunningList() {
         </div>
       </div>
     `).join("");
+     
 // ==========================================
 // KLIK KARTU PO BERJALAN
 // ==========================================
