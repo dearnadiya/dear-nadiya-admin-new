@@ -12199,3 +12199,84 @@ button {
   }
 
 }
+
+/* ============================================
+   DETAIL PO - PERAPIAN TAMPILAN
+============================================ */
+
+#poFormContainer .panel-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 15px !important;
+  flex-wrap: nowrap !important;
+}
+
+#poFormContainer .panel-header > div:first-child {
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+#poFormContainer #editSelectedPOButton {
+  width: 150px !important;
+  min-width: 150px !important;
+  height: 42px !important;
+  padding: 0 18px !important;
+  flex: 0 0 150px !important;
+}
+
+#poFormContainer .delete-po-button {
+  width: 110px !important;
+  min-width: 110px !important;
+  height: 42px !important;
+  padding: 0 12px !important;
+  white-space: nowrap !important;
+  flex: 0 0 110px !important;
+}
+
+#poFormContainer .panel-header > div:last-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+#poFormContainer .po-meta {
+  margin-top: 12px !important;
+  padding: 10px 0 !important;
+}
+
+#poFormContainer .po-result-section {
+  margin-top: 15px !important;
+}
+
+#poFormContainer .po-result-section h4 {
+  margin: 0 0 12px 0 !important;
+}
+
+#poFormContainer .product-table-wrapper {
+  width: 100% !important;
+  overflow-x: auto !important;
+  border-radius: 10px !important;
+}
+
+#poFormContainer .product-table {
+  width: 100% !important;
+  min-width: 700px !important;
+  border-collapse: collapse !important;
+}
+
+#poFormContainer .product-table th,
+#poFormContainer .product-table td {
+  padding: 10px 12px !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+#poFormContainer .product-table th {
+  font-size: 14px !important;
+}
+
+#poFormContainer .product-table td {
+  font-size: 14px !important;
+}
