@@ -9413,10 +9413,27 @@ function showRecapForm(category) {
 
         <h3>Pengaturan Batch</h3>
 
-        <label>Tracking Batch</label>
+<label>Jenis Rekap</label>
 
-        <select id="batchTrackingStatus">
+<select id="batchRecapDataType">
+  <option value="baru">
+    Rekap Baru
+  </option>
 
+  <option value="lama">
+    Rekap Lama
+  </option>
+</select>
+
+<small>
+  Rekap Lama = Deadline CO diisi manual dari data sebelumnya.
+  Rekap Baru = Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.
+</small>
+
+
+<label>Tracking Batch</label>
+
+<select id="batchTrackingStatus">
           ${getTrackingOptions(category)
             .map(function(option) {
 
@@ -9439,6 +9456,20 @@ function showRecapForm(category) {
          type="date"
          id="batchDpDeadline"
         >
+
+        <label>
+  Deadline CO Shopee
+</label>
+
+<input
+  type="date"
+  id="batchCoDeadline"
+>
+
+<small id="batchCoDeadlineInfo">
+  Untuk Rekap Baru, deadline akan dihitung otomatis
+  saat batch menjadi Arrived Admin.
+</small>
 
         <div class="form-actions">
 
@@ -9475,6 +9506,75 @@ function showRecapForm(category) {
     document.getElementById(
       "batchItemsContainer"
     );
+
+   const recapDataTypeSelect =
+  document.getElementById(
+    "batchRecapDataType"
+  );
+
+const coDeadlineInput =
+  document.getElementById(
+    "batchCoDeadline"
+  );
+
+const coDeadlineInfo =
+  document.getElementById(
+    "batchCoDeadlineInfo"
+  );
+
+function updateCoDeadlineMode() {
+
+  if (!recapDataTypeSelect ||
+      !coDeadlineInput) {
+    return;
+  }
+
+  if (
+    recapDataTypeSelect.value ===
+    "lama"
+  ) {
+
+    coDeadlineInput.readOnly =
+      false;
+
+    coDeadlineInput.required =
+      false;
+
+    if (coDeadlineInfo) {
+      coDeadlineInfo.textContent =
+        "Rekap Lama: masukkan Deadline CO dari rekap sebelumnya.";
+    }
+
+  } else {
+
+    coDeadlineInput.readOnly =
+      true;
+
+    coDeadlineInput.required =
+      false;
+
+    coDeadlineInput.value =
+      "";
+
+    if (coDeadlineInfo) {
+      coDeadlineInfo.textContent =
+        "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.";
+    }
+
+  }
+
+}
+
+if (recapDataTypeSelect) {
+
+  recapDataTypeSelect.addEventListener(
+    "change",
+    updateCoDeadlineMode
+  );
+
+}
+
+updateCoDeadlineMode();
 
 
   let itemNumber = 0;
@@ -12387,6 +12487,55 @@ async function saveBatchRecap(event) {
     "batchTrackingStatus"
   ).value;
 
+   const recapDataType =
+  document.getElementById(
+    "batchRecapDataType"
+  ).value;
+
+const manualCoDeadline =
+  document.getElementById(
+    "batchCoDeadline"
+  ).value || null;
+
+   let batchCoDeadline =
+  null;
+
+let arrivedAdminAt =
+  null;
+
+if (
+  recapDataType ===
+  "lama"
+) {
+
+  batchCoDeadline =
+    manualCoDeadline;
+
+} else if (
+  recapDataType ===
+  "baru" &&
+  batchTracking ===
+  "Arrived Admin"
+) {
+
+  const now =
+    new Date();
+
+  arrivedAdminAt =
+    now.toISOString();
+
+  const deadline =
+    new Date(now);
+
+  deadline.setMonth(
+    deadline.getMonth() + 3
+  );
+
+  batchCoDeadline =
+    deadline.toISOString();
+
+}
+
 
 const batchDpDeadline =
   document.getElementById(
@@ -12731,8 +12880,14 @@ if (
         dp_deadline:
   batchDpDeadline,
 
-co_deadline: null
+recap_data_type:
+  recapDataType,
 
+co_deadline:
+  batchCoDeadline,
+
+arrived_admin_at:
+  arrivedAdminAt
 });
 
     }
@@ -13151,6 +13306,10 @@ async function editBatchHeader(
 const existingCoDeadline =
   firstRow.co_deadline || null;
 
+   const recapDataType =
+  firstRow.recap_data_type ||
+  "baru";
+
   /* ==========================================
      FORM EDIT BATCH
      ========================================== */
@@ -13299,6 +13458,42 @@ const existingCoDeadline =
           }"
         >
 
+<label>
+  Jenis Rekap
+</label>
+
+<select
+  id="editBatchHeaderRecapDataType"
+>
+
+  <option
+    value="baru"
+    ${
+      recapDataType === "baru"
+        ? "selected"
+        : ""
+    }
+  >
+    Rekap Baru
+  </option>
+
+  <option
+    value="lama"
+    ${
+      recapDataType === "lama"
+        ? "selected"
+        : ""
+    }
+  >
+    Rekap Lama
+  </option>
+
+</select>
+
+<small>
+  Rekap Lama menggunakan Deadline CO manual.
+  Rekap Baru menggunakan Deadline CO otomatis.
+</small>
 
         <label>
   Deadline CO Shopee
@@ -13308,18 +13503,27 @@ const existingCoDeadline =
   id="editBatchHeaderCoDeadline"
   type="date"
   value="${
-    firstRow.co_deadline
+    existingCoDeadline
       ? String(
-          firstRow.co_deadline
+          existingCoDeadline
         ).substring(0, 10)
       : ""
   }"
-  readonly
+  ${
+    recapDataType === "baru"
+      ? "readonly"
+      : ""
+  }
 >
 
-<small>
-  Otomatis dihitung 3 bulan sejak Tracking berubah menjadi
-  <strong>Arrived Admin</strong>.
+<small
+  id="editBatchHeaderCoDeadlineInfo"
+>
+  ${
+    recapDataType === "lama"
+      ? "Rekap Lama: Deadline CO dapat diisi manual."
+      : "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin."
+  }
 </small>
 
         <label>
@@ -13758,9 +13962,25 @@ if (isSamePriceModeHeader) {
             )
             .value;
 
+         const newRecapDataType =
+  document
+    .getElementById(
+      "editBatchHeaderRecapDataType"
+    )
+    .value;
+
+const manualCoDeadline =
+  document
+    .getElementById(
+      "editBatchHeaderCoDeadline"
+    )
+    .value ||
+  null;
+
          /* ======================================
-   OTOMATIS DEADLINE CO
-   3 BULAN SEJAK ARRIVED ADMIN
+   DEADLINE CO
+   REKAP LAMA = MANUAL
+   REKAP BARU = OTOMATIS
    ====================================== */
 
 let newArrivedAdminAt =
@@ -13769,46 +13989,80 @@ let newArrivedAdminAt =
 let newCoDeadline =
   existingCoDeadline;
 
-const now = new Date();
 
-/*
- * Baru masuk ke Arrived Admin
- */
+/* ======================================
+   REKAP LAMA
+   ====================================== */
+
 if (
-  newTracking === "Arrived Admin" &&
-  batchTracking !== "Arrived Admin"
+  newRecapDataType ===
+  "lama"
 ) {
-  newArrivedAdminAt =
-    now.toISOString();
-
-  const deadline =
-    new Date(now);
-
-  deadline.setMonth(
-    deadline.getMonth() + 3
-  );
 
   newCoDeadline =
-    deadline.toISOString();
+    manualCoDeadline;
+
 }
 
-/*
- * Masih Arrived Admin
- * → jangan reset tanggal
- */
+
+/* ======================================
+   REKAP BARU
+   ====================================== */
+
 else if (
-  newTracking === "Arrived Admin" &&
-  batchTracking === "Arrived Admin"
+  newRecapDataType ===
+  "baru"
 ) {
-   
-  newArrivedAdminAt =
-    arrivedAdminAt;
 
-  newCoDeadline =
-    existingCoDeadline;
+  /*
+   * Baru masuk Arrived Admin
+   */
+  if (
+    newTracking ===
+      "Arrived Admin" &&
+    batchTracking !==
+      "Arrived Admin"
+  ) {
+
+    const now =
+      new Date();
+
+    newArrivedAdminAt =
+      now.toISOString();
+
+    const deadline =
+      new Date(now);
+
+    deadline.setMonth(
+      deadline.getMonth() + 3
+    );
+
+    newCoDeadline =
+      deadline.toISOString();
+
+  }
+
+  /*
+   * Sudah Arrived Admin
+   * Jangan reset deadline
+   */
+  else if (
+    newTracking ===
+      "Arrived Admin" &&
+    batchTracking ===
+      "Arrived Admin"
+  ) {
+
+    newArrivedAdminAt =
+      arrivedAdminAt;
+
+    newCoDeadline =
+      existingCoDeadline;
+
+  }
+
 }
-
-
+         
         /* ======================================
    UPDATE SEMUA CUSTOMER DALAM BATCH
    ====================================== */
@@ -13819,6 +14073,9 @@ const updateData = {
 
   item_name:
     newItemName,
+
+   recap_data_type:
+  newRecapDataType,
 
   dp_deadline:
     newDpDeadline,
