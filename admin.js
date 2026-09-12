@@ -13676,55 +13676,60 @@ const existingCoDeadline =
     );
 
        document
-    .getElementById(
-      "editBatchHeaderRecapDataType"
-    )
-    .addEventListener(
-      "change",
-      function() {
+  .getElementById(
+    "editBatchHeaderRecapDataType"
+  )
+  .addEventListener(
+    "change",
+    function(event) {
 
-        const recapType =
-          this.value;
+      const coDeadlineInput =
+        document.getElementById(
+          "editBatchHeaderCoDeadline"
+        );
 
-        const coDeadlineInput =
-          document.getElementById(
-            "editBatchHeaderCoDeadline"
-          );
+      const coDeadlineInfo =
+        document.getElementById(
+          "editBatchHeaderCoDeadlineInfo"
+        );
 
-        const coDeadlineInfo =
-          document.getElementById(
-            "editBatchHeaderCoDeadlineInfo"
-          );
+      if (!coDeadlineInput) {
+        return;
+      }
 
-        if (
-          recapType ===
-          "lama"
-        ) {
+      if (
+        event.target.value ===
+        "lama"
+      ) {
 
-          coDeadlineInput
-            .removeAttribute(
-              "readonly"
-            );
+        coDeadlineInput.readOnly =
+          false;
 
+        coDeadlineInput.disabled =
+          false;
+
+        if (coDeadlineInfo) {
           coDeadlineInfo.textContent =
             "Rekap Lama: Deadline CO dapat diisi manual.";
+        }
 
-        } else {
+      } else {
 
-          coDeadlineInput
-            .setAttribute(
-              "readonly",
-              "readonly"
-            );
+        coDeadlineInput.readOnly =
+          true;
 
+        coDeadlineInput.disabled =
+          false;
+
+        if (coDeadlineInfo) {
           coDeadlineInfo.textContent =
             "Rekap Baru: Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.";
-
         }
 
       }
-    );
 
+    }
+  );
 }
 
   /* ==========================================
