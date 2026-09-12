@@ -19113,6 +19113,13 @@ const remaining =
           return;
         }
 
+         if (po.recap_status === "completed") {
+  alert(
+    "PO ini sudah pernah dimasukkan ke Rekap GO."
+  );
+  return;
+}
+
 
         const {
           error
@@ -19152,6 +19159,23 @@ const remaining =
           "PO berhasil dimasukkan ke Rekap GO. ♥"
         );
 
+         const { error: recapStatusError } =
+  await supabaseClient
+    .from("po_posts")
+    .update({
+      recap_type: recapType,
+      recap_category: category,
+      recap_batch_code: batchCode,
+      recap_status: "completed"
+    })
+    .eq("id", po.id);
+
+if (recapStatusError) {
+  console.error(
+    "GAGAL MENYIMPAN STATUS REKAP PO:",
+    recapStatusError
+  );
+}
 
         archiveRecapSubmitButton.textContent =
           "✅ Sudah Masuk Rekap GO";
