@@ -12280,3 +12280,42 @@ button {
 #poFormContainer .product-table td {
   font-size: 14px !important;
 }
+
+/* ==========================================
+   DETAIL PO - RAPATKAN HEADER TABEL
+========================================== */
+
+#poFormContainer .product-table th,
+#poFormContainer .product-table td {
+  text-align: left !important;
+}
+
+/* Status tetap di tengah */
+#poFormContainer .product-table th:nth-child(3),
+#poFormContainer .product-table td:nth-child(3) {
+  text-align: center !important;
+}
+
+/* Qty tetap di tengah */
+#poFormContainer .product-table th:nth-child(4),
+#poFormContainer .product-table td:nth-child(4) {
+  text-align: center !important;
+}
+
+/* Harga */
+#poFormContainer .product-table th:nth-child(5),
+#poFormContainer .product-table td:nth-child(5) {
+  text-align: left !important;
+}
+
+/* DP */
+#poFormContainer .product-table th:nth-child(6),
+#poFormContainer .product-table td:nth-child(6) {
+  text-align: left !important;
+}
+
+/* Catatan */
+#poFormContainer .product-table th:nth-child(7),
+#poFormContainer .product-table td:nth-child(7) {
+  text-align: left !important;
+}
