@@ -15001,14 +15001,29 @@ function showPODetailAdmin(po) {
 </div>
         </div>
 
-        <button
-          type="button"
-          class="primary-button"
-          id="editSelectedPOButton"
-        >
-          ✏️ Edit PO
-        </button>
+        <div
+  style="
+    display:flex;
+    gap:8px;
+    align-items:center;
+  "
+>
+  <button
+    type="button"
+    class="primary-button"
+    id="editSelectedPOButton"
+  >
+    ✏️ Edit PO
+  </button>
 
+  <button
+    type="button"
+    class="delete-po-button"
+    data-id="${po.id}"
+  >
+    🗑️ Hapus PO
+  </button>
+</div>
       </div>
 
 
