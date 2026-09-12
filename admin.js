@@ -16155,6 +16155,8 @@ function saveCurrentPODraft() {
     existingPO:
   window.dearNadiyaEditingPO ||
   null,
+
+
      
     title:
       document
@@ -16739,7 +16741,7 @@ const dpMode =
 
 window.dearNadiyaPODraft =
   null;
-   
+
 const poFormContainer =
   document.getElementById(
     "poFormContainer"
@@ -16749,6 +16751,22 @@ if (poFormContainer) {
   poFormContainer.innerHTML = "";
 }
 
+/* ==========================================
+   KEMBALI KE DAFTAR PO BERJALAN
+   SETELAH EDIT / SIMPAN
+========================================== */
+
+const poListContainer =
+  document.getElementById(
+    "poListContainer"
+  );
+
+if (poListContainer) {
+  poListContainer.style.display =
+    "none";
+}
+
+await loadPORunningList();
 await loadPOList();
 }
 
