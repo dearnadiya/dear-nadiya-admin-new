@@ -15121,16 +15121,20 @@ function showPODetailAdmin(po) {
                     <tr>
 
                       <th>
-                        Member / Versi
-                      </th>
+  Member / Versi
+</th>
 
-                      <th>
-                        Customer
-                      </th>
+<th>
+  Customer
+</th>
 
-                      <th>
-                        Qty
-                      </th>
+<th>
+  Status
+</th>
+
+<th>
+  Qty
+</th>
 
                       ${
                         priceMode ===
@@ -15182,18 +15186,42 @@ function showPODetailAdmin(po) {
                                 </td>
 
                                 <td>
-                                  ${escapeHTML(
-                                    item.customer ||
-                                    "—"
-                                  )}
-                                </td>
+  ${escapeHTML(
+    item.customer ||
+    "—"
+  )}
+</td>
 
-                                <td>
-                                  ${
-                                    item.quantity ||
-                                    1
-                                  }
-                                </td>
+<td>
+  ${
+    item.customer &&
+    String(item.customer).trim()
+      ? `
+        <span class="po-status-claimed">
+          🔵 Sudah di-claim
+        </span>
+      `
+      : item.member &&
+        String(item.member).trim()
+        ? `
+          <span class="po-status-available">
+            🟢 available
+          </span>
+        `
+        : `
+          <span class="po-status-empty">
+            ⚪ Belum dikonfigurasi
+          </span>
+        `
+  }
+</td>
+
+<td>
+  ${
+    item.quantity ||
+    1
+  }
+</td>
 
                                 ${
                                   priceMode ===
