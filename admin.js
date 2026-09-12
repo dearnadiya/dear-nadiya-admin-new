@@ -15389,7 +15389,7 @@ container.innerHTML = `
 
 
             <input
-              type="datetime-local"
+              type="date"
               id="poLastDPDate"
               value="${
   po.last_dp_date
