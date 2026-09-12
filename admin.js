@@ -15735,6 +15735,127 @@ ${
   row
 );
 
+     /* ==========================================
+   TOTAL HARGA & DP — GENERAL PO
+========================================== */
+
+const quantityInput =
+  row.querySelector(".po-row-quantity");
+
+const priceInput =
+  row.querySelector(".po-row-price");
+
+const dpInput =
+  row.querySelector(".po-row-dp");
+
+
+function updateGeneralRowTotal() {
+
+  const poType =
+    document.getElementById("poType")?.value ||
+    "general";
+
+  /* Hanya General PO */
+  if (poType !== "general") {
+    return;
+  }
+
+  const qty =
+    Math.max(
+      1,
+      Number(quantityInput?.value) || 1
+    );
+
+
+  /* ==============================
+     HARGA PER CUSTOMER
+  ============================== */
+
+  if (priceInput) {
+
+    let unitPrice =
+      Number(
+        priceInput.dataset.unitPrice
+      );
+
+    if (!unitPrice) {
+
+      unitPrice =
+        parsePONominal(
+          priceInput.value
+        );
+
+    }
+
+    if (unitPrice > 0) {
+
+      priceInput.dataset.unitPrice =
+        String(unitPrice);
+
+      priceInput.value =
+        formatPONominal(
+          unitPrice * qty
+        );
+
+    }
+
+  }
+
+
+  /* ==============================
+     DP PER CUSTOMER
+  ============================== */
+
+  if (dpInput) {
+
+    let unitDP =
+      Number(
+        dpInput.dataset.unitDp
+      );
+
+    if (!unitDP) {
+
+      unitDP =
+        parsePONominal(
+          dpInput.value
+        );
+
+    }
+
+    if (unitDP > 0) {
+
+      dpInput.dataset.unitDp =
+        String(unitDP);
+
+      dpInput.value =
+        formatPONominal(
+          unitDP * qty
+        );
+
+    }
+
+  }
+
+}
+
+
+/* ==========================================
+   QTY BERUBAH
+========================================== */
+
+if (quantityInput) {
+
+  quantityInput.addEventListener(
+    "input",
+    function() {
+
+      updateGeneralRowTotal();
+
+    }
+  );
+
+}
+
 /* ==========================================
    LOAD MASTER MEMBER UNTUK PO CLAIM
 ========================================== */
