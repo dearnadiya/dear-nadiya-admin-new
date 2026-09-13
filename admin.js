@@ -11316,15 +11316,6 @@ let html = `
   </div>
 
   <div>
-    <strong>Tracking:</strong>
-    ${
-      rows[0]?.batch_tracking_status ||
-      rows[0]?.tracking_status ||
-      "—"
-    }
-  </div>
-
-  <div>
     <strong>Deadline CO:</strong>
     ${
       rows[0]?.co_deadline
