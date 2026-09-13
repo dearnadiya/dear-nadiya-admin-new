@@ -5387,22 +5387,23 @@ async function loadCOReport() {
   try {
 
     const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select(`
-          id,
-          customer_name,
-          customer_status,
-          packing_status,
-          batch_code,
-          item_name,
-          version,
-          quantity,
-          created_at
-        `)
+  data,
+  error
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      id,
+      customer_id,
+      customer_name,
+      customer_status,
+      packing_status,
+      batch_code,
+      item_name,
+      version,
+      quantity,
+      created_at
+    `)
         .order(
           "created_at",
           {
@@ -5446,30 +5447,32 @@ async function loadCOReport() {
       rows.filter(
         function(row) {
 
-          const customerName =
-            String(
-              row.customer_name || ""
-            ).trim();
+          const customerId =
+  Number(row.customer_id) || null;
 
-          const customerStatus =
-            String(
-              row.customer_status || ""
-            ).trim();
+const customerName =
+  String(
+    row.customer_name || ""
+  ).trim();
 
-          const packingStatus =
-            String(
-              row.packing_status || ""
-            ).trim();
+const customerStatus =
+  String(
+    row.customer_status || ""
+  ).trim();
+
+const packingStatus =
+  String(
+    row.packing_status || ""
+  ).trim();
 
 
-          return (
-            customerName &&
-            customerStatus ===
-              "Sudah Checkout Shopee" &&
-            packingStatus !==
-              "Sudah Dikonfirmasi"
-          );
-
+return (
+  (customerId || customerName) &&
+  customerStatus ===
+    "Sudah Checkout Shopee" &&
+  packingStatus !==
+    "Sudah Dikonfirmasi"
+);
         }
       );
 
@@ -5482,36 +5485,57 @@ async function loadCOReport() {
 
 
     coRows.forEach(
-      function(row) {
+  function(row) {
 
-        const customerName =
-          String(
-            row.customer_name || ""
-          ).trim();
+    const customerId =
+      Number(row.customer_id) || null;
+
+    const customerName =
+      String(
+        row.customer_name || ""
+      ).trim();
+
+    /*
+      Customer ID menjadi identitas utama.
+
+      Untuk data lama yang belum memiliki
+      customer_id, gunakan nama sebagai fallback.
+    */
+    const groupKey =
+      customerId
+        ? `id:${customerId}`
+        : `name:${customerName}`;
 
 
-        if (
-          !customerGroups[
-            customerName
-          ]
-        ) {
+    if (
+      !customerGroups[
+        groupKey
+      ]
+    ) {
 
-          customerGroups[
-            customerName
-          ] = [];
+      customerGroups[
+        groupKey
+      ] = {
+        customerId:
+          customerId,
 
-        }
+        customerName:
+          customerName,
+
+        items: []
+      };
+
+    }
 
 
-        customerGroups[
-          customerName
-        ].push(
-          row
-        );
-
-      }
+    customerGroups[
+      groupKey
+    ].items.push(
+      row
     );
 
+  }
+);
 
     /*
       URUTKAN CUSTOMER BERDASARKAN
