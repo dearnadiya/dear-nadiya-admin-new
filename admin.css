@@ -12337,8 +12337,7 @@ button {
 /* Wrapper tabel */
 #customerListContainer > div {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 /* Tabel Customer */
@@ -12372,32 +12371,15 @@ button {
 }
 
 /* --------------------------------------------
-   HILANGKAN EMAIL
+   RAPATKAN LEBAR KOLOM CUSTOMER
    -------------------------------------------- */
 
-#customerListContainer .product-table th:nth-child(6),
-#customerListContainer .product-table td:nth-child(6) {
-  display: none !important;
-}
-
-/* --------------------------------------------
-   RAPATKAN LEBAR KOLOM
-   Setelah Email dihilangkan:
-   1 No
-   2 DN ID
-   3 Nama
-   4 WhatsApp
-   5 Username WA
-   6 Catatan
-   7 Aksi
-   -------------------------------------------- */
-
-/* No - lebih sempit */
+/* No */
 #customerListContainer .product-table th:nth-child(1),
 #customerListContainer .product-table td:nth-child(1) {
-  width: 35px !important;
-  min-width: 35px !important;
-  max-width: 35px !important;
+  width: 45px !important;
+  min-width: 45px !important;
+  max-width: 45px !important;
   padding-left: 4px !important;
   padding-right: 4px !important;
   text-align: center;
@@ -12406,67 +12388,35 @@ button {
 /* DN ID */
 #customerListContainer .product-table th:nth-child(2),
 #customerListContainer .product-table td:nth-child(2) {
-  width: 120px;
+  width: 105px !important;
 }
 
-/* Nama - lebih rapat */
+/* Nama */
 #customerListContainer .product-table th:nth-child(3),
 #customerListContainer .product-table td:nth-child(3) {
-  width: 150px !important;
-  min-width: 150px !important;
-  max-width: 150px !important;
+  width: 160px !important;
 }
 
 /* WhatsApp */
 #customerListContainer .product-table th:nth-child(4),
 #customerListContainer .product-table td:nth-child(4) {
-  width: 125px;
+  width: 135px !important;
 }
 
 /* Username WA */
 #customerListContainer .product-table th:nth-child(5),
 #customerListContainer .product-table td:nth-child(5) {
-  width: 150px;
-}
-
-/* Catatan */
-#customerListContainer .product-table th:nth-child(7),
-#customerListContainer .product-table td:nth-child(7) {
-  width: 220px;
+  width: 150px !important;
 }
 
 /* Aksi */
-#customerListContainer .product-table th:nth-child(8),
-#customerListContainer .product-table td:nth-child(8) {
-  width: 80px;
+#customerListContainer .product-table th:nth-child(6),
+#customerListContainer .product-table td:nth-child(6) {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
   text-align: center;
 }
-
-/* --------------------------------------------
-   RAPATKAN ANTAR BARIS
-   -------------------------------------------- */
-
-#customerListContainer .product-table tbody tr {
-  height: auto;
-}
-
-#customerListContainer .product-table tbody td {
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-}
-
-/* Hover baris */
-#customerListContainer .product-table tbody tr:hover {
-  background: #faf8fc;
-}
-
-/* Tombol Edit */
-#customerListContainer .product-table td:last-child button {
-  margin: 0 !important;
-  padding: 4px 8px !important;
-  white-space: nowrap;
-}
-
 
 /* ============================================
    DATA CUSTOMER - SEMBUNYIKAN EMAIL DI FORM
