@@ -7715,13 +7715,14 @@ a {
   .recap-batch-customer-summary,
 
   #recapListContainer
-  .recap-batch-deadlines,
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-deadlines,
 
-  #recapListContainer
-  .batch-tracking {
-
-    display: none !important;
-  }
+#recapListContainer
+.recap-batch-card.recap-batch-collapsed
+.batch-tracking {
+  display: none !important;
+}
 
 
   /* =====================================================
@@ -8821,12 +8822,14 @@ a {
   #recapListContainer
   .recap-batch-customer-summary,
   #recapListContainer
-  .recap-batch-deadlines,
-  #recapListContainer
-  .batch-tracking {
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-deadlines,
 
-    display: none !important;
-  }
+#recapListContainer
+.recap-batch-card.recap-batch-collapsed
+.batch-tracking {
+  display: none !important;
+}
 
 
   /* =========================
