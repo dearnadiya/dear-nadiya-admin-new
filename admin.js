@@ -17971,7 +17971,7 @@ customerResults.style.display =
 }
 
 /* ==========================================
-   GENERAL PO — HITUNG TOTAL DARI QTY
+   GENERAL PO — HARGA & DP BERDASARKAN QTY
 ========================================== */
 
 const poTypeNow =
@@ -17995,48 +17995,30 @@ if (poTypeNow === "general") {
       ".po-row-dp"
     );
 
-  const originalQty =
-    Math.max(
-      1,
-      Number(rowData.quantity) || 1
+  const headerPriceInput =
+    document.getElementById(
+      "poPrice"
+    );
+
+  const headerDPInput =
+    document.getElementById(
+      "poDP"
+    );
+
+  const priceModeInput =
+    document.getElementById(
+      "poPriceMode"
+    );
+
+  const dpModeInput =
+    document.getElementById(
+      "poDPMode"
     );
 
 
-  /* ==============================
-   HARGA SATUAN AWAL
-   ============================== */
-
-if (priceInput) {
-  const savedPrice =
-    parsePONominal(
-      rowData.price
-    );
-
-  if (savedPrice > 0) {
-    priceInput.dataset.unitPrice =
-      String(savedPrice);
-  }
-}
-   
- /* ==============================
-   DP SATUAN AWAL
-   ============================== */
-
-if (dpInput) {
-  const savedDP =
-    parsePONominal(
-      rowData.dp
-    );
-
-  if (savedDP > 0) {
-    dpInput.dataset.unitDP =
-      String(savedDP);
-  }
-}
-
-  /* ==============================
-     HITUNG TOTAL
-  ============================== */
+  /* ==========================================
+     HITUNG HARGA & DP ROW
+  ========================================== */
 
   function updateGeneralRowTotal() {
 
@@ -18049,60 +18031,117 @@ if (dpInput) {
       );
 
 
-    /* ==============================
+    const priceMode =
+      priceModeInput?.value ||
+      "same";
+
+    const dpMode =
+      dpModeInput?.value ||
+      "same";
+
+
+    /* ======================================
        HARGA
-    ============================== */
+    ====================================== */
 
-    if (priceInput) {
+    if (
+      priceInput
+    ) {
 
-      const unitPrice =
-        Number(
-          priceInput.dataset.unitPrice
-        ) || 0;
+      if (
+        priceMode ===
+        "same"
+      ) {
 
-      if (unitPrice > 0) {
+        const unitPrice =
+          parsePONominal(
+            headerPriceInput?.value
+          );
+
+        const totalPrice =
+          unitPrice *
+          qty;
 
         priceInput.value =
           formatPONominal(
-            unitPrice * qty
+            totalPrice
           );
 
+        priceInput.readOnly =
+          true;
+
+      } else {
+
+        priceInput.readOnly =
+          false;
+
       }
+
     }
 
 
-    /* ==============================
+    /* ======================================
        DP
-    ============================== */
+    ====================================== */
 
-    if (dpInput) {
+    if (
+      dpInput
+    ) {
 
-      const unitDP =
-        Number(
-          dpInput.dataset.unitDP
-        ) || 0;
+      if (
+        dpMode ===
+        "same"
+      ) {
 
-      if (unitDP > 0) {
+        const unitDP =
+          parsePONominal(
+            headerDPInput?.value
+          );
+
+        const totalDP =
+          unitDP *
+          qty;
 
         dpInput.value =
           formatPONominal(
-            unitDP * qty
+            totalDP
           );
 
+        dpInput.readOnly =
+          true;
+
+      } else {
+
+        dpInput.readOnly =
+          false;
+
       }
+
     }
+
   }
 
 
-  /* ==============================
+  /* ==========================================
      QTY BERUBAH
-  ============================== */
+  ========================================== */
 
-  if (quantityInput) {
+  if (
+    quantityInput
+  ) {
 
     quantityInput.addEventListener(
       "input",
-      function () {
+      function() {
+
+        updateGeneralRowTotal();
+
+      }
+    );
+
+    quantityInput.addEventListener(
+      "change",
+      function() {
 
         updateGeneralRowTotal();
 
@@ -18112,35 +18151,28 @@ if (dpInput) {
   }
 
 
-  /* ==============================
-     HARGA DIINPUT ADMIN
-     → DIANGGAP HARGA SATUAN
-  ============================== */
+  /* ==========================================
+     HARGA HEADER BERUBAH
+  ========================================== */
 
-  if (priceInput) {
+  if (
+    headerPriceInput
+  ) {
 
-    priceInput.addEventListener(
+    headerPriceInput.addEventListener(
       "input",
-      function () {
+      function() {
 
-        const typedPrice =
-          parsePONominal(
-            priceInput.value
-          );
+        updateGeneralRowTotal();
 
-        if (typedPrice > 0) {
+      }
+    );
 
-          priceInput.dataset.unitPrice =
-            String(typedPrice);
+    headerPriceInput.addEventListener(
+      "change",
+      function() {
 
-          updateGeneralRowTotal();
-
-        } else {
-
-          priceInput.dataset.unitPrice =
-            "";
-
-        }
+        updateGeneralRowTotal();
 
       }
     );
@@ -18148,35 +18180,28 @@ if (dpInput) {
   }
 
 
-  /* ==============================
-     DP DIINPUT ADMIN
-     → DIANGGAP DP SATUAN
-  ============================== */
+  /* ==========================================
+     DP HEADER BERUBAH
+  ========================================== */
 
-  if (dpInput) {
+  if (
+    headerDPInput
+  ) {
 
-    dpInput.addEventListener(
+    headerDPInput.addEventListener(
       "input",
-      function () {
+      function() {
 
-        const typedDP =
-          parsePONominal(
-            dpInput.value
-          );
+        updateGeneralRowTotal();
 
-        if (typedDP > 0) {
+      }
+    );
 
-          dpInput.dataset.unitDP =
-            String(typedDP);
+    headerDPInput.addEventListener(
+      "change",
+      function() {
 
-          updateGeneralRowTotal();
-
-        } else {
-
-          dpInput.dataset.unitDP =
-            "";
-
-        }
+        updateGeneralRowTotal();
 
       }
     );
@@ -18184,14 +18209,54 @@ if (dpInput) {
   }
 
 
-  /* ==============================
-     TAMPILKAN TOTAL AWAL
-  ============================== */
+  /* ==========================================
+     MODE HARGA BERUBAH
+  ========================================== */
+
+  if (
+    priceModeInput
+  ) {
+
+    priceModeInput.addEventListener(
+      "change",
+      function() {
+
+        updateGeneralRowTotal();
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     MODE DP BERUBAH
+  ========================================== */
+
+  if (
+    dpModeInput
+  ) {
+
+    dpModeInput.addEventListener(
+      "change",
+      function() {
+
+        updateGeneralRowTotal();
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     TAMPILKAN HASIL AWAL
+  ========================================== */
 
   updateGeneralRowTotal();
 
-}     
-
+}
+     
 /* ==========================================
    WAR / MEMBER — HARGA MENGIKUTI HEADER
 ========================================== */
