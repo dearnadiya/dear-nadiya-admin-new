@@ -12585,3 +12585,155 @@ button {
   flex: 0 0 auto !important;
   white-space: nowrap !important;
 }
+
+/* =========================================================
+   REKAP GO - HEADER BATCH RAPI SEPERTI TABEL ARSIP
+   ========================================================= */
+
+#recapListContainer .recap-batch-header {
+  display: grid !important;
+
+  grid-template-columns:
+    105px
+    minmax(180px, 1fr)
+    80px
+    175px
+    45px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  min-height: 48px !important;
+  height: 48px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  align-items: center !important;
+  gap: 0 !important;
+
+  box-sizing: border-box !important;
+
+  background: #fff !important;
+  border-bottom: 1px solid #e5dfe7 !important;
+}
+
+/* Kode Batch */
+#recapListContainer .recap-batch-header h3 {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  margin: 0 !important;
+  padding: 0 10px !important;
+
+  box-sizing: border-box !important;
+
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  border-right: 1px solid #e5dfe7 !important;
+}
+
+/* Nama Barang */
+#recapListContainer
+.recap-batch-header
+> div:first-child
+> p
+> span {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  margin: 0 !important;
+  padding: 0 10px !important;
+
+  box-sizing: border-box !important;
+
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  border-right: 1px solid #e5dfe7 !important;
+}
+
+/* Edit */
+#recapListContainer
+.recap-batch-header
+.edit-batch-header-button {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+
+  width: 70px !important;
+  min-width: 70px !important;
+  height: 34px !important;
+
+  margin: 0 auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+}
+
+/* Tambah Member */
+#recapListContainer
+.recap-batch-header
+.add-recap-member-button {
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+
+  width: 165px !important;
+  min-width: 165px !important;
+  height: 34px !important;
+
+  margin: 0 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+}
+
+/* Panah */
+#recapListContainer
+.recap-batch-header::after {
+  grid-column: 5 !important;
+  grid-row: 1 !important;
+
+  width: 45px !important;
+  min-width: 45px !important;
+  height: 48px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+  margin: 0 !important;
+
+  border-left: 1px solid #e5dfe7 !important;
+
+  box-sizing: border-box !important;
+}
