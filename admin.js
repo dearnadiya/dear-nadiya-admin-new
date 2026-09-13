@@ -15568,29 +15568,6 @@ container.innerHTML = `
 const editCustomerResults =
   document.getElementById("editCustomerResults");
 
-function renderEditCustomerResults(keyword = "") {
-  const q = keyword.trim().toLowerCase();
-
-  const filtered = customers
-    .filter(c => {
-      const dnId =
-        String(c.dn_id || "").toLowerCase();
-
-      const name =
-        String(c.name || "").toLowerCase();
-
-      const username =
-        String(c.username_wa || "").toLowerCase();
-
-      return (
-        !q ||
-        dnId.includes(q) ||
-        name.includes(q) ||
-        username.includes(q)
-      );
-    })
-    .slice(0, 10);
-
   function renderEditCustomerResults(
   keyword = ""
 ) {
