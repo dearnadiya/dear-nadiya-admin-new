@@ -14212,36 +14212,77 @@ const existingCoDeadline =
         >
 
 
-        ${
-  isSamePriceModeHeader
-    ? `
+        <label>
+  Harga
+</label>
 
-      <label>
-        Harga Batch
-      </label>
+<input
+  type="text"
+  value="${
+    (() => {
+      const prices =
+        data
+          .map(row =>
+            Number(row.item_price) || 0
+          )
+          .filter(value => value > 0);
 
-      <input
-        id="editBatchHeaderPrice"
-        type="number"
-        min="0"
-        value="${batchPrice}"
-        required
-      >
+      if (!prices.length) {
+        return "0";
+      }
 
-      <label>
-        DP Batch
-      </label>
+      const minPrice =
+        Math.min(...prices);
 
-      <input
-        id="editBatchHeaderDp"
-        type="number"
-        min="0"
-        value="${batchDp}"
-        required
-      >
-            `
-    : ""
-}
+      const maxPrice =
+        Math.max(...prices);
+
+      return minPrice === maxPrice
+        ? formatNominalInput(minPrice)
+        : formatNominalInput(minPrice) +
+          " - " +
+          formatNominalInput(maxPrice);
+    })()
+  }"
+  readonly
+>
+
+<label>
+  DP
+</label>
+
+<input
+  type="text"
+  value="${
+    (() => {
+      const dps =
+        data
+          .map(row =>
+            Number(
+              row.minimum_dp_amount
+            ) || 0
+          )
+          .filter(value => value > 0);
+
+      if (!dps.length) {
+        return "0";
+      }
+
+      const minDp =
+        Math.min(...dps);
+
+      const maxDp =
+        Math.max(...dps);
+
+      return minDp === maxDp
+        ? formatNominalInput(minDp)
+        : formatNominalInput(minDp) +
+          " - " +
+          formatNominalInput(maxDp);
+    })()
+  }"
+  readonly
+>
 
         <label>
           Deadline DP
