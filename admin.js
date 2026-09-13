@@ -14121,9 +14121,7 @@ async function editBatchHeader(
 
     const rowDp =
       Number(
-        row.minimum_dp_amount ??
-        row.dp_amount ??
-        0
+        row.minimum_dp_amount
       ) || 0;
 
     return (
@@ -14132,7 +14130,7 @@ async function editBatchHeader(
     );
 
   });
-
+   
   const batchTracking =
     firstRow.batch_tracking_status ||
     firstRow.tracking_status ||
@@ -14415,71 +14413,7 @@ const existingCoDeadline =
     </div>
 
   `;
-
-
-  /* ==========================================
-     HITUNG PELUNASAN OTOMATIS
-     ========================================== */
-
-  function updateBatchHeaderRemaining() {
-
-    const price =
-      Number(
-        document
-          .getElementById(
-            "editBatchHeaderPrice"
-          )
-          .value
-      ) || 0;
-
-    const dp =
-      Number(
-        document
-          .getElementById(
-            "editBatchHeaderDp"
-          )
-          .value
-      ) || 0;
-
-    const remaining =
-      Math.max(
-        0,
-        price - dp
-      );
-
-    document
-      .getElementById(
-        "editBatchHeaderRemaining"
-      )
-      .value =
-      remaining;
-  }
-
-
-  if (isSamePriceModeHeader) {
-
-  document
-    .getElementById(
-      "editBatchHeaderPrice"
-    )
-    .addEventListener(
-      "input",
-      updateBatchHeaderRemaining
-    );
-
-
-  document
-    .getElementById(
-      "editBatchHeaderDp"
-    )
-    .addEventListener(
-      "input",
-      updateBatchHeaderRemaining
-    );
-
-}
-
-
+   
 /* ==========================================
    MODE REKAP LAMA / BARU
    ========================================== */
@@ -15436,31 +15370,34 @@ container.innerHTML = `
            ====================================== -->
 
       ${
-        isSamePriceMode
-          ? `
+  isSamePriceMode
+    ? `
+    
+      <input
+        type="hidden"
+        id="editItemPrice"
+        value="${
+          data.item_price || 0
+        }"
+      >
 
-            <input
-              type="hidden"
-              id="editItemPrice"
-              value="${
-                data.item_price || 0
-              }"
-            >
+      <label>
+        DP Aktual
+      </label>
 
-            <input
-              type="hidden"
-              id="editDpAmount"
-              value="${
-                data.minimum_dp_amount ??
-                data.dp_amount ??
-                0
-              }"
-              />
+      <input
+        id="editDpAmount"
+        type="text"
+        class="currency-input"
+        value="${
+          data.dp_amount || 0
+        }"
+        placeholder="50.000"
+      />
 
-          `
-          : ""
-      }
-
+  `
+  : ""
+}
 
       <!-- ======================================
            HIDDEN STATUS DP
@@ -15486,17 +15423,15 @@ container.innerHTML = `
 
       <input
   id="editRemaining"
-  type="number"
-  step="1"
+  type="text"
+  class="currency-input"
   value="${
     Math.max(
       0,
       (Number(data.item_price) || 0) -
       (
         Number(
-          data.minimum_dp_amount ??
-          data.dp_amount ??
-          0
+          data.dp_amount || 0
         ) || 0
       )
     )
