@@ -771,19 +771,35 @@ async function loadDashboard() {
     ===================================== */
 
     const uniqueCustomers =
-  new Set(
-    rows
-      .map(row =>
-        Number(row.customer_id) || null
-      )
-      .filter(Boolean)
-  );
+  new Set();
 
-    document.getElementById(
-      "dashboardTotalCustomer"
-    ).textContent =
-      uniqueCustomers.size;
+rows.forEach(row => {
 
+  const customerId =
+    Number(row.customer_id) || null;
+
+  const customerName =
+    String(
+      row.customer_name || ""
+    ).trim();
+
+  const key =
+    customerId
+      ? `id:${customerId}`
+      : customerName
+        ? `name:${customerName}`
+        : null;
+
+  if (key) {
+    uniqueCustomers.add(key);
+  }
+
+});
+
+document.getElementById(
+  "dashboardTotalCustomer"
+).textContent =
+  uniqueCustomers.size;
 
     /* =====================================
        TOTAL GO AKTIF
