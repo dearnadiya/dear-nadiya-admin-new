@@ -17262,7 +17262,7 @@ container.innerHTML = `
         po.close_date
       )
         .toISOString()
-        .slice(0, 16)
+        .slice(0, 10)
     : ""
 }"
             >
@@ -17290,7 +17290,7 @@ container.innerHTML = `
         po.last_dp_date
       )
         .toISOString()
-        .slice(0, 16)
+        .slice(0, 10)
     : ""
 }"
             >
