@@ -15155,18 +15155,33 @@ container.innerHTML = `
   Customer
 </label>
 
-<select
-  id="editCustomerId"
-  required
+<div
+  class="customer-picker"
+  style="position:relative;width:100%;"
 >
-  <option value="">
-    — Pilih Customer —
-  </option>
-</select>
+  <input
+    type="text"
+    id="editCustomerInput"
+    placeholder="🔍 Cari DN ID / nama / username WA..."
+    value="${escapeHTML(data.customer_name || "")}"
+    autocomplete="off"
+    required
+  >
+
+  <input
+    type="hidden"
+    id="editCustomerId"
+    value="${escapeHTML(String(data.customer_id || ""))}"
+  >
+
+  <div
+    id="editCustomerResults"
+    style="display:none;position:absolute;z-index:9999;left:0;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;max-height:240px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12);"
+  ></div>
+</div>
 
 <small>
-  Pilih customer berdasarkan DN ID.
-  Nama customer akan mengikuti Data Customer.
+  Cari dan pilih customer berdasarkan DN ID, nama, atau username WA.
 </small>
 
       <!-- ======================================
@@ -15455,80 +15470,102 @@ container.innerHTML = `
 
   if (editCustomerId) {
 
-    const {
-      data: customers,
-      error: customersError
-    } =
-      await supabaseClient
-        .from("customers")
-        .select(
-          "id, dn_id, name"
-        )
-        .order(
-          "id",
-          {
-            ascending: true
-          }
-        );
+    const { data: customers, error } =
+  await supabaseClient
+    .from("customers")
+    .select("id, dn_id, name, username_wa")
+    .order("id", { ascending: true });
 
-    if (customersError) {
+     const editCustomerInput =
+  document.getElementById("editCustomerInput");
+     
+const editCustomerResults =
+  document.getElementById("editCustomerResults");
 
-      console.error(
-        "ERROR LOAD CUSTOMERS FOR RECAP:",
-        customersError
+function renderEditCustomerResults(keyword = "") {
+  const q = keyword.trim().toLowerCase();
+
+  const filtered = customers
+    .filter(c => {
+      const dnId =
+        String(c.dn_id || "").toLowerCase();
+
+      const name =
+        String(c.name || "").toLowerCase();
+
+      const username =
+        String(c.username_wa || "").toLowerCase();
+
+      return (
+        !q ||
+        dnId.includes(q) ||
+        name.includes(q) ||
+        username.includes(q)
       );
+    })
+    .slice(0, 10);
 
-      editCustomerId.innerHTML = `
-        <option value="">
-          Gagal memuat Data Customer
-        </option>
-      `;
+  editCustomerResults.innerHTML =
+    filtered.map(c => `
+      <button
+        type="button"
+        class="edit-customer-option"
+        data-id="${c.id}"
+        data-name="${escapeHTML(c.name || "")}"
+        style="display:block;width:100%;text-align:left;border:0;background:#fff;padding:9px 10px;cursor:pointer;"
+      >
+        <strong>${escapeHTML(c.dn_id || "")}</strong>
+        — ${escapeHTML(c.name || "")}
+        ${c.username_wa
+          ? ` <span style="color:#777;">(${escapeHTML(c.username_wa)})</span>`
+          : ""}
+      </button>
+    `)
+    .join("");
 
-    } else {
+  editCustomerResults.style.display =
+    filtered.length ? "block" : "none";
+}
 
-      editCustomerId.innerHTML = `
-        <option value="">
-          — Pilih Customer —
-        </option>
+editCustomerInput.addEventListener("input", () => {
+  editCustomerId.value = "";
+  renderEditCustomerResults(
+    editCustomerInput.value
+  );
+});
 
-        ${(customers || [])
-          .map(function(customer) {
+editCustomerInput.addEventListener("focus", () => {
+  renderEditCustomerResults(
+    editCustomerInput.value
+  );
+});
 
-            return `
-              <option
-                <option
-  value="${escapeHTML(
-    String(customer.id)
-  )}"
-  data-name="${escapeHTML(
-    customer.name || ""
-  )}"
-                ${
-                  String(
-                    customer.id
-                  ) ===
-                  String(
-                    data.customer_id || ""
-                  )
-                    ? "selected"
-                    : ""
-                }
-              >
-                ${escapeHTML(
-                  customer.dn_id || "—"
-                )}
-                — ${escapeHTML(
-                  customer.name || "Tanpa Nama"
-                )}
-              </option>
-            `;
+editCustomerResults.addEventListener("click", event => {
+  const button =
+    event.target.closest(".edit-customer-option");
 
-          })
-          .join("")}
-      `;
+  if (!button) return;
 
-    }
+  editCustomerInput.value =
+    button.dataset.name || "";
 
+  editCustomerId.value =
+    button.dataset.id || "";
+
+  editCustomerResults.style.display =
+    "none";
+});
+
+document.addEventListener("click", event => {
+  if (
+    !editCustomerInput.contains(event.target) &&
+    !editCustomerResults.contains(event.target)
+  ) {
+    editCustomerResults.style.display =
+      "none";
+  }
+});
+     
   }
 
      // Otomatis scroll ke form Edit Rekap
@@ -15658,25 +15695,13 @@ if (!isSamePriceMode) {
               .value
               .trim(),
 
-          customer_id:
+customer_id:
   Number(
-    document
-      .getElementById(
-        "editCustomerId"
-      )
-      .value
+    document.getElementById("editCustomerId").value
   ) || null,
 
 customer_name:
-  document
-    .getElementById(
-      "editCustomerId"
-    )
-    .selectedOptions[0]
-    ?.dataset.name ||
-  data.customer_name ||
-  "",
-           
+  document.getElementById("editCustomerInput").value.trim(),           
           version:
             document
               .getElementById(
