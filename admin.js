@@ -15591,28 +15591,126 @@ function renderEditCustomerResults(keyword = "") {
     })
     .slice(0, 10);
 
+  function renderEditCustomerResults(
+  keyword = ""
+) {
+
+  const q =
+    keyword
+      .trim()
+      .toLowerCase();
+
+  const filtered =
+    customers
+      .filter(c => {
+
+        const dnId =
+          String(
+            c.dn_id || ""
+          ).toLowerCase();
+
+        const name =
+          String(
+            c.name || ""
+          ).toLowerCase();
+
+        const username =
+          String(
+            c.username_wa || ""
+          ).toLowerCase();
+
+        return (
+          !q ||
+          dnId.includes(q) ||
+          name.includes(q) ||
+          username.includes(q)
+        );
+
+      })
+      .slice(0, 10);
+
+
+  const customerButtons =
+    filtered
+      .map(c => `
+
+        <button
+          type="button"
+          class="edit-customer-option"
+          data-id="${c.id}"
+          data-name="${escapeHTML(
+            c.name || ""
+          )}"
+          style="
+            display:block;
+            width:100%;
+            text-align:left;
+            border:0;
+            border-bottom:1px solid #eee;
+            background:#fff;
+            padding:9px 10px;
+            cursor:pointer;
+          "
+        >
+          <strong>
+            ${escapeHTML(
+              c.dn_id || ""
+            )}
+          </strong>
+
+          —
+          ${escapeHTML(
+            c.name || ""
+          )}
+
+          ${
+            c.username_wa
+              ? `
+                <span
+                  style="color:#777;"
+                >
+                  (${escapeHTML(
+                    c.username_wa
+                  )})
+                </span>
+              `
+              : ""
+          }
+
+        </button>
+
+      `)
+      .join("");
+
+
   editCustomerResults.innerHTML =
-    filtered.map(c => `
+    customerButtons +
+
+    `
       <button
         type="button"
-        class="edit-customer-option"
-        data-id="${c.id}"
-        data-name="${escapeHTML(c.name || "")}"
-        style="display:block;width:100%;text-align:left;border:0;background:#fff;padding:9px 10px;cursor:pointer;"
+        class="edit-create-customer-option"
+        style="
+          display:block;
+          width:100%;
+          text-align:left;
+          border:0;
+          background:#f8f9fa;
+          padding:10px;
+          cursor:pointer;
+          font-weight:600;
+          color:#2563eb;
+        "
       >
-        <strong>${escapeHTML(c.dn_id || "")}</strong>
-        — ${escapeHTML(c.name || "")}
-        ${c.username_wa
-          ? ` <span style="color:#777;">(${escapeHTML(c.username_wa)})</span>`
-          : ""}
+        ＋ Buat Customer Baru
       </button>
-    `)
-    .join("");
+    `;
+
 
   editCustomerResults.style.display =
-    filtered.length ? "block" : "none";
-}
+    "block";
 
+}
 editCustomerInput.addEventListener("input", () => {
   editCustomerId.value = "";
   renderEditCustomerResults(
@@ -15626,22 +15724,64 @@ editCustomerInput.addEventListener("focus", () => {
   );
 });
 
-editCustomerResults.addEventListener("click", event => {
-  const button =
-    event.target.closest(".edit-customer-option");
+editCustomerResults.addEventListener(
+  "click",
+  event => {
 
-  if (!button) return;
+    const createButton =
+      event.target.closest(
+        ".edit-create-customer-option"
+      );
 
-  editCustomerInput.value =
-    button.dataset.name || "";
+    if (createButton) {
 
-  editCustomerId.value =
-    button.dataset.id || "";
+      showQuickCustomerForm(
+        function(newCustomer) {
 
-  editCustomerResults.style.display =
-    "none";
-});
+          customers.push(
+            newCustomer
+          );
 
+          editCustomerInput.value =
+            newCustomer.name || "";
+
+          editCustomerId.value =
+            newCustomer.id || "";
+
+          editCustomerResults.innerHTML =
+            "";
+
+          editCustomerResults.style.display =
+            "none";
+
+        }
+      );
+
+      return;
+    }
+
+
+    const button =
+      event.target.closest(
+        ".edit-customer-option"
+      );
+
+    if (!button) {
+      return;
+    }
+
+
+    editCustomerInput.value =
+      button.dataset.name || "";
+
+    editCustomerId.value =
+      button.dataset.id || "";
+
+    editCustomerResults.style.display =
+      "none";
+
+  }
+);
 document.addEventListener("click", event => {
   if (
     !editCustomerInput.contains(event.target) &&
