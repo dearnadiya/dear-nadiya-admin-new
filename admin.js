@@ -17556,62 +17556,78 @@ if (
           .slice(0, 10);
 
       customerResults.innerHTML =
-        filtered
-          .map(
-            function(customer) {
-
-              return `
-                <button
-                  type="button"
-                  class="po-customer-option"
-                  data-id="${customer.id}"
-                  data-name="${escapeHTML(
-                    customer.name || ""
-                  )}"
-                  style="
-                    display:block;
-                    width:100%;
-                    text-align:left;
-                    border:0;
-                    background:#fff;
-                    padding:9px 10px;
-                    cursor:pointer;
-                  "
-                >
-                  <strong>
-                    ${escapeHTML(
-                      customer.dn_id || "—"
-                    )}
-                  </strong>
-                  —
-                  ${escapeHTML(
-                    customer.name || "Tanpa Nama"
-                  )}
-                  ${
-                    customer.username_wa
-                      ? `
-                        <span
-                          style="color:#777;"
-                        >
-                          (${escapeHTML(
-                            customer.username_wa
-                          )})
-                        </span>
-                      `
-                      : ""
-                  }
-                </button>
-              `;
-
+  filtered
+    .map(
+      function(customer) {
+        return `
+          <button
+            type="button"
+            class="po-customer-option"
+            data-id="${customer.id}"
+            data-name="${escapeHTML(
+              customer.name || ""
+            )}"
+            style="
+              display:block;
+              width:100%;
+              text-align:left;
+              border:0;
+              background:#fff;
+              padding:9px 10px;
+              cursor:pointer;
+              border-bottom:1px solid #eee;
+            "
+          >
+            <strong>
+              ${escapeHTML(
+                customer.dn_id || "—"
+              )}
+            </strong>
+            —
+            ${escapeHTML(
+              customer.name || "Tanpa Nama"
+            )}
+            ${
+              customer.username_wa
+                ? `
+                  <span
+                    style="color:#777;"
+                  >
+                    (${escapeHTML(
+                      customer.username_wa
+                    )})
+                  </span>
+                `
+                : ""
             }
-          )
-          .join("");
+          </button>
+        `;
+      }
+    )
+    .join("") +
 
-      customerResults.style.display =
-        filtered.length
-          ? "block"
-          : "none";
+  `
+    <button
+      type="button"
+      class="po-create-customer-option"
+      style="
+        display:block;
+        width:100%;
+        text-align:left;
+        border:0;
+        background:#f8f9fa;
+        padding:10px;
+        cursor:pointer;
+        font-weight:600;
+        color:#2563eb;
+      "
+    >
+      ＋ Buat Customer Baru
+    </button>
+  `;
 
+customerResults.style.display =
+  "block";
     }
 
     customerInput.addEventListener(
@@ -17640,30 +17656,62 @@ if (
     );
 
     customerResults.addEventListener(
-      "click",
-      function(event) {
+  "click",
+  function(event) {
 
-        const button =
-          event.target.closest(
-            ".po-customer-option"
+    const createButton =
+      event.target.closest(
+        ".po-create-customer-option"
+      );
+
+    if (createButton) {
+
+      showQuickCustomerForm(
+        function(newCustomer) {
+
+          /* Masukkan customer baru ke daftar
+             pencarian row PO ini */
+          customerList.push(
+            newCustomer
           );
 
-        if (!button) {
-          return;
+          /* Langsung pilih customer baru */
+          customerInput.value =
+            newCustomer.name || "";
+
+          customerIdInput.value =
+            newCustomer.id || "";
+
+          customerResults.style.display =
+            "none";
+
         }
+      );
 
-        customerInput.value =
-          button.dataset.name || "";
+      return;
+    }
 
-        customerIdInput.value =
-          button.dataset.id || "";
 
-        customerResults.style.display =
-          "none";
+    const button =
+      event.target.closest(
+        ".po-customer-option"
+      );
 
-      }
-    );
+    if (!button) {
+      return;
+    }
 
+    customerInput.value =
+      button.dataset.name || "";
+
+    customerIdInput.value =
+      button.dataset.id || "";
+
+    customerResults.style.display =
+      "none";
+
+  }
+);
     document.addEventListener(
       "click",
       function(event) {
@@ -22168,6 +22216,254 @@ async function createCustomerQuickly({
   }
 
   return newCustomer;
+}
+
+function showQuickCustomerForm(
+  onSaved
+) {
+
+  const oldModal =
+    document.getElementById(
+      "quickCustomerModal"
+    );
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.id =
+    "quickCustomerModal";
+
+  overlay.style.cssText = `
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100000;
+    padding:20px;
+  `;
+
+  overlay.innerHTML = `
+    <div
+      style="
+        width:100%;
+        max-width:420px;
+        background:#fff;
+        border-radius:14px;
+        padding:20px;
+        box-shadow:0 12px 35px rgba(0,0,0,.2);
+      "
+    >
+
+      <h3
+        style="
+          margin:0 0 16px;
+        "
+      >
+        ➕ Buat Customer Baru
+      </h3>
+
+      <label
+        style="
+          display:block;
+          margin-bottom:6px;
+          font-weight:600;
+        "
+      >
+        Nama Customer
+      </label>
+
+      <input
+        type="text"
+        id="quickCustomerName"
+        placeholder="Nama customer"
+        autocomplete="off"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:9px 10px;
+          margin-bottom:12px;
+        "
+      >
+
+      <label
+        style="
+          display:block;
+          margin-bottom:6px;
+          font-weight:600;
+        "
+      >
+        Nomor WhatsApp
+      </label>
+
+      <input
+        type="text"
+        id="quickCustomerWhatsapp"
+        placeholder="628123456789"
+        autocomplete="off"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:9px 10px;
+          margin-bottom:12px;
+        "
+      >
+
+      <label
+        style="
+          display:block;
+          margin-bottom:6px;
+          font-weight:600;
+        "
+      >
+        Username WhatsApp
+      </label>
+
+      <input
+        type="text"
+        id="quickCustomerUsername"
+        placeholder="@username"
+        autocomplete="off"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:9px 10px;
+          margin-bottom:18px;
+        "
+      >
+
+      <div
+        style="
+          display:flex;
+          gap:8px;
+          justify-content:flex-end;
+        "
+      >
+
+        <button
+          type="button"
+          id="cancelQuickCustomer"
+        >
+          Batal
+        </button>
+
+        <button
+          type="button"
+          id="saveQuickCustomer"
+        >
+          💾 Simpan Customer
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    overlay
+  );
+
+  const nameInput =
+    document.getElementById(
+      "quickCustomerName"
+    );
+
+  const whatsappInput =
+    document.getElementById(
+      "quickCustomerWhatsapp"
+    );
+
+  const usernameInput =
+    document.getElementById(
+      "quickCustomerUsername"
+    );
+
+  const saveButton =
+    document.getElementById(
+      "saveQuickCustomer"
+    );
+
+  const cancelButton =
+    document.getElementById(
+      "cancelQuickCustomer"
+    );
+
+  nameInput?.focus();
+
+  cancelButton?.addEventListener(
+    "click",
+    () => {
+      overlay.remove();
+    }
+  );
+
+  overlay.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target === overlay
+      ) {
+        overlay.remove();
+      }
+
+    }
+  );
+
+  saveButton?.addEventListener(
+    "click",
+    async () => {
+
+      if (
+        saveButton.disabled
+      ) {
+        return;
+      }
+
+      saveButton.disabled =
+        true;
+
+      saveButton.textContent =
+        "⏳ Menyimpan...";
+
+      const customer =
+        await createCustomerQuickly({
+          name:
+            nameInput?.value || "",
+          whatsapp:
+            whatsappInput?.value || "",
+          username_wa:
+            usernameInput?.value || ""
+        });
+
+      if (!customer) {
+
+        saveButton.disabled =
+          false;
+
+        saveButton.textContent =
+          "💾 Simpan Customer";
+
+        return;
+      }
+
+      overlay.remove();
+
+      if (
+        typeof onSaved ===
+        "function"
+      ) {
+        onSaved(customer);
+      }
+
+    }
+  );
+
 }
 
 async function saveCustomer(
