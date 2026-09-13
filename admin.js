@@ -23107,17 +23107,16 @@ async function renderCustomerTable(
     <div
   style="
     width:100%;
-    overflow-x:auto;
+    overflow-x:hidden;
   "
 >
 
       <table
   class="product-table"
   style="
-    width:max-content !important;
-    min-width:1100px !important;
-    table-layout:auto !important;
-  "
+  width:100% !important;
+  table-layout:fixed !important;
+"
 >
 
         <thead>
