@@ -1262,6 +1262,9 @@ const coCustomers = [
     coRows
       .map(row => {
 
+        const customerId =
+          Number(row.customer_id) || null;
+
         const name =
           String(
             row.customer_name || ""
@@ -1273,25 +1276,29 @@ const coCustomers = [
           );
 
         if (
-          !name ||
+          (!customerId && !name) ||
           !deadline
         ) {
           return null;
         }
 
+        const groupKey =
+          customerId
+            ? `id:${customerId}`
+            : `name:${name}`;
+
         return [
-          name,
+          groupKey,
           {
+            customerId,
             name,
             deadline
           }
         ];
-
       })
       .filter(Boolean)
   ).values()
 ];
-
 
 const coList =
   document.getElementById(
