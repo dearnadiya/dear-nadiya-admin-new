@@ -22148,19 +22148,7 @@ function showCustomerForm(
           )}"
           placeholder="Opsional"
         >
-
-        <label>
-          Catatan
-        </label>
-
-        <textarea
-          id="customerNotesInput"
-          rows="3"
-          placeholder="Catatan customer (opsional)"
-        >${escapeHTML(
-          customer?.notes || ""
-        )}</textarea>
-
+        
         <div
           style="
             display:flex;
@@ -22694,14 +22682,6 @@ async function saveCustomer(
       ?.value
       .trim() || "";
 
-  const notes =
-    document
-      .getElementById(
-        "customerNotesInput"
-      )
-      ?.value
-      .trim() || "";
-
 
   if (!name) {
 
@@ -22803,12 +22783,6 @@ async function saveCustomer(
 
           username_wa:
             username || null,
-
-          email:
-            email || null,
-
-          notes:
-            notes || null,
 
           updated_at:
             new Date().toISOString()
@@ -23154,8 +23128,6 @@ async function renderCustomerTable(
             <th>Nama</th>
             <th>WhatsApp</th>
             <th>Username WA</th>
-            <th>Email</th>
-            <th>Catatan</th>
             <th>Aksi</th>
           </tr>
 
@@ -23205,20 +23177,6 @@ async function renderCustomerTable(
                       <td>
                         ${escapeHTML(
                           customer.username_wa ||
-                          "—"
-                        )}
-                      </td>
-
-                      <td>
-                        ${escapeHTML(
-                          customer.email ||
-                          "—"
-                        )}
-                      </td>
-
-                      <td>
-                        ${escapeHTML(
-                          customer.notes ||
                           "—"
                         )}
                       </td>
