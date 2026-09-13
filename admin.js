@@ -771,15 +771,13 @@ co_deadline
     ===================================== */
 
     const uniqueCustomers =
-      new Set(
-        rows
-          .map(row =>
-            String(
-              row.customer_name || ""
-            ).trim()
-          )
-          .filter(Boolean)
-      );
+  new Set(
+    rows
+      .map(row =>
+        Number(row.customer_id) || null
+      )
+      .filter(Boolean)
+  );
 
     document.getElementById(
       "dashboardTotalCustomer"
