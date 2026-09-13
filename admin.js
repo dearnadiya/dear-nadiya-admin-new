@@ -9638,12 +9638,11 @@ updateCoDeadlineMode();
 
       <label>Customer</label>
 
-      <input
-        type="text"
-        class="batch-customer"
-        placeholder="Nama customer"
-      >
-
+<select class="batch-customer" required>
+  <option value="">
+    — Pilih Customer —
+  </option>
+</select>
 
       <label>Versi / Member</label>
 
