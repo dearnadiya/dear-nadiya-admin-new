@@ -652,24 +652,24 @@ async function loadDashboard() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("purchase_recap")
-      .select(`
-        customer_name,
-        batch_code,
-        item_name,
-        version,
-        quantity,
-        dp_amount,
-        remaining_amount,
-        dp_status,
-        payment_status,
-        customer_status,
-batch_tracking_status,
-dp_deadline,
-payment_deadline,
-co_deadline
-      `);
-
+  .from("purchase_recap")
+  .select(`
+    customer_id,
+    customer_name,
+    batch_code,
+    item_name,
+    version,
+    quantity,
+    dp_amount,
+    remaining_amount,
+    dp_status,
+    payment_status,
+    customer_status,
+    batch_tracking_status,
+    dp_deadline,
+    payment_deadline,
+    co_deadline
+  `);
     if (error) {
       console.error(
         "ERROR LOAD DASHBOARD:",
