@@ -8732,12 +8732,44 @@ const batchArrivedAdminAt =
 
       <label>Customer</label>
 
-<select class="batch-customer" required>
-  <option value="">
-    — Pilih Customer —
-  </option>
-</select>
+<div
+  class="customer-picker"
+  style="
+    position:relative;
+    width:100%;
+  "
+>
+  <input
+    type="text"
+    class="batch-customer"
+    placeholder="🔍 Cari DN ID / nama / username WA..."
+    autocomplete="off"
+    required
+  >
 
+  <input
+    type="hidden"
+    class="batch-customer-id"
+  >
+
+  <div
+    class="batch-customer-results"
+    style="
+      display:none;
+      position:absolute;
+      z-index:9999;
+      left:0;
+      right:0;
+      top:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      max-height:240px;
+      overflow-y:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    "
+  ></div>
+</div>
       <label>
         Versi / Member
       </label>
@@ -9638,12 +9670,44 @@ updateCoDeadlineMode();
 
       <label>Customer</label>
 
-<select class="batch-customer" required>
-  <option value="">
-    — Pilih Customer —
-  </option>
-</select>
+<div
+  class="customer-picker"
+  style="
+    position:relative;
+    width:100%;
+  "
+>
+  <input
+    type="text"
+    class="batch-customer"
+    placeholder="🔍 Cari DN ID / nama / username WA..."
+    autocomplete="off"
+    required
+  >
 
+  <input
+    type="hidden"
+    class="batch-customer-id"
+  >
+
+  <div
+    class="batch-customer-results"
+    style="
+      display:none;
+      position:absolute;
+      z-index:9999;
+      left:0;
+      right:0;
+      top:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      max-height:240px;
+      overflow-y:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    "
+  ></div>
+</div>
       <label>Versi / Member</label>
 
       <input
@@ -9753,23 +9817,38 @@ updateCoDeadlineMode();
     itemsContainer.appendChild(item);
 
      /* ==========================================
-   LOAD DATA CUSTOMER
+   SEARCHABLE DATA CUSTOMER
    ========================================== */
 
-const customerSelect =
+const customerInput =
   item.querySelector(".batch-customer");
 
-if (customerSelect) {
+const customerIdInput =
+  item.querySelector(".batch-customer-id");
+
+const customerResults =
+  item.querySelector(".batch-customer-results");
+
+if (
+  customerInput &&
+  customerIdInput &&
+  customerResults
+) {
 
   const {
     data: customers,
     error: customersError
   } = await supabaseClient
     .from("customers")
-    .select("id, dn_id, name")
-    .order("id", {
-      ascending: true
-    });
+    .select(
+      "id, dn_id, name, username_wa"
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
 
   if (customersError) {
 
@@ -9778,39 +9857,203 @@ if (customerSelect) {
       customersError
     );
 
-    customerSelect.innerHTML = `
-      <option value="">
-        Gagal memuat Data Customer
-      </option>
-    `;
+    customerInput.placeholder =
+      "Gagal memuat Data Customer";
 
   } else {
 
-    customerSelect.innerHTML = `
-      <option value="">
-        — Pilih Customer —
-      </option>
+    const customerList =
+      customers || [];
 
-      ${(customers || [])
-        .map(function(customer) {
+    customerInput.addEventListener(
+      "input",
+      function() {
 
-          return `
-            <option
-              value="${escapeHTML(String(customer.id))}"
-              data-name="${escapeHTML(customer.name || "")}"
+        const keyword =
+          this.value
+            .trim()
+            .toLowerCase();
+
+        customerIdInput.value =
+          "";
+
+        if (!keyword) {
+
+          customerResults.innerHTML =
+            "";
+
+          customerResults.style.display =
+            "none";
+
+          return;
+        }
+
+        const matches =
+          customerList
+            .filter(
+              function(customer) {
+
+                const dnId =
+                  String(
+                    customer.dn_id || ""
+                  )
+                    .toLowerCase();
+
+                const name =
+                  String(
+                    customer.name || ""
+                  )
+                    .toLowerCase();
+
+                const username =
+                  String(
+                    customer.username_wa || ""
+                  )
+                    .toLowerCase();
+
+                return (
+                  dnId.includes(keyword) ||
+                  name.includes(keyword) ||
+                  username.includes(keyword)
+                );
+              }
+            )
+            .slice(0, 10);
+
+        if (
+          matches.length === 0
+        ) {
+
+          customerResults.innerHTML = `
+            <div
+              style="
+                padding:10px 12px;
+                color:#777;
+              "
             >
-              ${escapeHTML(customer.dn_id || "—")}
-              — ${escapeHTML(customer.name || "Tanpa Nama")}
-            </option>
+              Customer tidak ditemukan
+            </div>
           `;
 
-        })
-        .join("")
+          customerResults.style.display =
+            "block";
+
+          return;
+        }
+
+        customerResults.innerHTML =
+          matches
+            .map(
+              function(customer) {
+
+                return `
+                  <button
+                    type="button"
+                    class="batch-customer-result"
+                    data-id="${escapeHTML(
+                      String(customer.id)
+                    )}"
+                    data-name="${escapeHTML(
+                      customer.name || ""
+                    )}"
+                    style="
+                      display:block;
+                      width:100%;
+                      text-align:left;
+                      padding:10px 12px;
+                      border:0;
+                      border-bottom:1px solid #eee;
+                      background:#fff;
+                      cursor:pointer;
+                    "
+                  >
+                    <strong>
+                      ${escapeHTML(
+                        customer.dn_id || "—"
+                      )}
+                    </strong>
+
+                    —
+                    ${escapeHTML(
+                      customer.name ||
+                      "Tanpa Nama"
+                    )}
+
+                    ${
+                      customer.username_wa
+                        ? `
+                          <small
+                            style="
+                              display:block;
+                              color:#777;
+                              margin-top:3px;
+                            "
+                          >
+                            ${escapeHTML(
+                              customer.username_wa
+                            )}
+                          </small>
+                        `
+                        : ""
+                    }
+                  </button>
+                `;
+
+              }
+            )
+            .join("");
+
+        customerResults.style.display =
+          "block";
       }
-    `;
+    );
+
+
+    customerResults.addEventListener(
+      "click",
+      function(event) {
+
+        const button =
+          event.target.closest(
+            ".batch-customer-result"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        customerInput.value =
+          button.dataset.name || "";
+
+        customerIdInput.value =
+          button.dataset.id || "";
+
+        customerResults.innerHTML =
+          "";
+
+        customerResults.style.display =
+          "none";
+      }
+    );
+
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          !item.contains(event.target)
+        ) {
+
+          customerResults.style.display =
+            "none";
+        }
+
+      }
+    );
+
   }
 }
-
 
     item
       .querySelector(".remove-batch-item")
