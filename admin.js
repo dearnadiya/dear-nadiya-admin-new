@@ -10248,9 +10248,8 @@ updateCoDeadlineMode();
 <label>Sisa Pembayaran</label>
 
 <input
-  type="number"
-  class="batch-remaining"
-  min="0"
+  type="text"
+  class="batch-remaining currency-input"
   value="0"
   readonly
 >
@@ -10717,9 +10716,11 @@ dp =
       );
 
     if (remainingInput) {
-      remainingInput.value =
-        remaining;
-    }
+  remainingInput.value =
+    formatNominalInput(
+      remaining
+    );
+}
 
   });
 }
