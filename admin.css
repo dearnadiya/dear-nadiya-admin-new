@@ -3470,27 +3470,34 @@ a {
     width: 170px;
   }
 
-  /* CATATAN */
-  .recap-batch-card .product-table th:nth-child(11),
-  .recap-batch-card .product-table td:nth-child(11) {
-    min-width: 180px;
-    width: 180px;
-    white-space: normal;
-  }
+  /* TANGGAL CO */
+.recap-batch-card .product-table th:nth-child(11),
+.recap-batch-card .product-table td:nth-child(11) {
+  min-width: 120px;
+  width: 120px;
+  white-space: nowrap;
+}
 
-  /* AKSI */
-  .recap-batch-card .product-table th:nth-child(12),
-  .recap-batch-card .product-table td:nth-child(12) {
-    min-width: 170px;
-    width: 170px;
-    white-space: nowrap;
-  }
+/* CATATAN */
+.recap-batch-card .product-table th:nth-child(12),
+.recap-batch-card .product-table td:nth-child(12) {
+  min-width: 180px;
+  width: 180px;
+  white-space: normal;
+}
 
-  /* Semua tombol aksi tetap berdampingan */
-  .recap-batch-card .product-table td:nth-child(12) {
-    white-space: nowrap;
-  }
+/* AKSI */
+.recap-batch-card .product-table th:nth-child(13),
+.recap-batch-card .product-table td:nth-child(13) {
+  min-width: 170px;
+  width: 170px;
+  white-space: nowrap;
+}
 
+/* Semua tombol aksi tetap berdampingan */
+.recap-batch-card .product-table td:nth-child(13) {
+  white-space: nowrap;
+}
   .recap-batch-card .edit-recap-button,
   .recap-batch-card .delete-recap-button {
     display: inline-flex;
