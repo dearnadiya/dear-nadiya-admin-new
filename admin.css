@@ -12559,3 +12559,79 @@ button {
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box !important;
 }
+
+/* =========================================================
+   FINAL - REKAP GO
+   HEADER TETAP, HANYA TABEL CUSTOMER YANG SCROLL
+   ========================================================= */
+
+#recapListContainer .recap-batch-scroll {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+
+  box-sizing: border-box !important;
+}
+
+#recapListContainer .recap-batch-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* HEADER BATCH */
+#recapListContainer .recap-batch-header {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* DEADLINE BATCH */
+#recapListContainer .recap-batch-deadlines {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* TRACKING BATCH */
+#recapListContainer .batch-tracking {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   HANYA TABEL CUSTOMER YANG BOLEH SCROLL
+   ========================================================= */
+
+#recapListContainer .product-table-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+
+  box-sizing: border-box !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+#recapListContainer .product-table {
+  width: max-content !important;
+  min-width: 850px !important;
+
+  box-sizing: border-box !important;
+}
