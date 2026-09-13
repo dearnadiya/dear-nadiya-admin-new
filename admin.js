@@ -11275,7 +11275,7 @@ let html = `
 
     </p>
 
-    <div class="recap-batch-customer-summary">
+        <div class="recap-batch-customer-summary">
 
       <span>
         ${rows.length}
@@ -11292,8 +11292,10 @@ let html = `
 
     </div>
 
-    <div class="recap-batch-deadlines">
+  </div>
 
+  <div class="recap-batch-deadlines">
+    
   <div>
     <strong>Deadline DP:</strong>
     ${
@@ -11331,8 +11333,6 @@ let html = `
   </div>
 
 </div>
-
-  </div>
 
 </div>
 
