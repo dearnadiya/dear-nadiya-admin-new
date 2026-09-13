@@ -8697,7 +8697,7 @@ const batchArrivedAdminAt =
   let memberNumber = 0;
 
 
-  function addMemberCard() {
+  async function addMemberCard() {
 
     memberNumber++;
 
@@ -8884,6 +8884,252 @@ const batchArrivedAdminAt =
     itemsContainer.appendChild(
       item
     );
+
+     /* ==========================================
+   SEARCHABLE DATA CUSTOMER
+   ========================================== */
+
+const customerInput =
+  item.querySelector(
+    ".batch-customer"
+  );
+
+const customerIdInput =
+  item.querySelector(
+    ".batch-customer-id"
+  );
+
+const customerResults =
+  item.querySelector(
+    ".batch-customer-results"
+  );
+
+if (
+  customerInput &&
+  customerIdInput &&
+  customerResults
+) {
+
+  const {
+    data: customers,
+    error: customersError
+  } = await supabaseClient
+    .from("customers")
+    .select(
+      "id, dn_id, name, username_wa"
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
+
+  if (customersError) {
+
+    console.error(
+      "ERROR LOAD CUSTOMERS:",
+      customersError
+    );
+
+    customerInput.placeholder =
+      "Gagal memuat Data Customer";
+
+  } else {
+
+    const customerList =
+      customers || [];
+
+    customerInput.addEventListener(
+      "input",
+      function() {
+
+        const keyword =
+          this.value
+            .trim()
+            .toLowerCase();
+
+        customerIdInput.value =
+          "";
+
+        if (!keyword) {
+
+          customerResults.innerHTML =
+            "";
+
+          customerResults.style.display =
+            "none";
+
+          return;
+        }
+
+        const matches =
+          customerList
+            .filter(
+              function(customer) {
+
+                const dnId =
+                  String(
+                    customer.dn_id || ""
+                  ).toLowerCase();
+
+                const name =
+                  String(
+                    customer.name || ""
+                  ).toLowerCase();
+
+                const username =
+                  String(
+                    customer.username_wa || ""
+                  ).toLowerCase();
+
+                return (
+                  dnId.includes(keyword) ||
+                  name.includes(keyword) ||
+                  username.includes(keyword)
+                );
+              }
+            )
+            .slice(0, 10);
+
+        if (
+          matches.length === 0
+        ) {
+
+          customerResults.innerHTML = `
+            <div
+              style="
+                padding:8px 10px;
+                color:#777;
+                font-size:13px;
+              "
+            >
+              Customer tidak ditemukan
+            </div>
+          `;
+
+          customerResults.style.display =
+            "block";
+
+          return;
+        }
+
+        customerResults.innerHTML =
+          matches
+            .map(
+              function(customer) {
+
+                return `
+                  <button
+                    type="button"
+                    class="batch-customer-result"
+                    data-id="${escapeHTML(
+                      String(customer.id)
+                    )}"
+                    data-name="${escapeHTML(
+                      customer.name || ""
+                    )}"
+                    style="
+                      display:block;
+                      width:100%;
+                      text-align:left;
+                      padding:6px 10px;
+                      border:0;
+                      border-bottom:1px solid #eee;
+                      background:#fff;
+                      cursor:pointer;
+                      font-size:13px;
+                      line-height:1.25;
+                    "
+                  >
+                    <strong>
+                      ${escapeHTML(
+                        customer.dn_id || "—"
+                      )}
+                    </strong>
+
+                    —
+                    ${escapeHTML(
+                      customer.name ||
+                      "Tanpa Nama"
+                    )}
+
+                    ${
+                      customer.username_wa
+                        ? `
+                          <small
+                            style="
+                              display:block;
+                              color:#777;
+                              margin-top:2px;
+                              font-size:11px;
+                            "
+                          >
+                            ${escapeHTML(
+                              customer.username_wa
+                            )}
+                          </small>
+                        `
+                        : ""
+                    }
+                  </button>
+                `;
+
+              }
+            )
+            .join("");
+
+        customerResults.style.display =
+          "block";
+      }
+    );
+
+
+    customerResults.addEventListener(
+      "click",
+      function(event) {
+
+        const button =
+          event.target.closest(
+            ".batch-customer-result"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        customerInput.value =
+          button.dataset.name || "";
+
+        customerIdInput.value =
+          button.dataset.id || "";
+
+        customerResults.innerHTML =
+          "";
+
+        customerResults.style.display =
+          "none";
+      }
+    );
+
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          !item.contains(event.target)
+        ) {
+
+          customerResults.style.display =
+            "none";
+        }
+
+      }
+    );
+
+  }
+}
 
 
     item
