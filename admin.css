@@ -12557,3 +12557,31 @@ button {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - TOMBOL SIMPAN TRACKING
+   ========================================================= */
+
+#recapListContainer .batch-tracking {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+#recapListContainer .batch-tracking .save-batch-tracking-button {
+  width: auto !important;
+  min-width: 90px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+
+  margin: 0 !important;
+  padding: 6px 14px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
