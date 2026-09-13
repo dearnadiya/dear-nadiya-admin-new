@@ -8730,16 +8730,13 @@ const batchArrivedAdminAt =
       </div>
 
 
-      <label>
-        Customer
-      </label>
+      <label>Customer</label>
 
-      <input
-        type="text"
-        class="batch-customer"
-        placeholder="Nama customer"
-      >
-
+<select class="batch-customer" required>
+  <option value="">
+    — Pilih Customer —
+  </option>
+</select>
 
       <label>
         Versi / Member
@@ -9610,8 +9607,8 @@ updateCoDeadlineMode();
      TAMBAH CUSTOMER
      ========================================== */
 
-  function addBatchItem() {
-
+  async function addBatchItem() {
+     
     itemNumber++;
 
 
@@ -9755,6 +9752,65 @@ updateCoDeadlineMode();
 
 
     itemsContainer.appendChild(item);
+
+     /* ==========================================
+   LOAD DATA CUSTOMER
+   ========================================== */
+
+const customerSelect =
+  item.querySelector(".batch-customer");
+
+if (customerSelect) {
+
+  const {
+    data: customers,
+    error: customersError
+  } = await supabaseClient
+    .from("customers")
+    .select("id, dn_id, name")
+    .order("id", {
+      ascending: true
+    });
+
+  if (customersError) {
+
+    console.error(
+      "ERROR LOAD CUSTOMERS:",
+      customersError
+    );
+
+    customerSelect.innerHTML = `
+      <option value="">
+        Gagal memuat Data Customer
+      </option>
+    `;
+
+  } else {
+
+    customerSelect.innerHTML = `
+      <option value="">
+        — Pilih Customer —
+      </option>
+
+      ${(customers || [])
+        .map(function(customer) {
+
+          return `
+            <option
+              value="${escapeHTML(String(customer.id))}"
+              data-name="${escapeHTML(customer.name || "")}"
+            >
+              ${escapeHTML(customer.dn_id || "—")}
+              — ${escapeHTML(customer.name || "Tanpa Nama")}
+            </option>
+          `;
+
+        })
+        .join("")
+      }
+    `;
+  }
+}
 
 
     item
