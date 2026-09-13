@@ -8936,8 +8936,8 @@ const batchArrivedAdminAt =
         </label>
 
         <input
-          type="number"
-          class="batch-price"
+          type="text"
+          class="batch-price currency-input"
           min="0"
           value="${Number(
             batch.item_price || 0
@@ -8950,15 +8950,14 @@ const batchArrivedAdminAt =
         </label>
 
         <input
-          type="number"
-          class="batch-dp"
-          min="0"
-          value="${Number(
-            batch.minimum_dp_amount ||
-            batch.dp_amount ||
-            0
-          )}"
-        >
+  type="text"
+  class="batch-dp currency-input"
+  value="${Number(
+    batch.minimum_dp_amount ||
+    batch.dp_amount ||
+    0
+  )}"
+>
 
       </div>
 
@@ -9893,20 +9892,20 @@ function showRecapForm(category) {
           <label>Harga Barang</label>
 
           <input
-            id="batchCommonPrice"
-            type="number"
-            min="0"
-            value="0"
-          >
+  id="batchCommonPrice"
+  type="text"
+  class="currency-input"
+  value="0"
+>
 
           <label>DP</label>
 
           <input
-            id="batchCommonDp"
-            type="number"
-            min="0"
-            value="0"
-          >
+  id="batchCommonDp"
+  type="text"
+  class="currency-input"
+  value="0"
+>
 
         </div>
 
@@ -10205,20 +10204,18 @@ updateCoDeadlineMode();
         <label>Harga Barang</label>
 
         <input
-          type="number"
-          class="batch-price"
-          min="0"
-          value="0"
-        >
+  type="text"
+  class="batch-price currency-input"
+  value="0"
+>
 
         <label>DP</label>
 
         <input
-          type="number"
-          class="batch-dp"
-          min="0"
-          value="0"
-        >
+  type="text"
+  class="batch-dp currency-input"
+  value="0"
+>
 
       </div>
 
@@ -17279,7 +17276,7 @@ container.innerHTML = `
   <input
   type="text"
   id="poPrice"
-  class="currency-input"
+   class="currency-input"
     placeholder="Contoh: Rp150.000"
     value="${escapeHTML(
       po.price_text || ""
