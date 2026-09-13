@@ -18003,52 +18003,36 @@ if (poTypeNow === "general") {
 
 
   /* ==============================
-     HARGA SATUAN AWAL
-  ============================== */
+   HARGA SATUAN AWAL
+   ============================== */
 
-  if (priceInput) {
+if (priceInput) {
+  const savedPrice =
+    parsePONominal(
+      rowData.price
+    );
 
-    const savedPrice =
-      parsePONominal(
-        rowData.price
-      );
-
-    if (savedPrice > 0) {
-
-      const unitPrice =
-        savedPrice /
-        originalQty;
-
-      priceInput.dataset.unitPrice =
-        String(unitPrice);
-
-    }
+  if (savedPrice > 0) {
+    priceInput.dataset.unitPrice =
+      String(savedPrice);
   }
+}
+   
+ /* ==============================
+   DP SATUAN AWAL
+   ============================== */
 
+if (dpInput) {
+  const savedDP =
+    parsePONominal(
+      rowData.dp
+    );
 
-  /* ==============================
-     DP SATUAN AWAL
-  ============================== */
-
-  if (dpInput) {
-
-    const savedDP =
-      parsePONominal(
-        rowData.dp
-      );
-
-    if (savedDP > 0) {
-
-      const unitDP =
-        savedDP /
-        originalQty;
-
-      dpInput.dataset.unitDP =
-        String(unitDP);
-
-    }
+  if (savedDP > 0) {
+    dpInput.dataset.unitDP =
+      String(savedDP);
   }
-
+}
 
   /* ==============================
      HITUNG TOTAL
