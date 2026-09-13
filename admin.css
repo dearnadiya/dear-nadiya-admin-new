@@ -12423,7 +12423,11 @@ button {
    ============================================ */
 
 #customerFormContainer #customerEmailInput,
-#customerFormContainer #customerEmailInput + * {
+#customerFormContainer #customerEmailInput + label {
+  display: none !important;
+}
+
+#customerFormContainer #customerEmailInput {
   display: none !important;
 }
 
