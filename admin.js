@@ -13281,15 +13281,19 @@ const batchDpDeadline =
          CUSTOMER
          ====================================== */
 
-      const customer =
-        item
-          .querySelector(
-            ".batch-customer"
-          )
-          .value
-          .trim();
+      const customerInput =
+  item.querySelector(".batch-customer");
 
+const customerId =
+  Number(
+    item.querySelector(".batch-customer-id")?.value
+  ) || null;
 
+const customer =
+  customerInput
+    .value
+    .trim();
+       
       /* ======================================
          VERSI / MEMBER
          ====================================== */
@@ -13488,12 +13492,14 @@ if (
         item_name:
           itemName,
 
-        customer_name:
-          customer,
+        customer_id:
+  customerId,
 
-        version:
-          version,
-
+customer_name:
+  customer,
+         
+version:
+  version,
         quantity:
           quantity,
 
@@ -13550,10 +13556,10 @@ arrived_admin_at:
       function(record) {
 
         return (
-          !record.customer_name ||
-          !record.version
-        );
-
+  !record.customer_id ||
+  !record.customer_name ||
+  !record.version
+);
       }
     );
 
