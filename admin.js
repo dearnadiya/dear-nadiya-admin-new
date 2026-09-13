@@ -10266,6 +10266,35 @@ if (
     const customerList =
       customers || [];
 
+     // Sinkronisasi customer baru ke seluruh picker
+function syncNewCustomer(event) {
+  const newCustomer =
+    event.detail;
+
+  if (!newCustomer || !newCustomer.id) {
+    return;
+  }
+
+  const exists =
+    customerList.some(
+      function(customer) {
+        return String(customer.id) ===
+          String(newCustomer.id);
+      }
+    );
+
+  if (!exists) {
+    customerList.push(
+      newCustomer
+    );
+  }
+}
+
+document.addEventListener(
+  "dearNadiyaCustomerCreated",
+  syncNewCustomer
+);
+
     customerInput.addEventListener(
       "input",
       function() {
@@ -10462,16 +10491,18 @@ if (
 }
 
     item
-      .querySelector(".remove-batch-item")
-      .addEventListener(
-        "click",
-        function() {
-
-          item.remove();
-
-        }
+  .querySelector(".remove-batch-item")
+  .addEventListener(
+    "click",
+    function() {
+      document.removeEventListener(
+        "dearNadiyaCustomerCreated",
+        syncNewCustomer
       );
 
+      item.remove();
+    }
+  );
 
     updatePriceMode();
 
@@ -15713,27 +15744,37 @@ editCustomerResults.addEventListener(
     if (createButton) {
 
       showQuickCustomerForm(
-        function(newCustomer) {
+  function(newCustomer) {
 
-          customers.push(
-            newCustomer
-          );
+    // Tambahkan ke item yang sedang aktif
+    customerList.push(
+      newCustomer
+    );
 
-          editCustomerInput.value =
-            newCustomer.name || "";
-
-          editCustomerId.value =
-            newCustomer.id || "";
-
-          editCustomerResults.innerHTML =
-            "";
-
-          editCustomerResults.style.display =
-            "none";
-
+    // Beritahu semua item Rekap GO
+    document.dispatchEvent(
+      new CustomEvent(
+        "dearNadiyaCustomerCreated",
+        {
+          detail: newCustomer
         }
-      );
+      )
+    );
 
+    // Langsung pilih customer baru
+    customerInput.value =
+      newCustomer.name || "";
+
+    customerIdInput.value =
+      newCustomer.id || "";
+
+    customerResults.innerHTML =
+      "";
+
+    customerResults.style.display =
+      "none";
+  }
+);
       return;
     }
 
