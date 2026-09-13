@@ -10667,18 +10667,18 @@ function updateBatchRemaining() {
   if (mode === "same") {
 
     commonPrice =
-      Number(
-        document.getElementById(
-          "batchCommonPrice"
-        )?.value
-      ) || 0;
+  parseNominalInput(
+    document.getElementById(
+      "batchCommonPrice"
+    )?.value
+  );
 
-    commonDp =
-      Number(
-        document.getElementById(
-          "batchCommonDp"
-        )?.value
-      ) || 0;
+commonDp =
+  parseNominalInput(
+    document.getElementById(
+      "batchCommonDp"
+    )?.value
+  );
   }
 
   items.forEach(function(item) {
@@ -10689,20 +10689,20 @@ function updateBatchRemaining() {
     if (mode === "different") {
 
       price =
-        Number(
-          item
-            .querySelector(
-              ".batch-price"
-            )?.value
-        ) || 0;
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-price"
+      )?.value
+  );
 
-      dp =
-        Number(
-          item
-            .querySelector(
-              ".batch-dp"
-            )?.value
-        ) || 0;
+dp =
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-dp"
+      )?.value
+  );
     }
 
     const remaining =
@@ -13412,20 +13412,19 @@ const batchDpDeadline =
   ) {
 
     commonPrice =
-      Number(
-        document.getElementById(
-          "batchCommonPrice"
-        ).value
-      ) || 0;
+  parseNominalInput(
+    document.getElementById(
+      "batchCommonPrice"
+    ).value
+  );
 
 
-    commonDp =
-      Number(
-        document.getElementById(
-          "batchCommonDp"
-        ).value
-      ) || 0;
-
+commonDp =
+  parseNominalInput(
+    document.getElementById(
+      "batchCommonDp"
+    ).value
+  );
   }
 
 
