@@ -12500,3 +12500,62 @@ button {
   color: #29283f;
   font-weight: 700;
 }
+
+/* =========================================================
+   REKAP GO - HEADER TETAP, HANYA TABEL CUSTOMER YANG SCROLL
+   ========================================================= */
+
+/* Container batch tidak menjadi area scroll */
+#recapListContainer .recap-batch-scroll {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+/* Header batch tetap */
+#recapListContainer .recap-batch-header {
+  overflow: visible !important;
+}
+
+/* Informasi deadline hanya muncul setelah batch dibuka */
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.recap-batch-deadlines {
+  display: flex !important;
+}
+
+/* Saat collapsed, deadline tetap tersembunyi */
+#recapListContainer
+.recap-batch-card.recap-batch-collapsed
+.recap-batch-deadlines {
+  display: none !important;
+}
+
+/* Deadline berada di area header, bukan area scroll */
+#recapListContainer .recap-batch-deadlines {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+
+  margin: 8px 0 12px;
+}
+
+/* Tracking juga tetap di header */
+#recapListContainer .batch-tracking {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* HANYA tabel customer yang boleh horizontal scroll */
+#recapListContainer .product-table-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box !important;
+}
