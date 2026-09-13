@@ -5543,58 +5543,63 @@ return (
     */
 
     const customerList =
-      Object.keys(
-        customerGroups
-      ).map(
-        function(customerName) {
+  Object.keys(
+    customerGroups
+  ).map(
+    function(groupKey) {
 
-          const items =
-            customerGroups[
-              customerName
-            ];
+      const group =
+        customerGroups[
+          groupKey
+        ];
 
-          const firstItem =
-            items.reduce(
-              function(first, item) {
+      const items =
+        group.items;
 
-                if (!first) {
-                  return item;
-                }
+      const firstItem =
+        items.reduce(
+          function(first, item) {
 
-                if (
-                  new Date(
-                    item.created_at
-                  ) <
-                  new Date(
-                    first.created_at
-                  )
-                ) {
-                  return item;
-                }
+            if (!first) {
+              return item;
+            }
 
-                return first;
+            if (
+              new Date(
+                item.created_at
+              ) <
+              new Date(
+                first.created_at
+              )
+            ) {
+              return item;
+            }
 
-              },
-              null
-            );
+            return first;
+
+          },
+          null
+        );
 
 
-          return {
-            customerName:
-              customerName,
+      return {
+        customerId:
+          group.customerId,
 
-            items:
-              items,
+        customerName:
+          group.customerName,
 
-            firstCreatedAt:
-              firstItem
-                ? firstItem.created_at
-                : null
-          };
+        items:
+          items,
 
-        }
-      );
+        firstCreatedAt:
+          firstItem
+            ? firstItem.created_at
+            : null
+      };
 
+    }
+  );
 
     customerList.sort(
       function(a, b) {
