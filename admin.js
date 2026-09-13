@@ -15931,14 +15931,14 @@ function updateEditRemaining() {
   }
 
   const price =
-    Number(
-      editPriceInput?.value
-    ) || 0;
-
+  parseNominalInput(
+    editPriceInput?.value
+  );
+   
   const dpTarget =
-    Number(
-      editDpInput?.value
-    ) || 0;
+  parseNominalInput(
+    editDpInput?.value
+  );
 
   const remaining =
     Math.max(
@@ -15947,9 +15947,11 @@ function updateEditRemaining() {
     );
 
   if (editRemainingInput) {
-    editRemainingInput.value =
-      remaining;
-  }
+  editRemainingInput.value =
+    formatNominalInput(
+      remaining
+    );
+}
 }
 
 if (!isSamePriceMode) {
