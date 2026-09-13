@@ -9895,7 +9895,8 @@ function showRecapForm(category) {
   id="batchCommonPrice"
   type="text"
   class="currency-input"
-  value="0"
+  value=""
+  placeholder="50.000"
 >
 
           <label>DP</label>
@@ -9904,7 +9905,8 @@ function showRecapForm(category) {
   id="batchCommonDp"
   type="text"
   class="currency-input"
-  value="0"
+  value=""
+  placeholder="50.000"
 >
 
         </div>
@@ -10206,7 +10208,8 @@ updateCoDeadlineMode();
         <input
   type="text"
   class="batch-price currency-input"
-  value="0"
+  value=""
+  placeholder="50.000"
 >
 
         <label>DP</label>
@@ -10214,7 +10217,8 @@ updateCoDeadlineMode();
         <input
   type="text"
   class="batch-dp currency-input"
-  value="0"
+  value=""
+  placeholder="50.000"
 >
 
       </div>
