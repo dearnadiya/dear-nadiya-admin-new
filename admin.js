@@ -21839,8 +21839,12 @@ async function renderCustomerTable(
     >
 
       <table
-        class="product-table"
-      >
+  class="product-table"
+  style="
+    min-width:1100px;
+    width:100%;
+  "
+>
 
         <thead>
 
