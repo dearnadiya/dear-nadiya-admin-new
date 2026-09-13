@@ -11447,10 +11447,6 @@ let html = `
                   </th>
 
                   <th>
-                    Deadline CO
-                  </th>
-
-                  <th>
                     Tanggal CO
                   </th>
 
@@ -11606,14 +11602,6 @@ let html = `
       📦 Sudah Menerima Barang
     </option>
   </select>
-</td>
-
-                        <td>
-  ${
-    row.co_deadline
-      ? String(row.co_deadline).substring(0, 10)
-      : "—"
-  }
 </td>
 
                         <td>
