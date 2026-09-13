@@ -551,6 +551,14 @@ function showPage(
   return;
 }
 
+   if (
+  page ===
+  "customers"
+) {
+  loadCustomers();
+  return;
+}
+
 
   if (
     page ===
@@ -20625,6 +20633,957 @@ function formatDateTime(value) {
       minute: "2-digit"
     }
   );
+
+}
+
+/* ============================================
+   MASTER DATA CUSTOMER
+   ============================================ */
+
+async function loadCustomers() {
+
+  pageTitle.textContent =
+    "Data Customer";
+
+  pageContent.innerHTML = `
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+          <h2>
+            👤 Data Customer
+          </h2>
+
+          <p>
+            Kelola identitas customer Dear Nadiya
+            berdasarkan DN ID.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="addCustomerButton"
+        >
+          ➕ Tambah Customer
+        </button>
+
+      </div>
+
+      <div
+        id="customerFormContainer"
+        style="margin-bottom:20px;"
+      ></div>
+
+      <div
+        style="
+          margin-bottom:16px;
+        "
+      >
+        <input
+          type="text"
+          id="customerSearchInput"
+          placeholder="🔎 Cari DN ID, nama, WhatsApp, atau username..."
+          style="
+            width:100%;
+            box-sizing:border-box;
+          "
+        >
+      </div>
+
+      <div
+        id="customerListContainer"
+      >
+        Memuat data customer...
+      </div>
+
+    </div>
+  `;
+
+  const addButton =
+    document.getElementById(
+      "addCustomerButton"
+    );
+
+  if (addButton) {
+
+    addButton.addEventListener(
+      "click",
+      function () {
+
+        showCustomerForm();
+
+      }
+    );
+
+  }
+
+  const searchInput =
+    document.getElementById(
+      "customerSearchInput"
+    );
+
+  if (searchInput) {
+
+    searchInput.addEventListener(
+      "input",
+      function () {
+
+        renderCustomerTable(
+          this.value
+        );
+
+      }
+    );
+
+  }
+
+  await renderCustomerTable();
+
+}
+
+
+/* ============================================
+   TAMPILKAN FORM CUSTOMER
+   ============================================ */
+
+function showCustomerForm(
+  customer = null
+) {
+
+  const container =
+    document.getElementById(
+      "customerFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const isEdit =
+    customer !== null;
+
+  container.innerHTML = `
+
+    <div
+      class="panel"
+      style="
+        background:#faf8fc;
+        border:1px solid #e4dceb;
+      "
+    >
+
+      <h3>
+        ${
+          isEdit
+            ? "✏️ Edit Customer"
+            : "➕ Tambah Customer"
+        }
+      </h3>
+
+      ${
+        isEdit
+          ? `
+            <p>
+              DN ID:
+              <strong>
+                ${escapeHTML(
+                  customer.dn_id
+                )}
+              </strong>
+            </p>
+          `
+          : `
+            <p>
+              DN ID akan dibuat otomatis oleh sistem.
+            </p>
+          `
+      }
+
+      <form id="customerForm">
+
+        <label>
+          Nama Customer
+        </label>
+
+        <input
+          type="text"
+          id="customerNameInput"
+          value="${escapeHTML(
+            customer?.name || ""
+          )}"
+          required
+        >
+
+        <label>
+          Nomor WhatsApp
+        </label>
+
+        <input
+          type="text"
+          id="customerWhatsappInput"
+          value="${escapeHTML(
+            customer?.whatsapp || ""
+          )}"
+          placeholder="Contoh: 628123456789"
+        >
+
+        <small>
+          Boleh dikosongkan jika belum tersedia.
+        </small>
+
+        <label>
+          Username WhatsApp
+        </label>
+
+        <input
+          type="text"
+          id="customerUsernameInput"
+          value="${escapeHTML(
+            customer?.username_wa || ""
+          )}"
+          placeholder="@username"
+        >
+
+        <label>
+          Email
+        </label>
+
+        <input
+          type="email"
+          id="customerEmailInput"
+          value="${escapeHTML(
+            customer?.email || ""
+          )}"
+          placeholder="Opsional"
+        >
+
+        <label>
+          Catatan
+        </label>
+
+        <textarea
+          id="customerNotesInput"
+          rows="3"
+          placeholder="Catatan customer (opsional)"
+        >${escapeHTML(
+          customer?.notes || ""
+        )}</textarea>
+
+        <div
+          style="
+            display:flex;
+            gap:10px;
+            margin-top:16px;
+          "
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            ${
+              isEdit
+                ? "💾 Simpan Perubahan"
+                : "💾 Simpan Customer"
+            }
+          </button>
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancelCustomerButton"
+          >
+            Batal
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  const form =
+    document.getElementById(
+      "customerForm"
+    );
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+        await saveCustomer(
+          customer
+        );
+
+      }
+    );
+
+  }
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelCustomerButton"
+    );
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML = "";
+
+      }
+    );
+
+  }
+
+}
+
+
+/* ============================================
+   SIMPAN CUSTOMER
+   ============================================ */
+
+async function saveCustomer(
+  existingCustomer = null
+) {
+
+  const name =
+    document
+      .getElementById(
+        "customerNameInput"
+      )
+      ?.value
+      .trim() || "";
+
+  const whatsappRaw =
+    document
+      .getElementById(
+        "customerWhatsappInput"
+      )
+      ?.value
+      .trim() || "";
+
+  const username =
+    document
+      .getElementById(
+        "customerUsernameInput"
+      )
+      ?.value
+      .trim() || "";
+
+  const email =
+    document
+      .getElementById(
+        "customerEmailInput"
+      )
+      ?.value
+      .trim() || "";
+
+  const notes =
+    document
+      .getElementById(
+        "customerNotesInput"
+      )
+      ?.value
+      .trim() || "";
+
+
+  if (!name) {
+
+    alert(
+      "Nama customer wajib diisi."
+    );
+
+    return;
+
+  }
+
+
+  const whatsapp =
+    whatsappRaw || null;
+
+
+  /*
+    CEK NOMOR WHATSAPP
+    Hanya jika diisi.
+  */
+
+  if (whatsapp) {
+
+    let query =
+      supabaseClient
+        .from("customers")
+        .select("id")
+        .eq(
+          "whatsapp",
+          whatsapp
+        )
+        .limit(1);
+
+    if (existingCustomer) {
+
+      query =
+        query.neq(
+          "id",
+          existingCustomer.id
+        );
+
+    }
+
+    const {
+      data: duplicateWhatsapp,
+      error: duplicateError
+    } =
+      await query;
+
+    if (duplicateError) {
+
+      console.error(
+        "ERROR CEK WHATSAPP:",
+        duplicateError
+      );
+
+      alert(
+        "Gagal mengecek nomor WhatsApp."
+      );
+
+      return;
+
+    }
+
+    if (
+      duplicateWhatsapp &&
+      duplicateWhatsapp.length > 0
+    ) {
+
+      alert(
+        "Nomor WhatsApp tersebut sudah digunakan oleh customer lain."
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  /*
+    EDIT CUSTOMER
+  */
+
+  if (existingCustomer) {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("customers")
+        .update({
+
+          name:
+            name,
+
+          whatsapp:
+            whatsapp,
+
+          username_wa:
+            username || null,
+
+          email:
+            email || null,
+
+          notes:
+            notes || null,
+
+          updated_at:
+            new Date().toISOString()
+
+        })
+        .eq(
+          "id",
+          existingCustomer.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        "ERROR UPDATE CUSTOMER:",
+        error
+      );
+
+      alert(
+        "Gagal memperbarui customer: " +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    alert(
+      "Data customer berhasil diperbarui."
+    );
+
+  }
+
+
+  /*
+    CUSTOMER BARU
+  */
+
+  else {
+
+    /*
+      Ambil DN ID terakhir
+      lalu buat nomor berikutnya.
+    */
+
+    const {
+      data: lastCustomer,
+      error: lastError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(
+          "dn_id"
+        )
+        .not(
+          "dn_id",
+          "is",
+          null
+        )
+        .order(
+          "dn_id",
+          {
+            ascending:false
+          }
+        )
+        .limit(1);
+
+
+    if (lastError) {
+
+      console.error(
+        "ERROR AMBIL DN ID:",
+        lastError
+      );
+
+      alert(
+        "Gagal membuat DN ID: " +
+        lastError.message
+      );
+
+      return;
+
+    }
+
+
+    let nextNumber =
+      1;
+
+
+    if (
+      lastCustomer &&
+      lastCustomer.length > 0 &&
+      lastCustomer[0].dn_id
+    ) {
+
+      const match =
+        String(
+          lastCustomer[0].dn_id
+        ).match(
+          /DN-(\d+)/
+        );
+
+      if (match) {
+
+        nextNumber =
+          Number(
+            match[1]
+          ) + 1;
+
+      }
+
+    }
+
+
+    const dnId =
+      "DN-" +
+      String(
+        nextNumber
+      ).padStart(
+        6,
+        "0"
+      );
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("customers")
+        .insert({
+
+          dn_id:
+            dnId,
+
+          name:
+            name,
+
+          whatsapp:
+            whatsapp,
+
+          username_wa:
+            username || null,
+
+          email:
+            email || null,
+
+          notes:
+            notes || null
+
+        });
+
+
+    if (error) {
+
+      console.error(
+        "ERROR INSERT CUSTOMER:",
+        error
+      );
+
+      alert(
+        "Gagal menambahkan customer: " +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    alert(
+      "Customer berhasil ditambahkan dengan DN ID " +
+      dnId
+    );
+
+  }
+
+
+  const formContainer =
+    document.getElementById(
+      "customerFormContainer"
+    );
+
+  if (formContainer) {
+
+    formContainer.innerHTML = "";
+
+  }
+
+
+  await renderCustomerTable();
+
+}
+
+
+/* ============================================
+   RENDER TABEL CUSTOMER
+   ============================================ */
+
+async function renderCustomerTable(
+  searchText = ""
+) {
+
+  const container =
+    document.getElementById(
+      "customerListContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  let query =
+    supabaseClient
+      .from("customers")
+      .select(
+        "*"
+      )
+      .order(
+        "dn_id",
+        {
+          ascending:true
+        }
+      );
+
+
+  const {
+    data,
+    error
+  } =
+    await query;
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD CUSTOMER:",
+      error
+    );
+
+    container.innerHTML = `
+      <p>
+        Gagal memuat data customer:
+        ${escapeHTML(
+          error.message
+        )}
+      </p>
+    `;
+
+    return;
+
+  }
+
+
+  let rows =
+    data || [];
+
+
+  const keyword =
+    String(
+      searchText || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (keyword) {
+
+    rows =
+      rows.filter(
+        function(customer) {
+
+          return [
+
+            customer.dn_id,
+            customer.name,
+            customer.whatsapp,
+            customer.username_wa
+
+          ]
+            .some(
+              function(value) {
+
+                return String(
+                  value || ""
+                )
+                  .toLowerCase()
+                  .includes(
+                    keyword
+                  );
+
+              }
+            );
+
+        }
+      );
+
+  }
+
+
+  if (rows.length === 0) {
+
+    container.innerHTML = `
+      <div
+        style="
+          text-align:center;
+          padding:30px;
+        "
+      >
+        Belum ada data customer.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div
+      style="
+        overflow-x:auto;
+      "
+    >
+
+      <table
+        class="product-table"
+      >
+
+        <thead>
+
+          <tr>
+            <th>No</th>
+            <th>DN ID</th>
+            <th>Nama</th>
+            <th>WhatsApp</th>
+            <th>Username WA</th>
+            <th>Email</th>
+            <th>Catatan</th>
+            <th>Aksi</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${
+            rows
+              .map(
+                function(
+                  customer,
+                  index
+                ) {
+
+                  return `
+
+                    <tr>
+
+                      <td>
+                        ${
+                          index + 1
+                        }
+                      </td>
+
+                      <td>
+                        <strong>
+                          ${escapeHTML(
+                            customer.dn_id
+                          )}
+                        </strong>
+                      </td>
+
+                      <td>
+                        ${escapeHTML(
+                          customer.name
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHTML(
+                          customer.whatsapp ||
+                          "—"
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHTML(
+                          customer.username_wa ||
+                          "—"
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHTML(
+                          customer.email ||
+                          "—"
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHTML(
+                          customer.notes ||
+                          "—"
+                        )}
+                      </td>
+
+                      <td>
+
+                        <button
+                          type="button"
+                          class="secondary-button edit-customer-button"
+                          data-id="${customer.id}"
+                        >
+                          ✏️ Edit
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  `;
+
+                }
+              )
+              .join("")
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+
+  container
+    .querySelectorAll(
+      ".edit-customer-button"
+    )
+    .forEach(
+      function(button) {
+
+        button.addEventListener(
+          "click",
+          async function() {
+
+            const id =
+              this.dataset.id;
+
+            const customer =
+              rows.find(
+                function(item) {
+
+                  return String(
+                    item.id
+                  ) === String(
+                    id
+                  );
+
+                }
+              );
+
+            if (customer) {
+
+              showCustomerForm(
+                customer
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
 
 }
 
