@@ -14242,27 +14242,6 @@ const existingCoDeadline =
         required
       >
 
-      <label>
-        Pelunasan / Sisa Pembayaran
-      </label>
-
-      <input
-        id="editBatchHeaderRemaining"
-        type="number"
-        min="0"
-        value="${batchRemaining}"
-        readonly
-      >
-
-      <small>
-        Pelunasan dihitung otomatis:
-        Harga Batch − DP Batch.
-      </small>
-
-    `
-    : ""
-}
-
         <label>
           Deadline DP
         </label>
