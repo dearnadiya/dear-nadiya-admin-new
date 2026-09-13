@@ -11294,10 +11294,43 @@ let html = `
 
     <div class="recap-batch-deadlines">
 
-      <!-- PERTAHANKAN SELURUH ISI DEADLINE
-           YANG SEKARANG SUDAH ADA DI FILE -->
+  <div>
+    <strong>Deadline DP:</strong>
+    ${
+      rows[0]?.dp_deadline
+        ? String(rows[0].dp_deadline).substring(0, 10)
+        : "—"
+    }
+  </div>
 
-    </div>
+  <div>
+    <strong>Deadline Pelunasan:</strong>
+    ${
+      rows[0]?.payment_deadline
+        ? String(rows[0].payment_deadline).substring(0, 10)
+        : "—"
+    }
+  </div>
+
+  <div>
+    <strong>Tracking:</strong>
+    ${
+      rows[0]?.batch_tracking_status ||
+      rows[0]?.tracking_status ||
+      "—"
+    }
+  </div>
+
+  <div>
+    <strong>Deadline CO:</strong>
+    ${
+      rows[0]?.co_deadline
+        ? String(rows[0].co_deadline).substring(0, 10)
+        : "—"
+    }
+  </div>
+
+</div>
 
   </div>
 
