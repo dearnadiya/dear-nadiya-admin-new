@@ -9256,24 +9256,6 @@ customerResults.addEventListener(
 
   }
 );
-        if (!button) {
-          return;
-        }
-
-        customerInput.value =
-          button.dataset.name || "";
-
-        customerIdInput.value =
-          button.dataset.id || "";
-
-        customerResults.innerHTML =
-          "";
-
-        customerResults.style.display =
-          "none";
-      }
-    );
-
 
     document.addEventListener(
       "click",
