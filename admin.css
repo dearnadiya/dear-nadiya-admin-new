@@ -12382,10 +12382,14 @@ button {
    7 Aksi
    -------------------------------------------- */
 
-/* No */
+/* No - lebih sempit */
 #customerListContainer .product-table th:nth-child(1),
 #customerListContainer .product-table td:nth-child(1) {
-  width: 45px;
+  width: 35px !important;
+  min-width: 35px !important;
+  max-width: 35px !important;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
   text-align: center;
 }
 
@@ -12395,10 +12399,12 @@ button {
   width: 120px;
 }
 
-/* Nama */
+/* Nama - lebih rapat */
 #customerListContainer .product-table th:nth-child(3),
 #customerListContainer .product-table td:nth-child(3) {
-  width: 190px;
+  width: 150px !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
 }
 
 /* WhatsApp */
