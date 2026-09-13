@@ -9948,25 +9948,29 @@ if (
 
                 return `
                   <button
-                    type="button"
-                    class="batch-customer-result"
-                    data-id="${escapeHTML(
-                      String(customer.id)
-                    )}"
-                    data-name="${escapeHTML(
-                      customer.name || ""
-                    )}"
-                    style="
-                      display:block;
-                      width:100%;
-                      text-align:left;
-                      padding:10px 12px;
-                      border:0;
-                      border-bottom:1px solid #eee;
-                      background:#fff;
-                      cursor:pointer;
-                    "
-                  >
+                    <button
+  type="button"
+  class="batch-customer-result"
+  data-id="${escapeHTML(
+    String(customer.id)
+  )}"
+  data-name="${escapeHTML(
+    customer.name || ""
+  )}"
+  style="
+    display:block;
+    width:100%;
+    text-align:left;
+    padding:6px 10px;
+    border:0;
+    border-bottom:1px solid #eee;
+    background:#fff;
+    cursor:pointer;
+    font-size:13px;
+    line-height:1.25;
+  "
+>
+
                     <strong>
                       ${escapeHTML(
                         customer.dn_id || "—"
@@ -9983,12 +9987,13 @@ if (
                       customer.username_wa
                         ? `
                           <small
-                            style="
-                              display:block;
-                              color:#777;
-                              margin-top:3px;
-                            "
-                          >
+  style="
+    display:block;
+    color:#777;
+    margin-top:2px;
+    font-size:11px;
+  "
+>
                             ${escapeHTML(
                               customer.username_wa
                             )}
