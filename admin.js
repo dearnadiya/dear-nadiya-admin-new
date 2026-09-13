@@ -22005,6 +22005,171 @@ function showCustomerForm(
    SIMPAN CUSTOMER
    ============================================ */
 
+/* ============================================
+   QUICK CREATE CUSTOMER
+   Untuk PO / Rekap GO
+   ============================================ */
+
+async function createCustomerQuickly({
+  name,
+  whatsapp = "",
+  username_wa = ""
+}) {
+
+  name = String(name || "").trim();
+  whatsapp = String(whatsapp || "").trim();
+  username_wa = String(username_wa || "").trim();
+
+  if (!name) {
+    alert("Nama customer wajib diisi.");
+    return null;
+  }
+
+  const whatsappValue =
+    whatsapp || null;
+
+  /* ==========================================
+     CEK DUPLIKAT WHATSAPP
+  ========================================== */
+
+  if (whatsappValue) {
+
+    const {
+      data: duplicateWhatsapp,
+      error: duplicateError
+    } = await supabaseClient
+      .from("customers")
+      .select("id")
+      .eq("whatsapp", whatsappValue)
+      .limit(1);
+
+    if (duplicateError) {
+
+      console.error(
+        "ERROR CEK WHATSAPP QUICK CUSTOMER:",
+        duplicateError
+      );
+
+      alert(
+        "Gagal mengecek nomor WhatsApp."
+      );
+
+      return null;
+    }
+
+    if (
+      duplicateWhatsapp &&
+      duplicateWhatsapp.length > 0
+    ) {
+
+      alert(
+        "Nomor WhatsApp tersebut sudah digunakan oleh customer lain."
+      );
+
+      return null;
+    }
+
+  }
+
+  /* ==========================================
+     BUAT DN ID BERIKUTNYA
+  ========================================== */
+
+  const {
+    data: lastCustomer,
+    error: lastError
+  } = await supabaseClient
+    .from("customers")
+    .select("dn_id")
+    .not("dn_id", "is", null)
+    .order("dn_id", {
+      ascending: false
+    })
+    .limit(1);
+
+  if (lastError) {
+
+    console.error(
+      "ERROR AMBIL DN ID QUICK CUSTOMER:",
+      lastError
+    );
+
+    alert(
+      "Gagal membuat DN ID: " +
+      lastError.message
+    );
+
+    return null;
+  }
+
+  let nextNumber = 1;
+
+  if (
+    lastCustomer &&
+    lastCustomer.length > 0 &&
+    lastCustomer[0].dn_id
+  ) {
+
+    const match =
+      String(
+        lastCustomer[0].dn_id
+      ).match(/DN-(\d+)/);
+
+    if (match) {
+
+      nextNumber =
+        Number(match[1]) + 1;
+
+    }
+
+  }
+
+  const dnId =
+    "DN-" +
+    String(nextNumber).padStart(
+      6,
+      "0"
+    );
+
+  /* ==========================================
+     INSERT CUSTOMER
+  ========================================== */
+
+  const {
+    data: newCustomer,
+    error: insertError
+  } = await supabaseClient
+    .from("customers")
+    .insert({
+      dn_id: dnId,
+      name: name,
+      whatsapp: whatsappValue,
+      username_wa:
+        username_wa || null
+    })
+    .select(
+      "id, dn_id, name, whatsapp, username_wa"
+    )
+    .single();
+
+  if (insertError) {
+
+    console.error(
+      "ERROR INSERT QUICK CUSTOMER:",
+      insertError
+    );
+
+    alert(
+      "Gagal menambahkan customer: " +
+      insertError.message
+    );
+
+    return null;
+  }
+
+  return newCustomer;
+}
+
 async function saveCustomer(
   existingCustomer = null
 ) {
