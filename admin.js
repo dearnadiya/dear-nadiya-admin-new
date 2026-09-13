@@ -18379,13 +18379,22 @@ function saveCurrentPODraft() {
             ?.value
             ?.trim() || "",
 
-        customer:
-          row
-            .querySelector(
-              ".po-row-customer"
-            )
-            ?.value
-            ?.trim() || "",
+        customer_id:
+  Number(
+    row
+      .querySelector(
+        ".po-row-customer-id"
+      )
+      ?.value
+  ) || null,
+
+customer:
+  row
+    .querySelector(
+      ".po-row-customer"
+    )
+    ?.value
+    ?.trim() || "",
 
         quantity:
           Number(
