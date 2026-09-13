@@ -14513,22 +14513,26 @@ container.innerHTML = `
 
 
       <!-- ======================================
-           CUSTOMER
-           ====================================== -->
+     CUSTOMER / DN ID
+     ====================================== -->
 
-      <label>
-        Customer
-      </label>
+<label>
+  Customer
+</label>
 
-      <input
-        id="editCustomerName"
-        type="text"
-        value="${escapeHTML(
-          data.customer_name || ""
-        )}"
-        required
-      >
+<select
+  id="editCustomerId"
+  required
+>
+  <option value="">
+    — Pilih Customer —
+  </option>
+</select>
 
+<small>
+  Pilih customer berdasarkan DN ID.
+  Nama customer akan mengikuti Data Customer.
+</small>
 
       <!-- ======================================
            VERSI / MEMBER
@@ -14805,6 +14809,93 @@ container.innerHTML = `
 
 `;
 
+     /* ==========================================
+     LOAD DATA CUSTOMER
+     ========================================== */
+
+  const editCustomerId =
+    document.getElementById(
+      "editCustomerId"
+    );
+
+  if (editCustomerId) {
+
+    const {
+      data: customers,
+      error: customersError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(
+          "id, dn_id, name"
+        )
+        .order(
+          "id",
+          {
+            ascending: true
+          }
+        );
+
+    if (customersError) {
+
+      console.error(
+        "ERROR LOAD CUSTOMERS FOR RECAP:",
+        customersError
+      );
+
+      editCustomerId.innerHTML = `
+        <option value="">
+          Gagal memuat Data Customer
+        </option>
+      `;
+
+    } else {
+
+      editCustomerId.innerHTML = `
+        <option value="">
+          — Pilih Customer —
+        </option>
+
+        ${(customers || [])
+          .map(function(customer) {
+
+            return `
+              <option
+                <option
+  value="${escapeHTML(
+    String(customer.id)
+  )}"
+  data-name="${escapeHTML(
+    customer.name || ""
+  )}"
+                ${
+                  String(
+                    customer.id
+                  ) ===
+                  String(
+                    data.customer_id || ""
+                  )
+                    ? "selected"
+                    : ""
+                }
+              >
+                ${escapeHTML(
+                  customer.dn_id || "—"
+                )}
+                — ${escapeHTML(
+                  customer.name || "Tanpa Nama"
+                )}
+              </option>
+            `;
+
+          })
+          .join("")}
+      `;
+
+    }
+
+  }
+
      // Otomatis scroll ke form Edit Rekap
   setTimeout(function () {
     container.scrollIntoView({
@@ -14932,14 +15023,25 @@ if (!isSamePriceMode) {
               .value
               .trim(),
 
-          customer_name:
-            document
-              .getElementById(
-                "editCustomerName"
-              )
-              .value
-              .trim(),
+          customer_id:
+  Number(
+    document
+      .getElementById(
+        "editCustomerId"
+      )
+      .value
+  ) || null,
 
+customer_name:
+  document
+    .getElementById(
+      "editCustomerId"
+    )
+    .selectedOptions[0]
+    ?.dataset.name ||
+  data.customer_name ||
+  "",
+           
           version:
             document
               .getElementById(
