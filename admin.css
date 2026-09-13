@@ -12470,3 +12470,33 @@ button {
 #customerFormContainer #customerEmailInput {
   display: none !important;
 }
+
+/* =========================================================
+   REKAP GO - TAMPILKAN INFORMASI BATCH DI HEADER
+   ========================================================= */
+
+#recapListContainer .recap-batch-deadlines {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  width: 100%;
+  margin: 8px 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #eee7f0;
+  border-radius: 10px;
+  background: #faf7fa;
+  color: #403947;
+  font-size: 13px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+#recapListContainer .recap-batch-deadlines > div {
+  white-space: nowrap;
+}
+
+#recapListContainer .recap-batch-deadlines strong {
+  color: #29283f;
+  font-weight: 700;
+}
