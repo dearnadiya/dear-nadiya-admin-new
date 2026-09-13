@@ -966,6 +966,11 @@ document.getElementById(
                 customerName
               ];
 
+             const customerDisplayName =
+  customerRows.find(row =>
+    String(row.customer_name || "").trim()
+  )?.customer_name || customerName;
+
             let totalDP = 0;
 
              const paymentHeader = `
@@ -1025,10 +1030,8 @@ document.getElementById(
             return `
               <div class="dashboard-customer-card">
 
-                <h4>
-                  ${customerName}
-                </h4>
-
+                <h4>${customerDisplayName}</h4>
+                
                 ${paymentHeader}
 ${itemsHTML}
                 <div class="dashboard-payment-total">
