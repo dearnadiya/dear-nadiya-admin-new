@@ -11290,11 +11290,11 @@ let html = `
         ＋ Tambah Member / Versi
       </button>
 
-    </div>
+        </div>
 
-  </div>
+</div>
 
-  <div class="recap-batch-deadlines">
+<div class="recap-batch-deadlines">
     
   <div>
     <strong>Deadline DP:</strong>
@@ -11331,8 +11331,6 @@ let html = `
         : "—"
     }
   </div>
-
-</div>
 
 </div>
 
