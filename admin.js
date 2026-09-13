@@ -20694,11 +20694,15 @@ return {
                 item_name:
                   po.title || "",
 
-                customer_name:
-                  String(
-                    row.customer || ""
-                  ).trim(),
+                customer_id:
+  Number(
+    row.customer_id
+  ) || null,
 
+customer_name:
+  String(
+    row.customer || ""
+  ).trim(),
                 version:
                   String(
                     row.member || ""
