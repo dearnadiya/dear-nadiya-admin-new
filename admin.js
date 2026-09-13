@@ -831,31 +831,47 @@ document.getElementById(
     ===================================== */
 
     function groupCustomers(
-      sourceRows
+  sourceRows
+) {
+  const grouped = {};
+
+  sourceRows.forEach(row => {
+
+    const customerId =
+      Number(row.customer_id) || null;
+
+    const customerName =
+      String(
+        row.customer_name || ""
+      ).trim();
+
+    /*
+      Customer ID menjadi identitas utama.
+
+      Untuk data lama yang belum memiliki
+      customer_id, gunakan nama sebagai fallback.
+    */
+    const groupKey =
+      customerId
+        ? `id:${customerId}`
+        : `name:${customerName}`;
+
+    if (
+      !customerId &&
+      !customerName
     ) {
-      const grouped = {};
-
-      sourceRows.forEach(row => {
-
-        const customerName =
-          String(
-            row.customer_name || ""
-          ).trim();
-
-        if (!customerName) {
-          return;
-        }
-
-        if (!grouped[customerName]) {
-          grouped[customerName] = [];
-        }
-
-        grouped[customerName].push(row);
-      });
-
-      return grouped;
+      return;
     }
 
+    if (!grouped[groupKey]) {
+      grouped[groupKey] = [];
+    }
+
+    grouped[groupKey].push(row);
+  });
+
+  return grouped;
+}
 
     /* =====================================
        DP
