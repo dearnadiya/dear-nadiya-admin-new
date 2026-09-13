@@ -9062,107 +9062,200 @@ if (
             .slice(0, 10);
 
         if (
-          matches.length === 0
-        ) {
+  matches.length === 0
+) {
 
-          customerResults.innerHTML = `
-            <div
-              style="
-                padding:8px 10px;
-                color:#777;
-                font-size:13px;
-              "
-            >
-              Customer tidak ditemukan
-            </div>
-          `;
+  customerResults.innerHTML = `
+    <div
+      style="
+        padding:8px 10px;
+        color:#777;
+        font-size:13px;
+        border-bottom:1px solid #eee;
+      "
+    >
+      Customer tidak ditemukan
+    </div>
 
-          customerResults.style.display =
-            "block";
+    <button
+      type="button"
+      class="batch-create-customer-option"
+      style="
+        display:block;
+        width:100%;
+        text-align:left;
+        padding:10px;
+        border:0;
+        background:#f8f9fa;
+        cursor:pointer;
+        font-weight:600;
+        color:#2563eb;
+      "
+    >
+      ＋ Buat Customer Baru
+    </button>
+  `;
 
-          return;
-        }
+  customerResults.style.display =
+    "block";
 
+  return;
+}
         customerResults.innerHTML =
-          matches
-            .map(
-              function(customer) {
+  matches
+    .map(
+      function(customer) {
 
-                return `
-                  <button
-                    type="button"
-                    class="batch-customer-result"
-                    data-id="${escapeHTML(
-                      String(customer.id)
-                    )}"
-                    data-name="${escapeHTML(
-                      customer.name || ""
-                    )}"
+        return `
+          <button
+            type="button"
+            class="batch-customer-result"
+            data-id="${escapeHTML(
+              String(customer.id)
+            )}"
+            data-name="${escapeHTML(
+              customer.name || ""
+            )}"
+            style="
+              display:block;
+              width:100%;
+              text-align:left;
+              padding:6px 10px;
+              border:0;
+              border-bottom:1px solid #eee;
+              background:#fff;
+              cursor:pointer;
+              font-size:13px;
+              line-height:1.25;
+            "
+          >
+
+            <strong>
+              ${escapeHTML(
+                customer.dn_id || "—"
+              )}
+            </strong>
+
+            —
+            ${escapeHTML(
+              customer.name ||
+              "Tanpa Nama"
+            )}
+
+            ${
+              customer.username_wa
+                ? `
+                  <small
                     style="
                       display:block;
-                      width:100%;
-                      text-align:left;
-                      padding:6px 10px;
-                      border:0;
-                      border-bottom:1px solid #eee;
-                      background:#fff;
-                      cursor:pointer;
-                      font-size:13px;
-                      line-height:1.25;
+                      color:#777;
+                      margin-top:2px;
+                      font-size:11px;
                     "
                   >
-                    <strong>
-                      ${escapeHTML(
-                        customer.dn_id || "—"
-                      )}
-                    </strong>
-
-                    —
                     ${escapeHTML(
-                      customer.name ||
-                      "Tanpa Nama"
-                    )}
-
-                    ${
                       customer.username_wa
-                        ? `
-                          <small
-                            style="
-                              display:block;
-                              color:#777;
-                              margin-top:2px;
-                              font-size:11px;
-                            "
-                          >
-                            ${escapeHTML(
-                              customer.username_wa
-                            )}
-                          </small>
-                        `
-                        : ""
-                    }
-                  </button>
-                `;
+                    )}
+                  </small>
+                `
+                : ""
+            }
 
-              }
-            )
-            .join("");
+          </button>
+        `;
 
-        customerResults.style.display =
-          "block";
+      }
+    )
+    .join("") +
+
+  `
+    <button
+      type="button"
+      class="batch-create-customer-option"
+      style="
+        display:block;
+        width:100%;
+        text-align:left;
+        padding:10px;
+        border:0;
+        background:#f8f9fa;
+        cursor:pointer;
+        font-weight:600;
+        color:#2563eb;
+      "
+    >
+      ＋ Buat Customer Baru
+    </button>
+  `;
+
+customerResults.style.display =
+  "block";
       }
     );
 
+customerResults.addEventListener(
+  "click",
+  function(event) {
 
-    customerResults.addEventListener(
-      "click",
-      function(event) {
+    const createButton =
+      event.target.closest(
+        ".batch-create-customer-option"
+      );
 
-        const button =
-          event.target.closest(
-            ".batch-customer-result"
+    if (createButton) {
+
+      showQuickCustomerForm(
+        function(newCustomer) {
+
+          /* Masukkan customer baru
+             ke daftar pencarian card ini */
+          customerList.push(
+            newCustomer
           );
 
+          /* Langsung pilih customer */
+          customerInput.value =
+            newCustomer.name || "";
+
+          customerIdInput.value =
+            newCustomer.id || "";
+
+          customerResults.innerHTML =
+            "";
+
+          customerResults.style.display =
+            "none";
+
+        }
+      );
+
+      return;
+    }
+
+
+    const button =
+      event.target.closest(
+        ".batch-customer-result"
+      );
+
+    if (!button) {
+      return;
+    }
+
+    customerInput.value =
+      button.dataset.name || "";
+
+    customerIdInput.value =
+      button.dataset.id || "";
+
+    customerResults.innerHTML =
+      "";
+
+    customerResults.style.display =
+      "none";
+
+  }
+);
         if (!button) {
           return;
         }
