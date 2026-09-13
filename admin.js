@@ -17217,7 +17217,7 @@ container.innerHTML = `
   let rowNumber = 0;
 
 
-  function addPORow(
+  async function addPORow(
   rowData = {},
   orderMode = "manual"
 ) {
@@ -17290,22 +17290,49 @@ container.innerHTML = `
 
 <div
   class="po-field-group po-row-customer-group"
->  
-<label>
+  style="position:relative;"
+>
+  <label>
     Customer
   </label>
 
   <input
     type="text"
     class="po-row-customer"
-    placeholder="Nama customer (opsional)"
+    placeholder="🔍 Cari DN ID / nama / username WA..."
     value="${escapeHTML(
       rowData.customer ||
       ""
     )}"
+    autocomplete="off"
   >
-</div>
 
+  <input
+    type="hidden"
+    class="po-row-customer-id"
+    value="${escapeHTML(
+      String(rowData.customer_id || "")
+    )}"
+  >
+
+  <div
+    class="po-row-customer-results"
+    style="
+      display:none;
+      position:absolute;
+      z-index:9999;
+      left:0;
+      right:0;
+      top:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      max-height:240px;
+      overflow-y:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    "
+  ></div>
+</div>
 
 <div
   class="po-field-group po-row-qty-group"
@@ -17424,6 +17451,232 @@ ${
     rowsContainer.appendChild(
   row
 );
+
+/* ==========================================
+   SEARCH CUSTOMER UNTUK PO
+========================================== */
+
+const customerInput =
+  row.querySelector(
+    ".po-row-customer"
+  );
+
+const customerIdInput =
+  row.querySelector(
+    ".po-row-customer-id"
+  );
+
+const customerResults =
+  row.querySelector(
+    ".po-row-customer-results"
+  );
+
+if (
+  customerInput &&
+  customerIdInput &&
+  customerResults
+) {
+
+  const {
+    data: customers,
+    error: customersError
+  } = await supabaseClient
+    .from("customers")
+    .select(
+      "id, dn_id, name, username_wa"
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
+
+  if (customersError) {
+
+    console.error(
+      "ERROR LOAD CUSTOMERS FOR PO:",
+      customersError
+    );
+
+  } else {
+
+    const customerList =
+      customers || [];
+
+    function renderPOCustomerResults(
+      keyword = ""
+    ) {
+
+      const q =
+        keyword
+          .trim()
+          .toLowerCase();
+
+      const filtered =
+        customerList
+          .filter(
+            function(customer) {
+
+              const dnId =
+                String(
+                  customer.dn_id || ""
+                ).toLowerCase();
+
+              const name =
+                String(
+                  customer.name || ""
+                ).toLowerCase();
+
+              const username =
+                String(
+                  customer.username_wa || ""
+                ).toLowerCase();
+
+              return (
+                !q ||
+                dnId.includes(q) ||
+                name.includes(q) ||
+                username.includes(q)
+              );
+
+            }
+          )
+          .slice(0, 10);
+
+      customerResults.innerHTML =
+        filtered
+          .map(
+            function(customer) {
+
+              return `
+                <button
+                  type="button"
+                  class="po-customer-option"
+                  data-id="${customer.id}"
+                  data-name="${escapeHTML(
+                    customer.name || ""
+                  )}"
+                  style="
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    border:0;
+                    background:#fff;
+                    padding:9px 10px;
+                    cursor:pointer;
+                  "
+                >
+                  <strong>
+                    ${escapeHTML(
+                      customer.dn_id || "—"
+                    )}
+                  </strong>
+                  —
+                  ${escapeHTML(
+                    customer.name || "Tanpa Nama"
+                  )}
+                  ${
+                    customer.username_wa
+                      ? `
+                        <span
+                          style="color:#777;"
+                        >
+                          (${escapeHTML(
+                            customer.username_wa
+                          )})
+                        </span>
+                      `
+                      : ""
+                  }
+                </button>
+              `;
+
+            }
+          )
+          .join("");
+
+      customerResults.style.display =
+        filtered.length
+          ? "block"
+          : "none";
+
+    }
+
+    customerInput.addEventListener(
+      "input",
+      function() {
+
+        customerIdInput.value =
+          "";
+
+        renderPOCustomerResults(
+          customerInput.value
+        );
+
+      }
+    );
+
+    customerInput.addEventListener(
+      "focus",
+      function() {
+
+        renderPOCustomerResults(
+          customerInput.value
+        );
+
+      }
+    );
+
+    customerResults.addEventListener(
+      "click",
+      function(event) {
+
+        const button =
+          event.target.closest(
+            ".po-customer-option"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        customerInput.value =
+          button.dataset.name || "";
+
+        customerIdInput.value =
+          button.dataset.id || "";
+
+        customerResults.style.display =
+          "none";
+
+      }
+    );
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          !customerInput.contains(
+            event.target
+          ) &&
+          !customerResults.contains(
+            event.target
+          )
+        ) {
+
+          customerResults.style.display =
+            "none";
+
+        }
+
+      }
+    );
+
+  }
+
+}
 
 /* ==========================================
    GENERAL PO — HITUNG TOTAL DARI QTY
@@ -18369,14 +18622,22 @@ async function savePO(
           .trim();
 
 
-      const customer =
-        row
-          .querySelector(
-            ".po-row-customer"
-          )
-          .value
-          .trim();
+      const customerInput =
+  row.querySelector(
+    ".po-row-customer"
+  );
 
+const customerId =
+  Number(
+    row.querySelector(
+      ".po-row-customer-id"
+    )?.value
+  ) || null;
+
+const customer =
+  customerInput
+    ?.value
+    .trim() || "";
 
       const quantity =
         Number(
@@ -18420,15 +18681,18 @@ if (
 
   listData.push({
 
-    member:
-      member,
+  member:
+    member,
 
-    customer:
-      customer,
+  customer_id:
+    customerId,
 
-    quantity:
-      quantity,
+  customer:
+    customer,
 
+  quantity:
+    quantity,
+     
     price:
       price,
 
