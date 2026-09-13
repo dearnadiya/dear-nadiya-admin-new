@@ -21833,16 +21833,18 @@ async function renderCustomerTable(
   container.innerHTML = `
 
     <div
-      style="
-        overflow-x:auto;
-      "
-    >
+  style="
+    width:100%;
+    overflow-x:auto;
+  "
+>
 
       <table
   class="product-table"
   style="
-    min-width:1100px;
-    width:100%;
+    width:max-content !important;
+    min-width:1100px !important;
+    table-layout:auto !important;
   "
 >
 
