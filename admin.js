@@ -173,6 +173,73 @@ function formatRupiah(value) {
 
 }
 
+function formatNominalInput(value) {
+  const digits =
+    String(value || "")
+      .replace(/[^\d]/g, "");
+
+  if (!digits) {
+    return "";
+  }
+
+  return Number(digits)
+    .toLocaleString("id-ID");
+}
+
+
+function parseNominalInput(value) {
+  return Number(
+    String(value || "")
+      .replace(/[^\d]/g, "")
+  ) || 0;
+}
+
+document.addEventListener(
+  "input",
+  function(event) {
+
+    const input =
+      event.target;
+
+    if (
+      !input.matches(
+        ".currency-input"
+      )
+    ) {
+      return;
+    }
+
+    const cursorPosition =
+      input.selectionStart;
+
+    const oldValue =
+      input.value;
+
+    const numericValue =
+      parseNominalInput(
+        oldValue
+      );
+
+    input.value =
+      formatNominalInput(
+        numericValue
+      );
+
+    const difference =
+      input.value.length -
+      oldValue.length;
+
+    try {
+      input.setSelectionRange(
+        cursorPosition + difference,
+        cursorPosition + difference
+      );
+    } catch (error) {
+      /* abaikan */
+    }
+  }
+);
+
 function formatDate(value) {
 
   if (!value) {
@@ -17210,8 +17277,9 @@ container.innerHTML = `
   </label>
 
   <input
-    type="text"
-    id="poPrice"
+  type="text"
+  id="poPrice"
+  class="currency-input"
     placeholder="Contoh: Rp150.000"
     value="${escapeHTML(
       po.price_text || ""
@@ -17274,8 +17342,9 @@ container.innerHTML = `
   </label>
 
   <input
-    type="text"
-    id="poDP"
+  type="text"
+  id="poDP"
+  class="currency-input"
     placeholder="Contoh: Rp50.000"
     value="${escapeHTML(
       po.dp_text || ""
@@ -17606,7 +17675,7 @@ container.innerHTML = `
 
     <input
   type="text"
-  class="po-row-price"
+  class="po-row-price currency-input"
   placeholder="Contoh: Rp50.000"
   value="${escapeHTML(
     rowData.price ||
@@ -17628,7 +17697,7 @@ container.innerHTML = `
 
     <input
   type="text"
-  class="po-row-dp"
+  class="po-row-dp currency-input"
   placeholder="Contoh: Rp20.000"
   value="${escapeHTML(
     rowData.dp ||
