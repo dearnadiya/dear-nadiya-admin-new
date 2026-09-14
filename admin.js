@@ -11471,7 +11471,87 @@ let html = `
 </div>
 
 <div class="recap-batch-deadlines">
-    
+
+  <div>
+    <strong>Harga:</strong>
+    ${
+      (() => {
+        const prices =
+          rows
+            .map(row =>
+              Number(
+                row.item_price
+              ) || 0
+            )
+            .filter(
+              value => value > 0
+            );
+
+        if (!prices.length) {
+          return "—";
+        }
+
+        const minPrice =
+          Math.min(...prices);
+
+        const maxPrice =
+          Math.max(...prices);
+
+        return minPrice === maxPrice
+          ? formatNominalInput(
+              minPrice
+            )
+          : formatNominalInput(
+              minPrice
+            ) +
+            " - " +
+            formatNominalInput(
+              maxPrice
+            );
+      })()
+    }
+  </div>
+
+  <div>
+    <strong>DP:</strong>
+    ${
+      (() => {
+        const dps =
+          rows
+            .map(row =>
+              Number(
+                row.minimum_dp_amount
+              ) || 0
+            )
+            .filter(
+              value => value > 0
+            );
+
+        if (!dps.length) {
+          return "—";
+        }
+
+        const minDp =
+          Math.min(...dps);
+
+        const maxDp =
+          Math.max(...dps);
+
+        return minDp === maxDp
+          ? formatNominalInput(
+              minDp
+            )
+          : formatNominalInput(
+              minDp
+            ) +
+            " - " +
+            formatNominalInput(
+              maxDp
+            );
+      })()
+    }
+  </div>
+
   <div>
     <strong>Deadline DP:</strong>
     ${
