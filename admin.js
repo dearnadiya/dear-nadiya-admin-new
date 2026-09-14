@@ -14312,6 +14312,7 @@ const existingCoDeadline =
         <label>Harga</label>
 
 <input
+  id="editBatchHeaderPrice"
   type="text"
   class="currency-input"
   value="${
@@ -14340,6 +14341,7 @@ const existingCoDeadline =
 <label>DP</label>
 
 <input
+  id="editBatchHeaderDp"
   type="text"
   class="currency-input"
   value="${
@@ -14705,24 +14707,22 @@ let newPaymentStatus = null;
 if (isSamePriceModeHeader) {
 
   newPrice =
-    Number(
-      document
-        .getElementById(
-          "editBatchHeaderPrice"
-        )
-        .value
-    ) || 0;
+  parseNominalInput(
+    document
+      .getElementById(
+        "editBatchHeaderPrice"
+      )
+      ?.value
+  );
 
-
-  newDp =
-    Number(
-      document
-        .getElementById(
-          "editBatchHeaderDp"
-        )
-        .value
-    ) || 0;
-
+newDp =
+  parseNominalInput(
+    document
+      .getElementById(
+        "editBatchHeaderDp"
+      )
+      ?.value
+  );
 
   /* ======================================
      HITUNG PEMBAYARAN AKTUAL CUSTOMER
