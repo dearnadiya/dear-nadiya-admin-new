@@ -13954,32 +13954,43 @@ arrived_admin_at:
   );
 
 
-  /* ==========================================
-     CEK CUSTOMER / MEMBER KOSONG
-     ========================================== */
+ /* ==========================================
+   CEK DATA WAJIB
+========================================== */
 
-  const incomplete =
-    records.find(
-      function(record) {
+/*
+  Customer BOLEH kosong.
 
-        return (
-  !record.customer_id ||
-  !record.customer_name ||
-  !record.version
-);
-      }
-    );
+  Ini diperlukan untuk:
+  - Member PO Claim yang belum memiliki pembeli
+  - Member yang masuk Rekap GO tetapi
+    masih tersedia untuk di-claim
+
+  Yang wajib:
+  - Versi / Member
+*/
+
+const incomplete =
+  records.find(
+    function(record) {
+
+      return (
+        !record.version
+      );
+
+    }
+  );
 
 
-  if (incomplete) {
+if (incomplete) {
 
-    message.textContent =
-      "Customer dan Versi / Member wajib diisi.";
+  message.textContent =
+    "Versi / Member wajib diisi.";
 
-    return;
+  return;
 
-  }
-
+}
+   
   /* ==========================================
      SIMPAN SEMUA CUSTOMER SEKALIGUS
      ========================================== */
