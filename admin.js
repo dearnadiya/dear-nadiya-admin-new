@@ -15308,12 +15308,14 @@ async function editRecap(
 const container =
   document.getElementById(
     "recapFormContainer"
+  ) ||
+  document.getElementById(
+    "poFormContainer"
   );
 
 if (!container) {
   return;
 }
-
 /* TAMPILKAN FORM EDIT */
 container.style.display = "block";
 
