@@ -16563,7 +16563,7 @@ await loadPOArchiveList();
 await loadPOList();
 
 /* ==========================================
-   RESTORE PO BERJALAN TERAKHIR
+   RESTORE PO TERAKHIR / KEMBALI KE LIST PO
 ========================================== */
 
 const savedPOId =
@@ -16573,54 +16573,59 @@ const savedPOId =
 
 if (savedPOId) {
 
-  const restoreTimer =
-    setInterval(async function() {
+  const card =
+    document.querySelector(
+      '.po-running-card[data-po-id="' +
+      CSS.escape(savedPOId) +
+      '"]'
+    );
 
-      const poCard =
+  if (card) {
+    card.click();
+  } else {
+
+    localStorage.removeItem(
+      "dearNadiyaSelectedPO"
+    );
+
+    setTimeout(function () {
+
+      const poRunningSection =
         document.querySelector(
-          '.po-running-card[data-po-id="' +
-          CSS.escape(savedPOId) +
-          '"]'
+          ".po-running-section"
         );
 
-      if (!poCard) {
-        return;
+      if (poRunningSection) {
+        poRunningSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
       }
-
-      clearInterval(
-        restoreTimer
-      );
-
-      poCard.click();
 
     }, 100);
 
-}
-   
-   /* ==========================================
-   RESTORE DRAFT PO SAAT KEMBALI KE PESANAN
-========================================== */
+  }
 
-if (
-  window.dearNadiyaPODraft
-) {
+} else {
 
-  const draft =
-    window.dearNadiyaPODraft;
+  setTimeout(function () {
 
-  showPOForm(
-    draft.existingPO
-      ? {
-          ...draft.existingPO,
-          ...draft
-        }
-      : draft
-  );
+    const poRunningSection =
+      document.querySelector(
+        ".po-running-section"
+      );
+
+    if (poRunningSection) {
+      poRunningSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+  }, 100);
 
 }
    
-}
-
 /* ============================================
    DETAIL PO BERJALAN
 ============================================ */
@@ -17073,39 +17078,21 @@ function showPODetailAdmin(po) {
 
   }
 
-const backToPOListButton =
-  document.getElementById(
-    "backToPOListButton"
-  );
-
 if (backToPOListButton) {
   backToPOListButton.addEventListener(
     "click",
     function() {
 
-      /* Hapus PO yang sedang dipilih
-         agar saat kembali ke Pesanan
-         tidak otomatis membuka detail ini */
+      /* Hapus PO yang sedang dibuka */
       localStorage.removeItem(
         "dearNadiyaSelectedPO"
       );
 
-      /* Tutup detail */
+      /* Tutup detail PO */
       container.innerHTML = "";
       container.style.display = "none";
 
-      /* Pastikan daftar PO tampil */
-      const poRunningContainer =
-        document.getElementById(
-          "poRunningContainer"
-        );
-
-      if (poRunningContainer) {
-        poRunningContainer.style.display =
-          "block";
-      }
-
-      /* Kembali ke bagian PO berjalan */
+      /* Kembali ke PO Berjalan */
       const poRunningSection =
         document.querySelector(
           ".po-running-section"
@@ -17113,17 +17100,19 @@ if (backToPOListButton) {
 
       if (poRunningSection) {
         setTimeout(function() {
+
           poRunningSection.scrollIntoView({
             behavior: "smooth",
             block: "start"
           });
+
         }, 50);
       }
 
     }
   );
 }
-
+   
 }
 
 /* ============================================
