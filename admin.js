@@ -14328,11 +14328,7 @@ const existingCoDeadline =
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
 
-      return minPrice === maxPrice
-        ? formatNominalInput(minPrice)
-        : formatNominalInput(minPrice) +
-          " - " +
-          formatNominalInput(maxPrice);
+      return formatNominalInput(minPrice);
     })()
   }"
 >
@@ -14364,11 +14360,7 @@ const existingCoDeadline =
       const minDp = Math.min(...dps);
       const maxDp = Math.max(...dps);
 
-      return minDp === maxDp
-        ? formatNominalInput(minDp)
-        : formatNominalInput(minDp) +
-          " - " +
-          formatNominalInput(maxDp);
+      return formatNominalInput(minDp);
     })()
   }"
 >
