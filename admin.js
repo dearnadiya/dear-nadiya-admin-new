@@ -16526,36 +16526,6 @@ async function loadOrders() {
     );
 
   }
-
-   /* ==========================================
-   OTOMATIS ARAHKAN KE PO BERJALAN
-   HANYA JIKA TIDAK ADA PO TERAKHIR
-========================================== */
-
-const savedPOForScroll =
-  localStorage.getItem(
-    "dearNadiyaSelectedPO"
-  );
-
-if (!savedPOForScroll) {
-
-  setTimeout(function () {
-
-    const poRunningSection =
-      document.querySelector(
-        ".po-running-section"
-      );
-
-    if (poRunningSection) {
-      poRunningSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
-
-  }, 100);
-
-}
    
   await loadPORunningList();
 await loadPOClaimList();
@@ -16625,7 +16595,9 @@ if (savedPOId) {
   }, 100);
 
 }
-   
+
+}
+
 /* ============================================
    DETAIL PO BERJALAN
 ============================================ */
@@ -17078,6 +17050,11 @@ function showPODetailAdmin(po) {
 
   }
 
+   const backToPOListButton =
+  document.getElementById(
+    "backToPOListButton"
+  );
+   
 if (backToPOListButton) {
   backToPOListButton.addEventListener(
     "click",
