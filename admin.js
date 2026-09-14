@@ -16532,12 +16532,12 @@ async function loadOrders() {
    HANYA JIKA TIDAK ADA PO TERAKHIR
 ========================================== */
 
-const savedPOId =
+const savedPOForScroll =
   localStorage.getItem(
     "dearNadiyaSelectedPO"
   );
 
-if (!savedPOId) {
+if (!savedPOForScroll) {
 
   setTimeout(function () {
 
@@ -16556,7 +16556,6 @@ if (!savedPOId) {
   }, 100);
 
 }
-
    
   await loadPORunningList();
 await loadPOClaimList();
