@@ -15785,6 +15785,19 @@ container.innerHTML = `
 
 `;
 
+   container
+  .querySelectorAll(
+    ".currency-input"
+  )
+  .forEach(
+    function(input) {
+      input.value =
+        formatNominalInput(
+          input.value
+        );
+    }
+  );
+
      /* ==========================================
      LOAD DATA CUSTOMER
      ========================================== */
