@@ -7409,64 +7409,60 @@ showRecapCategories(
      AWALNYA HANYA TYPE REKAP
      ===================================== */
 
-  if (selectedRecapCategory) {
+ showRecapTypeSelection();
+
+const savedTypeButton =
+  document.querySelector(
+    '#recapTypeButtons button[data-recap-type="' +
+    CSS.escape(selectedRecapType) +
+    '"]'
+  );
+
+if (savedTypeButton) {
+  document
+    .querySelectorAll(
+      "#recapTypeButtons button"
+    )
+    .forEach(function(button) {
+      button.classList.remove("active");
+    });
+
+  savedTypeButton.classList.add("active");
+}
+
+/* =====================================
+   PULIHKAN KATEGORI TERAKHIR
+   ===================================== */
+
+if (selectedRecapCategory) {
 
   showRecapCategories(
     selectedRecapType
   );
 
-  setTimeout(function () {
+  const restoreTimer =
+    setInterval(function() {
 
-    const categoryButton =
-      document.querySelector(
-        '#recapCategoryButtons > .recap-category-wrapper > .recap-category-card[data-category="' +
-        CSS.escape(selectedRecapCategory) +
-        '"]'
+      const categoryButton =
+        document.querySelector(
+          '#recapCategoryButtons > .recap-category-wrapper > .recap-category-card[data-category="' +
+          CSS.escape(selectedRecapCategory) +
+          '"]'
+        );
+
+      if (!categoryButton) {
+        return;
+      }
+
+      clearInterval(
+        restoreTimer
       );
 
-    if (categoryButton) {
       categoryButton.click();
-    } else {
 
-      localStorage.removeItem(
-        "dearNadiyaRecapCategory"
-      );
-
-      selectedRecapCategory = "";
-
-      showRecapCategories(
-        selectedRecapType
-      );
-    }
-
-  }, 100);
-
-} else {
-
-  showRecapTypeSelection();
-
-  const savedTypeButton =
-    document.querySelector(
-      '#recapTypeButtons button[data-recap-type="' +
-      CSS.escape(selectedRecapType) +
-      '"]'
-    );
-
-  if (savedTypeButton) {
-
-    document
-      .querySelectorAll(
-        "#recapTypeButtons button"
-      )
-      .forEach(function(button) {
-        button.classList.remove("active");
-      });
-
-    savedTypeButton.classList.add("active");
-  }
+    }, 100);
 
 }
-
 }
 
 /* ============================================
