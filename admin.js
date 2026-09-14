@@ -8949,12 +8949,11 @@ const batchArrivedAdminAt =
   "
 >
   <input
-    type="text"
-    class="batch-customer"
-    placeholder="🔍 Cari DN ID / nama / username WA..."
-    autocomplete="off"
-    required
-  >
+  type="text"
+  class="batch-customer"
+  placeholder="🔍 Cari DN ID / nama / username WA..."
+  autocomplete="off"
+>
 
   <input
     type="hidden"
@@ -9531,7 +9530,7 @@ customerResults.addEventListener(
           if (message) {
 
             message.textContent =
-              "Minimal harus ada 1 customer.";
+              "Minimal harus ada 1 member / versi.";
 
           }
 
@@ -9721,45 +9720,43 @@ arrived_admin_at:
 
 
         /* ======================================
-           CEK DATA KOSONG
-           ====================================== */
+   CEK DATA WAJIB
+====================================== */
 
-        const incomplete =
-          records.find(
-            function(record) {
+const incomplete =
+  records.find(
+    function(record) {
 
-              return (
-                !record.customer_name ||
-                !record.version
-              );
+      return (
+        !record.version
+      );
 
-            }
-          );
+    }
+  );
 
 
-        if (incomplete) {
+if (incomplete) {
 
-          if (message) {
+  if (message) {
 
-            message.textContent =
-              "Customer dan Versi / Member wajib diisi.";
+    message.textContent =
+      "Versi / Member wajib diisi.";
 
-          }
+  }
 
-          if (saveButton) {
+  if (saveButton) {
 
-            saveButton.disabled =
-              false;
+    saveButton.disabled =
+      false;
 
-            saveButton.textContent =
-              "💾 Simpan Member / Versi";
+    saveButton.textContent =
+      "💾 Simpan Member / Versi";
 
-          }
+  }
 
-          return;
+  return;
 
-        }
-
+}
 
         /* ======================================
            SIMPAN KE BATCH YANG SAMA
