@@ -11183,12 +11183,12 @@ async function loadRecapList(
         category
       )
       .order(
-        "id",
-        {
-          ascending:
-            false
-        }
-      );
+  "id",
+  {
+    ascending:
+      true
+  }
+);
 
 
   if (error) {
