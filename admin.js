@@ -10668,24 +10668,27 @@ document.addEventListener(
   }
 );
 
-    document.addEventListener(
+        document.addEventListener(
       "click",
       function(event) {
-
         if (
           !item.contains(event.target)
         ) {
-
           customerResults.style.display =
             "none";
         }
-
       }
     );
 
+    /*
+      Setelah customer baru ditambahkan,
+      hitung ulang sisa pembayaran batch
+    */
+    updateBatchRemaining();
+
   }
 }
-
+     
     item
   .querySelector(".remove-batch-item")
   .addEventListener(
