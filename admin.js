@@ -10491,26 +10491,45 @@ document.addEventListener(
             .slice(0, 10);
 
         if (
-          matches.length === 0
-        ) {
+  matches.length === 0
+) {
 
-          customerResults.innerHTML = `
-            <div
-              style="
-                padding:10px 12px;
-                color:#777;
-              "
-            >
-              Customer tidak ditemukan
-            </div>
-          `;
+  customerResults.innerHTML = `
+    <button
+      type="button"
+      class="batch-create-customer-option"
+      style="
+        display:block;
+        width:100%;
+        text-align:left;
+        padding:10px 12px;
+        border:0;
+        border-bottom:1px solid #eee;
+        background:#fff;
+        cursor:pointer;
+        font-size:13px;
+      "
+    >
+      ➕ Buat Customer Baru: "${escapeHTML(this.value.trim())}"
+    </button>
 
-          customerResults.style.display =
-            "block";
+    <div
+      style="
+        padding:10px 12px;
+        color:#777;
+        font-size:12px;
+      "
+    >
+      Customer tidak ditemukan
+    </div>
+  `;
 
-          return;
-        }
+  customerResults.style.display =
+    "block";
 
+  return;
+}
+         
         customerResults.innerHTML =
           matches
             .map(
@@ -10518,8 +10537,7 @@ document.addEventListener(
 
                 return `
                   <button
-                    <button
-  type="button"
+                    type="button"
   class="batch-customer-result"
   data-id="${escapeHTML(
     String(customer.id)
