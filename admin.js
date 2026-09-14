@@ -15939,6 +15939,7 @@ editCustomerResults.addEventListener(
     editCustomerResults.style.display =
       "none";
 
+     
   }
 );
 document.addEventListener("click", event => {
@@ -16551,53 +16552,57 @@ if (savedPOId) {
     );
 
   if (card) {
+
     card.click();
+
   } else {
 
     localStorage.removeItem(
       "dearNadiyaSelectedPO"
     );
 
-    setTimeout(function () {
+    setTimeout(function() {
 
       const poRunningSection =
         document.querySelector(
-          ".po-running-section"
+          "#poRunningContainer"
         );
 
       if (poRunningSection) {
+
         poRunningSection.scrollIntoView({
           behavior: "smooth",
           block: "start"
         });
+
       }
 
-    }, 100);
+    }, 300);
 
   }
 
 } else {
 
-  setTimeout(function () {
+  setTimeout(function() {
 
     const poRunningSection =
       document.querySelector(
-        ".po-running-section"
+        "#poRunningContainer"
       );
 
     if (poRunningSection) {
+
       poRunningSection.scrollIntoView({
         behavior: "smooth",
         block: "start"
       });
+
     }
 
-  }, 100);
+  }, 300);
 
 }
-
-}
-
+   
 /* ============================================
    DETAIL PO BERJALAN
 ============================================ */
@@ -17070,22 +17075,21 @@ if (backToPOListButton) {
       container.style.display = "none";
 
       /* Kembali ke PO Berjalan */
-      const poRunningSection =
-        document.querySelector(
-          ".po-running-section"
-        );
+      const poRunningContainer =
+  document.getElementById(
+    "poRunningContainer"
+  );
+       
+      if (poRunningContainer) {
+  setTimeout(function() {
 
-      if (poRunningSection) {
-        setTimeout(function() {
+    poRunningContainer.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
 
-          poRunningSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-
-        }, 50);
-      }
-
+  }, 100);
+}
     }
   );
 }
