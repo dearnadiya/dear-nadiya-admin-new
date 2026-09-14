@@ -14309,12 +14309,11 @@ const existingCoDeadline =
         >
 
 
-        <label>
-  Harga
-</label>
+        <label>Harga</label>
 
 <input
   type="text"
+  class="currency-input"
   value="${
     (() => {
       const prices =
@@ -14324,15 +14323,10 @@ const existingCoDeadline =
           )
           .filter(value => value > 0);
 
-      if (!prices.length) {
-        return "0";
-      }
+      if (!prices.length) return "0";
 
-      const minPrice =
-        Math.min(...prices);
-
-      const maxPrice =
-        Math.max(...prices);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
 
       return minPrice === maxPrice
         ? formatNominalInput(minPrice)
@@ -14341,48 +14335,34 @@ const existingCoDeadline =
           formatNominalInput(maxPrice);
     })()
   }"
-  readonly
 >
 
-<label>
-  DP
-</label>
+<label>DP</label>
 
 <input
   type="text"
+  class="currency-input"
   value="${
     (() => {
       const dps =
-  data
-    .map(row => {
+        data
+          .map(row => {
+            const minimumDp =
+              Number(row.minimum_dp_amount) || 0;
 
-      const minimumDp =
-        Number(
-          row.minimum_dp_amount
-        ) || 0;
+            const actualDp =
+              Number(row.dp_amount) || 0;
 
-      const actualDp =
-        Number(
-          row.dp_amount
-        ) || 0;
+            return minimumDp > 0
+              ? minimumDp
+              : actualDp;
+          })
+          .filter(value => value > 0);
 
-      return minimumDp > 0
-        ? minimumDp
-        : actualDp;
+      if (!dps.length) return "0";
 
-    })
-    .filter(
-      value => value > 0
-    );
-      if (!dps.length) {
-        return "0";
-      }
-
-      const minDp =
-        Math.min(...dps);
-
-      const maxDp =
-        Math.max(...dps);
+      const minDp = Math.min(...dps);
+      const maxDp = Math.max(...dps);
 
       return minDp === maxDp
         ? formatNominalInput(minDp)
@@ -14391,9 +14371,7 @@ const existingCoDeadline =
           formatNominalInput(maxDp);
     })()
   }"
-  readonly
 >
-
         <label>
           Deadline DP
         </label>
