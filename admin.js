@@ -14091,6 +14091,14 @@ async function editBatchHeader(
     </div>
   `;
 
+   setTimeout(function () {
+
+  container.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+}, 50);
 
   /* ==========================================
      AMBIL SEMUA CUSTOMER DALAM BATCH
@@ -14345,14 +14353,27 @@ const existingCoDeadline =
   value="${
     (() => {
       const dps =
-        data
-          .map(row =>
-            Number(
-              row.minimum_dp_amount
-            ) || 0
-          )
-          .filter(value => value > 0);
+  data
+    .map(row => {
 
+      const minimumDp =
+        Number(
+          row.minimum_dp_amount
+        ) || 0;
+
+      const actualDp =
+        Number(
+          row.dp_amount
+        ) || 0;
+
+      return minimumDp > 0
+        ? minimumDp
+        : actualDp;
+
+    })
+    .filter(
+      value => value > 0
+    );
       if (!dps.length) {
         return "0";
       }
