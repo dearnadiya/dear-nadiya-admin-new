@@ -15525,7 +15525,6 @@ container.innerHTML = `
     placeholder="🔍 Cari DN ID / nama / username WA..."
     value="${escapeHTML(data.customer_name || "")}"
     autocomplete="off"
-    required
   >
 
   <input
