@@ -7310,10 +7310,11 @@ function loadRecap() {
   `;
 
 
-  let selectedRecapType =
-  "Treasure";
+ let selectedRecapType =
+  localStorage.getItem("dearNadiyaRecapType") || "Treasure";
 
-let selectedRecapCategory = "";
+let selectedRecapCategory =
+  localStorage.getItem("dearNadiyaRecapCategory") || "";
    
   const typeButtons =
     document.querySelectorAll(
@@ -7351,6 +7352,16 @@ let selectedRecapCategory = "";
          selectedRecapType =
   button.dataset.recapType;
 
+selectedRecapCategory = "";
+
+localStorage.setItem(
+  "dearNadiyaRecapType",
+  selectedRecapType
+);
+
+localStorage.removeItem(
+  "dearNadiyaRecapCategory"
+);
 
 showRecapCategories(
   selectedRecapType
@@ -7398,7 +7409,63 @@ showRecapCategories(
      AWALNYA HANYA TYPE REKAP
      ===================================== */
 
+  if (selectedRecapCategory) {
+
+  showRecapCategories(
+    selectedRecapType
+  );
+
+  setTimeout(function () {
+
+    const categoryButton =
+      document.querySelector(
+        '#recapCategoryButtons > .recap-category-wrapper > .recap-category-card[data-category="' +
+        CSS.escape(selectedRecapCategory) +
+        '"]'
+      );
+
+    if (categoryButton) {
+      categoryButton.click();
+    } else {
+
+      localStorage.removeItem(
+        "dearNadiyaRecapCategory"
+      );
+
+      selectedRecapCategory = "";
+
+      showRecapCategories(
+        selectedRecapType
+      );
+    }
+
+  }, 100);
+
+} else {
+
   showRecapTypeSelection();
+
+  const savedTypeButton =
+    document.querySelector(
+      '#recapTypeButtons button[data-recap-type="' +
+      CSS.escape(selectedRecapType) +
+      '"]'
+    );
+
+  if (savedTypeButton) {
+
+    document
+      .querySelectorAll(
+        "#recapTypeButtons button"
+      )
+      .forEach(function(button) {
+        button.classList.remove("active");
+      });
+
+    savedTypeButton.classList.add("active");
+  }
+
+}
 
 }
 
@@ -7613,6 +7680,12 @@ function showRecapCategories(recapType) {
         backButton.addEventListener(
           "click",
           function() {
+
+             localStorage.removeItem(
+  "dearNadiyaRecapCategory"
+);
+
+selectedRecapCategory = "";
 
             container.style.display =
               "none";
@@ -7842,6 +7915,10 @@ const categoryButtons =
 selectedRecapCategory =
   selectedCategory;
 
+localStorage.setItem(
+  "dearNadiyaRecapCategory",
+  selectedRecapCategory
+);
              
             /* ===============================
                SEMBUNYIKAN KATEGORI
