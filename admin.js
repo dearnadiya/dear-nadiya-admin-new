@@ -15526,39 +15526,7 @@ container.innerHTML = `
           data.dp_status || "unpaid"
         }"
       >
-
-
-      <!-- ======================================
-           PELUNASAN PER CUSTOMER
-           ====================================== -->
-
-      <label>
-        Pelunasan
-      </label>
-
-      <input
-  id="editRemaining"
-  type="text"
-  class="currency-input"
-  value="${
-    Math.max(
-      0,
-      (Number(data.item_price) || 0) -
-      (
-        Number(
-          data.dp_amount || 0
-        ) || 0
-      )
-    )
-  }"
-  readonly
->
-
-      <small>
-  Pelunasan dihitung otomatis berdasarkan
-  Harga - DP Target.
-</small>
-
+      
       <!-- ======================================
            HIDDEN STATUS PELUNASAN
            AKAN OTOMATIS
