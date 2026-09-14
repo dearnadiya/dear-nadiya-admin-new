@@ -16594,11 +16594,12 @@ async function loadOrders() {
 
   }
    
-  await loadPORunningList();
+await loadPORunningList();
 await loadPOClaimList();
+await loadOldRecapClaimList();
 await loadPOArchiveList();
 await loadPOList();
-
+   
 /* ==========================================
    RESTORE POSISI TERAKHIR DI PESANAN
 ========================================== */
@@ -20381,6 +20382,501 @@ setTimeout(
     `;
 
   }
+
+   /* ============================================
+   LOAD REKAP LAMA MASIH BISA CLAIM
+   ============================================ */
+
+async function loadOldRecapClaimList() {
+  const container =
+    document.getElementById(
+      "poClaimContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          category,
+          batch_code,
+          item_name,
+          version,
+          quantity,
+          item_price,
+          minimum_dp_amount,
+          customer_id,
+          customer_name
+        `)
+        .not(
+          "version",
+          "is",
+          null
+        )
+        .order(
+          "id",
+          {
+            ascending: false
+          }
+        );
+
+    if (error) {
+      console.error(
+        "ERROR LOAD REKAP LAMA CLAIM:",
+        error
+      );
+      return;
+    }
+
+    const availableRows =
+      (data || []).filter(
+        function(row) {
+
+          const hasMember =
+            row &&
+            row.version &&
+            String(
+              row.version
+            ).trim();
+
+          const hasCustomer =
+            row &&
+            row.customer_name &&
+            String(
+              row.customer_name
+            ).trim();
+
+          return (
+            hasMember &&
+            !hasCustomer
+          );
+
+        }
+      );
+
+    if (
+      availableRows.length === 0
+    ) {
+      return;
+    }
+
+    /*
+      Kelompokkan berdasarkan
+      kategori + batch
+    */
+    const grouped = {};
+
+    availableRows.forEach(
+      function(row) {
+
+        const key =
+          [
+            row.category || "",
+            row.batch_code || ""
+          ].join("|");
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            category:
+              row.category || "",
+            batch_code:
+              row.batch_code || "",
+            item_name:
+              row.item_name || "",
+            rows: []
+          };
+        }
+
+        grouped[key].rows.push(
+          row
+        );
+
+      }
+    );
+
+    const cards =
+      Object.values(
+        grouped
+      )
+      .map(
+        function(group) {
+
+          const count =
+            group.rows.length;
+
+          return `
+            <div
+              class="po-running-card po-claim-card po-recap-claim-card"
+              data-recap-batch="${escapeHTML(
+                group.batch_code
+              )}"
+              data-recap-category="${escapeHTML(
+                group.category
+              )}"
+            >
+
+              <div
+                class="po-running-card-image"
+              >
+                <div
+                  class="po-running-card-no-image"
+                >
+                  📦
+                </div>
+              </div>
+
+              <div
+                class="po-running-card-info"
+              >
+
+                <h4>
+                  ${escapeHTML(
+                    group.batch_code ||
+                    "Rekap GO"
+                  )}
+                </h4>
+
+                <p>
+                  ${escapeHTML(
+                    group.item_name ||
+                    group.category ||
+                    "Rekap GO Lama"
+                  )}
+                </p>
+
+                <strong>
+                  🟢 ${count}
+                  member masih tersedia
+                </strong>
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      cards
+    );
+
+    /*
+      Klik kartu Rekap Lama
+    */
+    container
+      .querySelectorAll(
+        ".po-recap-claim-card"
+      )
+      .forEach(
+        function(card) {
+
+          card.addEventListener(
+            "click",
+            async function() {
+
+              const batchCode =
+                this.dataset
+                  .recapBatch;
+
+              const category =
+                this.dataset
+                  .recapCategory;
+
+              if (
+                !batchCode ||
+                !category
+              ) {
+                return;
+              }
+
+              await showOldRecapClaimDetail(
+                category,
+                batchCode
+              );
+
+            }
+          );
+
+        }
+      );
+
+  } catch (error) {
+
+    console.error(
+      "Gagal memuat Rekap GO lama yang masih bisa claim:",
+      error
+    );
+
+  }
+}
+
+
+/* ============================================
+   DETAIL REKAP LAMA UNTUK CLAIM
+   ============================================ */
+
+async function showOldRecapClaimDetail(
+  category,
+  batchCode
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq(
+        "category",
+        category
+      )
+      .eq(
+        "batch_code",
+        batchCode
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD DETAIL REKAP CLAIM:",
+      error
+    );
+
+    alert(
+      "Gagal membuka Rekap GO."
+    );
+
+    return;
+  }
+
+  const rows =
+    (data || []).filter(
+      function(row) {
+
+        return (
+          row &&
+          row.version &&
+          String(
+            row.version
+          ).trim() &&
+          !(
+            row.customer_name &&
+            String(
+              row.customer_name
+            ).trim()
+          )
+        );
+
+      }
+    );
+
+  const container =
+    document.getElementById(
+      "poFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.style.display =
+    "block";
+
+  container.innerHTML = `
+    <div class="panel">
+
+      <div
+        class="panel-header"
+      >
+
+        <div>
+          <h3>
+            🎟️ Claim Member
+          </h3>
+
+          <p>
+            ${escapeHTML(
+              batchCode
+            )}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="backOldRecapClaimButton"
+        >
+          ← Kembali
+        </button>
+
+      </div>
+
+      <div
+        class="product-table-wrapper"
+        style="margin-top:20px;"
+      >
+
+        <table
+          class="product-table"
+        >
+
+          <thead>
+            <tr>
+              <th>
+                Versi / Member
+              </th>
+
+              <th>
+                Quantity
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                Aksi
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            ${
+              rows
+                .map(
+                  function(row) {
+
+                    return `
+                      <tr>
+
+                        <td>
+                          ${escapeHTML(
+                            row.version ||
+                            "—"
+                          )}
+                        </td>
+
+                        <td>
+                          ${
+                            row.quantity ||
+                            1
+                          }
+                        </td>
+
+                        <td>
+                          <span
+                            class="po-status-available"
+                          >
+                            🟢 available
+                          </span>
+                        </td>
+
+                        <td>
+                          <button
+                            type="button"
+                            class="primary-button old-recap-claim-button"
+                            data-id="${escapeHTML(
+                              String(
+                                row.id
+                              )
+                            )}"
+                          >
+                            🎟️ Claim
+                          </button>
+                        </td>
+
+                      </tr>
+                    `;
+
+                  }
+                )
+                .join("")
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+  `;
+
+  document
+    .getElementById(
+      "backOldRecapClaimButton"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML = "";
+        container.style.display =
+          "none";
+
+      }
+    );
+
+  container
+    .querySelectorAll(
+      ".old-recap-claim-button"
+    )
+    .forEach(
+      function(button) {
+
+        button.addEventListener(
+          "click",
+          async function() {
+
+            const id =
+              Number(
+                this.dataset.id
+              );
+
+            if (!id) {
+              return;
+            }
+
+            await editRecap(id);
+
+          }
+        );
+
+      }
+    );
+
+  setTimeout(
+    function() {
+
+      container.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    },
+    50
+  );
+}
 
 }
 
