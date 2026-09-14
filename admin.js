@@ -16749,8 +16749,17 @@ function showPODetailAdmin(po) {
     display:flex;
     gap:8px;
     align-items:center;
+    flex-wrap:wrap;
   "
 >
+  <button
+    type="button"
+    class="secondary-button"
+    id="backToPOListButton"
+  >
+    ← Kembali ke List Pesanan
+  </button>
+
   <button
     type="button"
     class="primary-button"
@@ -17063,6 +17072,57 @@ function showPODetailAdmin(po) {
     );
 
   }
+
+const backToPOListButton =
+  document.getElementById(
+    "backToPOListButton"
+  );
+
+if (backToPOListButton) {
+  backToPOListButton.addEventListener(
+    "click",
+    function() {
+
+      /* Hapus PO yang sedang dipilih
+         agar saat kembali ke Pesanan
+         tidak otomatis membuka detail ini */
+      localStorage.removeItem(
+        "dearNadiyaSelectedPO"
+      );
+
+      /* Tutup detail */
+      container.innerHTML = "";
+      container.style.display = "none";
+
+      /* Pastikan daftar PO tampil */
+      const poRunningContainer =
+        document.getElementById(
+          "poRunningContainer"
+        );
+
+      if (poRunningContainer) {
+        poRunningContainer.style.display =
+          "block";
+      }
+
+      /* Kembali ke bagian PO berjalan */
+      const poRunningSection =
+        document.querySelector(
+          ".po-running-section"
+        );
+
+      if (poRunningSection) {
+        setTimeout(function() {
+          poRunningSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 50);
+      }
+
+    }
+  );
+}
 
 }
 
