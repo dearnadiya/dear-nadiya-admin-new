@@ -16534,74 +16534,107 @@ await loadPOArchiveList();
 await loadPOList();
 
 /* ==========================================
-   RESTORE PO TERAKHIR / KEMBALI KE LIST PO
+   RESTORE POSISI TERAKHIR DI PESANAN
 ========================================== */
 
-const savedPOId =
+const savedRunningPO =
   localStorage.getItem(
     "dearNadiyaSelectedPO"
   );
 
-if (savedPOId) {
+const savedClaimPO =
+  localStorage.getItem(
+    "dearNadiyaSelectedClaimPO"
+  );
+
+const savedArchivePO =
+  localStorage.getItem(
+    "dearNadiyaSelectedArchivePO"
+  );
+
+
+/* ==========================================
+   1. RESTORE PO BERJALAN
+========================================== */
+
+if (savedRunningPO) {
 
   const card =
     document.querySelector(
-      '.po-running-card[data-po-id="' +
-      CSS.escape(savedPOId) +
+      '.po-running-card:not(.po-claim-card)[data-po-id="' +
+      CSS.escape(savedRunningPO) +
       '"]'
     );
 
   if (card) {
 
     card.click();
-
-  } else {
-
-    localStorage.removeItem(
-      "dearNadiyaSelectedPO"
-    );
-
-    setTimeout(function() {
-
-      const poRunningSection =
-        document.querySelector(
-          "#poRunningContainer"
-        );
-
-      if (poRunningSection) {
-
-        poRunningSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-
-      }
-
-    }, 300);
+    return;
 
   }
 
-} else {
+  localStorage.removeItem(
+    "dearNadiyaSelectedPO"
+  );
+}
+
+
+/* ==========================================
+   2. RESTORE PO MASIH BISA CLAIM
+========================================== */
+
+if (savedClaimPO) {
+
+  const claimCard =
+    document.querySelector(
+      '.po-claim-card[data-po-id="' +
+      CSS.escape(savedClaimPO) +
+      '"]'
+    );
+
+  if (claimCard) {
+
+    claimCard.click();
+    return;
+
+  }
+
+  localStorage.removeItem(
+    "dearNadiyaSelectedClaimPO"
+  );
+}
+
+
+/* ==========================================
+   3. RESTORE ARSIP PESANAN
+========================================== */
+
+if (savedArchivePO) {
+
+  await loadPOArchiveList(true);
 
   setTimeout(function() {
 
-    const poRunningSection =
+    const archiveCard =
       document.querySelector(
-        "#poRunningContainer"
+        '.po-archive-table-row[data-po-id="' +
+        CSS.escape(savedArchivePO) +
+        '"]'
       );
 
-    if (poRunningSection) {
+    if (archiveCard) {
 
-      poRunningSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+      archiveCard.click();
+
+    } else {
+
+      localStorage.removeItem(
+        "dearNadiyaSelectedArchivePO"
+      );
 
     }
 
-  }, 300);
-
-}
+  }, 100);
 
 }
    
@@ -19802,6 +19835,14 @@ container
   String(poId)
 );
 
+   localStorage.removeItem(
+  "dearNadiyaSelectedClaimPO"
+);
+
+localStorage.removeItem(
+  "dearNadiyaSelectedArchivePO"
+);
+
         if (!poId) {
           return;
         }
@@ -20140,11 +20181,26 @@ container
         async function () {
 
           const poId =
-            this.dataset.poId;
+  this.dataset.poId;
 
-          if (!poId) {
-            return;
-          }
+if (!poId) {
+  return;
+}
+
+/* Simpan PO claim terakhir */
+localStorage.setItem(
+  "dearNadiyaSelectedClaimPO",
+  String(poId)
+);
+
+/* Pastikan mode lain tidak ikut tersimpan */
+localStorage.removeItem(
+  "dearNadiyaSelectedPO"
+);
+
+localStorage.removeItem(
+  "dearNadiyaSelectedArchivePO"
+);
 
           try {
 
@@ -20548,11 +20604,26 @@ console.log("ARCHIVE ERROR:", error);
             async function () {
 
               const poId =
-                this.dataset.poId;
+  this.dataset.poId;
 
-              if (!poId) {
-                return;
-              }
+if (!poId) {
+  return;
+}
+
+/* Simpan arsip yang sedang dibuka */
+localStorage.setItem(
+  "dearNadiyaSelectedArchivePO",
+  String(poId)
+);
+
+/* Pastikan mode lain tidak ikut tersimpan */
+localStorage.removeItem(
+  "dearNadiyaSelectedPO"
+);
+
+localStorage.removeItem(
+  "dearNadiyaSelectedClaimPO"
+);
 
               try {
 
