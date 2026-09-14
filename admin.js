@@ -20408,17 +20408,18 @@ async function loadOldRecapClaimList() {
       await supabaseClient
         .from("purchase_recap")
         .select(`
-          id,
-          category,
-          batch_code,
-          item_name,
-          version,
-          quantity,
-          item_price,
-          minimum_dp_amount,
-          customer_id,
-          customer_name
-        `)
+  id,
+  category,
+  batch_code,
+  item_name,
+  version,
+  quantity,
+  item_price,
+  minimum_dp_amount,
+  customer_id,
+  customer_name,
+  image_url
+`)
         .not(
           "version",
           "is",
@@ -20487,17 +20488,19 @@ async function loadOldRecapClaimList() {
           ].join("|");
 
         if (!grouped[key]) {
-          grouped[key] = {
-            category:
-              row.category || "",
-            batch_code:
-              row.batch_code || "",
-            item_name:
-              row.item_name || "",
-            rows: []
-          };
-        }
-
+  grouped[key] = {
+    category:
+      row.category || "",
+    batch_code:
+      row.batch_code || "",
+    item_name:
+      row.item_name || "",
+    image_url:
+      row.image_url || "",
+    rows: []
+  };
+}
+         
         grouped[key].rows.push(
           row
         );
@@ -20527,15 +20530,31 @@ async function loadOldRecapClaimList() {
             >
 
               <div
-                class="po-running-card-image"
-              >
-                <div
-                  class="po-running-card-no-image"
-                >
-                  📦
-                </div>
-              </div>
-
+  class="po-running-card-image"
+>
+  ${
+    group.image_url
+      ? `
+        <img
+          src="${escapeHTML(
+            group.image_url
+          )}"
+          alt="${escapeHTML(
+            group.item_name ||
+            group.batch_code ||
+            "Foto Rekap GO"
+          )}"
+        >
+      `
+      : `
+        <div
+          class="po-running-card-no-image"
+        >
+          📦
+        </div>
+      `
+  }
+</div>
               <div
                 class="po-running-card-info"
               >
@@ -20704,11 +20723,65 @@ async function showOldRecapClaimDetail(
     "block";
 
   container.innerHTML = `
-    <div class="panel">
+  <div class="panel">
+
+    <div
+      class="panel-header"
+      style="
+        align-items:flex-start;
+        gap:18px;
+      "
+    >
 
       <div
-        class="panel-header"
+        style="
+          display:flex;
+          align-items:flex-start;
+          gap:14px;
+          min-width:0;
+        "
       >
+
+        <div
+          style="
+            width:72px;
+            height:72px;
+            flex:0 0 72px;
+            border-radius:10px;
+            overflow:hidden;
+            border:1px solid #e4dceb;
+            background:#f8f7fb;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+          "
+        >
+          ${
+            data?.[0]?.image_url
+              ? `
+                <img
+                  src="${escapeHTML(
+                    data[0].image_url
+                  )}"
+                  alt="Foto Barang"
+                  style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                  "
+                >
+              `
+              : `
+                <span
+                  style="
+                    font-size:28px;
+                  "
+                >
+                  📦
+                </span>
+              `
+          }
+        </div>
 
         <div>
           <h3>
@@ -20720,18 +20793,45 @@ async function showOldRecapClaimDetail(
               batchCode
             )}
           </p>
-        </div>
 
-        <button
-          type="button"
-          class="secondary-button"
-          id="backOldRecapClaimButton"
-        >
-          ← Kembali
-        </button>
+          <strong>
+            ${escapeHTML(
+              data?.[0]?.item_name ||
+              "Rekap GO"
+            )}
+          </strong>
+
+          <div
+            style="
+              margin-top:10px;
+            "
+          >
+            <button
+              type="button"
+              class="secondary-button"
+              id="editOldRecapPhotoButton"
+            >
+              ${
+                data?.[0]?.image_url
+                  ? "✏️ Ganti Foto"
+                  : "📷 Tambah Foto"
+              }
+            </button>
+          </div>
+        </div>
 
       </div>
 
+      <button
+        type="button"
+        class="secondary-button"
+        id="backOldRecapClaimButton"
+      >
+        ← Kembali
+      </button>
+
+    </div>
+    
       <div
         class="product-table-wrapper"
         style="margin-top:20px;"
@@ -20839,6 +20939,29 @@ async function showOldRecapClaimDetail(
       }
     );
 
+const editOldRecapPhotoButton =
+  document.getElementById(
+    "editOldRecapPhotoButton"
+  );
+
+if (
+  editOldRecapPhotoButton
+) {
+
+  editOldRecapPhotoButton.addEventListener(
+    "click",
+    async function() {
+
+      await uploadOldRecapBatchPhoto(
+        category,
+        batchCode
+      );
+
+    }
+  );
+
+}
+
   container
     .querySelectorAll(
       ".old-recap-claim-button"
@@ -20878,6 +21001,170 @@ async function showOldRecapClaimDetail(
     },
     50
   );
+}
+
+/* ============================================
+   UPLOAD FOTO REKAP LAMA MASIH BISA CLAIM
+   ============================================ */
+
+async function uploadOldRecapBatchPhoto(
+  category,
+  batchCode
+) {
+
+  const fileInput =
+    document.createElement(
+      "input"
+    );
+
+  fileInput.type = "file";
+  fileInput.accept =
+    "image/*";
+
+  fileInput.addEventListener(
+    "change",
+    async function() {
+
+      const file =
+        fileInput.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+        alert(
+          "File foto harus berupa gambar."
+        );
+        return;
+      }
+
+      const extension =
+        file.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+
+      const fileName =
+        `recap-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 8)}.${extension}`;
+
+      const {
+        error: uploadError
+      } =
+        await supabaseClient
+          .storage
+          .from(
+            "po-images"
+          )
+          .upload(
+            fileName,
+            file,
+            {
+              cacheControl:
+                "3600",
+              upsert:
+                false
+            }
+          );
+
+      if (uploadError) {
+
+        console.error(
+          "ERROR UPLOAD RECAP IMAGE:",
+          uploadError
+        );
+
+        alert(
+          "Gagal upload foto: " +
+          uploadError.message
+        );
+
+        return;
+      }
+
+      const {
+        data: publicURLData
+      } =
+        supabaseClient
+          .storage
+          .from(
+            "po-images"
+          )
+          .getPublicUrl(
+            fileName
+          );
+
+      const imageURL =
+        publicURLData?.publicUrl ||
+        null;
+
+      if (!imageURL) {
+
+        alert(
+          "URL foto tidak berhasil dibuat."
+        );
+
+        return;
+      }
+
+      /*
+        SIMPAN FOTO UNTUK
+        SELURUH BATCH
+      */
+
+      const {
+        error: updateError
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .update({
+            image_url:
+              imageURL
+          })
+          .eq(
+            "category",
+            category
+          )
+          .eq(
+            "batch_code",
+            batchCode
+          );
+
+      if (updateError) {
+
+        console.error(
+          "ERROR UPDATE RECAP IMAGE:",
+          updateError
+        );
+
+        alert(
+          "Foto berhasil di-upload, tetapi gagal disimpan: " +
+          updateError.message
+        );
+
+        return;
+      }
+
+      alert(
+        "Foto batch berhasil disimpan. ♥"
+      );
+
+      await showOldRecapClaimDetail(
+        category,
+        batchCode
+      );
+    }
+  );
+
+  fileInput.click();
 }
 
 /* ============================================
