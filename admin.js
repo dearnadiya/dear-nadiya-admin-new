@@ -16527,6 +16527,37 @@ async function loadOrders() {
 
   }
 
+   /* ==========================================
+   OTOMATIS ARAHKAN KE PO BERJALAN
+   HANYA JIKA TIDAK ADA PO TERAKHIR
+========================================== */
+
+const savedPOId =
+  localStorage.getItem(
+    "dearNadiyaSelectedPO"
+  );
+
+if (!savedPOId) {
+
+  setTimeout(function () {
+
+    const poRunningSection =
+      document.querySelector(
+        ".po-running-section"
+      );
+
+    if (poRunningSection) {
+      poRunningSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+  }, 100);
+
+}
+
+   
   await loadPORunningList();
 await loadPOClaimList();
 await loadPOArchiveList();
