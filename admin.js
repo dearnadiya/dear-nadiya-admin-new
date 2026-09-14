@@ -9205,17 +9205,6 @@ if (
 ) {
 
   customerResults.innerHTML = `
-    <div
-      style="
-        padding:8px 10px;
-        color:#777;
-        font-size:13px;
-        border-bottom:1px solid #eee;
-      "
-    >
-      Customer tidak ditemukan
-    </div>
-
     <button
       type="button"
       class="batch-create-customer-option"
@@ -9223,16 +9212,26 @@ if (
         display:block;
         width:100%;
         text-align:left;
-        padding:10px;
+        padding:10px 12px;
         border:0;
-        background:#f8f9fa;
+        border-bottom:1px solid #eee;
+        background:#fff;
         cursor:pointer;
-        font-weight:600;
-        color:#2563eb;
+        font-size:13px;
       "
     >
-      ＋ Buat Customer Baru
+      ➕ Buat Customer Baru
     </button>
+
+    <div
+      style="
+        padding:10px 12px;
+        color:#777;
+        font-size:12px;
+      "
+    >
+      Customer tidak ditemukan
+    </div>
   `;
 
   customerResults.style.display =
@@ -9240,6 +9239,7 @@ if (
 
   return;
 }
+         
         customerResults.innerHTML =
   matches
     .map(
@@ -10603,32 +10603,74 @@ document.addEventListener(
 
 
     customerResults.addEventListener(
-      "click",
-      function(event) {
+  "click",
+  function(event) {
 
-        const button =
-          event.target.closest(
-            ".batch-customer-result"
+    /* ==========================================
+       BUAT CUSTOMER BARU
+    ========================================== */
+
+    const createButton =
+      event.target.closest(
+        ".batch-create-customer-option"
+      );
+
+    if (createButton) {
+
+      showQuickCustomerForm(
+        function(newCustomer) {
+
+          /* Masukkan customer baru
+             ke daftar customer item ini */
+          customerList.push(
+            newCustomer
           );
 
-        if (!button) {
-          return;
+          /* Langsung pilih customer baru */
+          customerInput.value =
+            newCustomer.name || "";
+
+          customerIdInput.value =
+            newCustomer.id || "";
+
+          customerResults.innerHTML =
+            "";
+
+          customerResults.style.display =
+            "none";
         }
+      );
 
-        customerInput.value =
-          button.dataset.name || "";
+      return;
+    }
 
-        customerIdInput.value =
-          button.dataset.id || "";
 
-        customerResults.innerHTML =
-          "";
+    /* ==========================================
+       PILIH CUSTOMER YANG SUDAH ADA
+    ========================================== */
 
-        customerResults.style.display =
-          "none";
-      }
-    );
+    const button =
+      event.target.closest(
+        ".batch-customer-result"
+      );
 
+    if (!button) {
+      return;
+    }
+
+    customerInput.value =
+      button.dataset.name || "";
+
+    customerIdInput.value =
+      button.dataset.id || "";
+
+    customerResults.innerHTML =
+      "";
+
+    customerResults.style.display =
+      "none";
+  }
+);
 
     document.addEventListener(
       "click",
