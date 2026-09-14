@@ -15991,106 +15991,152 @@ if (!isSamePriceMode) {
           "Menyimpan perubahan...";
 
 
-        const updatedData = {
-
-          batch_code:
-            document
-              .getElementById(
-                "editBatchCode"
-              )
-              .value
-              .trim(),
-
-          item_name:
-            document
-              .getElementById(
-                "editItemName"
-              )
-              .value
-              .trim(),
-
-customer_id:
-  Number(
-    document.getElementById("editCustomerId").value
-  ) || null,
-
-customer_name:
-  document.getElementById("editCustomerInput").value.trim(),           
-          version:
-            document
-              .getElementById(
-                "editVersion"
-              )
-              .value
-              .trim(),
-
-          quantity:
-            Number(
-              document
-                .getElementById(
-                  "editQuantity"
-                )
-                .value
-            ) || 1,
-
-          item_price:
-            Number(
-              document
-                .getElementById(
-                  "editItemPrice"
-                )
-                .value
-            ) || 0,
-
-          minimum_dp_amount:
-  Number(
+        const newPrice =
+  parseNominalInput(
     document
-      .getElementById(
-        "editDpAmount"
-      )
+      .getElementById("editItemPrice")
+      ?.value
+  );
+
+const newDpMinimum =
+  parseNominalInput(
+    document
+      .getElementById("editDpMinimum")
+      ?.value
+  );
+
+/*
+  DP Aktual berasal dari pembayaran yang sudah dikonfirmasi.
+  Jangan ambil dari input form.
+*/
+const actualDp =
+  Number(data.dp_amount) || 0;
+
+/*
+  Ambil total pembayaran aktual lama.
+
+  Harga lama - Sisa lama
+  = total uang yang sudah benar-benar dibayar.
+*/
+const oldPrice =
+  Number(data.item_price) || 0;
+
+const oldRemaining =
+  Number(data.remaining_amount) || 0;
+
+const totalActualPaid =
+  Math.max(
+    0,
+    oldPrice - oldRemaining
+  );
+
+/*
+  Setelah harga berubah,
+  sisa pembayaran dihitung ulang
+  berdasarkan total pembayaran aktual
+  yang sudah ada.
+*/
+const newRemaining =
+  Math.max(
+    0,
+    newPrice - totalActualPaid
+  );
+
+/*
+  Status DP ditentukan dari:
+  DP Aktual vs DP Minimum
+*/
+const newDpStatus =
+  actualDp <= 0
+    ? "unpaid"
+    : actualDp >= newDpMinimum
+      ? "paid"
+      : "insufficient";
+
+/*
+  Status pembayaran ditentukan dari
+  sisa pembayaran.
+*/
+const newPaymentStatus =
+  newPrice > 0 &&
+  newRemaining <= 0
+    ? "paid"
+    : "unpaid";
+
+const updatedData = {
+
+  batch_code:
+    document
+      .getElementById("editBatchCode")
       .value
-  ) || 0,
-           
-          dp_status:
-            document
-              .getElementById(
-                "editDpStatus"
-              )
-              .value,
+      .trim(),
 
-          remaining_amount:
-            Number(
-              document
-                .getElementById(
-                  "editRemaining"
-                )
-                .value
-            ) || 0,
+  item_name:
+    document
+      .getElementById("editItemName")
+      .value
+      .trim(),
 
-          payment_status:
-            document
-              .getElementById(
-                "editPaymentStatus"
-              )
-              .value,
+  customer_id:
+    Number(
+      document
+        .getElementById("editCustomerId")
+        .value
+    ) || null,
 
-          customer_status:
-  document
-    .getElementById(
-      "editCustomerStatus"
-    )
-    .value,
-           
-          note:
-            document
-              .getElementById(
-                "editNote"
-              )
-              .value
-              .trim(),
+  customer_name:
+    document
+      .getElementById("editCustomerInput")
+      .value
+      .trim(),
+
+  version:
+    document
+      .getElementById("editVersion")
+      .value
+      .trim(),
+
+  quantity:
+    Number(
+      document
+        .getElementById("editQuantity")
+        .value
+    ) || 1,
+
+  item_price:
+    newPrice,
+
+  minimum_dp_amount:
+    newDpMinimum,
+
+  /*
+    PENTING:
+    DP Aktual tidak diubah dari form.
+  */
+  dp_amount:
+    actualDp,
+
+  dp_status:
+    newDpStatus,
+
+  remaining_amount:
+    newRemaining,
+
+  payment_status:
+    newPaymentStatus,
+
+  customer_status:
+    document
+      .getElementById("editCustomerStatus")
+      .value,
+
+  note:
+    document
+      .getElementById("editNote")
+      .value
+      .trim()
 
 };
-
 
         const {
   error
