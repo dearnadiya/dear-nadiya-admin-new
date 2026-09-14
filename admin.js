@@ -10221,7 +10221,6 @@ updateCoDeadlineMode();
     class="batch-customer"
     placeholder="🔍 Cari DN ID / nama / username WA..."
     autocomplete="off"
-    required
   >
 
   <input
