@@ -15439,85 +15439,81 @@ container.innerHTML = `
         required
       >
 
+<!-- ======================================
+     HARGA
+     ====================================== -->
 
-      <!-- ======================================
-           HARGA & DP
-           HANYA UNTUK HARGA BERBEDA
-           ====================================== -->
+<label>
+  Harga Barang
+</label>
 
-      ${
-        isSamePriceMode
-          ? ""
-          : `
-
-            <label>
-              Harga Barang
-            </label>
-
-            <input
-              id="editItemPrice"
-              type="number"
-              min="0"
-              value="${
-                data.item_price || 0
-              }"
-            >
+<input
+  id="editItemPrice"
+  type="text"
+  value="${formatNominalInput(
+    data.item_price || 0
+  )}"
+  class="currency-input"
+  placeholder="50.000"
+>
 
 
-            <label>
-              DP
-            </label>
+<!-- ======================================
+     DP MINIMUM
+     ====================================== -->
 
-            <input
-              id="editDpAmount"
-              type="number"
-              min="0"
-              value="${
-                data.minimum_dp_amount ??
-                data.dp_amount ??
-                0
-              }"
-            >
+<label>
+  DP Minimum
+</label>
 
-          `
-      }
+<input
+  id="editDpMinimum"
+  type="text"
+  value="${formatNominalInput(
+    data.minimum_dp_amount || 0
+  )}"
+  class="currency-input"
+  placeholder="50.000"
+>
 
 
-      <!-- ======================================
-           HIDDEN HARGA / DP
-           UNTUK MODE HARGA SAMA
-           ====================================== -->
+<!-- ======================================
+     DP AKTUAL
+     ====================================== -->
 
-      ${
-  isSamePriceMode
-    ? `
+<label>
+  DP Aktual
+</label>
+
+<input
+  id="editDpActual"
+  type="text"
+  value="${formatNominalInput(
+    data.dp_amount || 0
+  )}"
+  class="currency-input"
+  readonly
+>
+
+
+<!-- ======================================
+     SISA PEMBAYARAN
+     ====================================== -->
+
+<label>
+  Sisa Pembayaran
+</label>
+
+<input
+  id="editRemaining"
+  type="text"
+  value="${formatNominalInput(
+    data.remaining_amount || 0
+  )}"
+  class="currency-input"
+  readonly
+>
     
-      <input
-        type="hidden"
-        id="editItemPrice"
-        value="${
-          data.item_price || 0
-        }"
-      >
-
-      <label>
-        DP Aktual
-      </label>
-
-      <input
-        id="editDpAmount"
-        type="text"
-        class="currency-input"
-        value="${
-          data.dp_amount || 0
-        }"
-        placeholder="50.000"
-      />
-
-  `
-  : ""
-}
-
       <!-- ======================================
            HIDDEN STATUS DP
            AKAN OTOMATIS
