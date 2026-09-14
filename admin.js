@@ -14454,6 +14454,7 @@ const existingCoDeadline =
 <input
   id="editBatchHeaderPrice"
   type="text"
+  class="currency-input"
   value="${
     (() => {
       const prices =
@@ -14478,6 +14479,7 @@ const existingCoDeadline =
 <input
   id="editBatchHeaderDp"
   type="text"
+  class="currency-input"
   value="${
     (() => {
       const dps =
