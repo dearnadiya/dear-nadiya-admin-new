@@ -11517,16 +11517,17 @@ let html = `
     ${
       (() => {
         const dps =
-          rows
-            .map(row =>
-              Number(
-                row.minimum_dp_amount
-              ) || 0
-            )
-            .filter(
-              value => value > 0
-            );
-
+  rows
+    .map(row =>
+      Number(
+        row.minimum_dp_amount ??
+        row.dp_amount ??
+        0
+      ) || 0
+    )
+    .filter(
+      value => value > 0
+    );
         if (!dps.length) {
           return "—";
         }
