@@ -16531,6 +16531,41 @@ async function loadOrders() {
 await loadPOClaimList();
 await loadPOArchiveList();
 await loadPOList();
+
+/* ==========================================
+   RESTORE PO BERJALAN TERAKHIR
+========================================== */
+
+const savedPOId =
+  localStorage.getItem(
+    "dearNadiyaSelectedPO"
+  );
+
+if (savedPOId) {
+
+  const restoreTimer =
+    setInterval(async function() {
+
+      const poCard =
+        document.querySelector(
+          '.po-running-card[data-po-id="' +
+          CSS.escape(savedPOId) +
+          '"]'
+        );
+
+      if (!poCard) {
+        return;
+      }
+
+      clearInterval(
+        restoreTimer
+      );
+
+      poCard.click();
+
+    }, 100);
+
+}
    
    /* ==========================================
    RESTORE DRAFT PO SAAT KEMBALI KE PESANAN
@@ -19699,6 +19734,11 @@ container
 
         const poId =
           this.dataset.poId;
+
+         localStorage.setItem(
+  "dearNadiyaSelectedPO",
+  String(poId)
+);
 
         if (!poId) {
           return;
