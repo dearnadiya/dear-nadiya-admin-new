@@ -14648,26 +14648,33 @@ const existingCoDeadline =
 
 
         <div
-          class="form-actions"
-        >
+  class="form-actions"
+>
 
-          <button
-            type="submit"
-            class="primary-button"
-          >
-            💾 Simpan Perubahan Batch
-          </button>
+  <button
+    type="submit"
+    class="primary-button"
+  >
+    💾 Simpan Perubahan Batch
+  </button>
 
-          <button
-            type="button"
-            class="secondary-button"
-            id="cancelEditBatchHeader"
-          >
-            Batal
-          </button>
+  <button
+    type="button"
+    class="secondary-button"
+    id="cancelEditBatchHeader"
+  >
+    Batal
+  </button>
 
-        </div>
+  <button
+    type="button"
+    class="delete-button"
+    id="deleteEditBatchHeader"
+  >
+    🗑️ Hapus Batch
+  </button>
 
+</div>
 
         <p
           id="editBatchHeaderMessage"
@@ -14782,6 +14789,113 @@ updateEditCoDeadlineMode();
       }
     );
 
+   /* ==========================================
+   HAPUS BATCH
+   ========================================== */
+
+document
+  .getElementById(
+    "deleteEditBatchHeader"
+  )
+  .addEventListener(
+    "click",
+    async function() {
+
+      const confirmDelete =
+        confirm(
+          "Hapus seluruh batch ini?\n\n" +
+          "Batch: " +
+          batchCode +
+          "\n\n" +
+          "Semua data customer/member " +
+          "dalam batch ini juga akan dihapus.\n\n" +
+          "Tindakan ini tidak dapat dibatalkan."
+        );
+
+      if (!confirmDelete) {
+        return;
+      }
+
+      const deleteButton =
+        document.getElementById(
+          "deleteEditBatchHeader"
+        );
+
+      const message =
+        document.getElementById(
+          "editBatchHeaderMessage"
+        );
+
+      if (deleteButton) {
+        deleteButton.disabled =
+          true;
+
+        deleteButton.textContent =
+          "Menghapus...";
+      }
+
+      if (message) {
+        message.textContent =
+          "Menghapus batch...";
+      }
+
+      const {
+        error: deleteError
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .delete()
+          .eq(
+            "category",
+            category
+          )
+          .eq(
+            "batch_code",
+            batchCode
+          );
+
+      if (deleteError) {
+
+        console.error(
+          "ERROR DELETE BATCH:",
+          deleteError
+        );
+
+        if (message) {
+          message.textContent =
+            "Gagal menghapus batch: " +
+            deleteError.message;
+        }
+
+        if (deleteButton) {
+          deleteButton.disabled =
+            false;
+
+          deleteButton.textContent =
+            "🗑️ Hapus Batch";
+        }
+
+        return;
+      }
+
+      alert(
+        "Batch berhasil dihapus."
+      );
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+      await loadRecapList(
+        category
+      );
+
+    }
+  );
 
   /* ==========================================
      SIMPAN EDIT BATCH
