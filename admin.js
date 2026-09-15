@@ -11497,13 +11497,25 @@ let html = `
     Hapus
   </div>
 
-  <div class="recap-batch-table-member">
-    Tambah Member / Versi
-  </div>
+  <div
+  class="recap-batch-table-member"
+  style="
+    white-space:nowrap;
+    text-align:center;
+  "
+>
+  Tambah Member / Versi
+</div>
 
-  <div class="recap-batch-table-arrow">
-    →
-  </div>
+  <div
+  class="recap-batch-table-arrow"
+  style="
+    white-space:nowrap;
+    text-align:center;
+  "
+>
+  →
+</div>
 
 </div>
 `;
@@ -11549,12 +11561,12 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-      minmax(90px, 100px)
-      minmax(180px, 1fr)
-      80px
-      80px
-      minmax(180px, auto)
-      45px;
+  minmax(90px, 100px)
+  minmax(180px, 1fr)
+  80px
+  80px
+  180px
+  45px;
     align-items:center;
     gap:8px;
   "
