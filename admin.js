@@ -11542,78 +11542,128 @@ let html = `
           )}"
         >
 
-         <div class="recap-batch-header">
+         <div
+  class="recap-batch-header"
+  style="
+    display:grid;
+    grid-template-columns:
+      minmax(90px, 100px)
+      minmax(180px, 1fr)
+      auto
+      auto
+      45px;
+    align-items:center;
+    gap:8px;
+  "
+>
 
+  <!-- KODE BATCH -->
   <div>
 
-    <h3>
+    <h3
+      style="
+        margin:0;
+      "
+    >
       ${escapeHTML(batchCode)}
     </h3>
 
-    <p
+  </div>
+
+
+  <!-- NAMA BARANG -->
+  <div>
+
+    <span>
+      ${escapeHTML(
+        rows[0]?.item_name ||
+        "Nama barang belum tersedia"
+      )}
+    </span>
+
+  </div>
+
+
+  <!-- EDIT + HAPUS -->
+  <div
+    style="
+      display:flex;
+      gap:6px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:nowrap;
+    "
+  >
+
+    <button
+      type="button"
+      class="primary-button edit-batch-header-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+      data-category="${escapeHTML(category)}"
       style="
-        display:flex;
-        align-items:center;
-        gap:8px;
-        flex-wrap:wrap;
+        padding:4px 10px;
+        font-size:12px;
+        white-space:nowrap;
       "
     >
+      ✏️ Edit
+    </button>
 
-      <span>
-        ${escapeHTML(
-          rows[0]?.item_name ||
-          "Nama barang belum tersedia"
-        )}
-      </span>
+    <button
+      type="button"
+      class="delete-button delete-batch-header-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+      data-category="${escapeHTML(category)}"
+      style="
+        padding:4px 10px;
+        font-size:12px;
+        white-space:nowrap;
+      "
+    >
+      🗑️ Hapus
+    </button>
 
-     <button
-  type="button"
-  class="primary-button edit-batch-header-button"
-  data-batch-code="${escapeHTML(batchCode)}"
-  data-category="${escapeHTML(category)}"
-  style="
-    padding:4px 10px;
-    font-size:12px;
-  "
->
-  ✏️ Edit
-</button>
+  </div>
 
-<button
-  type="button"
-  class="delete-button delete-batch-header-button"
-  data-batch-code="${escapeHTML(batchCode)}"
-  data-category="${escapeHTML(category)}"
-  style="
-    padding:4px 10px;
-    font-size:12px;
-  "
->
-  🗑️ Hapus
-</button>
 
-    </p>
+  <!-- TAMBAH MEMBER -->
+  <div
+    style="
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      white-space:nowrap;
+    "
+  >
 
-        <div class="recap-batch-customer-summary">
+    <span>
+      ${rows.length}
+      customer
+    </span>
 
-      <span>
-        ${rows.length}
-        customer
-      </span>
+    <button
+      type="button"
+      class="add-recap-member-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+    >
+      ＋ Tambah Member / Versi
+    </button>
 
-      <button
-        type="button"
-        class="add-recap-member-button"
-        data-batch-code="${escapeHTML(batchCode)}"
-      >
-        ＋ Tambah Member / Versi
-      </button>
+  </div>
 
-        </div>
-      </div>
+
+  <!-- PANAH -->
+  <div
+    style="
+      text-align:center;
+      font-size:20px;
+    "
+  >
+    →
+  </div>
 
 </div>
-
 <div class="recap-batch-deadlines">
 
   <div>
