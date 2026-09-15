@@ -12555,11 +12555,12 @@ button {
   display: grid !important;
 
   grid-template-columns:
-    105px
-    minmax(180px, 1fr)
-    80px
-    175px
-    45px !important;
+  100px
+  300px
+  80px
+  80px
+  180px
+  45px !important;
 
   width: 100% !important;
   min-width: 0 !important;
@@ -12657,11 +12658,32 @@ button {
   position: static !important;
 }
 
+/* Hapus */
+#recapListContainer
+.recap-batch-header
+.delete-batch-header-button {
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+
+  width: 70px !important;
+  min-width: 70px !important;
+  height: 34px !important;
+
+  margin: 0 auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+  box-sizing: border-box !important;
+}
+
 /* Tambah Member */
 #recapListContainer
 .recap-batch-header
 .add-recap-member-button {
-  grid-column: 4 !important;
+  grid-column: 5 !important;
   grid-row: 1 !important;
 
   width: 165px !important;
@@ -12680,7 +12702,7 @@ button {
 /* Panah */
 #recapListContainer
 .recap-batch-header::after {
-  grid-column: 5 !important;
+  grid-column: 6 !important;
   grid-row: 1 !important;
 
   width: 45px !important;
