@@ -11629,22 +11629,6 @@ let html = `
     justify-content:center;
   "
 >
-
-  <button
-    type="button"
-    class="delete-button delete-batch-header-button"
-    data-batch-code="${escapeHTML(batchCode)}"
-    data-category="${escapeHTML(category)}"
-    style="
-      padding:4px 10px;
-      font-size:12px;
-      white-space:nowrap;
-    "
-  >
-    🗑️ Hapus
-  </button>
-
-</div>
     <button
       type="button"
       class="primary-button edit-batch-header-button"
