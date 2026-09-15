@@ -297,6 +297,58 @@ function escapeHTML(value) {
 
 }
 
+/* ============================================
+   WHATSAPP CUSTOMER
+============================================ */
+
+function normalizeWhatsAppNumber(value) {
+  let number = String(value || "")
+    .replace(/[^\d]/g, "");
+
+  if (!number) {
+    return "";
+  }
+
+  if (number.startsWith("0")) {
+    number = "62" + number.substring(1);
+  }
+
+  if (number.startsWith("8")) {
+    number = "62" + number;
+  }
+
+  return number;
+}
+
+function openCustomerWhatsApp(
+  whatsapp,
+  message
+) {
+  const number =
+    normalizeWhatsAppNumber(
+      whatsapp
+    );
+
+  if (!number) {
+    alert(
+      "Nomor WhatsApp customer belum tersedia."
+    );
+    return;
+  }
+
+  const url =
+    "https://wa.me/" +
+    number +
+    "?text=" +
+    encodeURIComponent(
+      message || ""
+    );
+
+  window.open(
+    url,
+    "_blank"
+  );
+}
 
 /* ============================================
    LOGIN GOOGLE
@@ -766,6 +818,56 @@ async function loadDashboard() {
 
     const rows = data || [];
 
+   /* =====================================
+   AMBIL NOMOR WA CUSTOMER
+===================================== */
+
+const customerIds = [
+  ...new Set(
+    rows
+      .map(row =>
+        Number(row.customer_id) || null
+      )
+      .filter(Boolean)
+  )
+];
+
+let customerWhatsAppMap = {};
+
+if (customerIds.length > 0) {
+  const {
+    data: customerData,
+    error: customerError
+  } =
+    await supabaseClient
+      .from("customers")
+      .select(`
+        id,
+        name,
+        whatsapp
+      `)
+      .in(
+        "id",
+        customerIds
+      );
+
+  if (customerError) {
+    console.error(
+      "ERROR LOAD CUSTOMER WHATSAPP:",
+      customerError
+    );
+  } else {
+    (
+      customerData || []
+    ).forEach(customer => {
+      customerWhatsAppMap[
+        String(customer.id)
+      ] =
+        customer.whatsapp || "";
+    });
+  }
+}
+
 
     /* =====================================
        HELPER
@@ -1094,10 +1196,71 @@ document.getElementById(
                 .join("");
 
 
-            return `
-              <div class="dashboard-customer-card">
+            const firstCustomerRow =
+  customerRows[0];
 
-                <h4>${customerDisplayName}</h4>
+const customerId =
+  Number(
+    firstCustomerRow?.customer_id
+  ) || null;
+
+const customerWhatsApp =
+  customerWhatsAppMap[
+    String(customerId)
+  ] || "";
+
+const dpMessage =
+`Halo ${customerDisplayName} ♥
+Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${firstCustomerRow?.batch_code || ""}.
+
+Total tagihan DP: ${formatRupiah(totalDP)}
+
+Mohon segera melakukan pembayaran ya.
+Terima kasih ♥
+Dear Nadiya`;
+
+return `
+  <div class="dashboard-customer-card">
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+      "
+    >
+      <h4>
+        ${customerDisplayName}
+      </h4>
+
+      ${
+        customerWhatsApp
+          ? `
+            <button
+              type="button"
+              class="secondary-button"
+              onclick='openCustomerWhatsApp(
+                ${JSON.stringify(customerWhatsApp)},
+                ${JSON.stringify(dpMessage)}
+              )'
+            >
+              💬 Chat WhatsApp
+            </button>
+          `
+          : `
+            <span
+              style="
+                color:#999;
+                font-size:13px;
+              "
+            >
+              WA belum tersedia
+            </span>
+          `
+      }
+    </div>
                 
                 ${paymentHeader}
 ${itemsHTML}
@@ -1250,13 +1413,72 @@ ${itemsHTML}
                 })
                 .join("");
 
+             const firstCustomerRow =
+  customerRows[0];
+
+const customerId =
+  Number(
+    firstCustomerRow?.customer_id
+  ) || null;
+
+const customerWhatsApp =
+  customerWhatsAppMap[
+    String(customerId)
+  ] || "";
+
+const paymentMessage =
+`Halo ${customerName} ♥
+Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${firstCustomerRow?.batch_code || ""} masih memiliki sisa ${formatRupiah(totalPayment)}.
+
+Deadline pelunasan:
+${firstCustomerRow?.payment_deadline || "—"}
+
+Mohon segera melakukan pelunasan ya.
+Terima kasih ♥
+Dear Nadiya`;
 
             return `
               <div class="dashboard-customer-card">
 
-                <h4>
-                  ${customerName}
-                </h4>
+                <div
+  style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  "
+>
+  <h4>
+    ${customerName}
+  </h4>
+
+  ${
+    customerWhatsApp
+      ? `
+        <button
+          type="button"
+          class="secondary-button"
+          onclick='openCustomerWhatsApp(
+            ${JSON.stringify(customerWhatsApp)},
+            ${JSON.stringify(paymentMessage)}
+          )'
+        >
+          💬 Chat WhatsApp
+        </button>
+      `
+      : `
+        <span
+          style="
+            color:#999;
+            font-size:13px;
+          "
+        >
+          WA belum tersedia
+        </span>
+      `
+  }
+</div>
 
                 ${paymentHeader}
 ${itemsHTML}
@@ -1406,16 +1628,57 @@ if (
           >
 
             <span class="dashboard-co-name">
-              ${customer.name}
-            </span>
+  ${customer.name}
+</span>
 
-            <span class="dashboard-co-deadline">
-              ${customer.deadline}
-            </span>
+<span class="dashboard-co-deadline">
+  ${customer.deadline}
+</span>
 
-            <span class="dashboard-co-countdown">
-              —
-            </span>
+<span class="dashboard-co-countdown">
+  —
+</span>
+
+<span>
+  ${
+    customerWhatsAppMap[
+      String(customer.customerId)
+    ]
+      ? `
+        <button
+          type="button"
+          class="secondary-button"
+          onclick='openCustomerWhatsApp(
+            ${JSON.stringify(
+              customerWhatsAppMap[
+                String(customer.customerId)
+              ]
+            )},
+            ${JSON.stringify(
+`Halo ${customer.name} ♥
+Pengingat dari Dear Nadiya, batas akhir checkout untuk pesanan ini adalah ${customer.deadline}.
+
+Mohon segera melakukan checkout ya.
+Terima kasih ♥
+Dear Nadiya`
+            )}
+          )'
+        >
+          💬 Chat
+        </button>
+      `
+      : `
+        <span
+          style="
+            color:#999;
+            font-size:13px;
+          "
+        >
+          WA belum tersedia
+        </span>
+      `
+  }
+</span>
 
           </div>
         `)
