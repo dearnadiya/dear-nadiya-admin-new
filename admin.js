@@ -11571,18 +11571,26 @@ let html = `
   </div>
 
 
-  <!-- NAMA BARANG -->
-  <div>
+  <!-- NAMA BARANG + JUMLAH CUSTOMER -->
+<div>
 
-    <span>
-      ${escapeHTML(
-        rows[0]?.item_name ||
-        "Nama barang belum tersedia"
-      )}
-    </span>
+  <span>
+    ${escapeHTML(
+      rows[0]?.item_name ||
+      "Nama barang belum tersedia"
+    )}
+  </span>
 
+  <div
+    style="
+      margin-top:4px;
+      font-size:12px;
+    "
+  >
+    ${rows.length} customer
   </div>
 
+</div>
 
   <!-- EDIT + HAPUS -->
   <div
@@ -11627,31 +11635,24 @@ let html = `
 
 
   <!-- TAMBAH MEMBER -->
-  <div
-    style="
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      white-space:nowrap;
-    "
+<div
+  style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+  "
+>
+
+  <button
+    type="button"
+    class="add-recap-member-button"
+    data-batch-code="${escapeHTML(batchCode)}"
   >
+    ＋ Tambah Member / Versi
+  </button>
 
-    <span>
-      ${rows.length}
-      customer
-    </span>
-
-    <button
-      type="button"
-      class="add-recap-member-button"
-      data-batch-code="${escapeHTML(batchCode)}"
-    >
-      ＋ Tambah Member / Versi
-    </button>
-
-  </div>
-
+</div>
 
   <!-- PANAH -->
   <div
