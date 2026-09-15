@@ -11939,22 +11939,35 @@ button {
 
   /* Header dan baris batch */
   #recapListContainer .recap-batch-table-header,
-  #recapListContainer .recap-batch-card
-  .recap-batch-header {
+#recapListContainer .recap-batch-card
+.recap-batch-header {
 
-    display: grid !important;
+  display: grid !important;
 
-    grid-template-columns:
-      95px
-      185px
-      70px
-      165px
-      40px !important;
+  grid-template-columns:
+    100px
+    380px
+    80px
+    80px
+    180px
+    45px !important;
 
-    width: 555px !important;
-    min-width: 555px !important;
-    max-width: 555px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
 
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+
+  box-sizing: border-box !important;
+
+  gap: 8px !important;
+
+  position: relative !important;
+}
     margin-left: 0 !important;
     margin-right: 0 !important;
 
@@ -12076,20 +12089,11 @@ button {
 
   /* Panah */
   #recapListContainer
-  .recap-batch-header::after {
-
-    grid-column: 5 !important;
-    grid-row: 1 !important;
-
-    width: 40px !important;
-    min-width: 40px !important;
-
-    position: static !important;
-    transform: none !important;
-  }
-
+.recap-batch-header::after {
+  content: none !important;
+  display: none !important;
 }
-
+}
 /* =========================================================
    FIX MOBILE — SCROLL HANYA TABEL CUSTOMER
    ========================================================= */
