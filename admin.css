@@ -12764,7 +12764,7 @@ button {
 
 #recapListContainer
 .recap-batch-table-delete {
-  transform: translateX(45px);
+  transform: translateX(50px);
 }
 
 #recapListContainer
@@ -12774,5 +12774,5 @@ button {
 
 #recapListContainer
 .recap-batch-table-arrow {
-  transform: translateX(125px);
+  transform: translateX(130px);
 }
