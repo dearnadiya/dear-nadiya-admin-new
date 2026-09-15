@@ -9685,7 +9685,6 @@ version:
               remaining_amount:
                 remaining,
 
-              :
                 paymentStatus,
 
               tracking_status:
