@@ -11827,7 +11827,10 @@ let html = `
 
 </div>
 
-<div class="batch-tracking">
+<div
+  class="batch-tracking"
+  style="display:none;"
+>
 
   <small>
     TRACKING BATCH
@@ -11896,9 +11899,9 @@ let html = `
   </div>
 
           <div
-            class="product-table-wrapper"
-          >
-
+  class="product-table-wrapper"
+  style="display:none;"
+>
             <table
               class="product-table"
             >
