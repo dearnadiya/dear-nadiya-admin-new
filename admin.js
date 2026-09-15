@@ -7224,18 +7224,31 @@ function loadRecap() {
 
         </div>
 
+<div
+  style="
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+  "
+>
+  <button
+    type="button"
+    class="primary-button"
+    id="exportAllRecapButton"
+  >
+    📊 Export Semua Rekap
+  </button>
 
-        <button
-          type="button"
-          class="primary-button"
-          id="addRecapButton"
-          style="display:none;"
-        >
-          ➕ Tambah Rekap
-        </button>
-
-      </div>
-
+  <button
+    type="button"
+    class="primary-button"
+    id="addRecapButton"
+    style="display:none;"
+  >
+    ➕ Tambah Rekap
+  </button>
+</div>
 
       <!-- =====================================
            TYPE REKAP
@@ -7403,6 +7416,286 @@ showRecapCategories(
 
     }
   );
+}
+
+/* ==========================================
+   EXPORT SELURUH REKAP GO
+   ========================================== */
+
+const exportAllRecapButton =
+  document.getElementById(
+    "exportAllRecapButton"
+  );
+
+if (exportAllRecapButton) {
+
+  exportAllRecapButton.addEventListener(
+    "click",
+    async function() {
+
+      if (
+        typeof XLSX ===
+        "undefined"
+      ) {
+        alert(
+          "Library Excel belum tersedia."
+        );
+
+        return;
+      }
+
+      exportAllRecapButton.disabled =
+        true;
+
+      exportAllRecapButton.textContent =
+        "⏳ Menyiapkan Excel...";
+
+      try {
+
+        const allRows = [];
+
+        let from = 0;
+
+        const pageSize = 1000;
+
+        while (true) {
+
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .from(
+                "purchase_recap"
+              )
+              .select("*")
+              .order(
+                "id",
+                {
+                  ascending: true
+                }
+              )
+              .range(
+                from,
+                from + pageSize - 1
+              );
+
+          if (error) {
+            throw error;
+          }
+
+          const rows =
+            data || [];
+
+          allRows.push(
+            ...rows
+          );
+
+          if (
+            rows.length <
+            pageSize
+          ) {
+            break;
+          }
+
+          from += pageSize;
+
+        }
+
+        if (
+          allRows.length === 0
+        ) {
+
+          alert(
+            "Belum ada data Rekap GO."
+          );
+
+          return;
+        }
+
+        const exportData =
+          allRows.map(
+            function(item) {
+
+              return {
+
+                "ID":
+                  item.id ?? "",
+
+                "Kategori":
+                  item.category ||
+                  "",
+
+                "Kode Batch":
+                  item.batch_code ||
+                  "",
+
+                "Nama Barang":
+                  item.item_name ||
+                  "",
+
+                "Customer ID":
+                  item.customer_id ??
+                  "",
+
+                "Customer":
+                  item.customer_name ||
+                  "",
+
+                "Member ID":
+                  item.member_id ??
+                  "",
+
+                "Versi / Member":
+                  item.version ||
+                  "",
+
+                "Quantity":
+                  Number(
+                    item.quantity
+                  ) || 0,
+
+                "Harga":
+                  Number(
+                    item.item_price
+                  ) || 0,
+
+                "DP Minimum":
+                  Number(
+                    item.minimum_dp_amount
+                  ) || 0,
+
+                "DP Aktual":
+                  Number(
+                    item.dp_amount
+                  ) || 0,
+
+                "Sisa Pembayaran":
+                  Number(
+                    item.remaining_amount
+                  ) || 0,
+
+                "Status DP":
+                  item.dp_status ||
+                  "",
+
+                "Status Pembayaran":
+                  item.payment_status ||
+                  "",
+
+                "Status Customer":
+                  item.customer_status ||
+                  "",
+
+                "Tracking":
+                  item.tracking_status ||
+                  "",
+
+                "Tracking Batch":
+                  item.batch_tracking_status ||
+                  "",
+
+                "Deadline DP":
+                  item.dp_deadline ||
+                  "",
+
+                "Deadline Pelunasan":
+                  item.payment_deadline ||
+                  "",
+
+                "Deadline CO":
+                  item.co_deadline ||
+                  "",
+
+                "Tanggal CO":
+                  item.tanggal_co ||
+                  "",
+
+                "Tipe Rekap":
+                  item.recap_data_type ||
+                  "",
+
+                "Note":
+                  item.note ||
+                  "",
+
+                "Created At":
+                  item.created_at ||
+                  "",
+
+                "Updated At":
+                  item.updated_at ||
+                  ""
+
+              };
+
+            }
+          );
+
+        const worksheet =
+          XLSX.utils.json_to_sheet(
+            exportData
+          );
+
+        const workbook =
+          XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+          workbook,
+          worksheet,
+          "Rekap GO Lengkap"
+        );
+
+        const now =
+          new Date();
+
+        const year =
+          now.getFullYear();
+
+        const month =
+          String(
+            now.getMonth() + 1
+          ).padStart(2, "0");
+
+        const day =
+          String(
+            now.getDate()
+          ).padStart(2, "0");
+
+        XLSX.writeFile(
+          workbook,
+          `Rekap-GO-Lengkap-${year}-${month}-${day}.xlsx`
+        );
+
+        alert(
+          `Export berhasil. ${allRows.length} data Rekap GO dimasukkan ke Excel.`
+        );
+
+      } catch (error) {
+
+        console.error(
+          "ERROR EXPORT SEMUA REKAP:",
+          error
+        );
+
+        alert(
+          "Gagal export Rekap GO lengkap: " +
+          error.message
+        );
+
+      } finally {
+
+        exportAllRecapButton.disabled =
+          false;
+
+        exportAllRecapButton.textContent =
+          "📊 Export Semua Rekap";
+
+      }
+
+    }
+  );
+
 }
 
   /* =====================================
