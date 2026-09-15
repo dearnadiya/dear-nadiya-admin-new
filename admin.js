@@ -16130,11 +16130,6 @@ container.innerHTML = `
            VERSI / MEMBER
            ====================================== -->
 
-      <label>
-        Versi / Member
-      </label>
-
-      <input
         <label>
   Versi / Member
 </label>
