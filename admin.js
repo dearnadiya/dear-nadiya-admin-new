@@ -11479,31 +11479,33 @@ let html = `
   `;
 
      html += `
-  <div class="recap-batch-scroll">
+  <div class="recap-batch-table-header">
 
-    <div class="recap-batch-table-header">
+  <div class="recap-batch-table-code">
+    Kode Batch
+  </div>
 
-      <div class="recap-batch-table-code">
-        Kode Batch
-      </div>
+  <div class="recap-batch-table-name">
+    Nama Barang
+  </div>
 
-      <div class="recap-batch-table-name">
-        Nama Barang
-      </div>
+  <div class="recap-batch-table-edit">
+    Edit
+  </div>
 
-      <div class="recap-batch-table-edit">
-        Edit
-      </div>
+  <div class="recap-batch-table-delete">
+    Hapus
+  </div>
 
-      <div class="recap-batch-table-member">
-        Tambah Member / Versi
-      </div>
+  <div class="recap-batch-table-member">
+    Tambah Member / Versi
+  </div>
 
-      <div class="recap-batch-table-arrow">
-        →
-      </div>
+  <div class="recap-batch-table-arrow">
+    →
+  </div>
 
-    </div>
+</div>
 `;
 
   Object.keys(
@@ -11549,8 +11551,9 @@ let html = `
     grid-template-columns:
       minmax(90px, 100px)
       minmax(180px, 1fr)
-      auto
-      auto
+      80px
+      80px
+      minmax(180px, auto)
       45px;
     align-items:center;
     gap:8px;
@@ -11592,17 +11595,56 @@ let html = `
 
 </div>
 
-  <!-- EDIT + HAPUS -->
-  <div
+  <!-- EDIT -->
+<div
+  style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  "
+>
+
+  <button
+    type="button"
+    class="primary-button edit-batch-header-button"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
     style="
-      display:flex;
-      gap:6px;
-      align-items:center;
-      justify-content:center;
-      flex-wrap:nowrap;
+      padding:4px 10px;
+      font-size:12px;
+      white-space:nowrap;
     "
   >
+    ✏️ Edit
+  </button>
 
+</div>
+
+
+<!-- HAPUS -->
+<div
+  style="
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  "
+>
+
+  <button
+    type="button"
+    class="delete-button delete-batch-header-button"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
+    style="
+      padding:4px 10px;
+      font-size:12px;
+      white-space:nowrap;
+    "
+  >
+    🗑️ Hapus
+  </button>
+
+</div>
     <button
       type="button"
       class="primary-button edit-batch-header-button"
