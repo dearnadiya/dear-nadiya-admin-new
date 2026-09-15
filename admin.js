@@ -11484,12 +11484,12 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-      100px
-      minmax(180px, 1fr)
-      80px
-      80px
-      180px
-      45px;
+  100px
+  430px
+  80px
+  80px
+  180px
+  45px;
     align-items:center;
     gap:8px;
     width:100%;
@@ -11605,12 +11605,12 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-      100px
-      minmax(180px, 1fr)
-      80px
-      80px
-      180px
-      45px;
+  100px
+  430px
+  80px
+  80px
+  180px
+  45px;
     align-items:center;
     gap:8px;
     width:100%;
@@ -11693,19 +11693,6 @@ let html = `
 
   </div>
 
-
-  <!-- PANAH -->
-  <div
-  style="
-    grid-column:6;
-    text-align:center;
-    font-size:20px;
-    white-space:nowrap;
-  "
->
-    →
-  </div>
-
   <!-- TAMBAH MEMBER -->
 <div
   style="
@@ -11726,6 +11713,20 @@ let html = `
 
 </div>
 
+
+
+  <!-- PANAH -->
+  <div
+  style="
+    grid-column:6;
+    text-align:center;
+    font-size:20px;
+    white-space:nowrap;
+  "
+>
+    →
+  </div>
+  
 </div>
 <div class="recap-batch-deadlines">
 
