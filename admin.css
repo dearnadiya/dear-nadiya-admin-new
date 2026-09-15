@@ -12698,3 +12698,33 @@ button {
 
   box-sizing: border-box !important;
 }
+
+/* ==========================================
+   REKAP GO - POSISI KOLOM HEADER FINAL
+   ========================================== */
+
+@media (min-width: 769px) {
+
+  #recapListContainer .recap-batch-table-header,
+  #recapListContainer .recap-batch-card .recap-batch-header {
+
+    display: grid !important;
+
+    grid-template-columns:
+      100px
+      300px
+      80px
+      80px
+      180px
+      45px !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    gap: 8px !important;
+
+    box-sizing: border-box !important;
+  }
+
+}
