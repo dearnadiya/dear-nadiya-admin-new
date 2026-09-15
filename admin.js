@@ -16135,12 +16135,54 @@ container.innerHTML = `
       </label>
 
       <input
-        id="editVersion"
-        type="text"
-        value="${escapeHTML(
-          data.version || ""
-        )}"
-      >
+        <label>
+  Versi / Member
+</label>
+
+<div
+  class="member-picker"
+  style="position:relative;width:100%;"
+>
+  <input
+    id="editVersion"
+    type="text"
+    value="${escapeHTML(
+      data.version || ""
+    )}"
+    placeholder="🔎 Cari member / character / versi..."
+    autocomplete="off"
+  >
+
+  <input
+    type="hidden"
+    id="editMemberId"
+    value="${escapeHTML(
+      String(data.member_id || "")
+    )}"
+  >
+
+  <div
+    id="editMemberResults"
+    style="
+      display:none;
+      position:absolute;
+      z-index:9999;
+      left:0;
+      right:0;
+      top:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      max-height:240px;
+      overflow-y:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    "
+  ></div>
+</div>
+
+<small>
+  Cari member, character, atau versi dari Master Member / Versi.
+</small>
 
 
       <!-- ======================================
@@ -16613,6 +16655,277 @@ document.addEventListener("click", event => {
       "none";
   }
 });
+
+/* ==========================================
+   SEARCHABLE MASTER MEMBER / VERSI
+   ========================================== */
+
+const editVersionInput =
+  document.getElementById(
+    "editVersion"
+  );
+
+const editMemberIdInput =
+  document.getElementById(
+    "editMemberId"
+  );
+
+const editMemberResults =
+  document.getElementById(
+    "editMemberResults"
+  );
+
+if (
+  editVersionInput &&
+  editMemberIdInput &&
+  editMemberResults
+) {
+
+  const {
+    data: masterMembers,
+    error: masterMembersError
+  } = await supabaseClient
+    .from("po_members")
+    .select(
+      "id, group_name, member_name, entry_type, sort_order"
+    )
+    .order(
+      "group_name",
+      {
+        ascending: true
+      }
+    )
+    .order(
+      "sort_order",
+      {
+        ascending: true
+      }
+    );
+
+  if (masterMembersError) {
+
+    console.error(
+      "ERROR LOAD MASTER MEMBER:",
+      masterMembersError
+    );
+
+  } else {
+
+    const memberList =
+      masterMembers || [];
+
+    function renderEditMemberResults(
+      keyword = ""
+    ) {
+
+      const q =
+        keyword
+          .trim()
+          .toLowerCase();
+
+      const filtered =
+        memberList
+          .filter(function(member) {
+
+            const group =
+              String(
+                member.group_name || ""
+              )
+                .toLowerCase();
+
+            const name =
+              String(
+                member.member_name || ""
+              )
+                .toLowerCase();
+
+            const type =
+              String(
+                member.entry_type || ""
+              )
+                .toLowerCase();
+
+            return (
+              !q ||
+              group.includes(q) ||
+              name.includes(q) ||
+              type.includes(q)
+            );
+
+          })
+          .slice(0, 10);
+
+      if (filtered.length === 0) {
+
+        editMemberResults.innerHTML = `
+          <div
+            style="
+              padding:10px 12px;
+              color:#777;
+              font-size:12px;
+            "
+          >
+            Member / character / versi tidak ditemukan.
+          </div>
+        `;
+
+      } else {
+
+        editMemberResults.innerHTML =
+          filtered
+            .map(function(member) {
+
+              let typeLabel =
+                "Member";
+
+              if (
+                member.entry_type ===
+                "character"
+              ) {
+                typeLabel =
+                  "Character";
+              }
+
+              if (
+                member.entry_type ===
+                "version"
+              ) {
+                typeLabel =
+                  "Version";
+              }
+
+              return `
+                <button
+                  type="button"
+                  class="edit-member-option"
+                  data-id="${escapeHTML(
+                    String(member.id)
+                  )}"
+                  data-name="${escapeHTML(
+                    member.member_name || ""
+                  )}"
+                  style="
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    padding:8px 10px;
+                    border:0;
+                    border-bottom:1px solid #eee;
+                    background:#fff;
+                    cursor:pointer;
+                    font-size:13px;
+                    line-height:1.3;
+                  "
+                >
+                  <strong>
+                    ${escapeHTML(
+                      member.member_name || "—"
+                    )}
+                  </strong>
+
+                  <small
+                    style="
+                      display:block;
+                      color:#777;
+                      margin-top:2px;
+                    "
+                  >
+                    ${escapeHTML(
+                      member.group_name || "—"
+                    )}
+                    ·
+                    ${escapeHTML(
+                      typeLabel
+                    )}
+                  </small>
+                </button>
+              `;
+
+            })
+            .join("");
+
+      }
+
+      editMemberResults.style.display =
+        "block";
+    }
+
+    editVersionInput.addEventListener(
+      "input",
+      function() {
+
+        editMemberIdInput.value =
+          "";
+
+        renderEditMemberResults(
+          editVersionInput.value
+        );
+
+      }
+    );
+
+    editVersionInput.addEventListener(
+      "focus",
+      function() {
+
+        renderEditMemberResults(
+          editVersionInput.value
+        );
+
+      }
+    );
+
+    editMemberResults.addEventListener(
+      "click",
+      function(event) {
+
+        const button =
+          event.target.closest(
+            ".edit-member-option"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        editVersionInput.value =
+          button.dataset.name || "";
+
+        editMemberIdInput.value =
+          button.dataset.id || "";
+
+        editMemberResults.innerHTML =
+          "";
+
+        editMemberResults.style.display =
+          "none";
+
+      }
+    );
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          !editVersionInput.contains(
+            event.target
+          ) &&
+          !editMemberResults.contains(
+            event.target
+          )
+        ) {
+
+          editMemberResults.style.display =
+            "none";
+
+        }
+
+      }
+    );
+
+  }
+}
      
   }
 
@@ -16826,11 +17139,18 @@ const updatedData = {
       .value
       .trim(),
 
-  version:
+  member_id:
+  Number(
     document
-      .getElementById("editVersion")
-      .value
-      .trim(),
+      .getElementById("editMemberId")
+      ?.value
+  ) || null,
+
+version:
+  document
+    .getElementById("editVersion")
+    .value
+    .trim(),
 
   quantity:
     Number(
