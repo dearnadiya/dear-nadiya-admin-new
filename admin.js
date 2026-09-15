@@ -11496,27 +11496,55 @@ let html = `
   "
 >
 
-  <div class="recap-batch-table-code">
-    Kode Batch
-  </div>
+  <div
+  class="recap-batch-table-code"
+  style="
+    grid-column:1;
+    text-align:center;
+    white-space:nowrap;
+  "
+>
+  Kode Batch
+</div>
 
-  <div class="recap-batch-table-name">
-    Nama Barang
-  </div>
+  <div
+  class="recap-batch-table-name"
+  style="
+    grid-column:2;
+    white-space:nowrap;
+  "
+>
+  Nama Barang
+</div>
 
-  <div class="recap-batch-table-edit">
-    Edit
-  </div>
+  <div
+  class="recap-batch-table-edit"
+  style="
+    grid-column:3;
+    text-align:center;
+    white-space:nowrap;
+  "
+>
+  Edit
+</div>
 
-  <div class="recap-batch-table-delete">
-    Hapus
-  </div>
+  <div
+  class="recap-batch-table-delete"
+  style="
+    grid-column:4;
+    text-align:center;
+    white-space:nowrap;
+  "
+>
+  Hapus
+</div>
 
   <div
   class="recap-batch-table-member"
   style="
-    white-space:nowrap;
+    grid-column:5;
     text-align:center;
+    white-space:nowrap;
   "
 >
   Tambah Member / Versi
@@ -11525,8 +11553,9 @@ let html = `
   <div
   class="recap-batch-table-arrow"
   style="
-    white-space:nowrap;
+    grid-column:6;
     text-align:center;
+    white-space:nowrap;
   "
 >
   →
@@ -11665,6 +11694,18 @@ let html = `
   </div>
 
 
+  <!-- PANAH -->
+  <div
+  style="
+    grid-column:6;
+    text-align:center;
+    font-size:20px;
+    white-space:nowrap;
+  "
+>
+    →
+  </div>
+
   <!-- TAMBAH MEMBER -->
 <div
   style="
@@ -11684,18 +11725,6 @@ let html = `
   </button>
 
 </div>
-
-  <!-- PANAH -->
-  <div
-  style="
-    grid-column:6;
-    text-align:center;
-    font-size:20px;
-    white-space:nowrap;
-  "
->
-    →
-  </div>
 
 </div>
 <div class="recap-batch-deadlines">
