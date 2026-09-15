@@ -12759,12 +12759,12 @@ button {
 
   #recapListContainer
 .recap-batch-table-edit {
-  transform: translateX(35px);
+  transform: translateX(45px);
 }
 
 #recapListContainer
 .recap-batch-table-delete {
-  transform: translateX(50px);
+  transform: translateX(60px);
 }
 
 #recapListContainer
