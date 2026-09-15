@@ -11479,7 +11479,22 @@ let html = `
   `;
 
      html += `
-  <div class="recap-batch-table-header">
+  <div
+  class="recap-batch-table-header"
+  style="
+    display:grid;
+    grid-template-columns:
+      100px
+      minmax(180px, 1fr)
+      80px
+      80px
+      180px
+      45px;
+    align-items:center;
+    gap:8px;
+    width:100%;
+  "
+>
 
   <div class="recap-batch-table-code">
     Kode Batch
@@ -11561,20 +11576,20 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-  minmax(90px, 100px)
-  minmax(180px, 1fr)
-  80px
-  80px
-  180px
-  45px;
+      100px
+      minmax(180px, 1fr)
+      80px
+      80px
+      180px
+      45px;
     align-items:center;
     gap:8px;
+    width:100%;
   "
 >
 
   <!-- KODE BATCH -->
-  <div>
-
+  <div style="grid-column:1;">
     <h3
       style="
         margin:0;
@@ -11586,30 +11601,20 @@ let html = `
   </div>
 
 
-  <!-- NAMA BARANG + JUMLAH CUSTOMER -->
-<div>
-
+  <!-- NAMA BARANG -->
+<div style="grid-column:2;">
   <span>
     ${escapeHTML(
       rows[0]?.item_name ||
       "Nama barang belum tersedia"
     )}
   </span>
-
-  <div
-    style="
-      margin-top:4px;
-      font-size:12px;
-    "
-  >
-    ${rows.length} customer
-  </div>
-
 </div>
 
   <!-- EDIT -->
 <div
   style="
+    grid-column:3;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -11636,6 +11641,7 @@ let html = `
 <!-- HAPUS -->
 <div
   style="
+    grid-column:4;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -11681,11 +11687,13 @@ let html = `
 
   <!-- PANAH -->
   <div
-    style="
-      text-align:center;
-      font-size:20px;
-    "
-  >
+  style="
+    grid-column:6;
+    text-align:center;
+    font-size:20px;
+    white-space:nowrap;
+  "
+>
     →
   </div>
 
