@@ -12758,23 +12758,21 @@ button {
 @media (min-width: 769px) {
 
   #recapListContainer
-  .recap-batch-table-edit {
-    transform: translateX(25px);
-  }
+.recap-batch-table-edit {
+  transform: translateX(35px);
+}
 
-  #recapListContainer
-  .recap-batch-table-delete {
-    transform: translateX(30px);
-  }
+#recapListContainer
+.recap-batch-table-delete {
+  transform: translateX(40px);
+}
 
-  #recapListContainer
-  .recap-batch-table-member {
-    transform: translateX(35px);
-  }
+#recapListContainer
+.recap-batch-table-member {
+  transform: translateX(100px);
+}
 
-  #recapListContainer
-  .recap-batch-table-arrow {
-    transform: translateX(20px);
-  }
-
+#recapListContainer
+.recap-batch-table-arrow {
+  transform: translateX(120px);
 }
