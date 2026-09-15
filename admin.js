@@ -25009,6 +25009,53 @@ function showMemberForm(member = null) {
 
         </div>
 
+        <!-- JENIS -->
+<div class="form-group">
+  <label>
+    Jenis
+  </label>
+
+  <select id="memberEntryType">
+
+    <option
+      value="member"
+      ${
+        isEdit &&
+        member.entry_type === "member"
+          ? "selected"
+          : ""
+      }
+    >
+      Member
+    </option>
+
+    <option
+      value="character"
+      ${
+        isEdit &&
+        member.entry_type === "character"
+          ? "selected"
+          : ""
+      }
+    >
+      Character
+    </option>
+
+    <option
+      value="version"
+      ${
+        isEdit &&
+        member.entry_type === "version"
+          ? "selected"
+          : ""
+      }
+    >
+      Version
+    </option>
+
+  </select>
+</div>
+
 
         <!-- URUTAN -->
         <div class="form-group">
@@ -25142,6 +25189,11 @@ async function saveMember(member = null) {
       "memberSortOrder"
     );
 
+   const entryTypeInput =
+  document.getElementById(
+    "memberEntryType"
+  );
+
 
   const groupName =
     groupInput?.value.trim() || "";
@@ -25153,6 +25205,10 @@ async function saveMember(member = null) {
     Number(
       sortInput?.value || 0
     );
+
+   const entryType =
+  entryTypeInput?.value ||
+  "member";
 
 
   /* ------------------------------------------
@@ -25191,16 +25247,19 @@ async function saveMember(member = null) {
 
   const memberData = {
 
-    group_name:
-      groupName,
+  group_name:
+    groupName,
 
-    member_name:
-      memberName,
+  member_name:
+    memberName,
 
-    sort_order:
-      sortOrder
+  entry_type:
+    entryType,
 
-  };
+  sort_order:
+    sortOrder
+
+};
 
 
   try {
