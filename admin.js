@@ -9685,7 +9685,7 @@ version:
               remaining_amount:
                 remaining,
 
-              payment_status:
+              :
                 paymentStatus,
 
               tracking_status:
@@ -14840,21 +14840,57 @@ document
       }
 
       const {
-        error: deleteError
-      } =
-        await supabaseClient
-          .from(
-            "purchase_recap"
-          )
-          .delete()
-          .eq(
-            "category",
-            category
-          )
-          .eq(
-            "batch_code",
-            batchCode
-          );
+  data: deletedRows,
+  error: deleteError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .delete()
+    .eq("category", category)
+    .eq("batch_code", batchCode)
+    .select("id");
+
+if (deleteError) {
+
+  console.error(
+    "ERROR DELETE BATCH:",
+    deleteError
+  );
+
+  if (message) {
+    message.textContent =
+      "Gagal menghapus batch: " +
+      deleteError.message;
+  }
+
+  if (deleteButton) {
+    deleteButton.disabled = false;
+    deleteButton.textContent =
+      "🗑️ Hapus Batch";
+  }
+
+  return;
+}
+
+if (!deletedRows || deletedRows.length === 0) {
+
+  console.error(
+    "DELETE BATCH TIDAK MENGHAPUS DATA."
+  );
+
+  if (message) {
+    message.textContent =
+      "Batch tidak terhapus. Periksa izin DELETE di Supabase.";
+  }
+
+  if (deleteButton) {
+    deleteButton.disabled = false;
+    deleteButton.textContent =
+      "🗑️ Hapus Batch";
+  }
+
+  return;
+}
 
       if (deleteError) {
 
