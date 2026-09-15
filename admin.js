@@ -11485,7 +11485,7 @@ let html = `
     display:grid;
     grid-template-columns:
   100px
-  430px
+  380px
   80px
   80px
   180px
@@ -11493,6 +11493,7 @@ let html = `
     align-items:center;
     gap:8px;
     width:100%;
+    box-sizing:border-box;
   "
 >
 
@@ -11614,6 +11615,7 @@ let html = `
     align-items:center;
     gap:8px;
     width:100%;
+    box-sizing:border-box;
   "
 >
 
