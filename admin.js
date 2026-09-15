@@ -11566,18 +11566,31 @@ let html = `
         )}
       </span>
 
-      <button
-        type="button"
-        class="primary-button edit-batch-header-button"
-        data-batch-code="${escapeHTML(batchCode)}"
-        data-category="${escapeHTML(category)}"
-        style="
-          padding:4px 10px;
-          font-size:12px;
-        "
-      >
-        ✏️ Edit
-      </button>
+     <button
+  type="button"
+  class="primary-button edit-batch-header-button"
+  data-batch-code="${escapeHTML(batchCode)}"
+  data-category="${escapeHTML(category)}"
+  style="
+    padding:4px 10px;
+    font-size:12px;
+  "
+>
+  ✏️ Edit
+</button>
+
+<button
+  type="button"
+  class="delete-button delete-batch-header-button"
+  data-batch-code="${escapeHTML(batchCode)}"
+  data-category="${escapeHTML(category)}"
+  style="
+    padding:4px 10px;
+    font-size:12px;
+  "
+>
+  🗑️ Hapus
+</button>
 
     </p>
 
@@ -12165,6 +12178,130 @@ container
 
           editBatchHeader(
             batchCode,
+            category
+          );
+
+        }
+      );
+
+    }
+  );
+
+   /* ==========================================
+   HAPUS BATCH LANGSUNG DARI HEADER
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".delete-batch-header-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        async function(event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          const category =
+            this.dataset.category;
+
+          if (
+            !batchCode ||
+            !category
+          ) {
+            console.error(
+              "Batch Code atau Category tidak ditemukan."
+            );
+
+            return;
+          }
+
+          const confirmDelete =
+            confirm(
+              "Hapus seluruh batch ini?\n\n" +
+              "Batch: " +
+              batchCode +
+              "\n\n" +
+              "Semua member/customer di batch ini " +
+              "juga akan dihapus.\n\n" +
+              "Tindakan ini tidak dapat dibatalkan."
+            );
+
+          if (!confirmDelete) {
+            return;
+          }
+
+          this.disabled = true;
+          this.textContent =
+            "Menghapus...";
+
+          const {
+            data: deletedRows,
+            error: deleteError
+          } =
+            await supabaseClient
+              .from("purchase_recap")
+              .delete()
+              .eq(
+                "category",
+                category
+              )
+              .eq(
+                "batch_code",
+                batchCode
+              )
+              .select("id");
+
+          if (deleteError) {
+
+            console.error(
+              "ERROR DELETE BATCH:",
+              deleteError
+            );
+
+            alert(
+              "Gagal menghapus batch:\n\n" +
+              deleteError.message
+            );
+
+            this.disabled = false;
+            this.textContent =
+              "🗑️ Hapus";
+
+            return;
+          }
+
+          if (
+            !deletedRows ||
+            deletedRows.length === 0
+          ) {
+
+            alert(
+              "Batch tidak terhapus.\n\n" +
+              "Tidak ada data yang dihapus. " +
+              "Periksa izin DELETE pada Supabase."
+            );
+
+            this.disabled = false;
+            this.textContent =
+              "🗑️ Hapus";
+
+            return;
+          }
+
+          alert(
+            "Batch " +
+            batchCode +
+            " berhasil dihapus."
+          );
+
+          await loadRecapList(
             category
           );
 
@@ -14664,17 +14801,7 @@ const existingCoDeadline =
   >
     Batal
   </button>
-
-  <button
-    type="button"
-    class="delete-button"
-    id="deleteEditBatchHeader"
-  >
-    🗑️ Hapus Batch
-  </button>
-
-</div>
-
+  
         <p
           id="editBatchHeaderMessage"
           class="login-error"
@@ -14787,150 +14914,6 @@ updateEditCoDeadlineMode();
 
       }
     );
-
-   /* ==========================================
-   HAPUS BATCH
-   ========================================== */
-
-document
-  .getElementById(
-    "deleteEditBatchHeader"
-  )
-  .addEventListener(
-    "click",
-    async function() {
-
-      const confirmDelete =
-        confirm(
-          "Hapus seluruh batch ini?\n\n" +
-          "Batch: " +
-          batchCode +
-          "\n\n" +
-          "Semua data customer/member " +
-          "dalam batch ini juga akan dihapus.\n\n" +
-          "Tindakan ini tidak dapat dibatalkan."
-        );
-
-      if (!confirmDelete) {
-        return;
-      }
-
-      const deleteButton =
-        document.getElementById(
-          "deleteEditBatchHeader"
-        );
-
-      const message =
-        document.getElementById(
-          "editBatchHeaderMessage"
-        );
-
-      if (deleteButton) {
-        deleteButton.disabled =
-          true;
-
-        deleteButton.textContent =
-          "Menghapus...";
-      }
-
-      if (message) {
-        message.textContent =
-          "Menghapus batch...";
-      }
-
-      const {
-  data: deletedRows,
-  error: deleteError
-} =
-  await supabaseClient
-    .from("purchase_recap")
-    .delete()
-    .eq("category", category)
-    .eq("batch_code", batchCode)
-    .select("id");
-
-if (deleteError) {
-
-  console.error(
-    "ERROR DELETE BATCH:",
-    deleteError
-  );
-
-  if (message) {
-    message.textContent =
-      "Gagal menghapus batch: " +
-      deleteError.message;
-  }
-
-  if (deleteButton) {
-    deleteButton.disabled = false;
-    deleteButton.textContent =
-      "🗑️ Hapus Batch";
-  }
-
-  return;
-}
-
-if (!deletedRows || deletedRows.length === 0) {
-
-  console.error(
-    "DELETE BATCH TIDAK MENGHAPUS DATA."
-  );
-
-  if (message) {
-    message.textContent =
-      "Batch tidak terhapus. Periksa izin DELETE di Supabase.";
-  }
-
-  if (deleteButton) {
-    deleteButton.disabled = false;
-    deleteButton.textContent =
-      "🗑️ Hapus Batch";
-  }
-
-  return;
-}
-
-      if (deleteError) {
-
-        console.error(
-          "ERROR DELETE BATCH:",
-          deleteError
-        );
-
-        if (message) {
-          message.textContent =
-            "Gagal menghapus batch: " +
-            deleteError.message;
-        }
-
-        if (deleteButton) {
-          deleteButton.disabled =
-            false;
-
-          deleteButton.textContent =
-            "🗑️ Hapus Batch";
-        }
-
-        return;
-      }
-
-      alert(
-        "Batch berhasil dihapus."
-      );
-
-      container.innerHTML =
-        "";
-
-      container.style.display =
-        "none";
-
-      await loadRecapList(
-        category
-      );
-
-    }
-  );
 
   /* ==========================================
      SIMPAN EDIT BATCH
