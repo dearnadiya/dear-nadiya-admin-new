@@ -12760,118 +12760,80 @@ button {
   transform: translateX(130px);
 }
 
-/* ==========================================
-   FINAL MOBILE REKAP GO
-   SCROLL HANYA TABEL CUSTOMER
-   ========================================== */
-
-@media (max-width: 700px) {
-
-  html,
-  body {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-
-  #recapListContainer {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-
-  /* BAGIAN BATCH TIDAK IKUT SCROLL */
-  #recapListContainer .recap-batch-scroll {
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  }
-
-  #recapListContainer .recap-batch-card {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow: visible !important;
-  }
-
-  /* HANYA PEMBUNGKUS TABEL YANG BISA SWIPE */
-  #recapListContainer
-  .recap-batch-scroll
-  .product-table-wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-    -webkit-overflow-scrolling: touch !important;
-    box-sizing: border-box !important;
-  }
-
-  /* TABEL DIBUAT LEBIH LEBAR DARI LAYAR */
-  #recapListContainer
-  .recap-batch-scroll
-  .product-table-wrapper
-  .product-table {
-    width: 850px !important;
-    min-width: 850px !important;
-    max-width: none !important;
-  }
-
-}
-
 /* =========================================================
-   FINAL FINAL — REKAP GO MOBILE
-   HEADER BATCH DIAM
-   HANYA TABEL CUSTOMER YANG SCROLL
+   FINAL FINAL MOBILE REKAP GO
+   HANYA TABEL CUSTOMER YANG BISA SWIPE HORIZONTAL
    ========================================================= */
 
 @media (max-width: 700px) {
 
-  /* Seluruh halaman tidak boleh horizontal scroll */
+  /* HALAMAN TIDAK BOLEH SCROLL HORIZONTAL */
   html,
   body {
+    width: 100% !important;
+    max-width: 100% !important;
     overflow-x: hidden !important;
   }
 
-  /* Container Rekap tetap selebar layar */
+  /* CONTAINER REKAP TIDAK BOLEH SCROLL */
   #recapListContainer {
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     overflow-x: hidden !important;
+    overflow-y: visible !important;
     box-sizing: border-box !important;
   }
 
-  /* Wrapper batch TIDAK scroll */
+  /* WRAPPER BATCH TIDAK BOLEH SCROLL */
   #recapListContainer .recap-batch-scroll {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+
     box-sizing: border-box !important;
   }
 
-  /* Kartu batch TIDAK melebar */
+  /* KARTU BATCH TIDAK BOLEH LEBIH LEBAR DARI LAYAR */
   #recapListContainer .recap-batch-card {
+    display: block !important;
+
     width: 100% !important;
-    min-width: 0 !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
     overflow: visible !important;
     box-sizing: border-box !important;
   }
 
-  /* Header batch TETAP di layar */
-  #recapListContainer .recap-batch-header {
+  /* HEADER BATCH TETAP MENGIKUTI LAYAR */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header {
     width: 100% !important;
-    min-width: 0 !important;
     max-width: 100% !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+
+    overflow: hidden !important;
     box-sizing: border-box !important;
   }
 
-  /* Tracking juga TETAP di layar */
-  #recapListContainer .batch-tracking {
+  /* TRACKING TIDAK BOLEH SCROLL */
+  #recapListContainer
+  .recap-batch-card
+  .batch-tracking {
     width: 100% !important;
     max-width: 100% !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+
+    overflow: hidden !important;
     box-sizing: border-box !important;
   }
 
@@ -12882,24 +12844,32 @@ button {
   #recapListContainer
   .recap-batch-card
   .product-table-wrapper {
+
     display: block !important;
 
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
 
     overflow-x: auto !important;
     overflow-y: hidden !important;
 
     -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior-x: contain !important;
+    touch-action: pan-x !important;
 
     box-sizing: border-box !important;
+
+    overscroll-behavior-x: contain !important;
+
+    padding-bottom: 8px !important;
   }
 
-  /* Tabel lebih lebar dari layar */
+  /* TABEL MEMANG LEBIH LEBAR DARI LAYAR */
   #recapListContainer
   .recap-batch-card
+  .product-table-wrapper
   .product-table {
+
     display: table !important;
 
     width: max-content !important;
@@ -12907,8 +12877,7 @@ button {
     max-width: none !important;
 
     table-layout: auto !important;
-    border-collapse: collapse !important;
+
     box-sizing: border-box !important;
   }
-
 }
