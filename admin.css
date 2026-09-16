@@ -10536,7 +10536,7 @@ button {
     width: 100% !important;
     max-width: 100% !important;
 
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
     overflow-y: visible !important;
 
     box-sizing: border-box !important;
@@ -10824,7 +10824,7 @@ button {
     width: 100% !important;
     max-width: 100% !important;
 
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
     overflow-y: visible !important;
 
     box-sizing: border-box !important;
@@ -11160,7 +11160,7 @@ button {
     min-width: 850px !important;
     max-width: 850px !important;
 
-    overflow-x: visible !important;
+    overflow-x: auto !important;
     overflow-y: visible !important;
 
     box-sizing: border-box !important;
