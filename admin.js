@@ -14890,13 +14890,12 @@ const customer =
          */
 
         price =
-          Number(
-            item
-              .querySelector(
-                ".batch-price"
-              )
-              .value
-          ) || 0;
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-price"
+      )?.value
+  );
 
       }
 
@@ -14928,13 +14927,12 @@ const customer =
          */
 
         dp =
-          Number(
-            item
-              .querySelector(
-                ".batch-dp"
-              )
-              .value
-          ) || 0;
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-dp"
+      )?.value
+  );
 
       }
 
