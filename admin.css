@@ -12814,41 +12814,44 @@ button {
   }
 
   /* =====================================================
-     HEADER BATCH
-     tetap satu baris, tidak ikut horizontal scroll
-     ===================================================== */
+   HEADER BATCH MOBILE
+   SETIAP BATCH PUNYA SCROLL HORIZONTAL SENDIRI
+   ===================================================== */
 
-  #recapListContainer
-  .recap-batch-card
-  .recap-batch-header {
+#recapListContainer
+.recap-batch-card
+.recap-batch-header {
 
-    display: grid !important;
+  display: grid !important;
 
-    grid-template-columns:
-      82px
-      minmax(0, 1fr)
-      58px
-      58px
-      115px
-      30px !important;
+  grid-template-columns:
+    100px
+    300px
+    80px
+    80px
+    180px
+    45px !important;
 
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 
-    height: 48px !important;
-    min-height: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
 
-    margin: 0 !important;
-    padding: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 
-    gap: 0 !important;
+  gap: 0 !important;
 
-    overflow: hidden !important;
+  /* HEADER BATCH SENDIRI YANG SCROLL */
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
 
-    box-sizing: border-box !important;
-  }
+  -webkit-overflow-scrolling: touch !important;
 
+  box-sizing: border-box !important;
+}
   /* Kode batch */
   #recapListContainer
   .recap-batch-header
