@@ -12776,8 +12776,8 @@ button {
 }
 
 /* ==========================================
-   MOBILE REKAP GO
-   HORIZONTAL SCROLL HANYA ISI TABEL BATCH
+   FINAL MOBILE REKAP GO
+   SCROLL HANYA TABEL CUSTOMER
    ========================================== */
 
 @media (max-width: 700px) {
@@ -12795,39 +12795,40 @@ button {
     overflow-x: hidden !important;
   }
 
+  /* BAGIAN BATCH TIDAK IKUT SCROLL */
   #recapListContainer .recap-batch-scroll {
     width: 100% !important;
     max-width: 100% !important;
-    overflow-x: auto !important;
+    overflow-x: visible !important;
     overflow-y: visible !important;
-    -webkit-overflow-scrolling: touch !important;
   }
 
-  #recapListContainer
-  .recap-batch-scroll
-  .recap-batch-card {
+  #recapListContainer .recap-batch-card {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
     overflow: visible !important;
   }
 
+  /* HANYA PEMBUNGKUS TABEL YANG BISA SWIPE */
   #recapListContainer
   .recap-batch-scroll
   .product-table-wrapper {
     width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
+    max-width: 100% !important;
     overflow-x: auto !important;
     overflow-y: visible !important;
     -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
   }
 
+  /* TABEL DIBUAT LEBIH LEBAR DARI LAYAR */
   #recapListContainer
   .recap-batch-scroll
+  .product-table-wrapper
   .product-table {
-    min-width: 850px !important;
     width: 850px !important;
+    min-width: 850px !important;
     max-width: none !important;
   }
 
