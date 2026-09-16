@@ -12818,3 +12818,97 @@ button {
   }
 
 }
+
+/* =========================================================
+   FINAL FINAL — REKAP GO MOBILE
+   HEADER BATCH DIAM
+   HANYA TABEL CUSTOMER YANG SCROLL
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* Seluruh halaman tidak boleh horizontal scroll */
+  html,
+  body {
+    overflow-x: hidden !important;
+  }
+
+  /* Container Rekap tetap selebar layar */
+  #recapListContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Wrapper batch TIDAK scroll */
+  #recapListContainer .recap-batch-scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Kartu batch TIDAK melebar */
+  #recapListContainer .recap-batch-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Header batch TETAP di layar */
+  #recapListContainer .recap-batch-header {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tracking juga TETAP di layar */
+  #recapListContainer .batch-tracking {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* =====================================================
+     SATU-SATUNYA AREA SCROLL
+     ===================================================== */
+
+  #recapListContainer
+  .recap-batch-card
+  .product-table-wrapper {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-x: contain !important;
+
+    box-sizing: border-box !important;
+  }
+
+  /* Tabel lebih lebar dari layar */
+  #recapListContainer
+  .recap-batch-card
+  .product-table {
+    display: table !important;
+
+    width: max-content !important;
+    min-width: 1100px !important;
+    max-width: none !important;
+
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+    box-sizing: border-box !important;
+  }
+
+}
