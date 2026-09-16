@@ -12883,3 +12883,49 @@ button {
     box-sizing: border-box !important;
   }
 }
+
+/* ==========================================
+   REKAP GO — RESTORE COLLAPSE BEHAVIOR
+   ========================================== */
+
+@media (max-width: 700px) {
+
+  /* Batch yang belum dibuka:
+     SEMUA ISI TIDAK DITAMPILKAN */
+  #recapListContainer
+  .recap-batch-card.recap-batch-collapsed
+  .product-table-wrapper {
+    display: none !important;
+  }
+
+  #recapListContainer
+  .recap-batch-card.recap-batch-collapsed
+  .batch-tracking {
+    display: none !important;
+  }
+
+  #recapListContainer
+  .recap-batch-card.recap-batch-collapsed
+  .recap-batch-deadlines {
+    display: none !important;
+  }
+
+  /* Batch yang dibuka:
+     tabel kembali tampil + bisa swipe */
+  #recapListContainer
+  .recap-batch-card:not(.recap-batch-collapsed)
+  .product-table-wrapper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x !important;
+
+    box-sizing: border-box !important;
+  }
+}
