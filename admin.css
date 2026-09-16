@@ -10821,58 +10821,43 @@ button {
      ===================================================== */
 
   #recapListContainer {
-    width: 100% !important;
-    max-width: 100% !important;
-
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-
-    box-sizing: border-box !important;
-  }
-
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  box-sizing: border-box !important;
+}
 
   /* =====================================================
      2. INI SATU-SATUNYA AREA YANG BOLEH SCROLL
      ===================================================== */
 
   #recapListContainer
-  .recap-batch-scroll {
+.recap-batch-scroll {
 
-    width: 100% !important;
-    max-width: 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
 
-    overflow-x: auto !important;
-    overflow-y: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
 
-    -webkit-overflow-scrolling: touch !important;
-
-    box-sizing: border-box !important;
-
-    scrollbar-width: thin !important;
-  }
-
+  box-sizing: border-box !important;
+}
 
   /* =====================================================
      3. SEMUA BATCH MEMILIKI LEBAR YANG SAMA
      ===================================================== */
 
   #recapListContainer
-  .recap-batch-scroll
-  .recap-batch-card {
+.recap-batch-scroll
+.recap-batch-card {
 
-    width: 850px !important;
-    min-width: 850px !important;
-    max-width: 850px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 
-    box-sizing: border-box !important;
-
-    overflow: visible !important;
-
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-
-
+  box-sizing: border-box !important;
+}
   /* =====================================================
      4. HEADER BATCH = 5 KOLOM
      
