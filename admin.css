@@ -12797,10 +12797,10 @@ button {
 
   /* BAGIAN BATCH TIDAK IKUT SCROLL */
   #recapListContainer .recap-batch-scroll {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: visible !important;
-    overflow-y: visible !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   }
 
   #recapListContainer .recap-batch-card {
