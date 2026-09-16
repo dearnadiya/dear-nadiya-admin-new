@@ -12774,3 +12774,61 @@ button {
 .recap-batch-table-arrow {
   transform: translateX(130px);
 }
+
+/* ==========================================
+   MOBILE REKAP GO
+   HORIZONTAL SCROLL HANYA ISI TABEL BATCH
+   ========================================== */
+
+@media (max-width: 700px) {
+
+  html,
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  #recapListContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  #recapListContainer .recap-batch-scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  #recapListContainer
+  .recap-batch-scroll
+  .product-table {
+    min-width: 850px !important;
+    width: 850px !important;
+    max-width: none !important;
+  }
+
+}
