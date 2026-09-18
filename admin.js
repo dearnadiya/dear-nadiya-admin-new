@@ -10512,16 +10512,6 @@ function showRecapForm(category) {
              HARGA SAMA UNTUK SEMUA MEMBER
              ===================================== -->
 
-        <div id="batchCommonFields">
-
-          <hr>
-
-          <h3>Harga Batch</h3>
-
-          <label>Harga Barang</label>
-
-          <input
-  id="batchCommonPrice"
   <div id="batchCommonFields">
 
   <hr>
