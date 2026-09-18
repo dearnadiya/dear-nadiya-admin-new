@@ -10522,24 +10522,38 @@ function showRecapForm(category) {
 
           <input
   id="batchCommonPrice"
-  type="text"
-  class="currency-input"
-  value=""
-  placeholder="50.000"
->
+  <div id="batchCommonFields">
 
-          <label>DP</label>
+  <hr>
 
-          <input
-  id="batchCommonDp"
-  type="text"
-  class="currency-input"
-  value=""
-  placeholder="50.000"
->
+  <h3>Harga Batch</h3>
 
-        </div>
+  <label>Harga Satuan</label>
 
+  <input
+    id="batchCommonPrice"
+    type="text"
+    class="currency-input"
+    value=""
+    placeholder="50.000"
+  >
+
+  <label>DP Satuan</label>
+
+  <input
+    id="batchCommonDp"
+    type="text"
+    class="currency-input"
+    value=""
+    placeholder="20.000"
+  >
+
+  <small>
+    Harga dan DP di atas adalah harga per 1 pcs.
+    Total akan otomatis mengikuti Quantity masing-masing customer.
+  </small>
+
+</div>
 
         <hr>
 
@@ -10881,7 +10895,31 @@ updateCoDeadlineMode();
   placeholder="50.000"
 >
 
-      </div>
+            </div>
+
+
+      <!-- ====================================
+           TOTAL HARGA CUSTOMER
+           MENGIKUTI QUANTITY
+           ==================================== -->
+
+      <label>Total Harga</label>
+
+      <input
+        type="text"
+        class="batch-total-price currency-input"
+        value="0"
+        readonly
+      >
+
+      <label>Total DP</label>
+
+      <input
+        type="text"
+        class="batch-total-dp currency-input"
+        value="0"
+        readonly
+      >
 
 
       <!-- ====================================
@@ -10890,7 +10928,7 @@ updateCoDeadlineMode();
            ==================================== -->
 
       <div class="batch-payment-fields">
-
+      
         <label>Status DP</label>
 
         <select class="batch-dp-status">
@@ -11658,76 +11696,168 @@ function updateBatchRemaining() {
       "batchPriceMode"
     )?.value || "same";
 
+
   const items =
     document.querySelectorAll(
       "#batchItemsContainer .batch-item"
     );
 
+
   let commonPrice = 0;
   let commonDp = 0;
+
+
+  /* ==========================================
+     HARGA SAMA
+     HARGA & DP = HARGA SATUAN
+     ========================================== */
 
   if (mode === "same") {
 
     commonPrice =
-  parseNominalInput(
-    document.getElementById(
-      "batchCommonPrice"
-    )?.value
-  );
+      parseNominalInput(
+        document.getElementById(
+          "batchCommonPrice"
+        )?.value
+      );
 
-commonDp =
-  parseNominalInput(
-    document.getElementById(
-      "batchCommonDp"
-    )?.value
-  );
+
+    commonDp =
+      parseNominalInput(
+        document.getElementById(
+          "batchCommonDp"
+        )?.value
+      );
+
   }
+
+
+  /* ==========================================
+     HITUNG SETIAP CUSTOMER
+     ========================================== */
 
   items.forEach(function(item) {
 
-    let price = commonPrice;
-    let dp = commonDp;
+    const quantity =
+      Math.max(
+        1,
+        Number(
+          item.querySelector(
+            ".batch-quantity"
+          )?.value
+        ) || 1
+      );
+
+
+    let unitPrice = commonPrice;
+    let unitDp = commonDp;
+
+
+    /* ========================================
+       HARGA BERBEDA
+       ======================================== */
 
     if (mode === "different") {
 
-      price =
-  parseNominalInput(
-    item
-      .querySelector(
-        ".batch-price"
-      )?.value
-  );
+      unitPrice =
+        parseNominalInput(
+          item.querySelector(
+            ".batch-price"
+          )?.value
+        );
 
-dp =
-  parseNominalInput(
-    item
-      .querySelector(
-        ".batch-dp"
-      )?.value
-  );
+
+      unitDp =
+        parseNominalInput(
+          item.querySelector(
+            ".batch-dp"
+          )?.value
+        );
+
     }
+
+
+    /* ========================================
+       TOTAL BERDASARKAN QUANTITY
+       ======================================== */
+
+    const totalPrice =
+      unitPrice * quantity;
+
+
+    const totalDp =
+      unitDp * quantity;
+
 
     const remaining =
       Math.max(
         0,
-        price - dp
+        totalPrice - totalDp
       );
+
+
+    /* ========================================
+       TAMPILKAN TOTAL HARGA
+       ======================================== */
+
+    const totalPriceInput =
+      item.querySelector(
+        ".batch-total-price"
+      );
+
+
+    if (totalPriceInput) {
+
+      totalPriceInput.value =
+        formatNominalInput(
+          totalPrice
+        );
+
+    }
+
+
+    /* ========================================
+       TAMPILKAN TOTAL DP
+       ======================================== */
+
+    const totalDpInput =
+      item.querySelector(
+        ".batch-total-dp"
+      );
+
+
+    if (totalDpInput) {
+
+      totalDpInput.value =
+        formatNominalInput(
+          totalDp
+        );
+
+    }
+
+
+    /* ========================================
+       TAMPILKAN SISA PEMBAYARAN
+       ======================================== */
 
     const remainingInput =
       item.querySelector(
         ".batch-remaining"
       );
 
+
     if (remainingInput) {
-  remainingInput.value =
-    formatNominalInput(
-      remaining
-    );
-}
+
+      remainingInput.value =
+        formatNominalInput(
+          remaining
+        );
+
+    }
 
   });
-}
-   
+
+}   
   /* ==========================================
      CUSTOMER PERTAMA
      ========================================== */
@@ -11782,7 +11912,7 @@ itemsContainer.addEventListener(
 
     if (
       event.target.matches(
-        ".batch-price, .batch-dp"
+        ".batch-quantity, .batch-price, .batch-dp"
       )
     ) {
       updateBatchRemaining();
@@ -14867,75 +14997,94 @@ const customer =
          HARGA
          ====================================== */
 
-      let price = 0;
+      let unitPrice = 0;
 
 
-      if (
-        priceMode === "same"
-      ) {
+if (
+  priceMode === "same"
+) {
 
-        /*
-         * Harga sama untuk semua customer
-         */
+  /*
+   * Harga sama untuk semua customer.
+   * commonPrice = harga satuan.
+   */
 
-        price =
-          commonPrice;
+  unitPrice =
+    commonPrice;
 
-      }
+}
 
-      else {
+else {
 
-        /*
-         * Harga berbeda per customer
-         */
+  /*
+   * Harga berbeda per customer.
+   * batch-price = harga satuan.
+   */
 
-        price =
-  parseNominalInput(
-    item
-      .querySelector(
-        ".batch-price"
-      )?.value
-  );
+  unitPrice =
+    parseNominalInput(
+      item
+        .querySelector(
+          ".batch-price"
+        )?.value
+    );
 
-      }
+}
+
+
+/*
+ * Total harga mengikuti quantity.
+ */
+
+const price =
+  unitPrice * quantity;
 
 
       /* ======================================
          DP
          ====================================== */
 
-      let dp = 0;
+      let unitDp = 0;
 
 
-      if (
-        priceMode === "same"
-      ) {
+if (
+  priceMode === "same"
+) {
 
-        /*
-         * DP sama untuk semua customer
-         */
+  /*
+   * DP sama untuk semua customer.
+   * commonDp = DP satuan.
+   */
 
-        dp =
-          commonDp;
+  unitDp =
+    commonDp;
 
-      }
+}
 
-      else {
+else {
 
-        /*
-         * DP berbeda per customer
-         */
+  /*
+   * DP berbeda per customer.
+   * batch-dp = DP satuan.
+   */
 
-        dp =
-  parseNominalInput(
-    item
-      .querySelector(
-        ".batch-dp"
-      )?.value
-  );
+  unitDp =
+    parseNominalInput(
+      item
+        .querySelector(
+          ".batch-dp"
+        )?.value
+    );
 
-      }
+}
 
+
+/*
+ * Total DP mengikuti quantity.
+ */
+
+const dp =
+  unitDp * quantity;
 
       /* ======================================
          STATUS DP
@@ -14955,39 +15104,11 @@ const customer =
    OTOMATIS HARGA - DP
    ====================================== */
 
-let remaining = 0;
-
-if (
-  priceMode === "same"
-) {
-
-  /*
-   * Harga dan DP sama untuk semua customer.
-   * Sisa pembayaran dihitung otomatis.
-   */
-
-  remaining =
-    Math.max(
-      0,
-      commonPrice -
-      commonDp
-    );
-
-} else {
-
-  /*
-   * Harga dan DP berbeda per customer.
-   * Sisa pembayaran dihitung otomatis.
-   */
-
-  remaining =
-    Math.max(
-      0,
-      price -
-      dp
-    );
-
-}
+const remaining =
+  Math.max(
+    0,
+    price - dp
+  );
        
       /* ======================================
          STATUS PEMBAYARAN
