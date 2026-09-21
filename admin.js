@@ -17248,41 +17248,44 @@ editCustomerResults.addEventListener(
 
     if (createButton) {
 
-      showQuickCustomerForm(
-  function(newCustomer) {
+  showQuickCustomerForm(
+    function(newCustomer) {
 
-    // Tambahkan ke item yang sedang aktif
-    customerList.push(
-      newCustomer
-    );
+      /* ==========================================
+         MASUKKAN CUSTOMER BARU KE DAFTAR EDIT
+      ========================================== */
 
-    // Beritahu semua item Rekap GO
-    document.dispatchEvent(
-      new CustomEvent(
-        "dearNadiyaCustomerCreated",
-        {
-          detail: newCustomer
-        }
-      )
-    );
+      customers.push(
+        newCustomer
+      );
 
-    // Langsung pilih customer baru
-    customerInput.value =
-      newCustomer.name || "";
 
-    customerIdInput.value =
-      newCustomer.id || "";
+      /* ==========================================
+         LANGSUNG PILIH CUSTOMER BARU
+      ========================================== */
 
-    customerResults.innerHTML =
-      "";
+      editCustomerInput.value =
+        newCustomer.name || "";
 
-    customerResults.style.display =
-      "none";
-  }
-);
-      return;
+      editCustomerId.value =
+        newCustomer.id || "";
+
+
+      /* ==========================================
+         TUTUP HASIL PENCARIAN
+      ========================================== */
+
+      editCustomerResults.innerHTML =
+        "";
+
+      editCustomerResults.style.display =
+        "none";
+
     }
+  );
 
+  return;
+}
 
     const button =
       event.target.closest(
