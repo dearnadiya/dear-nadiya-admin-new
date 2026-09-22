@@ -8462,6 +8462,12 @@ selectedRecapCategory = "";
   data-icon="${escapeHTML(
     category.icon || "📁"
   )}"
+  data-tracking-options="${escapeHTML(
+    JSON.stringify(
+      category.tracking_options ||
+      getTrackingOptions(categoryName)
+    )
+  )}"
 >
   ✏️ Edit
 </button>
@@ -8938,6 +8944,30 @@ if (!categoryName) {
              const currentIcon =
               this.dataset.icon || "📁";
 
+             let currentTrackingOptions = [];
+
+try {
+
+  currentTrackingOptions =
+    JSON.parse(
+      this.dataset.trackingOptions ||
+      "[]"
+    );
+
+} catch (error) {
+
+  console.warn(
+    "Tracking options kategori tidak valid:",
+    error
+  );
+
+  currentTrackingOptions =
+    getTrackingOptions(
+      currentName
+    );
+
+}
+
             if (!categoryId) {
               console.error(
                 "ID kategori tidak ditemukan."
@@ -9024,6 +9054,81 @@ if (!categoryName) {
     Pilih emoji langsung dari keyboard perangkat,
     misalnya 📦 💿 🎀 🧸 💎 🇰🇷 🇯🇵
   </small>
+
+</div>
+
+<div class="form-group">
+
+  <label>
+    Tracking Options
+  </label>
+
+  <small>
+    Pilih status tracking yang ingin digunakan
+    untuk kategori ini.
+  </small>
+
+  <div
+    id="editRecapTrackingOptions"
+    style="
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    "
+  >
+
+    ${[
+      "Co Web / Seller",
+      "Co Seller",
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ]
+      .map(function(option) {
+
+        const checked =
+          currentTrackingOptions.includes(
+            option
+          )
+            ? "checked"
+            : "";
+
+        return `
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+            "
+          >
+
+            <input
+              type="checkbox"
+              class="edit-recap-tracking-option"
+              value="${escapeHTML(
+                option
+              )}"
+              ${checked}
+            >
+
+            <span>
+              ${escapeHTML(option)}
+            </span>
+
+          </label>
+        `;
+
+      })
+      .join("")}
+
+  </div>
 
 </div>
 
@@ -9149,13 +9254,44 @@ const newIcon =
 } =
   await supabaseClient
     .from("recap_categories")
+    const trackingCheckboxes =
+  container.querySelectorAll(
+    ".edit-recap-tracking-option"
+  );
+
+const newTrackingOptions =
+  Array.from(
+    trackingCheckboxes
+  )
+    .filter(function(checkbox) {
+      return checkbox.checked;
+    })
+    .map(function(checkbox) {
+      return checkbox.value;
+    });
+
+
+const {
+  error
+} =
+  await supabaseClient
+    .from("recap_categories")
     .update({
+
       category_name:
         newName,
 
       icon:
-        newIcon || "📁"
+        newIcon || "📁",
+
+      tracking_options:
+        newTrackingOptions
+
     })
+    .eq(
+      "id",
+      categoryId
+    );
     .eq(
       "id",
       categoryId
