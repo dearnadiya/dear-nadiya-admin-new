@@ -26933,6 +26933,507 @@ function formatDateTime(value) {
 }
 
 /* ============================================
+   SINKRONISASI CUSTOMER LAMA
+   ============================================ */
+
+async function syncOldCustomerData() {
+
+  const confirmSync =
+    confirm(
+      "Sinkronisasi Customer Lama akan memperbarui nama customer di:\n\n" +
+      "✓ Rekap GO\n" +
+      "✓ PO / Pesanan\n\n" +
+      "Data akan dicocokkan berdasarkan CUSTOMER ID.\n\n" +
+      "Harga, DP, quantity, status, deadline, dan data lainnya tidak akan diubah.\n\n" +
+      "Lanjutkan?"
+    );
+
+  if (!confirmSync) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "syncOldCustomersButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "⏳ Menyinkronkan...";
+  }
+
+
+  try {
+
+    /*
+      ==========================================
+      1. AMBIL SEMUA CUSTOMER
+      ==========================================
+    */
+
+    const {
+      data: customers,
+      error: customerError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(`
+          id,
+          name
+        `);
+
+    if (customerError) {
+      throw customerError;
+    }
+
+
+    const customerMap = {};
+
+    (customers || []).forEach(
+      function(customer) {
+
+        customerMap[
+          String(customer.id)
+        ] =
+          customer.name || "";
+
+      }
+    );
+
+
+    /*
+      ==========================================
+      2. SINKRONISASI REKAP GO
+      ==========================================
+    */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          customer_id,
+          customer_name
+        `);
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    let recapUpdatedCount = 0;
+
+
+    for (
+      const row
+      of (recapRows || [])
+    ) {
+
+      /*
+        Jika tidak memiliki customer_id,
+        jangan ditebak berdasarkan nama.
+      */
+
+      if (
+        row.customer_id ===
+        null ||
+        row.customer_id ===
+        undefined
+      ) {
+        continue;
+      }
+
+
+      const customerName =
+        customerMap[
+          String(row.customer_id)
+        ];
+
+
+      /*
+        Customer ID tidak ditemukan.
+      */
+
+      if (
+        customerName ===
+        undefined
+      ) {
+        continue;
+      }
+
+
+      /*
+        Hanya update jika nama memang berbeda.
+      */
+
+      if (
+        String(
+          row.customer_name || ""
+        ) ===
+        String(customerName)
+      ) {
+        continue;
+      }
+
+
+      const {
+        error: updateRecapError
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .update({
+            customer_name:
+              customerName
+          })
+          .eq(
+            "id",
+            row.id
+          );
+
+
+      if (updateRecapError) {
+
+        console.error(
+          "Gagal update Rekap GO:",
+          row.id,
+          updateRecapError
+        );
+
+        continue;
+      }
+
+
+      recapUpdatedCount++;
+
+    }
+
+
+    /*
+      ==========================================
+      3. AMBIL SEMUA PO
+      ==========================================
+    */
+
+    const {
+      data: poPosts,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          list_data
+        `);
+
+    if (poError) {
+      throw poError;
+    }
+
+
+    let poUpdatedCount = 0;
+    let poSkippedCount = 0;
+
+
+    /*
+      ==========================================
+      4. SINKRONISASI CUSTOMER DI list_data PO
+      ==========================================
+    */
+
+    for (
+      const po
+      of (poPosts || [])
+    ) {
+
+      let listData =
+        po.list_data;
+
+
+      /*
+        Jika JSON disimpan sebagai string,
+        ubah menjadi array.
+      */
+
+      if (
+        typeof listData ===
+        "string"
+      ) {
+
+        try {
+
+          listData =
+            JSON.parse(
+              listData
+            );
+
+        } catch (parseError) {
+
+          console.error(
+            "Gagal parse list_data PO:",
+            po.id,
+            parseError
+          );
+
+          poSkippedCount++;
+
+          continue;
+        }
+
+      }
+
+
+      /*
+        Kita hanya memproses list_data
+        berbentuk array.
+      */
+
+      if (
+        !Array.isArray(
+          listData
+        )
+      ) {
+
+        continue;
+
+      }
+
+
+      let changed = false;
+
+
+      const updatedListData =
+        listData.map(
+          function(row) {
+
+            if (
+              row?.customer_id ===
+              null ||
+              row?.customer_id ===
+              undefined
+            ) {
+              return row;
+            }
+
+
+            const customerName =
+              customerMap[
+                String(
+                  row.customer_id
+                )
+              ];
+
+
+            /*
+              Customer ID tidak ditemukan.
+            */
+
+            if (
+              customerName ===
+              undefined
+            ) {
+              return row;
+            }
+
+
+            /*
+              Nama sudah benar.
+            */
+
+            if (
+              String(
+                row.customer || ""
+              ) ===
+              String(
+                customerName
+              )
+            ) {
+              return row;
+            }
+
+
+            changed = true;
+
+
+            return {
+              ...row,
+              customer:
+                customerName
+            };
+
+          }
+        );
+
+
+      /*
+        Tidak ada perubahan.
+      */
+
+      if (!changed) {
+        continue;
+      }
+
+
+      /*
+        Simpan kembali list_data.
+      */
+
+      const {
+        error: updatePOError
+      } =
+        await supabaseClient
+          .from("po_posts")
+          .update({
+            list_data:
+              updatedListData
+          })
+          .eq(
+            "id",
+            po.id
+          );
+
+
+      if (updatePOError) {
+
+        console.error(
+          "Gagal update PO:",
+          po.id,
+          updatePOError
+        );
+
+        poSkippedCount++;
+
+        continue;
+      }
+
+
+      poUpdatedCount++;
+
+    }
+
+
+    /*
+      ==========================================
+      5. HASIL
+      ==========================================
+    */
+
+    alert(
+      "Sinkronisasi Customer Lama selesai.\n\n" +
+
+      "Customer diperiksa: " +
+      (customers || []).length +
+      "\n\n" +
+
+      "Rekap GO diperbarui: " +
+      recapUpdatedCount +
+      "\n\n" +
+
+      "PO / Pesanan diperbarui: " +
+      poUpdatedCount +
+      "\n\n" +
+
+      (
+        poSkippedCount > 0
+          ? "Data PO yang dilewati/gagal: " +
+            poSkippedCount +
+            "\n\n"
+          : ""
+      ) +
+
+      "Data customer yang tidak memiliki customer ID tidak diubah."
+    );
+
+
+    /*
+      Refresh tampilan Customer
+    */
+
+    if (
+      typeof loadCustomers ===
+      "function"
+    ) {
+      await loadCustomers();
+    }
+
+
+    /*
+      Refresh PO jika fungsi tersedia.
+    */
+
+    try {
+
+      if (
+        typeof loadPOCustomer ===
+        "function"
+      ) {
+        await loadPOCustomer();
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Gagal refresh PO Customer:",
+        error
+      );
+
+    }
+
+
+    try {
+
+      if (
+        typeof loadPOArchiveList ===
+        "function"
+      ) {
+        await loadPOArchiveList(true);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Gagal refresh arsip PO:",
+        error
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR SINKRONISASI CUSTOMER LAMA:",
+      error
+    );
+
+
+    alert(
+      "Sinkronisasi gagal:\n\n" +
+      error.message
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "🔄 Sinkronkan Customer Lama";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    MASTER DATA CUSTOMER
    ============================================ */
 
@@ -26964,6 +27465,15 @@ async function loadCustomers() {
         >
           ➕ Tambah Customer
         </button>
+
+        <button
+  type="button"
+  class="secondary-button"
+  id="syncOldCustomersButton"
+  style="margin-left:8px;"
+>
+  🔄 Sinkronkan Customer Lama
+</button>
 
       </div>
 
@@ -27014,6 +27524,22 @@ async function loadCustomers() {
     );
 
   }
+
+   const syncOldCustomersButton =
+  document.getElementById(
+    "syncOldCustomersButton"
+  );
+
+if (
+  syncOldCustomersButton
+) {
+
+  syncOldCustomersButton.addEventListener(
+    "click",
+    syncOldCustomerData
+  );
+
+}
 
   const searchInput =
     document.getElementById(
