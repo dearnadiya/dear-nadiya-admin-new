@@ -13559,12 +13559,65 @@ if (backCategoryButton) {
 
   backCategoryButton.addEventListener(
     "click",
-    function() {
+    async function() {
+
+      /* ==========================================
+         AMBIL TYPE REKAP DARI DATABASE
+         BERDASARKAN KATEGORI AKTIF
+         ========================================== */
+
+      const {
+        data: categoryData,
+        error: categoryError
+      } = await supabaseClient
+        .from("recap_categories")
+        .select("recap_type")
+        .eq(
+          "category_name",
+          category
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+      if (categoryError) {
+
+        console.error(
+          "Gagal mendapatkan type rekap:",
+          categoryError
+        );
+
+        alert(
+          "Gagal kembali ke daftar kategori: " +
+          categoryError.message
+        );
+
+        return;
+
+      }
+
 
       const recapType =
-        getRecapTypeFromCategory(
+        categoryData?.recap_type || "";
+
+
+      if (!recapType) {
+
+        console.error(
+          "Type rekap tidak ditemukan untuk kategori:",
           category
         );
+
+        alert(
+          "Type Rekap untuk kategori \"" +
+          category +
+          "\" tidak ditemukan."
+        );
+
+        return;
+
+      }
+
 
       container.style.display =
         "none";
@@ -13580,7 +13633,6 @@ if (backCategoryButton) {
   );
 
 }
-
 /* ==========================================
    TAMBAH MEMBER / VERSI KE BATCH
    ========================================== */
