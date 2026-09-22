@@ -9069,15 +9069,15 @@ try {
   </small>
 
   <div
-    id="editRecapTrackingOptions"
-    style="
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    "
-  >
-
+  id="editRecapTrackingOptions"
+  style="
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 10px 20px;
+    max-width: 700px;
+  "
+>
     ${[
       "Co Web / Seller",
       "Co Seller",
@@ -9101,13 +9101,20 @@ try {
 
         return `
           <label
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              cursor: pointer;
-            "
-          >
+  style="
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 14px;
+    min-height: 38px;
+    box-sizing: border-box;
+  "
+>
 
             <input
               type="checkbox"
