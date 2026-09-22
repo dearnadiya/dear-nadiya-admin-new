@@ -28664,6 +28664,710 @@ async function repairCustomerIdData() {
 }
 
 /* ============================================
+   AUDIT IDENTITAS CUSTOMER HISTORIS
+   TIDAK MENGUBAH DATA
+   ============================================ */
+
+async function auditHistoricalCustomerData() {
+
+  const confirmAudit =
+    confirm(
+      "Audit Identitas Historis akan mencari hubungan antara data lama yang belum memiliki customer_id dengan riwayat pembayaran.\n\n" +
+
+      "Sumber yang digunakan:\n" +
+      "• Rekap GO\n" +
+      "• PO / Pesanan\n" +
+      "• Riwayat pembayaran\n\n" +
+
+      "Audit ini HANYA membaca data.\n" +
+      "Tidak ada data yang akan diubah.\n\n" +
+
+      "Lanjutkan?"
+    );
+
+  if (!confirmAudit) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "auditHistoricalCustomerButton"
+    );
+
+
+  if (button) {
+
+    button.disabled = true;
+
+    button.textContent =
+      "⏳ Mengaudit...";
+
+  }
+
+
+  try {
+
+    /* ==========================================
+       1. AMBIL RIWAYAT PEMBAYARAN
+       ========================================== */
+
+    const {
+      data: payments,
+      error: paymentError
+    } =
+      await supabaseClient
+        .from("dn_payment_submissions")
+        .select(`
+          customer_id,
+          customer_name,
+          whatsapp_last4,
+          product_code,
+          product_version
+        `);
+
+
+    if (paymentError) {
+      throw paymentError;
+    }
+
+
+    /*
+      Kelompokkan riwayat pembayaran
+      berdasarkan NAMA LAMA.
+
+      Contoh:
+
+      "yoshi"
+        →
+        customer_id 123
+        customer_id 123
+        customer_id 123
+
+      Jika hanya satu customer_id,
+      hubungan dianggap konsisten.
+    */
+
+    const paymentIdentityMap = {};
+
+
+    (payments || []).forEach(
+      function(payment) {
+
+        if (
+          payment.customer_id ===
+            null ||
+          payment.customer_id ===
+            undefined
+        ) {
+          return;
+        }
+
+
+        const normalizedName =
+          String(
+            payment.customer_name || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (!normalizedName) {
+          return;
+        }
+
+
+        if (
+          !paymentIdentityMap[
+            normalizedName
+          ]
+        ) {
+
+          paymentIdentityMap[
+            normalizedName
+          ] = new Set();
+
+        }
+
+
+        paymentIdentityMap[
+          normalizedName
+        ].add(
+          String(
+            payment.customer_id
+          )
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       2. AMBIL MASTER CUSTOMER
+       ========================================== */
+
+    const {
+      data: customers,
+      error: customerError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(`
+          id,
+          dn_id,
+          name
+        `);
+
+
+    if (customerError) {
+      throw customerError;
+    }
+
+
+    const customerMap = {};
+
+
+    (customers || []).forEach(
+      function(customer) {
+
+        customerMap[
+          String(customer.id)
+        ] = customer;
+
+      }
+    );
+
+
+    /* ==========================================
+       3. AUDIT REKAP GO
+       ========================================== */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          customer_id,
+          customer_name,
+          batch_code,
+          version
+        `);
+
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    let recapHistoricalMatch = 0;
+    let recapHistoricalAmbiguous = 0;
+    let recapHistoricalNotFound = 0;
+
+
+    const recapMatches = [];
+    const recapAmbiguous = [];
+    const recapNotFound = [];
+
+
+    (recapRows || []).forEach(
+      function(row) {
+
+        /*
+          Hanya data yang masih
+          belum memiliki customer_id.
+        */
+
+        if (
+          row.customer_id !==
+            null &&
+          row.customer_id !==
+            undefined
+        ) {
+          return;
+        }
+
+
+        const normalizedName =
+          String(
+            row.customer_name || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (!normalizedName) {
+
+          recapHistoricalNotFound++;
+
+          return;
+
+        }
+
+
+        const ids =
+          paymentIdentityMap[
+            normalizedName
+          ];
+
+
+        if (!ids || ids.size === 0) {
+
+          recapHistoricalNotFound++;
+
+          if (
+            recapNotFound.length <
+            10
+          ) {
+
+            recapNotFound.push(
+              "• " +
+              (row.batch_code || "—") +
+              " / " +
+              (row.version || "—") +
+              " → " +
+              (row.customer_name || "—")
+            );
+
+          }
+
+          return;
+
+        }
+
+
+        /*
+          Tepat satu customer_id
+          muncul dalam seluruh riwayat
+          pembayaran dengan nama tersebut.
+        */
+
+        if (
+          ids.size === 1
+        ) {
+
+          const customerId =
+            [...ids][0];
+
+
+          const customer =
+            customerMap[
+              customerId
+            ];
+
+
+          if (customer) {
+
+            recapHistoricalMatch++;
+
+
+            if (
+              recapMatches.length <
+              20
+            ) {
+
+              recapMatches.push(
+                "• " +
+                (row.batch_code || "—") +
+                " / " +
+                (row.version || "—") +
+                " → " +
+                row.customer_name +
+                " → " +
+                customer.dn_id +
+                " " +
+                customer.name
+              );
+
+            }
+
+            return;
+
+          }
+
+        }
+
+
+        /*
+          Satu nama pernah digunakan
+          oleh lebih dari satu customer_id.
+        */
+
+        recapHistoricalAmbiguous++;
+
+
+        if (
+          recapAmbiguous.length <
+          10
+        ) {
+
+          recapAmbiguous.push(
+            "• " +
+            (row.batch_code || "—") +
+            " / " +
+            (row.version || "—") +
+            " → " +
+            row.customer_name +
+            " (" +
+            ids.size +
+            " customer ID)"
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ==========================================
+       4. AUDIT PO / PESANAN
+       ========================================== */
+
+    const {
+      data: poPosts,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          list_data
+        `);
+
+
+    if (poError) {
+      throw poError;
+    }
+
+
+    let poHistoricalMatch = 0;
+    let poHistoricalAmbiguous = 0;
+    let poHistoricalNotFound = 0;
+
+
+    const poMatches = [];
+    const poAmbiguous = [];
+    const poNotFound = [];
+
+
+    (poPosts || []).forEach(
+      function(po) {
+
+        let listData =
+          po.list_data;
+
+
+        if (
+          typeof listData ===
+          "string"
+        ) {
+
+          try {
+
+            listData =
+              JSON.parse(
+                listData
+              );
+
+          } catch (error) {
+
+            return;
+
+          }
+
+        }
+
+
+        if (
+          !Array.isArray(
+            listData
+          )
+        ) {
+          return;
+        }
+
+
+        listData.forEach(
+          function(row) {
+
+            /*
+              Hanya row tanpa customer_id.
+            */
+
+            if (
+              row?.customer_id !==
+                null &&
+              row?.customer_id !==
+                undefined
+            ) {
+              return;
+            }
+
+
+            const normalizedName =
+              String(
+                row?.customer || ""
+              )
+                .trim()
+                .toLowerCase();
+
+
+            if (!normalizedName) {
+              return;
+            }
+
+
+            const ids =
+              paymentIdentityMap[
+                normalizedName
+              ];
+
+
+            if (
+              !ids ||
+              ids.size === 0
+            ) {
+
+              poHistoricalNotFound++;
+
+
+              if (
+                poNotFound.length <
+                10
+              ) {
+
+                poNotFound.push(
+                  "• " +
+                  (po.title || "PO") +
+                  " → " +
+                  row.customer
+                );
+
+              }
+
+              return;
+
+            }
+
+
+            if (
+              ids.size === 1
+            ) {
+
+              const customerId =
+                [...ids][0];
+
+
+              const customer =
+                customerMap[
+                  customerId
+                ];
+
+
+              if (customer) {
+
+                poHistoricalMatch++;
+
+
+                if (
+                  poMatches.length <
+                  20
+                ) {
+
+                  poMatches.push(
+                    "• " +
+                    (po.title || "PO") +
+                    " → " +
+                    row.customer +
+                    " → " +
+                    customer.dn_id +
+                    " " +
+                    customer.name
+                  );
+
+                }
+
+                return;
+
+              }
+
+            }
+
+
+            poHistoricalAmbiguous++;
+
+
+            if (
+              poAmbiguous.length <
+              10
+            ) {
+
+              poAmbiguous.push(
+                "• " +
+                (po.title || "PO") +
+                " → " +
+                row.customer +
+                " (" +
+                ids.size +
+                " customer ID)"
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       5. HASIL AUDIT
+       ========================================== */
+
+    let message =
+      "HASIL AUDIT IDENTITAS HISTORIS\n\n";
+
+
+    message +=
+      "===== REKAP GO =====\n" +
+      "Bisa ditemukan dari riwayat pembayaran: " +
+      recapHistoricalMatch +
+      "\n" +
+      "Ambigu: " +
+      recapHistoricalAmbiguous +
+      "\n" +
+      "Tidak ditemukan: " +
+      recapHistoricalNotFound +
+      "\n\n";
+
+
+    message +=
+      "===== PO / PESANAN =====\n" +
+      "Bisa ditemukan dari riwayat pembayaran: " +
+      poHistoricalMatch +
+      "\n" +
+      "Ambigu: " +
+      poHistoricalAmbiguous +
+      "\n" +
+      "Tidak ditemukan: " +
+      poHistoricalNotFound +
+      "\n\n";
+
+
+    message +=
+      "DATA BELUM DIUBAH.\n\n";
+
+
+    if (
+      recapMatches.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO yang ditemukan:\n" +
+        recapMatches.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poMatches.length > 0
+    ) {
+
+      message +=
+        "Contoh PO yang ditemukan:\n" +
+        poMatches.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      recapAmbiguous.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO ambigu:\n" +
+        recapAmbiguous.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poAmbiguous.length > 0
+    ) {
+
+      message +=
+        "Contoh PO ambigu:\n" +
+        poAmbiguous.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      recapNotFound.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO tidak ditemukan:\n" +
+        recapNotFound.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poNotFound.length > 0
+    ) {
+
+      message +=
+        "Contoh PO tidak ditemukan:\n" +
+        poNotFound.join("\n") +
+        "\n\n";
+
+    }
+
+
+    alert(message);
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR AUDIT IDENTITAS HISTORIS:",
+      error
+    );
+
+
+    alert(
+      "Audit identitas historis gagal:\n\n" +
+      error.message
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "🕵️ Audit Identitas Historis";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    MASTER DATA CUSTOMER
    ============================================ */
 
@@ -28712,6 +29416,15 @@ async function loadCustomers() {
   style="margin-left:8px;"
 >
   🔎 Audit Customer ID
+</button>
+
+<button
+  type="button"
+  class="secondary-button"
+  id="auditHistoricalCustomerButton"
+  style="margin-left:8px;"
+>
+  🕵️ Audit Identitas Historis
 </button>
 
 <button
@@ -28817,6 +29530,22 @@ if (
   repairCustomerIdButton.addEventListener(
     "click",
     repairCustomerIdData
+  );
+
+}
+
+   const auditHistoricalCustomerButton =
+  document.getElementById(
+    "auditHistoricalCustomerButton"
+  );
+
+if (
+  auditHistoricalCustomerButton
+) {
+
+  auditHistoricalCustomerButton.addEventListener(
+    "click",
+    auditHistoricalCustomerData
   );
 
 }
