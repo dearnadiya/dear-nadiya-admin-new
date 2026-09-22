@@ -22096,6 +22096,7 @@ async function loadOldRecapClaimList() {
   customer_id,
   customer_name,
   image_url
+  batch_tracking_status
 `)
         .not(
           "version",
@@ -22135,10 +22136,17 @@ async function loadOldRecapClaimList() {
               row.customer_name
             ).trim();
 
-          return (
-            hasMember &&
-            !hasCustomer
-          );
+          const tracking =
+  String(
+    row.batch_tracking_status || ""
+  ).trim();
+
+return (
+  hasMember &&
+  !hasCustomer &&
+  tracking !== "Arrived Admin" &&
+  tracking !== "Goods Arrive at Customer"
+);
 
         }
       );
@@ -22370,19 +22378,26 @@ async function showOldRecapClaimDetail(
     (data || []).filter(
       function(row) {
 
-        return (
-          row &&
-          row.version &&
-          String(
-            row.version
-          ).trim() &&
-          !(
-            row.customer_name &&
-            String(
-              row.customer_name
-            ).trim()
-          )
-        );
+        const tracking =
+  String(
+    row.batch_tracking_status || ""
+  ).trim();
+
+return (
+  row &&
+  row.version &&
+  String(
+    row.version
+  ).trim() &&
+  !(
+    row.customer_name &&
+    String(
+      row.customer_name
+    ).trim()
+  ) &&
+  tracking !== "Arrived Admin" &&
+  tracking !== "Goods Arrive at Customer"
+);
 
       }
     );
