@@ -10955,8 +10955,7 @@ const incomplete =
       return (
   !record.customer_id ||
   !record.customer_name ||
-  !record.version ||
-  !record.member_id
+  !record.version
 );
 
     }
