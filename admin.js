@@ -29368,6 +29368,450 @@ async function auditHistoricalCustomerData() {
 }
 
 /* ============================================
+   TAMPILKAN DATA TANPA CUSTOMER ID
+   DIKELOMPOKKAN BERDASARKAN BATCH
+   TIDAK MENGUBAH DATA
+   ============================================ */
+
+async function showUnidentifiedCustomerData() {
+
+  const button =
+    document.getElementById(
+      "showUnidentifiedCustomerButton"
+    );
+
+  if (button) {
+
+    button.disabled = true;
+
+    button.textContent =
+      "⏳ Memuat data...";
+
+  }
+
+
+  try {
+
+    /* ==========================================
+       1. AMBIL REKAP GO
+       ========================================== */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          category,
+          batch_code,
+          item_name,
+          version,
+          customer_name
+        `)
+        .is(
+          "customer_id",
+          null
+        )
+        .order(
+          "category",
+          {
+            ascending: true
+          }
+        )
+        .order(
+          "batch_code",
+          {
+            ascending: true
+          }
+        )
+        .order(
+          "id",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    /* ==========================================
+       2. KELOMPOKKAN REKAP BERDASARKAN
+          CATEGORY + BATCH
+       ========================================== */
+
+    const recapGroups = {};
+
+
+    (recapRows || []).forEach(
+      function(row) {
+
+        const category =
+          String(
+            row.category || ""
+          ).trim() ||
+          "Tanpa Kategori";
+
+
+        const batchCode =
+          String(
+            row.batch_code || ""
+          ).trim() ||
+          "Tanpa Batch";
+
+
+        const groupKey =
+          category +
+          "||" +
+          batchCode;
+
+
+        if (
+          !recapGroups[groupKey]
+        ) {
+
+          recapGroups[groupKey] = {
+
+            category:
+              category,
+
+            batchCode:
+              batchCode,
+
+            rows:
+              []
+
+          };
+
+        }
+
+
+        recapGroups[
+          groupKey
+        ].rows.push(
+          row
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       3. AMBIL PO
+       ========================================== */
+
+    const {
+      data: poPosts,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          list_data
+        `);
+
+
+    if (poError) {
+      throw poError;
+    }
+
+
+    /* ==========================================
+       4. KELOMPOKKAN PO YANG TANPA ID
+       ========================================== */
+
+    const unidentifiedPOs = [];
+
+
+    (poPosts || []).forEach(
+      function(po) {
+
+        let listData =
+          po.list_data;
+
+
+        if (
+          typeof listData ===
+          "string"
+        ) {
+
+          try {
+
+            listData =
+              JSON.parse(
+                listData
+              );
+
+          } catch (error) {
+
+            return;
+
+          }
+
+        }
+
+
+        if (
+          !Array.isArray(
+            listData
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        const unidentifiedRows =
+          listData.filter(
+            function(row) {
+
+              return (
+                row &&
+                (
+                  row.customer_id ===
+                    null ||
+                  row.customer_id ===
+                    undefined
+                ) &&
+                String(
+                  row.customer || ""
+                ).trim()
+              );
+
+            }
+          );
+
+
+        if (
+          unidentifiedRows.length ===
+          0
+        ) {
+
+          return;
+
+        }
+
+
+        unidentifiedPOs.push({
+
+          id:
+            po.id,
+
+          title:
+            po.title ||
+            "Tanpa Judul",
+
+          rows:
+            unidentifiedRows
+
+        });
+
+      }
+    );
+
+
+    /* ==========================================
+       5. SUSUN HASIL
+       ========================================== */
+
+    let message =
+      "DATA CUSTOMER TANPA CUSTOMER ID\n\n";
+
+
+    message +=
+      "================================\n" +
+      "REKAP GO\n" +
+      "================================\n\n";
+
+
+    if (
+      Object.keys(
+        recapGroups
+      ).length === 0
+    ) {
+
+      message +=
+        "Tidak ada data Rekap GO.\n\n";
+
+    } else {
+
+      Object.values(
+        recapGroups
+      ).forEach(
+        function(group) {
+
+          message +=
+            "--------------------------------\n" +
+            group.category +
+            " / " +
+            group.batchCode +
+            "\n" +
+            "Jumlah: " +
+            group.rows.length +
+            "\n" +
+            "--------------------------------\n";
+
+
+          group.rows.forEach(
+            function(row, index) {
+
+              message +=
+                (index + 1) +
+                ". " +
+                (
+                  row.customer_name ||
+                  "Tanpa Nama"
+                ) +
+                " | Member/Versi: " +
+                (
+                  row.version ||
+                  "—"
+                ) +
+                " | Barang: " +
+                (
+                  row.item_name ||
+                  "—"
+                ) +
+                " | ID Rekap: " +
+                row.id +
+                "\n";
+
+            }
+          );
+
+
+          message +=
+            "\n";
+
+        }
+      );
+
+    }
+
+
+    message +=
+      "\n================================\n" +
+      "PO / PESANAN\n" +
+      "================================\n\n";
+
+
+    if (
+      unidentifiedPOs.length ===
+      0
+    ) {
+
+      message +=
+        "Tidak ada data PO.\n\n";
+
+    } else {
+
+      unidentifiedPOs.forEach(
+        function(po) {
+
+          message +=
+            "--------------------------------\n" +
+            po.title +
+            "\n" +
+            "Jumlah: " +
+            po.rows.length +
+            "\n" +
+            "--------------------------------\n";
+
+
+          po.rows.forEach(
+            function(row, index) {
+
+              message +=
+                (index + 1) +
+                ". " +
+                (
+                  row.customer ||
+                  "Tanpa Nama"
+                ) +
+                " | Member/Versi: " +
+                (
+                  row.member ||
+                  "—"
+                ) +
+                "\n";
+
+            }
+          );
+
+
+          message +=
+            "\n";
+
+        }
+      );
+
+    }
+
+
+    message +=
+      "\n================================\n" +
+      "TOTAL\n" +
+      "================================\n" +
+      "Rekap GO tanpa customer_id: " +
+      (recapRows || []).length +
+      "\n" +
+      "PO/Pesanan tanpa customer_id: " +
+      unidentifiedPOs.reduce(
+        function(total, po) {
+
+          return (
+            total +
+            po.rows.length
+          );
+
+        },
+        0
+      ) +
+      "\n\n" +
+      "DATA BELUM DIUBAH.";
+
+
+    alert(message);
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR TAMPILKAN DATA CUSTOMER:",
+      error
+    );
+
+
+    alert(
+      "Gagal mengambil data:\n\n" +
+      error.message
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "📋 Lihat Data Tanpa Customer ID";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    MASTER DATA CUSTOMER
    ============================================ */
 
@@ -29425,6 +29869,15 @@ async function loadCustomers() {
   style="margin-left:8px;"
 >
   🕵️ Audit Identitas Historis
+</button>
+
+<button
+  type="button"
+  class="secondary-button"
+  id="showUnidentifiedCustomerButton"
+  style="margin-left:8px;"
+>
+  📋 Lihat Data Tanpa Customer ID
 </button>
 
 <button
@@ -29546,6 +29999,22 @@ if (
   auditHistoricalCustomerButton.addEventListener(
     "click",
     auditHistoricalCustomerData
+  );
+
+}
+
+   const showUnidentifiedCustomerButton =
+  document.getElementById(
+    "showUnidentifiedCustomerButton"
+  );
+
+if (
+  showUnidentifiedCustomerButton
+) {
+
+  showUnidentifiedCustomerButton.addEventListener(
+    "click",
+    showUnidentifiedCustomerData
   );
 
 }
