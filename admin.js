@@ -9857,17 +9857,51 @@ const batchArrivedAdminAt =
     "
   ></div>
 </div>
-      <label>
+      
+            <label>
         Versi / Member
       </label>
 
-      <input
-        type="text"
-        class="batch-version"
-        placeholder="Contoh: Hyunsuk"
+      <div
+        class="member-picker"
+        style="
+          position:relative;
+          width:100%;
+        "
       >
 
+        <input
+          type="text"
+          class="batch-version"
+          placeholder="🔎 Cari member / character / versi..."
+          autocomplete="off"
+        >
 
+        <input
+          type="hidden"
+          class="batch-member-id"
+        >
+
+        <div
+          class="batch-member-results"
+          style="
+            display:none;
+            position:absolute;
+            z-index:9999;
+            left:0;
+            right:0;
+            top:100%;
+            background:#fff;
+            border:1px solid #ddd;
+            border-radius:8px;
+            max-height:240px;
+            overflow-y:auto;
+            box-shadow:0 6px 18px rgba(0,0,0,.12);
+          "
+        ></div>
+
+      </div>
+      
       <label>
         Quantity
       </label>
@@ -10292,6 +10326,307 @@ customerResults.addEventListener(
   }
 }
 
+     /* ==========================================
+   SEARCHABLE MASTER MEMBER / VERSI
+   ========================================== */
+
+const memberInput =
+  item.querySelector(
+    ".batch-version"
+  );
+
+const memberIdInput =
+  item.querySelector(
+    ".batch-member-id"
+  );
+
+const memberResults =
+  item.querySelector(
+    ".batch-member-results"
+  );
+
+
+if (
+  memberInput &&
+  memberIdInput &&
+  memberResults
+) {
+
+  const {
+    data: members,
+    error: membersError
+  } =
+    await supabaseClient
+      .from("po_members")
+      .select(`
+        id,
+        group_name,
+        member_name,
+        entry_type,
+        sort_order
+      `)
+      .order(
+        "group_name",
+        {
+          ascending: true
+        }
+      )
+      .order(
+        "sort_order",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (membersError) {
+
+    console.error(
+      "ERROR LOAD MASTER MEMBER:",
+      membersError
+    );
+
+    memberInput.placeholder =
+      "Gagal memuat Master Member";
+
+  } else {
+
+    const memberList =
+      members || [];
+
+
+    memberInput.addEventListener(
+      "input",
+      function() {
+
+        const keyword =
+          this.value
+            .trim()
+            .toLowerCase();
+
+
+        memberIdInput.value =
+          "";
+
+
+        if (!keyword) {
+
+          memberResults.innerHTML =
+            "";
+
+          memberResults.style.display =
+            "none";
+
+          return;
+
+        }
+
+
+        const matches =
+          memberList
+            .filter(
+              function(member) {
+
+                const groupName =
+                  String(
+                    member.group_name || ""
+                  ).toLowerCase();
+
+                const memberName =
+                  String(
+                    member.member_name || ""
+                  ).toLowerCase();
+
+                const entryType =
+                  String(
+                    member.entry_type || ""
+                  ).toLowerCase();
+
+
+                return (
+                  groupName.includes(keyword) ||
+                  memberName.includes(keyword) ||
+                  entryType.includes(keyword)
+                );
+
+              }
+            )
+            .slice(0, 15);
+
+
+        if (
+          matches.length === 0
+        ) {
+
+          memberResults.innerHTML = `
+            <div
+              style="
+                padding:10px 12px;
+                color:#777;
+                font-size:12px;
+              "
+            >
+              Member / versi tidak ditemukan
+            </div>
+          `;
+
+          memberResults.style.display =
+            "block";
+
+          return;
+
+        }
+
+
+        memberResults.innerHTML =
+          matches
+            .map(
+              function(member) {
+
+                let typeLabel =
+                  "Member";
+
+
+                if (
+                  member.entry_type ===
+                  "character"
+                ) {
+
+                  typeLabel =
+                    "Character";
+
+                }
+
+
+                if (
+                  member.entry_type ===
+                  "version"
+                ) {
+
+                  typeLabel =
+                    "Version";
+
+                }
+
+
+                return `
+                  <button
+                    type="button"
+                    class="batch-member-result"
+                    data-id="${escapeHTML(
+                      String(member.id)
+                    )}"
+                    data-name="${escapeHTML(
+                      member.member_name || ""
+                    )}"
+                    style="
+                      display:block;
+                      width:100%;
+                      text-align:left;
+                      padding:8px 10px;
+                      border:0;
+                      border-bottom:1px solid #eee;
+                      background:#fff;
+                      cursor:pointer;
+                      font-size:13px;
+                      line-height:1.25;
+                    "
+                  >
+
+                    <strong>
+                      ${escapeHTML(
+                        member.member_name || "—"
+                      )}
+                    </strong>
+
+                    <div
+                      style="
+                        margin-top:2px;
+                        color:#777;
+                        font-size:11px;
+                      "
+                    >
+                      ${escapeHTML(
+                        member.group_name || "—"
+                      )}
+                      ·
+                      ${typeLabel}
+                    </div>
+
+                  </button>
+                `;
+
+              }
+            )
+            .join("");
+
+
+        memberResults.style.display =
+          "block";
+
+
+        memberResults
+          .querySelectorAll(
+            ".batch-member-result"
+          )
+          .forEach(
+            function(button) {
+
+              button.addEventListener(
+                "click",
+                function() {
+
+                  const memberId =
+                    this.dataset.id || "";
+
+                  const memberName =
+                    this.dataset.name || "";
+
+
+                  memberInput.value =
+                    memberName;
+
+                  memberIdInput.value =
+                    memberId;
+
+
+                  memberResults.innerHTML =
+                    "";
+
+                  memberResults.style.display =
+                    "none";
+
+                }
+              );
+
+            }
+          );
+
+      }
+    );
+
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        if (
+          !item.contains(
+            event.target
+          )
+        ) {
+
+          memberResults.style.display =
+            "none";
+
+        }
+
+      }
+    );
+
+  }
+
+}
 
     item
       .querySelector(
@@ -10456,12 +10791,20 @@ const customer =
     .trim();
 
             const version =
-              item
-                .querySelector(
-                  ".batch-version"
-                )
-                .value
-                .trim();
+  item
+    .querySelector(
+      ".batch-version"
+    )
+    .value
+    .trim();
+
+
+const memberId =
+  Number(
+    item.querySelector(
+      ".batch-member-id"
+    )?.value
+  ) || null;
 
 
             const quantity =
@@ -10475,23 +10818,23 @@ const customer =
 
 
             const price =
-              Number(
-                item
-                  .querySelector(
-                    ".batch-price"
-                  )
-                  .value
-              ) || 0;
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-price"
+      )
+      .value
+  );
 
 
-            const dp =
-              Number(
-                item
-                  .querySelector(
-                    ".batch-dp"
-                  )
-                  .value
-              ) || 0;
+const dp =
+  parseNominalInput(
+    item
+      .querySelector(
+        ".batch-dp"
+      )
+      .value
+  );
 
 
             const dpStatus =
@@ -10567,7 +10910,8 @@ quantity:
               remaining_amount:
                 remaining,
 
-                paymentStatus,
+            payment_status:
+                  paymentStatus,
 
               tracking_status:
                 batchTracking,
@@ -10609,6 +10953,8 @@ const incomplete =
     function(record) {
 
       return (
+  !record.customer_id ||
+  !record.customer_name ||
   !record.version ||
   !record.member_id
 );
@@ -25962,7 +26308,7 @@ async function createCustomerQuickly({
     )
     .single();
 
-  if (insertError) {
+    if (insertError) {
 
     console.error(
       "ERROR INSERT QUICK CUSTOMER:",
@@ -25976,6 +26322,22 @@ async function createCustomerQuickly({
 
     return null;
   }
+
+
+  /* ==========================================
+     BERITAHU SEMUA FORM BATCH
+     BAHWA CUSTOMER BARU SUDAH DIBUAT
+     ========================================== */
+
+  document.dispatchEvent(
+    new CustomEvent(
+      "dearNadiyaCustomerCreated",
+      {
+        detail: newCustomer
+      }
+    )
+  );
+
 
   return newCustomer;
 }
