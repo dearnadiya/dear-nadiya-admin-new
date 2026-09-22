@@ -9272,7 +9272,7 @@ const newTrackingOptions =
 
 
 const {
-  error
+  error: updateError
 } =
   await supabaseClient
     .from("recap_categories")
@@ -9298,7 +9298,7 @@ const {
     );
 
 
-                  if (error) {
+                  if (updateError) {
 
                     console.error(
                       "Gagal mengubah kategori:",
@@ -9307,7 +9307,7 @@ const {
 
                     alert(
                       "Gagal mengubah kategori: " +
-                      error.message
+                      updateError.message
                     );
 
                     saveButton.disabled =
