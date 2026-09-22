@@ -22553,6 +22553,24 @@ const formatDetailDate =
 
   };
 
+     const firstRow =
+    rows?.[0] || {};
+
+  const recapPrice =
+    Number(
+      firstRow.item_price || 0
+    );
+
+  const recapDP =
+    Number(
+      firstRow.dp_amount || 0
+    );
+
+  const recapTracking =
+    String(
+      firstRow.batch_tracking_status || ""
+    ).trim() || "—";
+   
   const container =
     document.getElementById(
       "poFormContainer"
@@ -22717,6 +22735,87 @@ const formatDetailDate =
       </button>
 
     </div>
+
+          <div
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+          gap:12px;
+          margin-top:20px;
+        "
+      >
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #eadfe6;
+            border-radius:12px;
+            background:#fff;
+          "
+        >
+          <div
+            style="
+              font-size:13px;
+              color:#777;
+              margin-bottom:5px;
+            "
+          >
+            Harga
+          </div>
+
+          <strong>
+            Rp${recapPrice.toLocaleString("id-ID")}
+          </strong>
+        </div>
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #eadfe6;
+            border-radius:12px;
+            background:#fff;
+          "
+        >
+          <div
+            style="
+              font-size:13px;
+              color:#777;
+              margin-bottom:5px;
+            "
+          >
+            DP
+          </div>
+
+          <strong>
+            Rp${recapDP.toLocaleString("id-ID")}
+          </strong>
+        </div>
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #eadfe6;
+            border-radius:12px;
+            background:#fff;
+          "
+        >
+          <div
+            style="
+              font-size:13px;
+              color:#777;
+              margin-bottom:5px;
+            "
+          >
+            Tracking
+          </div>
+
+          <strong>
+            ${escapeHTML(recapTracking)}
+          </strong>
+        </div>
+
+      </div>
     
       <div
         class="product-table-wrapper"
