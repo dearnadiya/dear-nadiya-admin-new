@@ -22093,10 +22093,19 @@ async function loadOldRecapClaimList() {
   quantity,
   item_price,
   minimum_dp_amount,
+  dp_amount,
+  remaining_amount,
+  dp_status,
+  payment_status,
+  customer_status,
+  batch_tracking_status,
+  dp_deadline,
+  payment_deadline,
+  co_deadline,
+  note,
   customer_id,
   customer_name,
   image_url
-  batch_tracking_status
 `)
         .not(
           "version",
@@ -22402,6 +22411,132 @@ return (
       }
     );
 
+/* ==========================================
+   RINGKASAN DATA REKAP GO
+   ========================================== */
+
+const firstRow =
+  data?.[0] || {};
+
+
+/* Harga */
+
+const recapPrice =
+  Number(
+    firstRow.item_price || 0
+  );
+
+
+/* DP
+   Prioritas:
+   1. DP Aktual
+   2. DP Minimum
+*/
+
+const recapDP =
+  Number(
+    firstRow.dp_amount || 0
+  ) > 0
+    ? Number(
+        firstRow.dp_amount
+      )
+    : Number(
+        firstRow.minimum_dp_amount || 0
+      );
+
+
+/* Sisa pembayaran */
+
+const recapRemaining =
+  Number(
+    firstRow.remaining_amount || 0
+  );
+
+
+/* Tracking */
+
+const recapTracking =
+  String(
+    firstRow.batch_tracking_status ||
+    ""
+  ).trim() ||
+  "—";
+
+
+/* Status DP */
+
+const recapDPStatus =
+  String(
+    firstRow.dp_status ||
+    ""
+  ).trim() ||
+  "—";
+
+
+/* Status pembayaran */
+
+const recapPaymentStatus =
+  String(
+    firstRow.payment_status ||
+    ""
+  ).trim() ||
+  "—";
+
+
+/* Status customer */
+
+const recapCustomerStatus =
+  String(
+    firstRow.customer_status ||
+    ""
+  ).trim() ||
+  "—";
+
+
+/* Format nominal */
+
+const formatDetailRupiah =
+  function(value) {
+
+    const number =
+      Number(value || 0);
+
+    if (!number) {
+      return "—";
+    }
+
+    return (
+      "Rp" +
+      number.toLocaleString(
+        "id-ID"
+      )
+    );
+
+  };
+
+
+/* Format tanggal */
+
+const formatDetailDate =
+  function(value) {
+
+    if (!value) {
+      return "—";
+    }
+
+    return new Date(
+      value
+    ).toLocaleDateString(
+      "id-ID",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  };
+
   const container =
     document.getElementById(
       "poFormContainer"
@@ -22487,17 +22622,153 @@ return (
           </p>
 
           <strong>
-            ${escapeHTML(
-              data?.[0]?.item_name ||
-              "Rekap GO"
-            )}
-          </strong>
+  ${escapeHTML(
+    data?.[0]?.item_name ||
+    "Rekap GO"
+  )}
+</strong>
 
-          <div
-            style="
-              margin-top:10px;
-            "
-          >
+<div
+  class="old-recap-detail-info"
+>
+
+  <div class="old-recap-detail-item">
+
+    <span>Harga</span>
+
+    <strong>
+      ${formatDetailRupiah(
+        recapPrice
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>DP</span>
+
+    <strong>
+      ${formatDetailRupiah(
+        recapDP
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Sisa Pembayaran</span>
+
+    <strong>
+      ${formatDetailRupiah(
+        recapRemaining
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Status DP</span>
+
+    <strong>
+      ${escapeHTML(
+        recapDPStatus
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Status Pembayaran</span>
+
+    <strong>
+      ${escapeHTML(
+        recapPaymentStatus
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Status Customer</span>
+
+    <strong>
+      ${escapeHTML(
+        recapCustomerStatus
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Tracking Barang</span>
+
+    <strong>
+      ${escapeHTML(
+        recapTracking
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Deadline DP</span>
+
+    <strong>
+      ${formatDetailDate(
+        firstRow.dp_deadline
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Deadline Pelunasan</span>
+
+    <strong>
+      ${formatDetailDate(
+        firstRow.payment_deadline
+      )}
+    </strong>
+
+  </div>
+
+
+  <div class="old-recap-detail-item">
+
+    <span>Deadline CO</span>
+
+    <strong>
+      ${formatDetailDate(
+        firstRow.co_deadline
+      )}
+    </strong>
+
+  </div>
+
+</div>
+
+
+<div
+  style="
+    margin-top:10px;
+  "
+>
             <button
               type="button"
               class="secondary-button"
