@@ -12534,6 +12534,43 @@ async function loadRecapList(
 
   }
 
+     /* ==========================================
+     AMBIL TRACKING OPTIONS KATEGORI
+     ========================================== */
+
+  let categoryTrackingOptions = [];
+
+  const {
+    data: categoryConfig,
+    error: categoryConfigError
+  } = await supabaseClient
+    .from("recap_categories")
+    .select("tracking_options")
+    .eq(
+      "category_name",
+      category
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (
+    !categoryConfigError &&
+    categoryConfig &&
+    Array.isArray(
+      categoryConfig.tracking_options
+    ) &&
+    categoryConfig.tracking_options.length > 0
+  ) {
+
+    categoryTrackingOptions =
+      categoryConfig.tracking_options;
+
+  } else {
+
+    categoryTrackingOptions =
+      getTrackingOptions(category);
+
+  }
 
   if (
   !data ||
@@ -13180,9 +13217,7 @@ let html = `
       )}"
     >
 
-      ${getTrackingOptions(
-        category
-      ).map(
+      ${categoryTrackingOptions.map(
         function (option) {
 
           const currentTracking =
