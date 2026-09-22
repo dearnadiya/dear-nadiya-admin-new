@@ -14208,13 +14208,21 @@ let html = `
       </button>
 
       <button
-        type="button"
-        class="primary-button"
-        id="createWhatsAppBillingButton"
-      >
-        💬 Buat Tagihan WhatsApp
-      </button>
-
+  type="button"
+  class="primary-button"
+  id="createWhatsAppBillingButton"
+  style="
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 16px;
+    font-size:13px;
+    white-space:nowrap;
+  "
+>
+  💬 Buat Tagihan WhatsApp
+</button>
     </div>
 
   `;
