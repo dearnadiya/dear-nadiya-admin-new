@@ -14393,13 +14393,21 @@ batchTrackingButtons.forEach(
 
 
         alert(
-          "Tracking batch berhasil diperbarui."
-        );
+  "Tracking batch berhasil diperbarui."
+);
 
 
-        await loadRecapList(
-          category
-        );
+await loadRecapList(
+  category
+);
+
+
+if (
+  typeof loadOldRecapClaimList ===
+  "function"
+) {
+  await loadOldRecapClaimList();
+}
 
       }
     );
@@ -22076,6 +22084,23 @@ async function loadOldRecapClaimList() {
     return;
   }
 
+   /* ==========================================
+   HAPUS KARTU REKAP GO LAMA
+   SEBELUM MEMUAT ULANG
+========================================== */
+
+container
+  .querySelectorAll(
+    ".po-recap-claim-card"
+  )
+  .forEach(
+    function(card) {
+
+      card.remove();
+
+    }
+  );
+
   try {
 
     const {
@@ -22093,19 +22118,10 @@ async function loadOldRecapClaimList() {
   quantity,
   item_price,
   minimum_dp_amount,
-  dp_amount,
-  remaining_amount,
-  dp_status,
-  payment_status,
-  customer_status,
-  batch_tracking_status,
-  dp_deadline,
-  payment_deadline,
-  co_deadline,
-  note,
   customer_id,
   customer_name,
-  image_url
+  image_url,
+  batch_tracking_status
 `)
         .not(
           "version",
@@ -22628,18 +22644,16 @@ const formatDetailDate =
   )}
 </strong>
 
-<div
-  class="old-recap-detail-info"
->
+<div class="old-recap-detail-info">
 
   <div class="old-recap-detail-item">
 
     <span>Harga</span>
 
     <strong>
-      ${formatDetailRupiah(
-        recapPrice
-      )}
+      Rp${Number(
+        data?.[0]?.item_price || 0
+      ).toLocaleString("id-ID")}
     </strong>
 
   </div>
@@ -22650,9 +22664,9 @@ const formatDetailDate =
     <span>DP</span>
 
     <strong>
-      ${formatDetailRupiah(
-        recapDP
-      )}
+      Rp${Number(
+        data?.[0]?.minimum_dp_amount || 0
+      ).toLocaleString("id-ID")}
     </strong>
 
   </div>
@@ -22660,109 +22674,18 @@ const formatDetailDate =
 
   <div class="old-recap-detail-item">
 
-    <span>Sisa Pembayaran</span>
-
-    <strong>
-      ${formatDetailRupiah(
-        recapRemaining
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Status DP</span>
+    <span>Tracking</span>
 
     <strong>
       ${escapeHTML(
-        recapDPStatus
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Status Pembayaran</span>
-
-    <strong>
-      ${escapeHTML(
-        recapPaymentStatus
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Status Customer</span>
-
-    <strong>
-      ${escapeHTML(
-        recapCustomerStatus
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Tracking Barang</span>
-
-    <strong>
-      ${escapeHTML(
-        recapTracking
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Deadline DP</span>
-
-    <strong>
-      ${formatDetailDate(
-        firstRow.dp_deadline
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Deadline Pelunasan</span>
-
-    <strong>
-      ${formatDetailDate(
-        firstRow.payment_deadline
-      )}
-    </strong>
-
-  </div>
-
-
-  <div class="old-recap-detail-item">
-
-    <span>Deadline CO</span>
-
-    <strong>
-      ${formatDetailDate(
-        firstRow.co_deadline
+        data?.[0]?.batch_tracking_status ||
+        "—"
       )}
     </strong>
 
   </div>
 
 </div>
-
 
 <div
   style="
