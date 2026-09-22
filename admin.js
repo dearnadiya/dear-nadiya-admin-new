@@ -934,6 +934,36 @@ if (customerIds.length > 0) {
     const h7ISO =
       getDateAfterDays(7);
 
+   const DENDA_PER_HARI = 3000;
+
+function hitungHariTerlambat(deadline) {
+  if (!deadline) {
+    return 0;
+  }
+
+  const deadlineDate = new Date(
+    String(deadline).substring(0, 10) + "T00:00:00"
+  );
+
+  const todayDate = new Date(
+    getTodayISO() + "T00:00:00"
+  );
+
+  const selisih =
+    Math.floor(
+      (todayDate - deadlineDate) /
+      (1000 * 60 * 60 * 24)
+    );
+
+  return Math.max(0, selisih);
+}
+
+function hitungDenda(deadline) {
+  return (
+    hitungHariTerlambat(deadline) *
+    DENDA_PER_HARI
+  );
+}
 
     /* =====================================
        TOTAL CUSTOMER
@@ -1141,6 +1171,8 @@ document.getElementById(
   )?.customer_name || customerName;
 
             let totalDP = 0;
+let totalDendaDP = 0;
+const rincianDendaDP = [];
 
              const paymentHeader = `
   <div class="dashboard-payment-header">
@@ -1157,12 +1189,30 @@ document.getElementById(
                 .map(row => {
 
                   const dpAmount =
-                    Number(
-                      row.dp_amount
-                    ) || 0;
+  Number(
+    row.dp_amount
+  ) || 0;
 
-                  totalDP +=
-                    dpAmount;
+totalDP +=
+  dpAmount;
+
+const hariTerlambat =
+  hitungHariTerlambat(
+    row.dp_deadline
+  );
+
+const denda =
+  hitungDenda(
+    row.dp_deadline
+  );
+
+if (hariTerlambat > 0) {
+  totalDendaDP += denda;
+
+  rincianDendaDP.push(
+    `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+  );
+}
 
                   return `
   <div class="dashboard-payment-item">
@@ -1209,11 +1259,25 @@ const customerWhatsApp =
     String(customerId)
   ] || "";
 
-const dpMessage =
+let dpMessage =
 `Halo ${customerDisplayName} ♥
 Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${firstCustomerRow?.batch_code || ""}.
 
-Total tagihan DP: ${formatRupiah(totalDP)}
+Total tagihan DP: ${formatRupiah(totalDP)}`;
+
+if (totalDendaDP > 0) {
+  dpMessage += `
+
+Rincian keterlambatan:
+${rincianDendaDP.join("\n")}
+
+Total denda keterlambatan: ${formatRupiah(totalDendaDP)}
+
+Total yang perlu dibayarkan:
+${formatRupiah(totalDP + totalDendaDP)}`;
+}
+
+dpMessage += `
 
 Mohon segera melakukan pembayaran ya.
 Terima kasih ♥
@@ -1362,6 +1426,8 @@ ${itemsHTML}
               ];
 
             let totalPayment = 0;
+let totalDendaPayment = 0;
+const rincianDendaPayment = [];
 
              const paymentHeader = `
   <div class="dashboard-payment-header">
@@ -1378,12 +1444,30 @@ ${itemsHTML}
     .map(row => {
 
       const remaining =
-        Number(
-          row.remaining_amount
-        ) || 0;
+  Number(
+    row.remaining_amount
+  ) || 0;
 
-      totalPayment +=
-        remaining;
+totalPayment +=
+  remaining;
+
+const hariTerlambat =
+  hitungHariTerlambat(
+    row.payment_deadline
+  );
+
+const denda =
+  hitungDenda(
+    row.payment_deadline
+  );
+
+if (hariTerlambat > 0) {
+  totalDendaPayment += denda;
+
+  rincianDendaPayment.push(
+    `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+  );
+}
 
       return `
   <div class="dashboard-payment-item">
@@ -1426,12 +1510,26 @@ const customerWhatsApp =
     String(customerId)
   ] || "";
 
-const paymentMessage =
+let paymentMessage =
 `Halo ${customerName} ♥
 Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${firstCustomerRow?.batch_code || ""} masih memiliki sisa ${formatRupiah(totalPayment)}.
 
 Deadline pelunasan:
-${firstCustomerRow?.payment_deadline || "—"}
+${firstCustomerRow?.payment_deadline || "—"}`;
+
+if (totalDendaPayment > 0) {
+  paymentMessage += `
+
+Rincian keterlambatan:
+${rincianDendaPayment.join("\n")}
+
+Total denda keterlambatan: ${formatRupiah(totalDendaPayment)}
+
+Total yang perlu dibayarkan:
+${formatRupiah(totalPayment + totalDendaPayment)}`;
+}
+
+paymentMessage += `
 
 Mohon segera melakukan pelunasan ya.
 Terima kasih ♥
