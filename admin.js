@@ -29397,46 +29397,66 @@ async function showUnidentifiedCustomerData() {
        ========================================== */
 
     const {
-      data: recapRows,
-      error: recapError
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select(`
-          id,
-          category,
-          batch_code,
-          item_name,
-          version,
-          customer_name
-        `)
-        .is(
-          "customer_id",
-          null
-        )
-        .order(
-          "category",
-          {
-            ascending: true
-          }
-        )
-        .order(
-          "batch_code",
-          {
-            ascending: true
-          }
-        )
-        .order(
-          "id",
-          {
-            ascending: true
-          }
-        );
+  data: recapRows,
+  error: recapError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      id,
+      category,
+      batch_code,
+      item_name,
+      version,
+      customer_name
+    `)
+    .is(
+      "customer_id",
+      null
+    )
+    .not(
+      "customer_name",
+      "is",
+      null
+    )
+    .neq(
+      "customer_name",
+      ""
+    )
+    .order(
+      "category",
+      {
+        ascending: true
+      }
+    )
+    .order(
+      "batch_code",
+      {
+        ascending: true
+      }
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
 
 
     if (recapError) {
       throw recapError;
     }
+
+     const recapCustomerRows =
+  (recapRows || []).filter(
+    function(row) {
+
+      return String(
+        row.customer_name || ""
+      ).trim() !== "";
+
+    }
+  );
 
 
     /* ==========================================
@@ -29447,8 +29467,8 @@ async function showUnidentifiedCustomerData() {
     const recapGroups = {};
 
 
-    (recapRows || []).forEach(
-      function(row) {
+    (recapCustomerRows || []).forEach(
+  function(row) {
 
         const category =
           String(
@@ -29622,7 +29642,7 @@ async function showUnidentifiedCustomerData() {
        ========================================== */
 
     let message =
-      "DATA CUSTOMER TANPA CUSTOMER ID\n\n";
+      "CUSTOMER LAMA TANPA CUSTOMER ID\n\n";
 
 
     message +=
@@ -29759,9 +29779,9 @@ async function showUnidentifiedCustomerData() {
       "\n================================\n" +
       "TOTAL\n" +
       "================================\n" +
-      "Rekap GO tanpa customer_id: " +
-      (recapRows || []).length +
-      "\n" +
+      "Customer lama tanpa customer_id: " +
+(recapCustomerRows || []).length +
+"\n" +
       "PO/Pesanan tanpa customer_id: " +
       unidentifiedPOs.reduce(
         function(total, po) {
@@ -29803,7 +29823,7 @@ async function showUnidentifiedCustomerData() {
         false;
 
       button.textContent =
-        "📋 Lihat Data Tanpa Customer ID";
+        "👤 Lihat Customer Lama Tanpa ID";
 
     }
 
@@ -29877,7 +29897,7 @@ async function loadCustomers() {
   id="showUnidentifiedCustomerButton"
   style="margin-left:8px;"
 >
-  📋 Lihat Data Tanpa Customer ID
+  👤 Lihat Customer Lama Tanpa ID
 </button>
 
 <button
