@@ -28078,6 +28078,592 @@ async function auditCustomerIdData() {
 }
 
 /* ============================================
+   REPAIR CUSTOMER ID LAMA
+   HANYA DATA YANG COCOK UNIK
+   ============================================ */
+
+async function repairCustomerIdData() {
+
+  const confirmRepair =
+    confirm(
+      "Perbaiki Customer ID Lama?\n\n" +
+
+      "Sistem hanya akan memperbaiki data yang:\n" +
+      "• belum memiliki customer_id\n" +
+      "• nama customer cocok tepat dengan 1 customer\n\n" +
+
+      "Yang diubah HANYA customer_id.\n\n" +
+
+      "Nama, harga, DP, quantity, status, deadline,\n" +
+      "dan data lainnya TIDAK akan diubah.\n\n" +
+
+      "Data yang ambigu atau tidak ditemukan akan dilewati.\n\n" +
+
+      "Lanjutkan?"
+    );
+
+  if (!confirmRepair) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "repairCustomerIdButton"
+    );
+
+
+  if (button) {
+
+    button.disabled = true;
+
+    button.textContent =
+      "⏳ Memperbaiki...";
+
+  }
+
+
+  try {
+
+    /* ==========================================
+       1. AMBIL MASTER CUSTOMER
+       ========================================== */
+
+    const {
+      data: customers,
+      error: customerError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(`
+          id,
+          dn_id,
+          name
+        `);
+
+
+    if (customerError) {
+      throw customerError;
+    }
+
+
+    /*
+      Kelompokkan customer berdasarkan
+      nama yang sudah dinormalisasi.
+    */
+
+    const customersByName = {};
+
+
+    (customers || []).forEach(
+      function(customer) {
+
+        const normalizedName =
+          String(
+            customer.name || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (!normalizedName) {
+          return;
+        }
+
+
+        if (
+          !customersByName[
+            normalizedName
+          ]
+        ) {
+
+          customersByName[
+            normalizedName
+          ] = [];
+
+        }
+
+
+        customersByName[
+          normalizedName
+        ].push(
+          customer
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       2. REPAIR REKAP GO
+       ========================================== */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          customer_id,
+          customer_name
+        `);
+
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    let recapUpdatedCount = 0;
+
+    let recapSkippedCount = 0;
+
+
+    for (
+      const row
+      of (recapRows || [])
+    ) {
+
+      /*
+        Jangan sentuh data yang sudah
+        mempunyai customer_id.
+      */
+
+      if (
+        row.customer_id !==
+          null &&
+        row.customer_id !==
+          undefined
+      ) {
+        continue;
+      }
+
+
+      const normalizedName =
+        String(
+          row.customer_name || ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      if (!normalizedName) {
+
+        recapSkippedCount++;
+
+        continue;
+
+      }
+
+
+      const matches =
+        customersByName[
+          normalizedName
+        ] || [];
+
+
+      /*
+        HARUS tepat satu customer.
+      */
+
+      if (
+        matches.length !== 1
+      ) {
+
+        recapSkippedCount++;
+
+        continue;
+
+      }
+
+
+      const matchedCustomer =
+        matches[0];
+
+
+      /*
+        HANYA customer_id
+        yang diubah.
+      */
+
+      const {
+        error: updateError
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .update({
+            customer_id:
+              matchedCustomer.id
+          })
+          .eq(
+            "id",
+            row.id
+          );
+
+
+      if (updateError) {
+
+        console.error(
+          "Gagal repair Rekap GO:",
+          row.id,
+          updateError
+        );
+
+        recapSkippedCount++;
+
+        continue;
+
+      }
+
+
+      recapUpdatedCount++;
+
+    }
+
+
+    /* ==========================================
+       3. AMBIL SEMUA PO
+       ========================================== */
+
+    const {
+      data: poPosts,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          list_data
+        `);
+
+
+    if (poError) {
+      throw poError;
+    }
+
+
+    let poUpdatedCount = 0;
+
+    let poSkippedCount = 0;
+
+
+    /* ==========================================
+       4. REPAIR CUSTOMER ID DI PO
+       ========================================== */
+
+    for (
+      const po
+      of (poPosts || [])
+    ) {
+
+      let listData =
+        po.list_data;
+
+
+      /*
+        Jika JSON berupa string,
+        parse terlebih dahulu.
+      */
+
+      if (
+        typeof listData ===
+        "string"
+      ) {
+
+        try {
+
+          listData =
+            JSON.parse(
+              listData
+            );
+
+        } catch (parseError) {
+
+          console.error(
+            "Gagal parse list_data PO:",
+            po.id,
+            parseError
+          );
+
+          poSkippedCount++;
+
+          continue;
+
+        }
+
+      }
+
+
+      if (
+        !Array.isArray(
+          listData
+        )
+      ) {
+
+        continue;
+
+      }
+
+
+      let changed =
+        false;
+
+
+      const updatedListData =
+        listData.map(
+          function(row) {
+
+            /*
+              Sudah punya customer_id.
+              Jangan disentuh.
+            */
+
+            if (
+              row?.customer_id !==
+                null &&
+              row?.customer_id !==
+                undefined
+            ) {
+
+              return row;
+
+            }
+
+
+            const normalizedName =
+              String(
+                row?.customer || ""
+              )
+                .trim()
+                .toLowerCase();
+
+
+            if (!normalizedName) {
+              return row;
+            }
+
+
+            const matches =
+              customersByName[
+                normalizedName
+              ] || [];
+
+
+            /*
+              Harus tepat satu customer.
+            */
+
+            if (
+              matches.length !== 1
+            ) {
+
+              return row;
+
+            }
+
+
+            const matchedCustomer =
+              matches[0];
+
+
+            changed =
+              true;
+
+
+            /*
+              HANYA tambahkan
+              customer_id.
+
+              Nama customer tetap.
+            */
+
+            return {
+              ...row,
+
+              customer_id:
+                matchedCustomer.id
+
+            };
+
+          }
+        );
+
+
+      /*
+        Tidak ada perubahan
+        pada PO ini.
+      */
+
+      if (!changed) {
+        continue;
+      }
+
+
+      const {
+        error: updatePOError
+      } =
+        await supabaseClient
+          .from("po_posts")
+          .update({
+            list_data:
+              updatedListData
+          })
+          .eq(
+            "id",
+            po.id
+          );
+
+
+      if (updatePOError) {
+
+        console.error(
+          "Gagal repair PO:",
+          po.id,
+          updatePOError
+        );
+
+        poSkippedCount++;
+
+        continue;
+
+      }
+
+
+      poUpdatedCount++;
+
+    }
+
+
+    /* ==========================================
+       5. HASIL
+       ========================================== */
+
+    alert(
+      "PERBAIKAN CUSTOMER ID SELESAI\n\n" +
+
+      "Rekap GO diperbaiki: " +
+      recapUpdatedCount +
+      "\n" +
+
+      "Rekap GO dilewati: " +
+      recapSkippedCount +
+      "\n\n" +
+
+      "PO / Pesanan diperbaiki: " +
+      poUpdatedCount +
+      "\n" +
+
+      "PO / Pesanan dilewati: " +
+      poSkippedCount +
+      "\n\n" +
+
+      "Yang diubah hanya customer_id.\n" +
+      "Data lainnya tidak diubah."
+    );
+
+
+    /* ==========================================
+       6. REFRESH TAMPILAN
+       ========================================== */
+
+    try {
+
+      if (
+        typeof loadCustomers ===
+        "function"
+      ) {
+
+        await loadCustomers();
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Gagal refresh Customer:",
+        error
+      );
+
+    }
+
+
+    try {
+
+      if (
+        typeof loadPOCustomer ===
+        "function"
+      ) {
+
+        await loadPOCustomer();
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Gagal refresh PO Customer:",
+        error
+      );
+
+    }
+
+
+    try {
+
+      if (
+        typeof loadPOArchiveList ===
+        "function"
+      ) {
+
+        await loadPOArchiveList(
+          true
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Gagal refresh Arsip PO:",
+        error
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR REPAIR CUSTOMER ID:",
+      error
+    );
+
+
+    alert(
+      "Perbaikan Customer ID gagal:\n\n" +
+      error.message
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "🔧 Perbaiki Customer ID";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    MASTER DATA CUSTOMER
    ============================================ */
 
@@ -28126,6 +28712,15 @@ async function loadCustomers() {
   style="margin-left:8px;"
 >
   🔎 Audit Customer ID
+</button>
+
+<button
+  type="button"
+  class="secondary-button"
+  id="repairCustomerIdButton"
+  style="margin-left:8px;"
+>
+  🔧 Perbaiki Customer ID
 </button>
 
       </div>
@@ -28206,6 +28801,22 @@ if (
   auditCustomerIdButton.addEventListener(
     "click",
     auditCustomerIdData
+  );
+
+}
+
+   const repairCustomerIdButton =
+  document.getElementById(
+    "repairCustomerIdButton"
+  );
+
+if (
+  repairCustomerIdButton
+) {
+
+  repairCustomerIdButton.addEventListener(
+    "click",
+    repairCustomerIdData
   );
 
 }
