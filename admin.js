@@ -27785,59 +27785,365 @@ async function saveCustomer(
 
 
   /*
-    EDIT CUSTOMER
+  EDIT CUSTOMER
+*/
+
+if (existingCustomer) {
+
+  /*
+    ==========================================
+    1. UPDATE DATA UTAMA CUSTOMER
+    ==========================================
   */
 
-  if (existingCustomer) {
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("customers")
+      .update({
 
-    const {
+        name:
+          name,
+
+        whatsapp:
+          whatsapp,
+
+        username_wa:
+          username || null,
+
+        updated_at:
+          new Date().toISOString()
+
+      })
+      .eq(
+        "id",
+        existingCustomer.id
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR UPDATE CUSTOMER:",
       error
-    } =
-      await supabaseClient
-        .from("customers")
-        .update({
+    );
 
-          name:
-            name,
+    alert(
+      "Gagal memperbarui customer: " +
+      error.message
+    );
 
-          whatsapp:
-            whatsapp,
+    return;
 
-          username_wa:
-            username || null,
+  }
 
-          updated_at:
-            new Date().toISOString()
 
-        })
-        .eq(
-          "id",
-          existingCustomer.id
+  /*
+    ==========================================
+    2. SINKRONKAN NAMA KE REKAP GO
+    ==========================================
+  */
+
+  const {
+    error:
+      recapCustomerUpdateError
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .update({
+
+        customer_name:
+          name
+
+      })
+      .eq(
+        "customer_id",
+        existingCustomer.id
+      );
+
+
+  if (
+    recapCustomerUpdateError
+  ) {
+
+    console.error(
+      "ERROR SYNC CUSTOMER KE REKAP GO:",
+      recapCustomerUpdateError
+    );
+
+    alert(
+      "Data customer berhasil diperbarui, tetapi nama customer di Rekap GO gagal disinkronkan:\n\n" +
+      recapCustomerUpdateError.message
+    );
+
+    return;
+
+  }
+
+
+  /*
+    ==========================================
+    3. AMBIL SEMUA PO
+    UNTUK SINKRONISASI list_data
+    ==========================================
+  */
+
+  const {
+    data:
+      poPosts,
+    error:
+      poFetchError
+  } =
+    await supabaseClient
+      .from("po_posts")
+      .select(`
+        id,
+        list_data
+      `);
+
+
+  if (poFetchError) {
+
+    console.error(
+      "ERROR AMBIL DATA PO:",
+      poFetchError
+    );
+
+    alert(
+      "Data customer dan Rekap GO berhasil diperbarui, tetapi data PO/pesanan gagal diperiksa:\n\n" +
+      poFetchError.message
+    );
+
+    return;
+
+  }
+
+
+  /*
+    ==========================================
+    4. UPDATE CUSTOMER DI list_data PO
+    BERDASARKAN customer_id
+    ==========================================
+  */
+
+  let poUpdatedCount =
+    0;
+
+
+  for (
+    const po
+    of (poPosts || [])
+  ) {
+
+    let listData =
+      po.list_data;
+
+
+    /*
+      Jika list_data berupa JSON string,
+      ubah menjadi array terlebih dahulu.
+    */
+
+    if (
+      typeof listData ===
+      "string"
+    ) {
+
+      try {
+
+        listData =
+          JSON.parse(
+            listData
+          );
+
+      } catch (parseError) {
+
+        console.error(
+          "GAGAL PARSE list_data PO:",
+          po.id,
+          parseError
         );
 
+        continue;
 
-    if (error) {
-
-      console.error(
-        "ERROR UPDATE CUSTOMER:",
-        error
-      );
-
-      alert(
-        "Gagal memperbarui customer: " +
-        error.message
-      );
-
-      return;
+      }
 
     }
 
 
-    alert(
-      "Data customer berhasil diperbarui."
+    if (
+      !Array.isArray(
+        listData
+      )
+    ) {
+
+      continue;
+
+    }
+
+
+    let changed =
+      false;
+
+
+    /*
+      Cari semua pesanan/member
+      milik customer yang sedang diedit.
+    */
+
+    listData =
+      listData.map(
+        function(row) {
+
+          if (
+            Number(
+              row?.customer_id
+            ) ===
+            Number(
+              existingCustomer.id
+            )
+          ) {
+
+            changed =
+              true;
+
+
+            return {
+
+              ...row,
+
+              customer:
+                name
+
+            };
+
+          }
+
+
+          return row;
+
+        }
+      );
+
+
+    /*
+      Jika ada perubahan,
+      simpan kembali list_data PO.
+    */
+
+    if (changed) {
+
+      const {
+        error:
+          poUpdateError
+      } =
+        await supabaseClient
+          .from("po_posts")
+          .update({
+
+            list_data:
+              listData
+
+          })
+          .eq(
+            "id",
+            po.id
+          );
+
+
+      if (
+        poUpdateError
+      ) {
+
+        console.error(
+          "ERROR UPDATE PO:",
+          po.id,
+          poUpdateError
+        );
+
+      } else {
+
+        poUpdatedCount++;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    ==========================================
+    5. REFRESH DATA YANG TAMPIL DI ADMIN
+    ==========================================
+  */
+
+  try {
+
+    if (
+      typeof loadPOCustomer ===
+      "function"
+    ) {
+
+      await loadPOCustomer();
+
+    }
+
+  } catch (
+    refreshPOError
+  ) {
+
+    console.error(
+      "ERROR REFRESH PO CUSTOMER:",
+      refreshPOError
     );
 
   }
+
+
+  try {
+
+    if (
+      typeof loadPOArchiveList ===
+      "function"
+    ) {
+
+      await loadPOArchiveList(
+        true
+      );
+
+    }
+
+  } catch (
+    refreshArchiveError
+  ) {
+
+    console.error(
+      "ERROR REFRESH ARSIP PO:",
+      refreshArchiveError
+    );
+
+  }
+
+
+  /*
+    ==========================================
+    6. HASIL
+    ==========================================
+  */
+
+  alert(
+    "Data customer berhasil diperbarui.\n\n" +
+    "✓ Data Customer\n" +
+    "✓ Rekap GO\n" +
+    "✓ PO / Pesanan\n\n" +
+    "Semua data yang terhubung dengan customer ID " +
+    existingCustomer.id +
+    " telah disinkronkan."
+  );
+
+}
 
 
   /*
