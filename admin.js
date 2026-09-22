@@ -8412,9 +8412,9 @@ selectedRecapCategory = "";
               category.category_name;
 
             const icon =
-              categoryIcons[
-                categoryName
-              ] || "📦";
+  category.icon ||
+  categoryIcons[categoryName] ||
+  "📦";
 
             return `
 
@@ -8453,15 +8453,18 @@ selectedRecapCategory = "";
     <div class="recap-category-actions">
 
       <button
-        type="button"
-        class="secondary-button edit-recap-category-button"
-        data-id="${category.id}"
-        data-category="${escapeHTML(
-          categoryName
-        )}"
-      >
-        ✏️ Edit
-      </button>
+  type="button"
+  class="secondary-button edit-recap-category-button"
+  data-id="${category.id}"
+  data-category="${escapeHTML(
+    categoryName
+  )}"
+  data-icon="${escapeHTML(
+    category.icon || "📁"
+  )}"
+>
+  ✏️ Edit
+</button>
 
       <button
         type="button"
@@ -8685,18 +8688,44 @@ if (addRecapCategoryButton) {
 
           <div class="form-group">
 
-            <label>
-              Nama Kategori
-            </label>
+  <label>
+    Nama Kategori
+  </label>
 
-            <input
-              type="text"
-              id="newRecapCategoryName"
-              placeholder="Contoh: Treasure KR"
-              autocomplete="off"
-            >
+  <input
+    type="text"
+    id="newRecapCategoryName"
+    placeholder="Contoh: Treasure KR"
+    autocomplete="off"
+  >
 
-          </div>
+</div>
+
+<div class="form-group">
+
+  <label>
+    Ikon Kategori
+  </label>
+
+  <input
+    type="text"
+    id="newRecapCategoryIcon"
+    placeholder="📦"
+    autocomplete="off"
+    maxlength="4"
+    style="
+      width: 90px;
+      text-align: center;
+      font-size: 28px;
+    "
+  >
+
+  <small>
+    Pilih emoji dari keyboard perangkat, misalnya
+    📦 💿 🎀 🧸 💎 🇰🇷 🇯🇵
+  </small>
+
+</div>
 
           <div
             style="
@@ -8785,18 +8814,28 @@ if (addRecapCategoryButton) {
             if (!input) return;
 
             const categoryName =
-              input.value.trim();
+  input.value.trim();
 
-            if (!categoryName) {
+const iconInput =
+  container.querySelector(
+    "#newRecapCategoryIcon"
+  );
 
-              alert(
-                "Nama kategori belum diisi."
-              );
+const categoryIcon =
+  iconInput
+    ? iconInput.value.trim()
+    : "";
 
-              input.focus();
+if (!categoryName) {
 
-              return;
-            }
+  alert(
+    "Nama kategori belum diisi."
+  );
+
+  input.focus();
+
+  return;
+}
 
 
             saveNewRecapCategory.disabled =
@@ -8812,14 +8851,22 @@ if (addRecapCategoryButton) {
               await supabaseClient
                 .from("recap_categories")
                 .insert([
-                  {
-                    recap_type:
-                      recapType,
+  {
+    recap_type:
+      recapType,
 
-                    category_name:
-                      categoryName
-                  }
-                ]);
+    category_name:
+      categoryName,
+
+    icon:
+      categoryIcon || "📁",
+
+    tracking_options:
+      getTrackingOptions(
+        categoryName
+      )
+  }
+]);
 
 
             if (error) {
@@ -8888,6 +8935,9 @@ if (addRecapCategoryButton) {
             const currentName =
               this.dataset.category;
 
+             const currentIcon =
+              this.dataset.icon || "📁";
+
             if (!categoryId) {
               console.error(
                 "ID kategori tidak ditemukan."
@@ -8933,20 +8983,49 @@ if (addRecapCategoryButton) {
 
                 <div class="form-group">
 
-                  <label>
-                    Nama Kategori
-                  </label>
+  <label>
+    Nama Kategori
+  </label>
 
-                  <input
-                    type="text"
-                    id="editRecapCategoryName"
-                    value="${escapeHTML(
-                      currentName
-                    )}"
-                    autocomplete="off"
-                  >
+  <input
+    type="text"
+    id="editRecapCategoryName"
+    value="${escapeHTML(
+      currentName
+    )}"
+    autocomplete="off"
+  >
 
-                </div>
+</div>
+
+<div class="form-group">
+
+  <label>
+    Ikon Kategori
+  </label>
+
+  <input
+    type="text"
+    id="editRecapCategoryIcon"
+    value="${escapeHTML(
+      currentIcon
+    )}"
+    placeholder="📦"
+    autocomplete="off"
+    maxlength="4"
+    style="
+      width: 90px;
+      text-align: center;
+      font-size: 28px;
+    "
+  >
+
+  <small>
+    Pilih emoji langsung dari keyboard perangkat,
+    misalnya 📦 💿 🎀 🧸 💎 🇰🇷 🇯🇵
+  </small>
+
+</div>
 
                 <div
                   style="
@@ -9028,15 +9107,24 @@ if (addRecapCategoryButton) {
                 async function() {
 
                   const input =
-                    container.querySelector(
-                      "#editRecapCategoryName"
-                    );
+  container.querySelector(
+    "#editRecapCategoryName"
+  );
 
-                  if (!input) return;
+const iconInput =
+  container.querySelector(
+    "#editRecapCategoryIcon"
+  );
 
-                  const newName =
-                    input.value.trim();
+if (!input) return;
 
+const newName =
+  input.value.trim();
+
+const newIcon =
+  iconInput
+    ? iconInput.value.trim()
+    : "";
                   if (!newName) {
 
                     alert(
@@ -9057,18 +9145,21 @@ if (addRecapCategoryButton) {
 
 
                   const {
-                    error
-                  } =
-                    await supabaseClient
-                      .from("recap_categories")
-                      .update({
-                        category_name:
-                          newName
-                      })
-                      .eq(
-                        "id",
-                        categoryId
-                      );
+  error
+} =
+  await supabaseClient
+    .from("recap_categories")
+    .update({
+      category_name:
+        newName,
+
+      icon:
+        newIcon || "📁"
+    })
+    .eq(
+      "id",
+      categoryId
+    );
 
 
                   if (error) {
@@ -10510,9 +10601,9 @@ async function loadRecapCategories(
   } =
     await supabaseClient
       .from("recap_categories")
-      .select(
-        "id, recap_type, category_name"
-      )
+.select(
+  "id, recap_type, category_name, icon, tracking_options"
+)
       .eq(
         "recap_type",
         recapType
