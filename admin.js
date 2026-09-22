@@ -9253,7 +9253,13 @@ const newIcon =
                     true;
 
                   saveButton.textContent =
-                    "Menyimpan...";
+  "Menyimpan...";
+
+
+const trackingCheckboxes =
+  container.querySelectorAll(
+    ".edit-recap-tracking-option"
+  );
 
 
 const newTrackingOptions =
