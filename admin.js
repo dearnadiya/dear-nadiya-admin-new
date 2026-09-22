@@ -9311,29 +9311,7 @@ if (updateError) {
 
   return;
 }
-
-                  if (updateError) {
-
-                    console.error(
-                      "Gagal mengubah kategori:",
-                      error
-                    );
-
-                    alert(
-                      "Gagal mengubah kategori: " +
-                      updateError.message
-                    );
-
-                    saveButton.disabled =
-                      false;
-
-                    saveButton.textContent =
-                      "💾 Simpan Perubahan";
-
-                    return;
-                  }
-
-
+                 
                   alert(
                     "Kategori berhasil diubah. ♥"
                   );
