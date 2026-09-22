@@ -12803,6 +12803,1042 @@ dp_amount:
 
 }
 
+/* ============================================
+   GENERATOR TAGIHAN WHATSAPP
+   ============================================ */
+
+async function showWhatsAppBillingBuilder(
+  category
+) {
+
+  /* ==========================================
+     AMBIL DATA REKAP
+     ========================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq(
+        "category",
+        category
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD TAGIHAN WHATSAPP:",
+      error
+    );
+
+    alert(
+      "Gagal mengambil data tagihan: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    alert(
+      "Belum ada data Rekap GO."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     KELOMPOKKAN BATCH
+     ========================================== */
+
+  const batches = {};
+
+  data.forEach(
+    function(row) {
+
+      const batchCode =
+        String(
+          row.batch_code || ""
+        ).trim();
+
+      if (!batchCode) {
+        return;
+      }
+
+      if (!batches[batchCode]) {
+
+        batches[batchCode] = [];
+
+      }
+
+      batches[batchCode].push(
+        row
+      );
+
+    }
+  );
+
+
+  const batchCodes =
+    Object.keys(
+      batches
+    );
+
+
+  /* ==========================================
+     MODAL
+     ========================================== */
+
+  const oldModal =
+    document.getElementById(
+      "whatsappBillingModal"
+    );
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+  modal.id =
+    "whatsappBillingModal";
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    box-sizing:border-box;
+  `;
+
+
+  modal.innerHTML = `
+
+    <div
+      style="
+        width:min(1000px, 96vw);
+        max-height:92vh;
+        overflow:auto;
+        background:#fff;
+        border-radius:16px;
+        padding:22px;
+        box-sizing:border-box;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          margin-bottom:18px;
+        "
+      >
+
+        <div>
+
+          <h3
+            style="
+              margin:0 0 5px;
+            "
+          >
+            💬 Buat Tagihan WhatsApp
+          </h3>
+
+          <p
+            style="
+              margin:0;
+              color:#777;
+              font-size:13px;
+            "
+          >
+            ${escapeHTML(category)}
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="closeWhatsAppBillingModal"
+          style="
+            border:0;
+            background:transparent;
+            font-size:22px;
+            cursor:pointer;
+          "
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <!-- MODE TAGIHAN -->
+
+      <div
+        style="
+          border:1px solid #eee;
+          border-radius:12px;
+          padding:14px;
+          margin-bottom:16px;
+        "
+      >
+
+        <strong>
+          Jenis Tagihan
+        </strong>
+
+
+        <div
+          style="
+            display:flex;
+            gap:18px;
+            flex-wrap:wrap;
+            margin-top:10px;
+          "
+        >
+
+          <label
+            style="
+              cursor:pointer;
+            "
+          >
+
+            <input
+              type="radio"
+              name="whatsappBillingMode"
+              value="customer"
+              checked
+            >
+
+            🛍️ Barang / Gabung Customer
+
+          </label>
+
+
+          <label
+            style="
+              cursor:pointer;
+            "
+          >
+
+            <input
+              type="radio"
+              name="whatsappBillingMode"
+              value="sharing"
+            >
+
+            👥 Sharing / Pisahkan
+
+          </label>
+
+        </div>
+
+
+        <small
+          style="
+            display:block;
+            margin-top:8px;
+            color:#777;
+          "
+        >
+          Barang akan menggabungkan semua barang
+          milik customer yang sama. Sharing akan
+          mempertahankan pemisahan member / versi.
+        </small>
+
+      </div>
+
+
+      <!-- PILIH BATCH -->
+
+      <div
+        style="
+          border:1px solid #eee;
+          border-radius:12px;
+          padding:14px;
+          margin-bottom:16px;
+        "
+      >
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+          "
+        >
+
+          <strong>
+            Pilih Batch
+          </strong>
+
+
+          <div
+            style="
+              display:flex;
+              gap:6px;
+            "
+          >
+
+            <button
+              type="button"
+              id="selectAllBillingBatch"
+            >
+              Pilih Semua
+            </button>
+
+            <button
+              type="button"
+              id="clearAllBillingBatch"
+            >
+              Hapus Semua
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="whatsappBillingBatchList"
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(auto-fit,minmax(240px,1fr));
+            gap:8px;
+            margin-top:12px;
+          "
+        >
+
+          ${
+            batchCodes
+              .map(
+                function(batchCode) {
+
+                  const rows =
+                    batches[
+                      batchCode
+                    ];
+
+                  const itemNames =
+                    [
+                      ...new Set(
+                        rows
+                          .map(
+                            row =>
+                              row.item_name
+                          )
+                          .filter(Boolean)
+                      )
+                    ];
+
+
+                  return `
+
+                    <label
+                      style="
+                        border:1px solid #eee;
+                        border-radius:10px;
+                        padding:10px;
+                        cursor:pointer;
+                      "
+                    >
+
+                      <input
+                        type="checkbox"
+                        class="whatsapp-billing-batch"
+                        value="${escapeHTML(
+                          batchCode
+                        )}"
+                      >
+
+                      <strong>
+                        ${escapeHTML(
+                          batchCode
+                        )}
+                      </strong>
+
+                      <div
+                        style="
+                          color:#777;
+                          font-size:11px;
+                          margin-top:4px;
+                        "
+                      >
+                        ${escapeHTML(
+                          itemNames
+                            .slice(0,2)
+                            .join(" · ")
+                        )}
+                      </div>
+
+                    </label>
+
+                  `;
+
+                }
+              )
+              .join("")
+          }
+
+        </div>
+
+      </div>
+
+
+      <!-- PREVIEW -->
+
+      <div
+        style="
+          border:1px solid #eee;
+          border-radius:12px;
+          padding:14px;
+        "
+      >
+
+        <strong>
+          Preview Tagihan
+        </strong>
+
+
+        <textarea
+          id="whatsappBillingPreview"
+          readonly
+          style="
+            width:100%;
+            min-height:420px;
+            margin-top:10px;
+            box-sizing:border-box;
+            resize:vertical;
+            border:1px solid #ddd;
+            border-radius:10px;
+            padding:12px;
+            font-family:Arial,sans-serif;
+            font-size:13px;
+            line-height:1.5;
+          "
+        ></textarea>
+
+      </div>
+
+
+      <!-- ACTION -->
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-top:16px;
+        "
+      >
+
+        <button
+          type="button"
+          id="cancelWhatsAppBilling"
+        >
+          Batal
+        </button>
+
+
+        <button
+          type="button"
+          class="primary-button"
+          id="copyWhatsAppBilling"
+        >
+          📋 Salin Tagihan
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  /* ==========================================
+     ELEMENT
+     ========================================== */
+
+  const preview =
+    document.getElementById(
+      "whatsappBillingPreview"
+    );
+
+
+  const batchCheckboxes =
+    modal.querySelectorAll(
+      ".whatsapp-billing-batch"
+    );
+
+
+  const modeRadios =
+    modal.querySelectorAll(
+      "input[name='whatsappBillingMode']"
+    );
+
+
+  /* ==========================================
+     FORMAT NOMINAL
+     ========================================== */
+
+  function money(value) {
+
+    return formatNominalInput(
+      Number(value) || 0
+    ) || "0";
+
+  }
+
+
+  /* ==========================================
+     BUAT PESAN
+     ========================================== */
+
+  function generateBillingMessage() {
+
+    const selectedBatches =
+      Array.from(
+        batchCheckboxes
+      )
+        .filter(
+          checkbox =>
+            checkbox.checked
+        )
+        .map(
+          checkbox =>
+            checkbox.value
+        );
+
+
+    if (
+      selectedBatches.length === 0
+    ) {
+
+      preview.value =
+        "Pilih minimal 1 batch.";
+
+      return;
+
+    }
+
+
+    const mode =
+      modal.querySelector(
+        "input[name='whatsappBillingMode']:checked"
+      )?.value ||
+      "customer";
+
+
+    const selectedRows =
+      data.filter(
+        function(row) {
+
+          return selectedBatches.includes(
+            String(
+              row.batch_code || ""
+            ).trim()
+          );
+
+        }
+      );
+
+
+    /* ======================================
+       MODE 1
+       GABUNG CUSTOMER
+       ====================================== */
+
+    if (
+      mode ===
+      "customer"
+    ) {
+
+      const customers = {};
+
+
+      selectedRows.forEach(
+        function(row) {
+
+          const customerId =
+            Number(
+              row.customer_id
+            ) || null;
+
+          const customerName =
+            String(
+              row.customer_name || ""
+            ).trim();
+
+
+          if (
+            !customerName &&
+            !customerId
+          ) {
+
+            return;
+
+          }
+
+
+          const key =
+            customerId
+              ? `id:${customerId}`
+              : `name:${customerName.toLowerCase()}`;
+
+
+          if (
+            !customers[key]
+          ) {
+
+            customers[key] = {
+
+              name:
+                customerName ||
+                "Customer",
+
+              rows: []
+
+            };
+
+          }
+
+
+          customers[key].rows.push(
+            row
+          );
+
+        }
+      );
+
+
+      const customerBlocks =
+        Object.values(
+          customers
+        )
+        .map(
+          function(customer) {
+
+            let total =
+              0;
+
+
+            const itemLines =
+              customer.rows
+                .map(
+                  function(row) {
+
+                    const quantity =
+                      Number(
+                        row.quantity
+                      ) || 1;
+
+                    const price =
+                      Number(
+                        row.item_price
+                      ) || 0;
+
+
+                    const lineTotal =
+                      price;
+
+
+                    total +=
+                      lineTotal;
+
+
+                    const itemName =
+                      String(
+                        row.item_name ||
+                        "Barang"
+                      ).trim();
+
+
+                    const batchLabel =
+                      selectedBatches.length > 1
+                        ? `[${
+                            row.batch_code ||
+                            "Batch"
+                          }] `
+                        : "";
+
+
+                    return (
+                      `${batchLabel}` +
+                      `${itemName}` +
+                      `${
+                        quantity > 1
+                          ? ` × ${quantity}`
+                          : ""
+                      }` +
+                      ` - ${money(lineTotal)}`
+                    );
+
+                  }
+                );
+
+
+            return (
+              `🛍️ ${customer.name}\n\n` +
+              itemLines.join("\n") +
+              `\n\n` +
+              `Total - ${money(total)}`
+            );
+
+          }
+        );
+
+
+      preview.value =
+        customerBlocks.join(
+          "\n\n"
+        );
+
+      return;
+
+    }
+
+
+    /* ======================================
+       MODE 2
+       SHARING
+       ====================================== */
+
+    const batchGroups = {};
+
+
+    selectedRows.forEach(
+      function(row) {
+
+        const batchCode =
+          String(
+            row.batch_code || ""
+          ).trim();
+
+
+        if (
+          !batchGroups[batchCode]
+        ) {
+
+          batchGroups[batchCode] = [];
+
+        }
+
+
+        batchGroups[batchCode].push(
+          row
+        );
+
+      }
+    );
+
+
+    const sharingBlocks =
+      selectedBatches
+        .filter(
+          batchCode =>
+            batchGroups[
+              batchCode
+            ]
+        )
+        .map(
+          function(batchCode) {
+
+            const rows =
+              batchGroups[
+                batchCode
+              ];
+
+
+            const lines =
+              rows.map(
+                function(row) {
+
+                  const version =
+                    String(
+                      row.version ||
+                      "—"
+                    ).trim();
+
+                  const customer =
+                    String(
+                      row.customer_name ||
+                      "—"
+                    ).trim();
+
+
+                  return (
+                    `${version} : ${customer}`
+                  );
+
+                }
+              );
+
+
+            return (
+              `${batchCode}\n` +
+              lines.join("\n")
+            );
+
+          }
+        );
+
+
+    preview.value =
+      sharingBlocks.join(
+        "\n\n"
+      );
+
+  }
+
+
+  /* ==========================================
+     UPDATE PREVIEW
+     ========================================== */
+
+  batchCheckboxes.forEach(
+    function(checkbox) {
+
+      checkbox.addEventListener(
+        "change",
+        generateBillingMessage
+      );
+
+    }
+  );
+
+
+  modeRadios.forEach(
+    function(radio) {
+
+      radio.addEventListener(
+        "change",
+        generateBillingMessage
+      );
+
+    }
+  );
+
+
+  /* ==========================================
+     PILIH SEMUA
+     ========================================== */
+
+  document
+    .getElementById(
+      "selectAllBillingBatch"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        batchCheckboxes.forEach(
+          function(checkbox) {
+
+            checkbox.checked =
+              true;
+
+          }
+        );
+
+        generateBillingMessage();
+
+      }
+    );
+
+
+  /* ==========================================
+     HAPUS SEMUA
+     ========================================== */
+
+  document
+    .getElementById(
+      "clearAllBillingBatch"
+    )
+    ?.addEventListener(
+      "click",
+      function() {
+
+        batchCheckboxes.forEach(
+          function(checkbox) {
+
+            checkbox.checked =
+              false;
+
+          }
+        );
+
+        generateBillingMessage();
+
+      }
+    );
+
+
+  /* ==========================================
+     COPY
+     ========================================== */
+
+  document
+    .getElementById(
+      "copyWhatsAppBilling"
+    )
+    ?.addEventListener(
+      "click",
+      async function() {
+
+        const text =
+          preview.value.trim();
+
+
+        if (!text) {
+
+          alert(
+            "Belum ada tagihan yang dibuat."
+          );
+
+          return;
+
+        }
+
+
+        try {
+
+          await navigator.clipboard.writeText(
+            text
+          );
+
+
+          alert(
+            "Tagihan berhasil disalin. ♥"
+          );
+
+        } catch (error) {
+
+          console.error(
+            "ERROR COPY TAGIHAN:",
+            error
+          );
+
+
+          preview.select();
+
+          document.execCommand(
+            "copy"
+          );
+
+
+          alert(
+            "Tagihan berhasil disalin. ♥"
+          );
+
+        }
+
+      }
+    );
+
+
+  /* ==========================================
+     TUTUP
+     ========================================== */
+
+  function closeModal() {
+
+    modal.remove();
+
+  }
+
+
+  document
+    .getElementById(
+      "closeWhatsAppBillingModal"
+    )
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  document
+    .getElementById(
+      "cancelWhatsAppBilling"
+    )
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  modal.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target ===
+        modal
+      ) {
+
+        closeModal();
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================
+     DEFAULT
+     ========================================== */
+
+  if (
+    batchCheckboxes.length ===
+    1
+  ) {
+
+    batchCheckboxes[0].checked =
+      true;
+
+  }
+
+
+  generateBillingMessage();
+
+}
 
 /* ============================================
    DAFTAR REKAP
@@ -13159,7 +14195,7 @@ let html = `
 
 </div>
 
-    <div
+        <div
       class="recap-actions"
     >
 
@@ -13169,6 +14205,14 @@ let html = `
         id="exportRecapButton"
       >
         📊 Export Excel
+      </button>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="createWhatsAppBillingButton"
+      >
+        💬 Buat Tagihan WhatsApp
       </button>
 
     </div>
@@ -15088,6 +16132,33 @@ if (addRecapBatchButton) {
     function() {
 
       showRecapForm(
+        category
+      );
+
+    }
+  );
+
+}
+
+   /* ==========================================
+   BUAT TAGIHAN WHATSAPP
+   ========================================== */
+
+const createWhatsAppBillingButton =
+  container.querySelector(
+    "#createWhatsAppBillingButton"
+  );
+
+
+if (
+  createWhatsAppBillingButton
+) {
+
+  createWhatsAppBillingButton.addEventListener(
+    "click",
+    function() {
+
+      showWhatsAppBillingBuilder(
         category
       );
 
