@@ -20618,6 +20618,50 @@ if (backToPOListButton) {
     }
   );
 }
+
+/* ==========================================
+   HAPUS PO DARI DETAIL PO
+========================================== */
+
+const deletePOButton =
+  container.querySelector(
+    ".delete-po-button"
+  );
+
+if (deletePOButton) {
+
+  deletePOButton.addEventListener(
+    "click",
+    async function(event) {
+
+      event.stopPropagation();
+
+      const id =
+        this.dataset.id;
+
+      console.log(
+        "DELETE PO BUTTON DIKLIK:",
+        id
+      );
+
+      if (!id) {
+        console.error(
+          "ID PO tidak ditemukan."
+        );
+
+        alert(
+          "ID PO tidak ditemukan."
+        );
+
+        return;
+      }
+
+      await deletePO(id);
+
+    }
+  );
+
+}
    
 }
 
