@@ -13554,3 +13554,99 @@ button {
   }
 
 }
+
+/* ============================================
+   PO CUSTOMER CARD - 2 BARIS HORIZONTAL
+   ============================================ */
+
+.po-running-scroll {
+  display: grid !important;
+
+  /* 2 baris */
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr));
+
+  /* Isi kartu mengalir dari atas ke bawah,
+     kemudian membuat kolom berikutnya */
+  grid-auto-flow: column;
+
+  /* 4 kartu terlihat di laptop */
+  grid-auto-columns:
+    calc((100% - 42px) / 4);
+
+  gap: 14px;
+
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 4px 2px 14px;
+
+  box-sizing: border-box;
+
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+
+  scrollbar-width: auto;
+}
+
+
+/* Kartu mengikuti ukuran kolom */
+.po-running-scroll .po-running-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  flex: none !important;
+
+  box-sizing: border-box;
+}
+
+
+/* Scrollbar */
+.po-running-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.po-running-scroll::-webkit-scrollbar-track {
+  background: #f3eef1;
+  border-radius: 999px;
+}
+
+.po-running-scroll::-webkit-scrollbar-thumb {
+  background: #d2bdc8;
+  border-radius: 999px;
+}
+
+.po-running-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b99eac;
+}
+
+
+/* ============================================
+   HP
+   2 BARIS × 2 KOLOM
+   ============================================ */
+
+@media (max-width: 600px) {
+
+  .po-running-scroll {
+    grid-template-rows:
+      repeat(2, minmax(0, 1fr));
+
+    grid-auto-columns:
+      calc((100% - 12px) / 2);
+
+    gap: 12px;
+
+    padding:
+      4px 2px 12px;
+  }
+
+  .po-running-scroll .po-running-card {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+}
