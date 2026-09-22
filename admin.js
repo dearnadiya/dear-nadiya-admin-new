@@ -27434,6 +27434,650 @@ async function syncOldCustomerData() {
 }
 
 /* ============================================
+   AUDIT CUSTOMER ID LAMA
+   TIDAK MENGUBAH DATA
+   ============================================ */
+
+async function auditCustomerIdData() {
+
+  const confirmAudit =
+    confirm(
+      "Audit Customer ID akan memeriksa:\n\n" +
+      "• Rekap GO yang belum memiliki customer_id\n" +
+      "• PO / Pesanan yang belum memiliki customer_id\n" +
+      "• Apakah data tersebut masih bisa dikenali berdasarkan nama customer\n\n" +
+      "Audit TIDAK akan mengubah data apa pun.\n\n" +
+      "Lanjutkan?"
+    );
+
+  if (!confirmAudit) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "auditCustomerIdButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "⏳ Mengaudit...";
+  }
+
+
+  try {
+
+    /* ==========================================
+       1. AMBIL SEMUA CUSTOMER
+       ========================================== */
+
+    const {
+      data: customers,
+      error: customerError
+    } =
+      await supabaseClient
+        .from("customers")
+        .select(`
+          id,
+          dn_id,
+          name
+        `);
+
+    if (customerError) {
+      throw customerError;
+    }
+
+
+    /*
+      Kelompokkan customer berdasarkan nama.
+
+      Tujuannya:
+      - nama unik = berpotensi aman
+      - nama ganda = jangan ditebak
+    */
+
+    const customersByName = {};
+
+
+    (customers || []).forEach(
+      function(customer) {
+
+        const name =
+          String(
+            customer.name || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (!name) {
+          return;
+        }
+
+
+        if (
+          !customersByName[name]
+        ) {
+          customersByName[name] = [];
+        }
+
+
+        customersByName[name].push(
+          customer
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       2. AUDIT REKAP GO
+       ========================================== */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          customer_id,
+          customer_name,
+          batch_code,
+          item_name,
+          version
+        `);
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    let recapWithoutId = 0;
+    let recapSafeMatch = 0;
+    let recapAmbiguous = 0;
+    let recapNotFound = 0;
+
+
+    const recapSafeExamples = [];
+    const recapAmbiguousExamples = [];
+    const recapNotFoundExamples = [];
+
+
+    (recapRows || []).forEach(
+      function(row) {
+
+        /*
+          Sudah punya customer_id,
+          tidak perlu diaudit.
+        */
+
+        if (
+          row.customer_id !==
+            null &&
+          row.customer_id !==
+            undefined
+        ) {
+          return;
+        }
+
+
+        recapWithoutId++;
+
+
+        const name =
+          String(
+            row.customer_name || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (!name) {
+
+          recapNotFound++;
+
+          return;
+        }
+
+
+        const matches =
+          customersByName[name] ||
+          [];
+
+
+        /*
+          Tepat satu customer
+          dengan nama tersebut.
+        */
+
+        if (
+          matches.length === 1
+        ) {
+
+          recapSafeMatch++;
+
+
+          if (
+            recapSafeExamples.length <
+            10
+          ) {
+
+            recapSafeExamples.push(
+              "• " +
+              (row.batch_code || "—") +
+              " / " +
+              (row.version || "—") +
+              " → " +
+              (matches[0].dn_id || "—") +
+              " " +
+              (matches[0].name || "—")
+            );
+
+          }
+
+          return;
+        }
+
+
+        /*
+          Lebih dari satu customer
+          mempunyai nama sama.
+        */
+
+        if (
+          matches.length > 1
+        ) {
+
+          recapAmbiguous++;
+
+
+          if (
+            recapAmbiguousExamples.length <
+            10
+          ) {
+
+            recapAmbiguousExamples.push(
+              "• " +
+              (row.batch_code || "—") +
+              " / " +
+              (row.version || "—") +
+              " → nama: " +
+              (row.customer_name || "—") +
+              " (" +
+              matches.length +
+              " customer)"
+            );
+
+          }
+
+          return;
+        }
+
+
+        /*
+          Nama tidak ditemukan
+          di master customer.
+        */
+
+        recapNotFound++;
+
+
+        if (
+          recapNotFoundExamples.length <
+          10
+        ) {
+
+          recapNotFoundExamples.push(
+            "• " +
+            (row.batch_code || "—") +
+            " / " +
+            (row.version || "—") +
+            " → " +
+            (row.customer_name || "—")
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ==========================================
+       3. AUDIT PO / PESANAN
+       ========================================== */
+
+    const {
+      data: poPosts,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          list_data
+        `);
+
+    if (poError) {
+      throw poError;
+    }
+
+
+    let poWithoutId = 0;
+    let poSafeMatch = 0;
+    let poAmbiguous = 0;
+    let poNotFound = 0;
+
+
+    const poSafeExamples = [];
+    const poAmbiguousExamples = [];
+    const poNotFoundExamples = [];
+
+
+    (poPosts || []).forEach(
+      function(po) {
+
+        let listData =
+          po.list_data;
+
+
+        if (
+          typeof listData ===
+          "string"
+        ) {
+
+          try {
+
+            listData =
+              JSON.parse(
+                listData
+              );
+
+          } catch (error) {
+
+            return;
+
+          }
+
+        }
+
+
+        if (
+          !Array.isArray(
+            listData
+          )
+        ) {
+          return;
+        }
+
+
+        listData.forEach(
+          function(row) {
+
+            /*
+              Sudah memiliki ID.
+            */
+
+            if (
+              row?.customer_id !==
+                null &&
+              row?.customer_id !==
+                undefined
+            ) {
+              return;
+            }
+
+
+            /*
+              Hanya audit row yang
+              memang memiliki customer.
+            */
+
+            const customerName =
+              String(
+                row?.customer || ""
+              ).trim();
+
+
+            if (!customerName) {
+              return;
+            }
+
+
+            poWithoutId++;
+
+
+            const name =
+              customerName
+                .toLowerCase();
+
+
+            const matches =
+              customersByName[name] ||
+              [];
+
+
+            /*
+              Tepat satu customer.
+            */
+
+            if (
+              matches.length === 1
+            ) {
+
+              poSafeMatch++;
+
+
+              if (
+                poSafeExamples.length <
+                10
+              ) {
+
+                poSafeExamples.push(
+                  "• " +
+                  (po.title || "PO") +
+                  " → " +
+                  (matches[0].dn_id || "—") +
+                  " " +
+                  (matches[0].name || "—")
+                );
+
+              }
+
+              return;
+
+            }
+
+
+            /*
+              Nama customer ganda.
+            */
+
+            if (
+              matches.length > 1
+            ) {
+
+              poAmbiguous++;
+
+
+              if (
+                poAmbiguousExamples.length <
+                10
+              ) {
+
+                poAmbiguousExamples.push(
+                  "• " +
+                  (po.title || "PO") +
+                  " → nama: " +
+                  customerName +
+                  " (" +
+                  matches.length +
+                  " customer)"
+                );
+
+              }
+
+              return;
+
+            }
+
+
+            /*
+              Nama tidak ditemukan.
+            */
+
+            poNotFound++;
+
+
+            if (
+              poNotFoundExamples.length <
+              10
+            ) {
+
+              poNotFoundExamples.push(
+                "• " +
+                (po.title || "PO") +
+                " → " +
+                customerName
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+    /* ==========================================
+       4. TAMPILKAN HASIL AUDIT
+       ========================================== */
+
+    let message =
+      "HASIL AUDIT CUSTOMER ID\n\n";
+
+
+    message +=
+      "===== REKAP GO =====\n" +
+      "Tanpa customer_id: " +
+      recapWithoutId +
+      "\n" +
+      "Bisa dicocokkan unik: " +
+      recapSafeMatch +
+      "\n" +
+      "Nama ambigu / ganda: " +
+      recapAmbiguous +
+      "\n" +
+      "Nama tidak ditemukan: " +
+      recapNotFound +
+      "\n\n";
+
+
+    message +=
+      "===== PO / PESANAN =====\n" +
+      "Tanpa customer_id: " +
+      poWithoutId +
+      "\n" +
+      "Bisa dicocokkan unik: " +
+      poSafeMatch +
+      "\n" +
+      "Nama ambigu / ganda: " +
+      poAmbiguous +
+      "\n" +
+      "Nama tidak ditemukan: " +
+      poNotFound +
+      "\n\n";
+
+
+    message +=
+      "Catatan:\n" +
+      "Data BELUM diubah.\n\n";
+
+
+    /*
+      Contoh data yang aman
+      untuk dicocokkan.
+    */
+
+    if (
+      recapSafeExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO yang berpotensi aman:\n" +
+        recapSafeExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poSafeExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh PO yang berpotensi aman:\n" +
+        poSafeExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    /*
+      Contoh data ambigu.
+    */
+
+    if (
+      recapAmbiguousExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO ambigu:\n" +
+        recapAmbiguousExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poAmbiguousExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh PO ambigu:\n" +
+        poAmbiguousExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    /*
+      Contoh data yang tidak ditemukan.
+    */
+
+    if (
+      recapNotFoundExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh Rekap GO tidak ditemukan:\n" +
+        recapNotFoundExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    if (
+      poNotFoundExamples.length > 0
+    ) {
+
+      message +=
+        "Contoh PO tidak ditemukan:\n" +
+        poNotFoundExamples.join("\n") +
+        "\n\n";
+
+    }
+
+
+    alert(message);
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR AUDIT CUSTOMER ID:",
+      error
+    );
+
+
+    alert(
+      "Audit gagal:\n\n" +
+      error.message
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "🔎 Audit Customer ID";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    MASTER DATA CUSTOMER
    ============================================ */
 
@@ -27473,6 +28117,15 @@ async function loadCustomers() {
   style="margin-left:8px;"
 >
   🔄 Sinkronkan Customer Lama
+</button>
+
+<button
+  type="button"
+  class="secondary-button"
+  id="auditCustomerIdButton"
+  style="margin-left:8px;"
+>
+  🔎 Audit Customer ID
 </button>
 
       </div>
@@ -27537,6 +28190,22 @@ if (
   syncOldCustomersButton.addEventListener(
     "click",
     syncOldCustomerData
+  );
+
+}
+
+   const auditCustomerIdButton =
+  document.getElementById(
+    "auditCustomerIdButton"
+  );
+
+if (
+  auditCustomerIdButton
+) {
+
+  auditCustomerIdButton.addEventListener(
+    "click",
+    auditCustomerIdData
   );
 
 }
