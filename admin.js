@@ -9249,16 +9249,6 @@ const newIcon =
                     "Menyimpan...";
 
 
-                  const {
-  error
-} =
-  await supabaseClient
-    .from("recap_categories")
-    const trackingCheckboxes =
-  container.querySelectorAll(
-    ".edit-recap-tracking-option"
-  );
-
 const newTrackingOptions =
   Array.from(
     trackingCheckboxes
@@ -9292,11 +9282,28 @@ const {
       "id",
       categoryId
     );
-    .eq(
-      "id",
-      categoryId
-    );
 
+
+if (updateError) {
+
+  console.error(
+    "Gagal mengubah kategori:",
+    updateError
+  );
+
+  alert(
+    "Gagal mengubah kategori: " +
+    updateError.message
+  );
+
+  saveButton.disabled =
+    false;
+
+  saveButton.textContent =
+    "💾 Simpan Perubahan";
+
+  return;
+}
 
                   if (updateError) {
 
