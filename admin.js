@@ -13483,32 +13483,32 @@ async function showWhatsAppBillingBuilder(
                       lineTotal;
 
 
-                    const itemName =
-                      String(
-                        row.item_name ||
-                        "Barang"
-                      ).trim();
+                    const version =
+  String(
+    row.version ||
+    "Versi / Member"
+  ).trim();
 
 
-                    const batchLabel =
-                      selectedBatches.length > 1
-                        ? `[${
-                            row.batch_code ||
-                            "Batch"
-                          }] `
-                        : "";
+const batchLabel =
+  selectedBatches.length > 1
+    ? `[${
+        row.batch_code ||
+        "Batch"
+      }] `
+    : "";
 
 
-                    return (
-                      `${batchLabel}` +
-                      `${itemName}` +
-                      `${
-                        quantity > 1
-                          ? ` × ${quantity}`
-                          : ""
-                      }` +
-                      ` - ${money(lineTotal)}`
-                    );
+return (
+  `${batchLabel}` +
+  `${version}` +
+  `${
+    quantity > 1
+      ? ` × ${quantity}`
+      : ""
+  }` +
+  ` - ${money(lineTotal)}`
+);
 
                   }
                 );
