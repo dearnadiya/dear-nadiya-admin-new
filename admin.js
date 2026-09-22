@@ -22552,24 +22552,6 @@ const formatDetailDate =
     );
 
   };
-
-     const firstRow =
-    rows?.[0] || {};
-
-  const recapPrice =
-    Number(
-      firstRow.item_price || 0
-    );
-
-  const recapDP =
-    Number(
-      firstRow.dp_amount || 0
-    );
-
-  const recapTracking =
-    String(
-      firstRow.batch_tracking_status || ""
-    ).trim() || "—";
    
   const container =
     document.getElementById(
@@ -22682,10 +22664,8 @@ const formatDetailDate =
     <span>DP</span>
 
     <strong>
-      Rp${Number(
-        data?.[0]?.minimum_dp_amount || 0
-      ).toLocaleString("id-ID")}
-    </strong>
+  Rp${recapDP.toLocaleString("id-ID")}
+</strong>
 
   </div>
 
