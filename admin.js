@@ -12274,6 +12274,20 @@ function showRecapForm(category) {
 
   if (!container) return;
 
+  /* ==========================================
+     FORM KHUSUS TABUNGAN
+     ========================================== */
+
+  if (
+    getRecapTypeFromCategory(category) ===
+    "Tabungan"
+  ) {
+
+    showTabunganRecapForm(category);
+
+    return;
+  }
+
    container.style.display = "block";
 
   container.innerHTML = `
@@ -20172,6 +20186,604 @@ async function saveBatchRecap(event) {
 
   event.preventDefault();
 
+   /* ============================================
+   FORM KHUSUS TABUNGAN
+   ============================================ */
+
+function showTabunganRecapForm(category) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+  if (!container) return;
+
+
+  container.style.display = "block";
+
+
+  container.innerHTML = `
+
+    <div class="panel recap-form">
+
+      <h3>
+        💰 Tambah Tabungan
+      </h3>
+
+      <p>
+        Kategori:
+        <strong>
+          ${escapeHTML(category)}
+        </strong>
+      </p>
+
+
+      <form id="tabunganRecapForm">
+
+
+        <input
+          type="hidden"
+          id="tabunganCategory"
+          value="${escapeHTML(category)}"
+        >
+
+
+        <div class="form-group">
+
+          <label>
+            Kode Batch / Program
+          </label>
+
+          <input
+            id="tabunganBatchCode"
+            type="text"
+            placeholder="Contoh: LS-001"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Nama Barang
+          </label>
+
+          <input
+            id="tabunganItemName"
+            type="text"
+            placeholder="Contoh: Lightstick"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Nama Customer
+          </label>
+
+          <input
+            id="tabunganCustomerName"
+            type="text"
+            placeholder="Nama customer"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Quantity
+          </label>
+
+          <input
+            id="tabunganQuantity"
+            type="number"
+            min="1"
+            value="1"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Harga Total
+          </label>
+
+          <input
+            id="tabunganItemPrice"
+            type="text"
+            class="currency-input"
+            placeholder="660.000"
+            required
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Target Tabungan
+          </label>
+
+          <input
+            id="tabunganTarget"
+            type="text"
+            class="currency-input"
+            placeholder="540.000"
+            required
+          >
+
+          <small>
+            Target Tabungan adalah batas minimum
+            agar barang dapat dipesankan.
+            Ini bukan uang yang sudah dibayar.
+          </small>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Deadline CO
+          </label>
+
+          <input
+            id="tabunganCoDeadline"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Catatan
+          </label>
+
+          <textarea
+            id="tabunganNote"
+            rows="3"
+            placeholder="Catatan tambahan..."
+          ></textarea>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:10px;
+            margin-top:18px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            💾 Simpan Tabungan
+          </button>
+
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancelTabunganButton"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+        <p
+          id="tabunganFormMessage"
+          style="
+            margin-top:12px;
+            color:#777;
+          "
+        ></p>
+
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     FORMAT ANGKA RUPIAH
+     ========================================== */
+
+  if (
+    typeof initCurrencyInputs ===
+    "function"
+  ) {
+
+    initCurrencyInputs(
+      container
+    );
+
+  }
+
+
+  /* ==========================================
+     BATAL
+     ========================================== */
+
+  const cancelButton =
+    document.getElementById(
+      "cancelTabunganButton"
+    );
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML = "";
+
+        container.style.display =
+          "none";
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     SIMPAN
+     ========================================== */
+
+  const form =
+    document.getElementById(
+      "tabunganRecapForm"
+    );
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      saveTabunganRecap
+    );
+
+  }
+
+}
+
+/* ============================================
+   SIMPAN TABUNGAN BARU
+   ============================================ */
+
+async function saveTabunganRecap(event) {
+
+  event.preventDefault();
+
+
+  const message =
+    document.getElementById(
+      "tabunganFormMessage"
+    );
+
+
+  if (message) {
+
+    message.textContent =
+      "Menyimpan tabungan...";
+
+  }
+
+
+  const category =
+    document.getElementById(
+      "tabunganCategory"
+    ).value.trim();
+
+
+  const batchCode =
+    document.getElementById(
+      "tabunganBatchCode"
+    ).value.trim();
+
+
+  const itemName =
+    document.getElementById(
+      "tabunganItemName"
+    ).value.trim();
+
+
+  const customerName =
+    document.getElementById(
+      "tabunganCustomerName"
+    ).value.trim();
+
+
+  const quantity =
+    Number(
+      document.getElementById(
+        "tabunganQuantity"
+      ).value
+    ) || 1;
+
+
+  const itemPrice =
+    Number(
+      document.getElementById(
+        "tabunganItemPrice"
+      ).value
+        .replace(/\D/g, "")
+    ) || 0;
+
+
+  const targetTabungan =
+    Number(
+      document.getElementById(
+        "tabunganTarget"
+      ).value
+        .replace(/\D/g, "")
+    ) || 0;
+
+
+  const coDeadline =
+    document.getElementById(
+      "tabunganCoDeadline"
+    ).value || null;
+
+
+  const note =
+    document.getElementById(
+      "tabunganNote"
+    ).value.trim() || null;
+
+
+  /* ==========================================
+     VALIDASI
+     ========================================== */
+
+  if (!category) {
+
+    alert(
+      "Kategori Tabungan tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  if (!itemName) {
+
+    alert(
+      "Nama barang wajib diisi."
+    );
+
+    return;
+
+  }
+
+
+  if (!customerName) {
+
+    alert(
+      "Nama customer wajib diisi."
+    );
+
+    return;
+
+  }
+
+
+  if (itemPrice <= 0) {
+
+    alert(
+      "Harga total harus lebih dari 0."
+    );
+
+    return;
+
+  }
+
+
+  if (targetTabungan < 0) {
+
+    alert(
+      "Target Tabungan tidak boleh negatif."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    targetTabungan >
+    itemPrice
+  ) {
+
+    alert(
+      "Target Tabungan tidak boleh lebih besar dari Harga Total."
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     DATA TABUNGAN BARU
+     ========================================== */
+
+  const recap = {
+
+    recap_type:
+      "Tabungan",
+
+    category:
+      category,
+
+    batch_code:
+      batchCode || null,
+
+    item_name:
+      itemName,
+
+    customer_name:
+      customerName,
+
+    version:
+      null,
+
+    quantity:
+      quantity,
+
+    item_price:
+      itemPrice,
+
+    /*
+     * TARGET TABUNGAN
+     * BUKAN UANG YANG SUDAH DIBAYAR
+     */
+    minimum_dp_amount:
+      targetTabungan,
+
+    /*
+     * CUSTOMER BELUM MEMBAYAR
+     */
+    dp_amount:
+      0,
+
+    dp_status:
+      targetTabungan === 0
+        ? "paid"
+        : "unpaid",
+
+    /*
+     * AWALNYA SELURUH HARGA
+     * MASIH MENJADI KEWAJIBAN
+     */
+    remaining_amount:
+      itemPrice,
+
+    payment_status:
+      "unpaid",
+
+    tracking_status:
+      "",
+
+    batch_tracking_status:
+      "",
+
+    recap_data_type:
+      "baru",
+
+    co_deadline:
+      coDeadline,
+
+    note:
+      note
+
+  };
+
+
+  /* ==========================================
+     SIMPAN KE SUPABASE
+     ========================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .insert(
+        recap
+      )
+      .select()
+      .single();
+
+
+  if (error) {
+
+    console.error(
+      "ERROR SAVE TABUNGAN:",
+      error
+    );
+
+
+    if (message) {
+
+      message.textContent =
+        "Gagal menyimpan Tabungan: " +
+        error.message;
+
+    }
+
+    return;
+
+  }
+
+
+  console.log(
+    "TABUNGAN BERHASIL DISIMPAN:",
+    data
+  );
+
+
+  if (message) {
+
+    message.textContent =
+      "Tabungan berhasil disimpan. ♥";
+
+  }
+
+
+  alert(
+    "Data Tabungan berhasil disimpan."
+  );
+
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+
+  if (container) {
+
+    container.innerHTML =
+      "";
+
+    container.style.display =
+      "none";
+
+  }
+
+
+  await loadRecapList(
+    category
+  );
+
+}
 
   /* ==========================================
      PESAN FORM
