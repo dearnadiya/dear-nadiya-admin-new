@@ -6168,68 +6168,96 @@ for (
 
 
   /* ================================
-     STATUS DP
-  ================================ */
+   HITUNG STATUS PEMBAYARAN TERBARU
+================================ */
 
-  let dpStatus =
-    "unpaid";
-
-  if (
-    totalDpPaid > 0
-  ) {
-
-    if (
-      minimumDp <= 0 ||
-      totalDpPaid >= minimumDp
-    ) {
-
-      dpStatus =
-        "paid";
-
-    } else {
-
-      dpStatus =
-        "insufficient";
-
-    }
-
-  }
+let dpStatus = "unpaid";
 
 
-  /* ================================
-     HITUNG SISA PELUNASAN
-  ================================ */
+/*
+  DP dianggap lunas apabila
+  total pembayaran yang masuk
+  sudah mencapai minimum DP.
+*/
 
-  let remainingAmount =
-    0;
+if (
+  minimumDp <= 0
+) {
 
-  if (
-    dpStatus ===
-    "paid"
-  ) {
+  dpStatus = "paid";
 
-    remainingAmount =
-      Math.max(
-        price -
-        totalDpPaid -
-        totalPelunasanPaid,
-        0
-      );
+} else if (
+  totalDpPaid >= minimumDp
+) {
 
-  }
+  dpStatus = "paid";
+
+} else if (
+  totalDpPaid > 0
+) {
+
+  dpStatus = "insufficient";
+
+} else {
+
+  dpStatus = "unpaid";
+
+}
 
 
-  /* ================================
-     STATUS PELUNASAN
-  ================================ */
+/* ================================
+   HITUNG TOTAL PEMBAYARAN
+================================ */
 
-  const paymentStatus =
-    dpStatus === "paid" &&
-    remainingAmount <= 0 &&
-    price > 0
-      ? "paid"
-      : "unpaid";
+const totalPaid =
+  totalDpPaid +
+  totalPelunasanPaid;
 
+
+/* ================================
+   HITUNG SISA PEMBAYARAN
+================================ */
+
+let remainingAmount =
+  Math.max(
+    price -
+    totalPaid,
+    0
+  );
+
+
+/*
+  Kalau harga barang 0,
+  jangan dianggap lunas.
+*/
+
+if (
+  price <= 0
+) {
+
+  remainingAmount = 0;
+
+}
+
+
+/* ================================
+   STATUS PEMBAYARAN
+================================ */
+
+let paymentStatus =
+  "unpaid";
+
+
+if (
+  price > 0 &&
+  dpStatus === "paid" &&
+  remainingAmount <= 0
+) {
+
+  paymentStatus =
+    "paid";
+
+}
 
   /* ================================
      UPDATE PURCHASE RECAP
