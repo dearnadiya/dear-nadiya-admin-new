@@ -21020,14 +21020,6 @@ function getRecapTypeFromCategory(category) {
 }
 
 /* ============================================
-   SIMPAN DATA BATCH
-   ============================================ */
-
-async function saveBatchRecap(event) {
-
-  event.preventDefault();
-
-   /* ============================================
    FORM KHUSUS TABUNGAN
    ============================================ */
 
@@ -21625,6 +21617,14 @@ async function saveTabunganRecap(event) {
   );
 
 }
+
+/* ============================================
+   SIMPAN DATA BATCH
+   ============================================ */
+
+async function saveBatchRecap(event) {
+
+  event.preventDefault();
 
   /* ==========================================
      PESAN FORM
