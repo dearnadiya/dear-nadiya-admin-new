@@ -21094,20 +21094,54 @@ function showTabunganRecapForm(category) {
         </div>
 
 
-        <div class="form-group">
+       <div class="form-group">
 
-          <label>
-            Nama Customer
-          </label>
+  <label>
+    Customer
+  </label>
 
-          <input
-            id="tabunganCustomerName"
-            type="text"
-            placeholder="Nama customer"
-            required
-          >
+  <div style="position:relative;">
 
-        </div>
+    <input
+      id="tabunganCustomerName"
+      type="text"
+      placeholder="Cari nama / DN ID / username WhatsApp"
+      autocomplete="off"
+      required
+      style="width:100%;"
+    >
+
+    <input
+      type="hidden"
+      id="tabunganCustomerId"
+      value=""
+    >
+
+    <div
+      id="tabunganCustomerResults"
+      style="
+        display:none;
+        position:absolute;
+        left:0;
+        right:0;
+        top:100%;
+        z-index:9999;
+        background:#fff;
+        border:1px solid #ddd;
+        border-radius:8px;
+        box-shadow:0 8px 20px rgba(0,0,0,.12);
+        max-height:240px;
+        overflow-y:auto;
+      "
+    ></div>
+
+  </div>
+
+  <small style="color:#777;">
+    Pilih customer dari Data Customer.
+  </small>
+
+</div>
 
 
         <div class="form-group">
@@ -21239,6 +21273,296 @@ function showTabunganRecapForm(category) {
 
   `;
 
+/* ==========================================
+   CUSTOMER DARI DATA CUSTOMER
+   ========================================== */
+
+const customerInput =
+  document.getElementById(
+    "tabunganCustomerName"
+  );
+
+const customerIdInput =
+  document.getElementById(
+    "tabunganCustomerId"
+  );
+
+const customerResults =
+  document.getElementById(
+    "tabunganCustomerResults"
+  );
+
+
+let tabunganCustomerList = [];
+
+
+const {
+  data: customers,
+  error: customersError
+} =
+  await supabaseClient
+    .from("customers")
+    .select(
+      "id, dn_id, name, username_wa"
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
+
+
+if (customersError) {
+
+  console.error(
+    "ERROR LOAD CUSTOMER TABUNGAN:",
+    customersError
+  );
+
+  if (customerResults) {
+
+    customerResults.innerHTML = `
+      <div
+        style="
+          padding:10px;
+          color:#b91c1c;
+          font-size:12px;
+        "
+      >
+        Gagal memuat Data Customer.
+      </div>
+    `;
+
+    customerResults.style.display =
+      "block";
+
+  }
+
+} else {
+
+  tabunganCustomerList =
+    customers || [];
+
+}
+
+
+/* ==========================================
+   SEARCH CUSTOMER
+   ========================================== */
+
+if (
+  customerInput &&
+  customerResults
+) {
+
+  customerInput.addEventListener(
+    "input",
+    function() {
+
+      const keyword =
+        this.value
+          .trim()
+          .toLowerCase();
+
+      /*
+       * Jika nama diubah setelah memilih,
+       * ID customer harus dikosongkan lagi.
+       */
+      customerIdInput.value = "";
+
+      if (!keyword) {
+
+        customerResults.innerHTML =
+          "";
+
+        customerResults.style.display =
+          "none";
+
+        return;
+
+      }
+
+
+      const matches =
+        tabunganCustomerList
+          .filter(
+            function(customer) {
+
+              const dnId =
+                String(
+                  customer.dn_id || ""
+                ).toLowerCase();
+
+              const name =
+                String(
+                  customer.name || ""
+                ).toLowerCase();
+
+              const username =
+                String(
+                  customer.username_wa || ""
+                ).toLowerCase();
+
+              return (
+                dnId.includes(keyword) ||
+                name.includes(keyword) ||
+                username.includes(keyword)
+              );
+
+            }
+          )
+          .slice(0, 10);
+
+
+      if (!matches.length) {
+
+        customerResults.innerHTML = `
+          <div
+            style="
+              padding:10px;
+              color:#777;
+              font-size:12px;
+            "
+          >
+            Customer tidak ditemukan di Data Customer.
+          </div>
+        `;
+
+        customerResults.style.display =
+          "block";
+
+        return;
+
+      }
+
+
+      customerResults.innerHTML =
+        matches
+          .map(
+            function(customer) {
+
+              return `
+                <button
+                  type="button"
+                  class="tabungan-customer-result"
+                  data-id="${escapeHTML(
+                    String(customer.id)
+                  )}"
+                  data-name="${escapeHTML(
+                    customer.name || ""
+                  )}"
+                  style="
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    border:0;
+                    border-bottom:1px solid #eee;
+                    background:#fff;
+                    padding:10px;
+                    cursor:pointer;
+                  "
+                >
+
+                  <strong>
+                    ${escapeHTML(
+                      customer.name || "Tanpa Nama"
+                    )}
+                  </strong>
+
+                  <div
+                    style="
+                      margin-top:3px;
+                      font-size:11px;
+                      color:#777;
+                    "
+                  >
+                    ${escapeHTML(
+                      customer.dn_id || "—"
+                    )}
+
+                    ${
+                      customer.username_wa
+                        ? " • " +
+                          escapeHTML(
+                            customer.username_wa
+                          )
+                        : ""
+                    }
+                  </div>
+
+                </button>
+              `;
+
+            }
+          )
+          .join("");
+
+
+      customerResults.style.display =
+        "block";
+
+    }
+  );
+
+
+  customerResults.addEventListener(
+    "click",
+    function(event) {
+
+      const button =
+        event.target.closest(
+          ".tabungan-customer-result"
+        );
+
+      if (!button) {
+        return;
+      }
+
+
+      customerInput.value =
+        button.dataset.name || "";
+
+      customerIdInput.value =
+        button.dataset.id || "";
+
+
+      customerResults.innerHTML =
+        "";
+
+      customerResults.style.display =
+        "none";
+
+    }
+  );
+
+
+  /*
+   * Klik di luar hasil pencarian
+   */
+  document.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        !customerInput.contains(
+          event.target
+        ) &&
+        !customerResults.contains(
+          event.target
+        )
+      ) {
+
+        customerResults.style.display =
+          "none";
+
+      }
+
+    }
+  );
+
+}
+
 
   /* ==========================================
      FORMAT ANGKA RUPIAH
@@ -21344,9 +21668,16 @@ async function saveTabunganRecap(event) {
 
 
   const customerName =
+  document.getElementById(
+    "tabunganCustomerName"
+  ).value.trim();
+
+const customerId =
+  Number(
     document.getElementById(
-      "tabunganCustomerName"
-    ).value.trim();
+      "tabunganCustomerId"
+    ).value
+  ) || null;
 
 
   const quantity =
@@ -21413,15 +21744,18 @@ async function saveTabunganRecap(event) {
   }
 
 
-  if (!customerName) {
+  if (
+  !customerId ||
+  !customerName
+) {
 
-    alert(
-      "Nama customer wajib diisi."
-    );
+  alert(
+    "Customer wajib dipilih dari Data Customer."
+  );
 
-    return;
+  return;
 
-  }
+}
 
 
   if (itemPrice <= 0) {
@@ -21466,24 +21800,26 @@ async function saveTabunganRecap(event) {
 
   const recap = {
 
-    recap_type:
-      "Tabungan",
+  recap_type:
+    "Tabungan",
 
-    category:
-      category,
+  category:
+    category,
 
-    batch_code:
-      batchCode || null,
+  batch_code:
+    batchCode || null,
 
-    item_name:
-      itemName,
+  item_name:
+    itemName,
 
-    customer_name:
-      customerName,
+  customer_id:
+    customerId,
 
-    version:
-      null,
+  customer_name:
+    customerName,
 
+  version:
+    null,
     quantity:
       quantity,
 
