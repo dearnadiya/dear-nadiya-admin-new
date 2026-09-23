@@ -770,27 +770,84 @@ async function loadDashboard() {
   `;
 
   try {
-    const { data, error } = await supabaseClient
-  .from("purchase_recap")
-  .select(`
-    customer_id,
-    customer_name,
-    category,
-    batch_code,
-    item_name,
-    version,
-    quantity,
-    dp_amount,
-    minimum_dp_amount,
-    remaining_amount,
-    dp_status,
-    payment_status,
-    customer_status,
-    batch_tracking_status,
-    dp_deadline,
-    payment_deadline,
-    co_deadline
-  `);
+    let allDashboardRows = [];
+let dashboardFrom = 0;
+const dashboardPageSize = 1000;
+
+while (true) {
+
+  const {
+    data: dashboardPage,
+    error: dashboardPageError
+  } = await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      customer_id,
+      customer_name,
+      category,
+      batch_code,
+      item_name,
+      version,
+      quantity,
+      dp_amount,
+      minimum_dp_amount,
+      remaining_amount,
+      dp_status,
+      payment_status,
+      customer_status,
+      batch_tracking_status,
+      dp_deadline,
+      payment_deadline,
+      co_deadline
+    `)
+    .range(
+      dashboardFrom,
+      dashboardFrom + dashboardPageSize - 1
+    );
+
+  if (dashboardPageError) {
+    console.error(
+      "ERROR LOAD DASHBOARD:",
+      dashboardPageError
+    );
+
+    document.getElementById(
+      "dashboardDpList"
+    ).innerHTML = `
+      <p>Gagal memuat data.</p>
+    `;
+
+    document.getElementById(
+      "dashboardPaymentList"
+    ).innerHTML = `
+      <p>Gagal memuat data.</p>
+    `;
+
+    document.getElementById(
+      "dashboardCoDeadlineList"
+    ).innerHTML = `
+      <p>Gagal memuat data.</p>
+    `;
+
+    return;
+  }
+
+  allDashboardRows.push(
+    ...(dashboardPage || [])
+  );
+
+  if (
+    !dashboardPage ||
+    dashboardPage.length < dashboardPageSize
+  ) {
+    break;
+  }
+
+  dashboardFrom += dashboardPageSize;
+}
+
+const data = allDashboardRows;
+const error = null;
     if (error) {
       console.error(
         "ERROR LOAD DASHBOARD:",
