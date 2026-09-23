@@ -17230,16 +17230,15 @@ async function renderTabunganRecapList(
                 this.dataset.id;
 
               if (
-                typeof showEditRecapForm ===
-                "function"
-              ) {
+  typeof editRecap ===
+  "function"
+) {
 
-                showEditRecapForm(
-                  id
-                );
+  editRecap(
+    id
+  );
 
-              }
-
+}
             }
           );
 
@@ -22562,6 +22561,647 @@ const {
 }
 
 /* ============================================
+   EDIT TABUNGAN KHUSUS
+   ============================================ */
+
+function showEditTabunganRecapForm(
+  data
+) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    ) ||
+    document.getElementById(
+      "poFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  container.style.display =
+    "block";
+
+
+  container.innerHTML = `
+
+    <div
+      class="panel recap-form"
+    >
+
+      <h3>
+        ✏️ Edit Tabungan
+      </h3>
+
+
+      <p>
+        Kategori:
+        <strong>
+          ${escapeHTML(
+            data.category || ""
+          )}
+        </strong>
+      </p>
+
+
+      <form
+        id="editTabunganForm"
+      >
+
+        <!-- ==================================
+             KODE BATCH
+             ================================== -->
+
+        <label>
+          Kode Batch / Program
+        </label>
+
+        <input
+          type="text"
+          id="editTabunganBatchCode"
+          value="${escapeHTML(
+            data.batch_code || ""
+          )}"
+          readonly
+        >
+
+
+        <!-- ==================================
+             NAMA BARANG
+             ================================== -->
+
+        <label>
+          Nama Barang
+        </label>
+
+        <input
+          type="text"
+          id="editTabunganItemName"
+          value="${escapeHTML(
+            data.item_name || ""
+          )}"
+          required
+        >
+
+
+        <!-- ==================================
+             CUSTOMER
+             ================================== -->
+
+        <label>
+          Customer
+        </label>
+
+        <input
+          type="text"
+          value="${escapeHTML(
+            data.customer_name || ""
+          )}"
+          readonly
+        >
+
+        <small>
+          Customer tidak diubah dari form ini
+          agar riwayat pembayaran tetap terhubung
+          ke customer yang benar.
+        </small>
+
+
+        <!-- ==================================
+             QUANTITY
+             ================================== -->
+
+        <label>
+          Quantity
+        </label>
+
+        <input
+          type="number"
+          id="editTabunganQuantity"
+          min="1"
+          value="${Number(
+            data.quantity
+          ) || 1}"
+          required
+        >
+
+
+        <!-- ==================================
+             HARGA TOTAL
+             ================================== -->
+
+        <label>
+          Harga Total
+        </label>
+
+        <input
+          type="text"
+          id="editTabunganItemPrice"
+          class="currency-input"
+          value="${formatNominalInput(
+            Number(
+              data.item_price
+            ) || 0
+          )}"
+          required
+        >
+
+
+        <!-- ==================================
+             TARGET TABUNGAN
+             ================================== -->
+
+        <label>
+          Target Tabungan
+        </label>
+
+        <input
+          type="text"
+          id="editTabunganTarget"
+          class="currency-input"
+          value="${formatNominalInput(
+            Number(
+              data.minimum_dp_amount
+            ) || 0
+          )}"
+          required
+        >
+
+        <small>
+          Target Tabungan adalah batas minimum
+          agar barang dapat dipesankan.
+          Target ini bukan jumlah uang yang sudah dibayar.
+        </small>
+
+
+        <!-- ==================================
+             PEMBAYARAN AKTUAL
+             ================================== -->
+
+        <label>
+          DP / Tabungan Aktual
+        </label>
+
+        <input
+          type="text"
+          class="currency-input"
+          value="${formatNominalInput(
+            Number(
+              data.dp_amount
+            ) || 0
+          )}"
+          readonly
+        >
+
+        <small>
+          Nilai ini berasal dari pembayaran yang
+          sudah dikonfirmasi dan tidak dapat diubah
+          melalui Edit Tabungan.
+        </small>
+
+
+        <!-- ==================================
+             SISA PEMBAYARAN
+             ================================== -->
+
+        <label>
+          Sisa Pembayaran
+        </label>
+
+        <input
+          type="text"
+          class="currency-input"
+          value="${formatNominalInput(
+            Number(
+              data.remaining_amount
+            ) || 0
+          )}"
+          readonly
+        >
+
+
+        <!-- ==================================
+             DEADLINE CO
+             ================================== -->
+
+        <label>
+          Deadline CO
+        </label>
+
+        <input
+          type="date"
+          id="editTabunganCoDeadline"
+          value="${
+            data.co_deadline
+              ? String(
+                  data.co_deadline
+                ).substring(
+                  0,
+                  10
+                )
+              : ""
+          }"
+        >
+
+
+        <!-- ==================================
+             STATUS CUSTOMER
+             ================================== -->
+
+        <label>
+          Status Customer
+        </label>
+
+        <select
+          id="editTabunganCustomerStatus"
+        >
+
+          <option
+            value="Belum Checkout Shopee"
+            ${
+              data.customer_status ===
+              "Belum Checkout Shopee"
+                ? "selected"
+                : ""
+            }
+          >
+            ⏳ Belum Checkout Shopee
+          </option>
+
+          <option
+            value="Sudah Checkout Shopee"
+            ${
+              data.customer_status ===
+              "Sudah Checkout Shopee"
+                ? "selected"
+                : ""
+            }
+          >
+            🛒 Sudah Checkout Shopee
+          </option>
+
+          <option
+            value="Sudah Menerima Barang"
+            ${
+              data.customer_status ===
+              "Sudah Menerima Barang"
+                ? "selected"
+                : ""
+            }
+          >
+            📦 Sudah Menerima Barang
+          </option>
+
+        </select>
+
+
+        <!-- ==================================
+             CATATAN
+             ================================== -->
+
+        <label>
+          Catatan
+        </label>
+
+        <textarea
+          id="editTabunganNote"
+          rows="3"
+        >${escapeHTML(
+          data.note || ""
+        )}</textarea>
+
+
+        <!-- ==================================
+             TOMBOL
+             ================================== -->
+
+        <div
+          class="form-actions"
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            💾 Simpan Perubahan
+          </button>
+
+          <button
+            type="button"
+            id="cancelEditTabungan"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+        <p
+          id="editTabunganMessage"
+          class="login-error"
+        ></p>
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  /* ==========================================
+     FORMAT INPUT RUPIAH
+     ========================================== */
+
+  container
+    .querySelectorAll(
+      ".currency-input"
+    )
+    .forEach(
+      function(input) {
+
+        input.value =
+          formatNominalInput(
+            input.value
+          );
+
+      }
+    );
+
+
+  /* ==========================================
+     BATAL
+     ========================================== */
+
+  const cancelButton =
+    document.getElementById(
+      "cancelEditTabungan"
+    );
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      function() {
+
+        container.innerHTML =
+          "";
+
+        container.style.display =
+          "none";
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     SIMPAN
+     ========================================== */
+
+  const form =
+    document.getElementById(
+      "editTabunganForm"
+    );
+
+  if (!form) {
+    return;
+  }
+
+
+  form.addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+
+      const message =
+        document.getElementById(
+          "editTabunganMessage"
+        );
+
+
+      if (message) {
+
+        message.textContent =
+          "Menyimpan perubahan...";
+
+      }
+
+
+      const itemName =
+        document
+          .getElementById(
+            "editTabunganItemName"
+          )
+          .value
+          .trim();
+
+
+      const quantity =
+        Number(
+          document
+            .getElementById(
+              "editTabunganQuantity"
+            )
+            .value
+        ) || 1;
+
+
+      const itemPrice =
+        parseNominalInput(
+          document
+            .getElementById(
+              "editTabunganItemPrice"
+            )
+            .value
+        );
+
+
+      const targetTabungan =
+        parseNominalInput(
+          document
+            .getElementById(
+              "editTabunganTarget"
+            )
+            .value
+        );
+
+
+      const coDeadline =
+        document
+          .getElementById(
+            "editTabunganCoDeadline"
+          )
+          .value ||
+        null;
+
+
+      const customerStatus =
+        document
+          .getElementById(
+            "editTabunganCustomerStatus"
+          )
+          .value;
+
+
+      const note =
+        document
+          .getElementById(
+            "editTabunganNote"
+          )
+          .value
+          .trim();
+
+
+      /* ======================================
+         VALIDASI
+         ====================================== */
+
+      if (!itemName) {
+
+        alert(
+          "Nama barang wajib diisi."
+        );
+
+        return;
+
+      }
+
+
+      if (
+        itemPrice <= 0
+      ) {
+
+        alert(
+          "Harga Total harus lebih dari 0."
+        );
+
+        return;
+
+      }
+
+
+      if (
+        targetTabungan < 0 ||
+        targetTabungan >
+          itemPrice
+      ) {
+
+        alert(
+          "Target Tabungan harus berada antara 0 dan Harga Total."
+        );
+
+        return;
+
+      }
+
+
+      /* ======================================
+         UPDATE TABUNGAN
+         
+         PENTING:
+         JANGAN mengubah:
+         - dp_amount
+         - dp_status
+         - remaining_amount
+         - payment_status
+         
+         karena nilai pembayaran berasal dari
+         histori pembayaran.
+         ====================================== */
+
+      const updatedData = {
+
+        item_name:
+          itemName,
+
+        quantity:
+          quantity,
+
+        item_price:
+          itemPrice,
+
+        minimum_dp_amount:
+          targetTabungan,
+
+        co_deadline:
+          coDeadline,
+
+        customer_status:
+          customerStatus,
+
+        note:
+          note || null
+
+      };
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .update(
+            updatedData
+          )
+          .eq(
+            "id",
+            data.id
+          );
+
+
+      if (error) {
+
+        console.error(
+          "ERROR UPDATE TABUNGAN:",
+          error
+        );
+
+        if (message) {
+
+          message.textContent =
+            "Gagal mengubah Tabungan: " +
+            error.message;
+
+        }
+
+        return;
+
+      }
+
+
+      /* ======================================
+         BERHASIL
+         ====================================== */
+
+      alert(
+        "Data Tabungan berhasil diperbarui. ♥"
+      );
+
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+
+      await loadRecapList(
+        data.category
+      );
+
+    }
+  );
+
+}
+
+/* ============================================
    EDIT REKAP
    ============================================ */
 
@@ -22614,6 +23254,25 @@ const container =
 if (!container) {
   return;
 }
+
+/* ==========================================
+   FORM KHUSUS TABUNGAN
+   ========================================== */
+
+if (
+  getRecapTypeFromCategory(
+    data.category
+  ) === "Tabungan"
+) {
+
+  showEditTabunganRecapForm(
+    data
+  );
+
+  return;
+
+}
+   
 /* TAMPILKAN FORM EDIT */
 container.style.display = "block";
 
