@@ -14419,360 +14419,8 @@ const selectedRows =
     }
   );
 
+
 /* ==========================================
-   LAST PAYMENT PER BATCH
-   HANYA INFORMASI HEADER
-   TIDAK MASUK PERHITUNGAN
-   ========================================== */
-
-const batchDeadlines = {};
-
-selectedRows.forEach(
-  function(row) {
-
-    const batchCode =
-      String(
-        row.batch_code || ""
-      ).trim();
-
-    const deadline =
-      String(
-        row.payment_deadline || ""
-      ).trim();
-
-    if (
-      batchCode &&
-      deadline &&
-      !batchDeadlines[batchCode]
-    ) {
-
-      batchDeadlines[batchCode] =
-        deadline;
-
-    }
-
-  }
-);
-
-const deadlineEntries =
-  selectedBatches
-    .map(
-      function(batchCode) {
-
-        return {
-          batchCode:
-            batchCode,
-
-          deadline:
-            batchDeadlines[
-              batchCode
-            ] || ""
-        };
-
-      }
-    )
-    .filter(
-      function(item) {
-
-        return Boolean(
-          item.deadline
-        );
-
-      }
-    );
-
-const uniqueDeadlines =
-  [
-    ...new Set(
-      deadlineEntries.map(
-        function(item) {
-          return item.deadline;
-        }
-      )
-    )
-  ];
-
-let lastPaymentText =
-  "";
-
-if (
-  deadlineEntries.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      deadlineEntries[0].deadline
-    )}`;
-
-} else if (
-  uniqueDeadlines.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      uniqueDeadlines[0]
-    )}`;
-
-} else if (
-  deadlineEntries.length > 0
-) {
-
-  lastPaymentText =
-    `Last payment:\n` +
-    deadlineEntries
-      .map(
-        function(item) {
-
-          return (
-            `${item.batchCode} : ` +
-            `${formatBillingDeadline(
-              item.deadline
-            )}`
-          );
-
-        }
-      )
-      .join("\n");
-
-}
-
-const billingHeader =
-  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
-  `${
-    lastPaymentText
-      ? lastPaymentText + "\n"
-      : ""
-  }` +
-  `Telat payment denda 3k/hari\n\n`;
-
-const deadlineEntries =
-  selectedBatches
-    .map(
-      function(batchCode) {
-
-        return {
-          batchCode:
-            batchCode,
-
-          deadline:
-            batchDeadlines[
-              batchCode
-            ] || ""
-        };
-
-      }
-    )
-    .filter(
-      function(item) {
-
-        return Boolean(
-          item.deadline
-        );
-
-      }
-    );
-
-
-const uniqueDeadlines =
-  [
-    ...new Set(
-      deadlineEntries.map(
-        function(item) {
-          return item.deadline;
-        }
-      )
-    )
-  ];
-
-
-let lastPaymentText =
-  "";
-
-
-if (
-  deadlineEntries.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      deadlineEntries[0].deadline
-    )}`;
-
-}
-else if (
-  uniqueDeadlines.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      uniqueDeadlines[0]
-    )}`;
-
-}
-else if (
-  deadlineEntries.length > 0
-) {
-
-  lastPaymentText =
-    `Last payment:\n` +
-    deadlineEntries
-      .map(
-        function(item) {
-
-          return (
-            `${item.batchCode} : ` +
-            `${formatBillingDeadline(
-              item.deadline
-            )}`
-          );
-
-        }
-      )
-      .join("\n");
-
-}
-
-
-const billingHeader =
-  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
-  `${
-    lastPaymentText
-      ? lastPaymentText + "\n"
-      : ""
-  }` +
-  `Telat payment denda 3k/hari\n\n`;
-     
-/* ======================================
-   HEADER TAGIHAN
-   LAST PAYMENT + INFO DENDA
-   ====================================== */
-
-const batchDeadlines = {};
-
-selectedRows.forEach(
-  function(row) {
-
-    const batchCode =
-      String(
-        row.batch_code || ""
-      ).trim();
-
-    const deadline =
-      String(
-        row.payment_deadline || ""
-      ).trim();
-
-    if (
-      batchCode &&
-      deadline &&
-      !batchDeadlines[batchCode]
-    ) {
-
-      batchDeadlines[batchCode] =
-        deadline;
-
-    }
-
-  }
-);
-
-
-const deadlineEntries =
-  selectedBatches
-    .map(
-      function(batchCode) {
-
-        return {
-          batchCode:
-            batchCode,
-
-          deadline:
-            batchDeadlines[
-              batchCode
-            ] || ""
-        };
-
-      }
-    )
-    .filter(
-      function(item) {
-
-        return Boolean(
-          item.deadline
-        );
-
-      }
-    );
-
-
-const uniqueDeadlines =
-  [
-    ...new Set(
-      deadlineEntries.map(
-        function(item) {
-
-          return item.deadline;
-
-        }
-      )
-    )
-  ];
-
-
-let lastPaymentText =
-  "";
-
-
-if (
-  deadlineEntries.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      deadlineEntries[0].deadline
-    )}`;
-
-}
-else if (
-  uniqueDeadlines.length === 1
-) {
-
-  lastPaymentText =
-    `Last payment ${formatBillingDeadline(
-      uniqueDeadlines[0]
-    )}`;
-
-}
-else if (
-  deadlineEntries.length > 0
-) {
-
-  lastPaymentText =
-    `Last payment:\n` +
-    deadlineEntries
-      .map(
-        function(item) {
-
-          return (
-            `${item.batchCode} : ` +
-            `${formatBillingDeadline(
-              item.deadline
-            )}`
-          );
-
-        }
-      )
-      .join("\n");
-
-}
-
-
-const billingHeader =
-  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
-  `${lastPaymentText ? lastPaymentText + "\n" : ""}` +
-  `Telat payment denda 3k/hari\n\n`;
-     
-     /* ==========================================
    LAST PAYMENT PER BATCH
    HANYA INFORMASI HEADER
    TIDAK MASUK PERHITUNGAN TAGIHAN
@@ -14780,7 +14428,6 @@ const billingHeader =
 
 const batchDeadlines = {};
 
-
 selectedRows.forEach(
   function(row) {
 
@@ -14793,7 +14440,6 @@ selectedRows.forEach(
       String(
         row.payment_deadline || ""
       ).trim();
-
 
     if (
       batchCode &&
@@ -14843,7 +14489,9 @@ const uniqueDeadlines =
     ...new Set(
       deadlineEntries.map(
         function(item) {
+
           return item.deadline;
+
         }
       )
     )
@@ -14863,7 +14511,8 @@ if (
       deadlineEntries[0].deadline
     )}`;
 
-} else if (
+}
+else if (
   uniqueDeadlines.length === 1
 ) {
 
@@ -14872,7 +14521,8 @@ if (
       uniqueDeadlines[0]
     )}`;
 
-} else if (
+}
+else if (
   deadlineEntries.length > 0
 ) {
 
