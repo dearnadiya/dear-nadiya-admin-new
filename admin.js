@@ -14710,24 +14710,33 @@ const billingHeader =
 
 
                   const remaining =
-                    Number(
-                      row.remaining_amount
-                    ) || 0;
+  Number(
+    row.remaining_amount
+  ) || 0;
 
-                   const paymentStatus =
+const paymentStatus =
   String(
     row.payment_status || ""
   ).trim().toLowerCase();
 
+const isPaid =
+  paymentStatus === "paid" ||
+  remaining <= 0;
 
-                  total +=
-                    price;
+const billRemaining =
+  isPaid
+    ? 0
+    : remaining;
 
-                  totalDp +=
-                    dpPaid;
 
-                  totalRemaining +=
-                    remaining;
+total +=
+  price;
+
+totalDp +=
+  dpPaid;
+
+totalRemaining +=
+  billRemaining;
 
 
                   const version =
@@ -14744,11 +14753,6 @@ const billingHeader =
                           "Batch"
                         }] `
                       : "";
-
-
-                  const isPaid =
-  paymentStatus === "paid" ||
-  remaining <= 0;
 
 return (
   `${batchLabel}` +
@@ -14887,24 +14891,33 @@ return;
                   ) || 0;
 
                 const remaining =
-                  Number(
-                    row.remaining_amount
-                  ) || 0;
+  Number(
+    row.remaining_amount
+  ) || 0;
 
-               const paymentStatus =
+const paymentStatus =
   String(
     row.payment_status || ""
   ).trim().toLowerCase();
 
+const isPaid =
+  paymentStatus === "paid" ||
+  remaining <= 0;
 
-                total +=
-                  price;
+const billRemaining =
+  isPaid
+    ? 0
+    : remaining;
 
-                totalDp +=
-                  dpPaid;
 
-                totalRemaining +=
-                  remaining;
+total +=
+  price;
+
+totalDp +=
+  dpPaid;
+
+totalRemaining +=
+  billRemaining;
 
 
                 const version =
@@ -14919,11 +14932,6 @@ return;
                     row.customer_name ||
                     "—"
                   ).trim();
-
-
-                const isPaid =
-  paymentStatus === "paid" ||
-  remaining <= 0;
 
 return (
   `${version} : ${customer}` +
