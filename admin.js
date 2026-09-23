@@ -14736,8 +14736,7 @@ const billingHeader =
                         : ""
                     }` +
                     ` - ${money(price)}` +
-                    ` DP ${money(dpPaid)}` +
-                    ` - Sisa ${money(remaining)}`
+                     ` DP ${money(dpPaid)}`
                   );
 
                 }
@@ -14905,8 +14904,7 @@ return;
                 return (
                   `${version} : ${customer}` +
                   ` - ${money(price)}` +
-                  ` DP ${money(dpPaid)}` +
-                  ` - Sisa ${money(remaining)}`
+                  ` DP ${money(dpPaid)}`
                 );
 
               }
