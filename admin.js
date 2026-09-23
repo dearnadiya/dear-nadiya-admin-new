@@ -1660,13 +1660,18 @@ const paymentRows =
 
       paymentList.innerHTML =
         paymentCustomerNames
-          .map(customerName => {
+  .map(customerKey => {
 
-            const customerRows =
-              paymentGrouped[
-                customerName
-              ];
+    const customerRows =
+      paymentGrouped[
+        customerKey
+      ];
 
+    const customerName =
+      String(
+        customerRows[0]?.customer_name || ""
+      ).trim() ||
+      customerKey;
             let totalPayment = 0;
 let totalDendaPayment = 0;
 const rincianDendaPayment = [];
