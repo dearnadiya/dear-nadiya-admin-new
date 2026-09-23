@@ -775,6 +775,7 @@ async function loadDashboard() {
   .select(`
     customer_id,
     customer_name,
+    category,
     batch_code,
     item_name,
     version,
