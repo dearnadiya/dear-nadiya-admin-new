@@ -13739,10 +13739,40 @@ async function showWhatsAppBillingBuilder(
 
 
   const batchCodes =
-    Object.keys(
-      batches
-    );
+  Object.keys(
+    batches
+  ).filter(
+    function(batchCode) {
 
+      const rows =
+        batches[
+          batchCode
+        ];
+
+      return rows.some(
+        function(row) {
+
+          const remaining =
+            Number(
+              row.remaining_amount
+            ) || 0;
+
+          const paymentStatus =
+            String(
+              row.payment_status ||
+              ""
+            ).trim().toLowerCase();
+
+          return (
+            paymentStatus !== "paid" &&
+            remaining > 0
+          );
+
+        }
+      );
+
+    }
+  );
 
   /* ==========================================
      MODAL
