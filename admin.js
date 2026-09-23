@@ -16157,6 +16157,1212 @@ async function syncConfirmedPaymentStatuses(
   }
 
 }
+
+/* ============================================
+   RENDER KHUSUS REKAP TABUNGAN
+   ============================================ */
+
+async function renderTabunganRecapList(
+  category,
+  data,
+  container
+) {
+
+  /* ==========================================
+     AMBIL HISTORI PEMBAYARAN
+     ========================================== */
+
+  const recapIds =
+    (data || [])
+      .map(
+        row =>
+          Number(row.id)
+      )
+      .filter(
+        id =>
+          Number.isFinite(id)
+      );
+
+
+  let allocations = [];
+
+
+  if (
+    recapIds.length > 0
+  ) {
+
+    const {
+      data: allocationData,
+      error: allocationError
+    } =
+      await supabaseClient
+        .from(
+          "dn_payment_allocations"
+        )
+        .select(
+          "payment_submission_id, recap_id, allocated_amount, payment_part, created_at"
+        )
+        .in(
+          "recap_id",
+          recapIds
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (
+      allocationError
+    ) {
+
+      console.error(
+        "ERROR LOAD TABUNGAN ALLOCATIONS:",
+        allocationError
+      );
+
+      container.innerHTML = `
+        <div class="panel">
+
+          <h3>
+            Gagal memuat histori tabungan
+          </h3>
+
+          <p>
+            ${escapeHTML(
+              allocationError.message
+            )}
+          </p>
+
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    allocations =
+      allocationData || [];
+
+  }
+
+
+  /* ==========================================
+     AMBIL PEMBAYARAN YANG SUDAH DIKONFIRMASI
+     ========================================== */
+
+  const paymentIds =
+    [
+      ...new Set(
+        allocations
+          .map(
+            row =>
+              Number(
+                row.payment_submission_id
+              )
+          )
+          .filter(
+            id =>
+              Number.isFinite(id)
+          )
+      )
+    ];
+
+
+  let confirmedPaymentIds =
+    new Set();
+
+
+  if (
+    paymentIds.length > 0
+  ) {
+
+    const {
+      data: confirmedPayments,
+      error: confirmedPaymentError
+    } =
+      await supabaseClient
+        .from(
+          "dn_payment_submissions"
+        )
+        .select(
+          "id"
+        )
+        .in(
+          "id",
+          paymentIds
+        )
+        .eq(
+          "status",
+          "confirmed"
+        );
+
+
+    if (
+      confirmedPaymentError
+    ) {
+
+      console.error(
+        "ERROR LOAD CONFIRMED TABUNGAN PAYMENTS:",
+        confirmedPaymentError
+      );
+
+    } else {
+
+      confirmedPaymentIds =
+        new Set(
+          (
+            confirmedPayments ||
+            []
+          ).map(
+            payment =>
+              Number(
+                payment.id
+              )
+          )
+        );
+
+    }
+
+  }
+
+
+  /* ==========================================
+     KELOMPOKKAN HISTORI PER RECAP
+     ========================================== */
+
+  const allocationsByRecap =
+    {};
+
+
+  allocations
+    .filter(
+      allocation =>
+        confirmedPaymentIds.has(
+          Number(
+            allocation.payment_submission_id
+          )
+        )
+    )
+    .forEach(
+      function(allocation) {
+
+        const recapId =
+          String(
+            allocation.recap_id
+          );
+
+
+        if (
+          !allocationsByRecap[
+            recapId
+          ]
+        ) {
+
+          allocationsByRecap[
+            recapId
+          ] = [];
+
+        }
+
+
+        allocationsByRecap[
+          recapId
+        ].push(
+          allocation
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     HITUNG STATUS SETIAP CUSTOMER
+     ========================================== */
+
+  const rows =
+    (data || []).map(
+      function(row) {
+
+        const price =
+          Number(
+            row.item_price
+          ) || 0;
+
+
+        const target =
+          Number(
+            row.minimum_dp_amount
+          ) || 0;
+
+
+        let totalPaid = 0;
+
+
+        const history =
+          allocationsByRecap[
+            String(row.id)
+          ] || [];
+
+
+        history.forEach(
+          function(payment) {
+
+            totalPaid +=
+              Number(
+                payment.allocated_amount
+              ) || 0;
+
+          }
+        );
+
+
+        /*
+         * Jangan biarkan pembayaran
+         * melebihi harga barang.
+         */
+
+        totalPaid =
+          Math.min(
+            totalPaid,
+            price
+          );
+
+
+        const remaining =
+          Math.max(
+            price -
+            totalPaid,
+            0
+          );
+
+
+        const targetReached =
+          target <= 0 ||
+          totalPaid >= target;
+
+
+        let status =
+          "Menabung";
+
+
+        if (
+          price > 0 &&
+          totalPaid >= price
+        ) {
+
+          status =
+            "Lunas";
+
+        }
+
+        else if (
+          targetReached
+        ) {
+
+          status =
+            "Target Tabungan Tercapai";
+
+        }
+
+
+        const progress =
+          target > 0
+            ? Math.min(
+                (
+                  totalPaid /
+                  target
+                ) * 100,
+                100
+              )
+            : (
+                price > 0
+                  ? Math.min(
+                      (
+                        totalPaid /
+                        price
+                      ) * 100,
+                      100
+                    )
+                  : 0
+              );
+
+
+        return {
+
+          ...row,
+
+          tabungan_target:
+            target,
+
+          tabungan_paid:
+            totalPaid,
+
+          tabungan_remaining:
+            remaining,
+
+          tabungan_progress:
+            progress,
+
+          tabungan_status:
+            status,
+
+          payment_history:
+            history
+
+        };
+
+      }
+    );
+
+
+  /* ==========================================
+     HEADER
+     ========================================== */
+
+  container.innerHTML = `
+
+    <div
+      class="recap-navigation-header"
+      style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+      "
+    >
+
+      <button
+        type="button"
+        class="recap-back-category"
+        id="tabunganBackCategory"
+      >
+        ← Kembali ke Kategori
+      </button>
+
+
+      <div
+        style="
+          flex:1;
+          min-width:180px;
+        "
+      >
+
+        <div
+          style="
+            font-size:18px;
+            font-weight:700;
+          "
+        >
+          💰 ${escapeHTML(category)}
+        </div>
+
+        <div
+          style="
+            margin-top:3px;
+            color:#777;
+            font-size:12px;
+          "
+        >
+          Rekap tabungan per customer
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-button"
+        id="tabunganAddButton"
+      >
+        ➕ Tambah Tabungan
+      </button>
+
+    </div>
+
+
+    <div
+      style="
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+      "
+    >
+
+      <input
+        type="text"
+        id="tabunganSearchInput"
+        placeholder="🔍 Cari customer / barang / batch..."
+        autocomplete="off"
+        style="
+          flex:1;
+          min-width:240px;
+        "
+      >
+
+    </div>
+
+
+    <div
+      id="tabunganSummary"
+      style="
+        display:grid;
+        grid-template-columns:
+          repeat(
+            auto-fit,
+            minmax(160px, 1fr)
+          );
+        gap:10px;
+        margin-bottom:18px;
+      "
+    >
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:#fff;
+        "
+      >
+        <div
+          style="
+            font-size:11px;
+            color:#777;
+          "
+        >
+          Customer
+        </div>
+
+        <strong>
+          ${rows.length}
+        </strong>
+      </div>
+
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:#fff;
+        "
+      >
+        <div
+          style="
+            font-size:11px;
+            color:#777;
+          "
+        >
+          Target Tercapai
+        </div>
+
+        <strong>
+          ${
+            rows.filter(
+              row =>
+                row.tabungan_status !==
+                "Menabung"
+            ).length
+          }
+        </strong>
+      </div>
+
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:#fff;
+        "
+      >
+        <div
+          style="
+            font-size:11px;
+            color:#777;
+          "
+        >
+          Lunas
+        </div>
+
+        <strong>
+          ${
+            rows.filter(
+              row =>
+                row.tabungan_status ===
+                "Lunas"
+            ).length
+          }
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div
+      id="tabunganList"
+      style="
+        display:grid;
+        gap:14px;
+      "
+    ></div>
+
+  `;
+
+
+  /* ==========================================
+     RENDER CARD CUSTOMER
+     ========================================== */
+
+  const list =
+    container.querySelector(
+      "#tabunganList"
+    );
+
+
+  function renderCards(
+    keyword = ""
+  ) {
+
+    const search =
+      keyword
+        .toLowerCase()
+        .trim();
+
+
+    const filtered =
+      rows.filter(
+        function(row) {
+
+          const text =
+            [
+              row.customer_name,
+              row.item_name,
+              row.version,
+              row.batch_code
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+
+          return (
+            !search ||
+            text.includes(search)
+          );
+
+        }
+      );
+
+
+    if (
+      filtered.length === 0
+    ) {
+
+      list.innerHTML = `
+        <div
+          class="panel"
+          style="
+            text-align:center;
+            padding:30px;
+          "
+        >
+          Tidak ada data tabungan yang cocok.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    list.innerHTML =
+      filtered
+        .map(
+          function(row) {
+
+            const progress =
+              Math.round(
+                row.tabungan_progress
+              );
+
+
+            const history =
+              row.payment_history ||
+              [];
+
+
+            return `
+
+              <div
+                class="panel tabungan-card"
+                data-search="
+                  ${escapeHTML(
+                    [
+                      row.customer_name,
+                      row.item_name,
+                      row.version,
+                      row.batch_code
+                    ]
+                      .filter(Boolean)
+                      .join(" ")
+                  )}
+                "
+                style="
+                  padding:18px;
+                  border-radius:14px;
+                "
+              >
+
+                <div
+                  style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:12px;
+                    flex-wrap:wrap;
+                  "
+                >
+
+                  <div>
+
+                    <div
+                      style="
+                        font-size:16px;
+                        font-weight:700;
+                      "
+                    >
+                      ${escapeHTML(
+                        row.customer_name ||
+                        "Tanpa Customer"
+                      )}
+                    </div>
+
+                    <div
+                      style="
+                        margin-top:4px;
+                        font-size:12px;
+                        color:#777;
+                      "
+                    >
+                      ${escapeHTML(
+                        row.item_name ||
+                        "—"
+                      )}
+
+                      ${
+                        row.version
+                          ? " · " +
+                            escapeHTML(
+                              row.version
+                            )
+                          : ""
+                      }
+
+                      ${
+                        row.batch_code
+                          ? " · Batch " +
+                            escapeHTML(
+                              row.batch_code
+                            )
+                          : ""
+                      }
+                    </div>
+
+                  </div>
+
+
+                  <div
+                    style="
+                      padding:7px 10px;
+                      border-radius:999px;
+                      background:#f6f1f7;
+                      font-size:11px;
+                      font-weight:700;
+                    "
+                  >
+                    ${escapeHTML(
+                      row.tabungan_status
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div
+                  style="
+                    display:grid;
+                    grid-template-columns:
+                      repeat(
+                        auto-fit,
+                        minmax(150px, 1fr)
+                      );
+                    gap:12px;
+                    margin-top:16px;
+                  "
+                >
+
+                  <div>
+
+                    <div
+                      style="
+                        font-size:11px;
+                        color:#777;
+                      "
+                    >
+                      Harga Barang
+                    </div>
+
+                    <strong>
+                      ${formatRupiah(
+                        row.item_price
+                      )}
+                    </strong>
+
+                  </div>
+
+
+                  <div>
+
+                    <div
+                      style="
+                        font-size:11px;
+                        color:#777;
+                      "
+                    >
+                      Target Tabungan
+                    </div>
+
+                    <strong>
+                      ${formatRupiah(
+                        row.tabungan_target
+                      )}
+                    </strong>
+
+                  </div>
+
+
+                  <div>
+
+                    <div
+                      style="
+                        font-size:11px;
+                        color:#777;
+                      "
+                    >
+                      Total Terkumpul
+                    </div>
+
+                    <strong>
+                      ${formatRupiah(
+                        row.tabungan_paid
+                      )}
+                    </strong>
+
+                  </div>
+
+
+                  <div>
+
+                    <div
+                      style="
+                        font-size:11px;
+                        color:#777;
+                      "
+                    >
+                      Sisa Harga
+                    </div>
+
+                    <strong>
+                      ${formatRupiah(
+                        row.tabungan_remaining
+                      )}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+
+                <div
+                  style="
+                    margin-top:16px;
+                  "
+                >
+
+                  <div
+                    style="
+                      display:flex;
+                      justify-content:space-between;
+                      font-size:11px;
+                      margin-bottom:6px;
+                    "
+                  >
+
+                    <span>
+                      Progress Tabungan
+                    </span>
+
+                    <strong>
+                      ${progress}%
+                    </strong>
+
+                  </div>
+
+
+                  <div
+                    style="
+                      height:9px;
+                      border-radius:999px;
+                      background:#eee;
+                      overflow:hidden;
+                    "
+                  >
+
+                    <div
+                      style="
+                        width:${progress}%;
+                        height:100%;
+                        background:var(--primary,#8b5cf6);
+                      "
+                    ></div>
+
+                  </div>
+
+                </div>
+
+
+                <div
+                  style="
+                    margin-top:18px;
+                    border-top:1px solid var(--line);
+                    padding-top:14px;
+                  "
+                >
+
+                  <div
+                    style="
+                      display:flex;
+                      justify-content:space-between;
+                      align-items:center;
+                      margin-bottom:8px;
+                    "
+                  >
+
+                    <strong>
+                      Riwayat Tabungan
+                    </strong>
+
+                    <span
+                      style="
+                        font-size:11px;
+                        color:#777;
+                      "
+                    >
+                      ${history.length} pembayaran
+                    </span>
+
+                  </div>
+
+
+                  ${
+                    history.length === 0
+
+                      ? `
+
+                        <div
+                          style="
+                            padding:10px;
+                            color:#888;
+                            font-size:12px;
+                          "
+                        >
+                          Belum ada pembayaran
+                          yang dikonfirmasi.
+                        </div>
+
+                      `
+
+                      : `
+
+                        <div
+                          style="
+                            display:grid;
+                            gap:7px;
+                          "
+                        >
+
+                          ${
+                            history
+                              .map(
+                                function(payment) {
+
+                                  return `
+
+                                    <div
+                                      style="
+                                        display:flex;
+                                        justify-content:space-between;
+                                        gap:10px;
+                                        padding:9px 10px;
+                                        border-radius:9px;
+                                        background:#fafafa;
+                                        font-size:12px;
+                                      "
+                                    >
+
+                                      <span>
+                                        ${
+                                          payment.payment_part ===
+                                          "pelunasan"
+                                            ? "Pelunasan"
+                                            : payment.payment_part ===
+                                              "both"
+                                                ? "Tabungan + Pelunasan"
+                                                : "Tabungan"
+                                        }
+                                      </span>
+
+                                      <strong>
+                                        ${formatRupiah(
+                                          payment.allocated_amount
+                                        )}
+                                      </strong>
+
+                                    </div>
+
+                                  `;
+
+                                }
+                              )
+                              .join("")
+                          }
+
+                        </div>
+
+                      `
+                  }
+
+                </div>
+
+
+                <div
+                  style="
+                    margin-top:16px;
+                    display:flex;
+                    justify-content:flex-end;
+                    gap:8px;
+                    flex-wrap:wrap;
+                  "
+                >
+
+                  <button
+                    type="button"
+                    class="primary-button edit-recap-button"
+                    data-id="${escapeHTML(
+                      String(row.id)
+                    )}"
+                  >
+                    ✏️ Edit
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="delete-button delete-recap-button"
+                    data-id="${escapeHTML(
+                      String(row.id)
+                    )}"
+                  >
+                    🗑️ Hapus
+                  </button>
+
+                </div>
+
+              </div>
+
+            `;
+
+          }
+        )
+        .join("");
+
+
+    /*
+     * Event tombol edit/hapus tetap
+     * menggunakan handler Rekap GO
+     * yang sudah ada.
+     */
+
+    container
+      .querySelectorAll(
+        ".edit-recap-button"
+      )
+      .forEach(
+        function(button) {
+
+          button.addEventListener(
+            "click",
+            function() {
+
+              const id =
+                this.dataset.id;
+
+              if (
+                typeof showEditRecapForm ===
+                "function"
+              ) {
+
+                showEditRecapForm(
+                  id
+                );
+
+              }
+
+            }
+          );
+
+        }
+      );
+
+
+    container
+      .querySelectorAll(
+        ".delete-recap-button"
+      )
+      .forEach(
+        function(button) {
+
+          button.addEventListener(
+            "click",
+            async function() {
+
+              const id =
+                this.dataset.id;
+
+              if (
+                typeof deleteRecap ===
+                "function"
+              ) {
+
+                await deleteRecap(
+                  id
+                );
+
+              }
+
+            }
+          );
+
+        }
+      );
+
+  }
+
+
+  renderCards();
+
+
+  /* ==========================================
+     SEARCH
+     ========================================== */
+
+  const searchInput =
+    container.querySelector(
+      "#tabunganSearchInput"
+    );
+
+
+  if (
+    searchInput
+  ) {
+
+    searchInput.addEventListener(
+      "input",
+      function() {
+
+        renderCards(
+          this.value
+        );
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     TOMBOL TAMBAH
+     ========================================== */
+
+  const addButton =
+    container.querySelector(
+      "#tabunganAddButton"
+    );
+
+
+  if (
+    addButton
+  ) {
+
+    addButton.addEventListener(
+      "click",
+      function() {
+
+        showRecapForm(
+          category
+        );
+
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     TOMBOL KEMBALI
+     ========================================== */
+
+  const backButton =
+    container.querySelector(
+      "#tabunganBackCategory"
+    );
+
+
+  if (
+    backButton
+  ) {
+
+    backButton.addEventListener(
+      "click",
+      function() {
+
+        container.style.display =
+          "none";
+
+        container.innerHTML =
+          "";
+
+        showRecapCategories(
+          getRecapTypeFromCategory(
+            category
+          )
+        );
+
+      }
+    );
+
+  }
+
+}
+
 /* ============================================
    DAFTAR REKAP
    ============================================ */
@@ -16263,18 +17469,38 @@ async function loadRecapList(
     categoryTrackingOptions =
       categoryConfig.tracking_options;
 
-  } else {
+    } else {
 
     categoryTrackingOptions =
       getTrackingOptions(category);
 
   }
 
-  if (
-  !data ||
-  data.length === 0
-) {
 
+  /* ==========================================
+     KHUSUS TABUNGAN
+     ========================================== */
+
+  if (
+    getRecapTypeFromCategory(category) ===
+    "Tabungan"
+  ) {
+
+    await renderTabunganRecapList(
+      category,
+      data || [],
+      container
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
   container.innerHTML = `
     <div class="recap-navigation">
 
