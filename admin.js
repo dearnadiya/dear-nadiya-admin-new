@@ -4117,7 +4117,6 @@ DP Terbayar:
   data-recap-id="${item.id}"
   data-price="${price}"
   data-dp="${dpPaid}"
-data-minimum-dp="${minimumDp}"
 data-minimum-dp="${item.minimum_dp_amount || minimumDp}"
 data-remaining="${remaining}"
   
@@ -4556,6 +4555,35 @@ data-remaining="${remaining}"
         ${itemsHTML}
       </div>
 
+<div
+  style="
+    margin-top:15px;
+  "
+>
+  <button
+    type="button"
+    id="autoAllocatePayment"
+    class="primary-button"
+    style="
+      width:100%;
+    "
+  >
+    ⚡ Auto Alokasikan Pembayaran
+  </button>
+
+  <div
+    style="
+      margin-top:6px;
+      font-size:11px;
+      color:#8a737d;
+      line-height:1.5;
+    "
+  >
+    Sistem akan membagi nominal pembayaran
+    secara otomatis ke barang yang dipilih.
+    Hasil tetap dapat diedit manual.
+  </div>
+</div>
 
       <div
         style="
@@ -5165,6 +5193,208 @@ if (paymentVerifiedDisplay) {
         : "";
   }
 }
+
+   /* ================================
+   AUTO ALOKASI PEMBAYARAN
+   ================================ */
+
+function autoAllocatePayment() {
+
+  const verifiedAmountElement =
+    document.getElementById(
+      "paymentVerifiedAmount"
+    );
+
+  let availableAmount =
+    verifiedAmountElement
+      ? Number(
+          verifiedAmountElement.value
+        ) || 0
+      : Number(
+          payment.amount
+        ) || 0;
+
+
+  if (availableAmount <= 0) {
+
+    alert(
+      "Nominal pembayaran belum diisi."
+    );
+
+    return;
+  }
+
+
+  const inputs =
+    Array.from(
+      modal.querySelectorAll(
+        ".payment-allocation-input"
+      )
+    );
+
+
+  /* Reset alokasi sebelumnya */
+  inputs.forEach(
+    function(input) {
+
+      input.value = 0;
+
+    }
+  );
+
+
+  for (
+    const input
+    of inputs
+  ) {
+
+    if (availableAmount <= 0) {
+      break;
+    }
+
+
+    const recapId =
+      input.dataset.recapId;
+
+
+    const partSelect =
+      modal.querySelector(
+        `.payment-allocation-part[data-recap-id="${recapId}"]`
+      );
+
+
+    if (!partSelect) {
+      continue;
+    }
+
+
+    const price =
+      Number(
+        input.dataset.price
+      ) || 0;
+
+
+    const minimumDp =
+      Number(
+        input.dataset.minimumDp ||
+        input.dataset.dp
+      ) || 0;
+
+
+    const remaining =
+      Number(
+        input.dataset.remaining
+      ) || 0;
+
+
+    let target = 0;
+
+
+    /* ================================
+       TENTUKAN TARGET
+       ================================ */
+
+    if (
+      partSelect.value ===
+      "dp"
+    ) {
+
+      target =
+        minimumDp;
+
+    } else if (
+      partSelect.value ===
+      "pelunasan"
+    ) {
+
+      target =
+        remaining;
+
+    } else if (
+      partSelect.value ===
+      "both"
+    ) {
+
+      target =
+        remaining > 0
+          ? remaining
+          : price;
+
+    }
+
+
+    target =
+      Math.max(
+        Number(target) || 0,
+        0
+      );
+
+
+    if (target <= 0) {
+
+      updateItemAllocationStatus(
+        recapId
+      );
+
+      continue;
+    }
+
+
+    const allocated =
+      Math.min(
+        availableAmount,
+        target
+      );
+
+
+    input.value =
+      Math.round(
+        allocated
+      );
+
+
+    availableAmount -=
+      allocated;
+
+
+    updateItemAllocationStatus(
+      recapId
+    );
+
+  }
+
+
+  updateAllocationTotal();
+
+
+  if (availableAmount > 0) {
+
+    alert(
+      "Auto alokasi selesai.\n\n" +
+      "Masih ada " +
+      formatRupiah(
+        availableAmount
+      ) +
+      " yang belum dialokasikan.\n\n" +
+      "Sisa ini tidak dibagikan otomatis agar tidak dianggap sebagai kelebihan pembayaran tanpa pemeriksaan admin."
+    );
+
+  }
+
+}
+
+document
+  .getElementById(
+    "autoAllocatePayment"
+  )
+  ?.addEventListener(
+    "click",
+    function() {
+
+      autoAllocatePayment();
+
+    }
+  );
 
 modal
   .querySelectorAll(
