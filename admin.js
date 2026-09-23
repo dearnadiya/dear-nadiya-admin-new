@@ -18129,29 +18129,31 @@ async function renderTabunganRecapList(
      TOMBOL TAMBAH
      ========================================== */
 
-  const addButton =
-    container.querySelector(
-      "#tabunganAddButton"
-    );
+ const addButton =
+  container.querySelector(
+    "#tabunganAddButton"
+  );
 
 
-  if (
-    addButton
-  ) {
+if (
+  addButton
+) {
 
-    addButton.addEventListener(
-      "click",
-      function() {
+  addButton.addEventListener(
+    "click",
+    function(event) {
 
-        showRecapForm(
-          category
-        );
+      event.preventDefault();
+      event.stopPropagation();
 
-      }
-    );
+      showTabunganRecapForm(
+        category
+      );
 
-  }
+    }
+  );
 
+}
 
   /* ==========================================
      TOMBOL KEMBALI
