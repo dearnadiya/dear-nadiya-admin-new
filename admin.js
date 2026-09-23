@@ -4131,21 +4131,88 @@ data-remaining="${remaining}"
                       font-family:inherit;
                       font-size:12px;
                     "
+                                    >
+
+                    ${
+                      item.dp_status === "paid"
+                        ? `
+                          <option value="pelunasan">
+                            Pelunasan
+                          </option>
+                        `
+                        : `
+                          <option value="dp">
+                            DP
+                          </option>
+
+                          <option value="pelunasan">
+                            Pelunasan
+                          </option>
+
+                          <option value="both">
+                            DP + Pelunasan
+                          </option>
+                        `
+                    }
+
+                  </select>
+
+                </div>
+
+
+                                <!-- STATUS PEMBAYARAN -->
+
+                <div
+                  style="
+                    margin-top:10px;
+                  "
+                >
+
+                  <label
+                    style="
+                      display:block;
+                      margin-bottom:5px;
+                      font-size:11px;
+                      font-weight:600;
+                      color:#604752;
+                    "
+                  >
+                    Status pembayaran
+                  </label>
+
+                  <select
+                    class="payment-allocation-status-select"
+                    data-recap-id="${item.id}"
+                    data-price="${price}"
+                    data-dp="${dpPaid}"
+                    data-minimum-dp="${minimumDp}"
+                    data-remaining="${remaining}"
+                    style="
+                      width:100%;
+                      box-sizing:border-box;
+                      padding:10px;
+                      border:1px solid var(--line);
+                      border-radius:9px;
+                      background:#fff;
+                      font-family:inherit;
+                      font-size:12px;
+                    "
                   >
 
-                    <option
-  value="dp"
-  ${item.dp_status === "paid" ? "disabled" : ""}
->
-  DP
-  ${item.dp_status === "paid" ? "✓ Sudah Dibayar" : ""}
-</option>
-                    <option value="pelunasan">
-                      Pelunasan
+                    <option value="belum_dibayar">
+                      Belum Dibayar
                     </option>
 
-                    <option value="both">
-                      DP + Pelunasan
+                    <option value="kurang">
+                      Kurang
+                    </option>
+
+                    <option value="sudah_dibayar">
+                      Sudah Dibayar
+                    </option>
+
+                    <option value="lebih">
+                      Lebih
                     </option>
 
                   </select>
@@ -4174,29 +4241,56 @@ data-remaining="${remaining}"
                   </label>
 
                   <input
-  type="number"
-  min="0"
-  step="1000"
-  value="0"
-  class="payment-allocation-input"
-  data-recap-id="${item.id}"
-  data-price="${price}"
-  data-dp="${minimumDp}"
-data-minimum-dp="${item.minimum_dp_amount || minimumDp}"
-data-remaining="${remaining}"
-  style="
-    width:100%;
-    box-sizing:border-box;
-    padding:10px;
-    border:1px solid var(--line);
-    border-radius:9px;
-    font-family:inherit;
-    font-size:12px;
-  "
->
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value="0"
+                    class="payment-allocation-input"
+                    data-recap-id="${item.id}"
+                    data-price="${price}"
+                    data-dp="${dpPaid}"
+                    data-minimum-dp="${minimumDp}"
+                    data-remaining="${remaining}"
+                    style="
+                      width:100%;
+                      box-sizing:border-box;
+                      padding:10px;
+                      border:1px solid var(--line);
+                      border-radius:9px;
+                      font-family:inherit;
+                      font-size:12px;
+                    "
+                  >
+
+                  <div
+                    style="
+                      margin-top:4px;
+                      font-size:10px;
+                      color:#999;
+                    "
+                  >
+                    Nominal otomatis mengikuti status,
+                    tetapi tetap dapat diedit admin.
+                  </div>
+
                 </div>
 
 
+                <!-- STATUS HASIL -->
+
+                <div
+                  class="payment-allocation-status"
+                  data-recap-id="${item.id}"
+                  style="
+                    margin-top:8px;
+                    font-size:11px;
+                    font-weight:600;
+                    color:#999;
+                  "
+                >
+                  ⚪ Belum dialokasikan
+                </div>
+                
                 <!-- STATUS -->
 
                 <div
@@ -4393,9 +4487,56 @@ data-remaining="${remaining}"
       line-height:1.5;
     "
   >
-    Nominal ini yang akan digunakan sebagai dasar alokasi pembayaran.
-  </div>
+            Nominal ini yang akan digunakan sebagai dasar alokasi pembayaran.
+    </div>
 </div>
+
+<!-- ================================
+     BUKTI TRANSFER
+     ================================ -->
+
+<div
+  style="
+    margin-top:12px;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:#fff;
+  "
+>
+
+  <div
+    style="
+      font-size:12px;
+      font-weight:700;
+      color:#604752;
+      margin-bottom:8px;
+    "
+  >
+    📷 Bukti Transfer
+  </div>
+
+  <div
+    id="paymentProofPreview"
+    style="
+      width:100%;
+      min-height:120px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#faf7f9;
+      border-radius:10px;
+      overflow:hidden;
+      color:#999;
+      font-size:11px;
+      text-align:center;
+    "
+  >
+    Memuat bukti transfer...
+  </div>
+
+</div>
+
       </div>
 
 
@@ -4489,9 +4630,189 @@ data-remaining="${remaining}"
   `;
 
 
-  document.body.appendChild(
+    document.body.appendChild(
     modal
   );
+
+
+  /* ================================
+     TAMPILKAN BUKTI TRANSFER
+     ================================ */
+
+  const proofPreview =
+    modal.querySelector(
+      "#paymentProofPreview"
+    );
+
+  if (
+    proofPreview &&
+    payment.proof_path
+  ) {
+
+    const {
+      data: proofData,
+      error: proofError
+    } =
+      await supabaseClient
+        .storage
+        .from("payment-proofs")
+        .createSignedUrl(
+          payment.proof_path,
+          600
+        );
+
+    if (
+      proofError ||
+      !proofData?.signedUrl
+    ) {
+
+      console.error(
+        "ERROR LOAD PAYMENT PROOF:",
+        proofError
+      );
+
+      proofPreview.innerHTML = `
+        <div
+          style="
+            padding:20px;
+            color:#b05a6b;
+          "
+        >
+          ❌ Bukti transfer tidak dapat dimuat.
+          <br>
+          <button
+            type="button"
+            class="secondary-button"
+            id="openPaymentProofFallback"
+            style="margin-top:8px;"
+          >
+            👁 Buka Bukti
+          </button>
+        </div>
+      `;
+
+      document
+        .getElementById(
+          "openPaymentProofFallback"
+        )
+        ?.addEventListener(
+          "click",
+          function() {
+            viewPaymentProof(
+              payment.proof_path
+            );
+          }
+        );
+
+    } else {
+
+      const signedUrl =
+        proofData.signedUrl;
+
+      const lowerPath =
+        String(
+          payment.proof_path
+        ).toLowerCase();
+
+      const isImage =
+        /\.(jpg|jpeg|png|webp|gif)$/i
+          .test(lowerPath);
+
+      if (isImage) {
+
+        proofPreview.innerHTML = `
+          <img
+            src="${signedUrl}"
+            alt="Bukti Transfer"
+            style="
+              display:block;
+              width:100%;
+              max-height:420px;
+              object-fit:contain;
+              cursor:zoom-in;
+              background:#f5f5f5;
+            "
+            id="paymentProofImage"
+          >
+        `;
+
+        proofPreview
+          .querySelector(
+            "#paymentProofImage"
+          )
+          ?.addEventListener(
+            "click",
+            function() {
+
+              window.open(
+                signedUrl,
+                "_blank"
+              );
+
+            }
+          );
+
+      } else {
+
+        proofPreview.innerHTML = `
+          <div
+            style="
+              padding:20px;
+              text-align:center;
+            "
+          >
+
+            📄 Bukti pembayaran berupa file.
+
+            <br>
+
+            <button
+              type="button"
+              class="primary-button"
+              id="openPaymentProofFile"
+              style="margin-top:10px;"
+            >
+              👁 Buka Bukti
+            </button>
+
+          </div>
+        `;
+
+        proofPreview
+          .querySelector(
+            "#openPaymentProofFile"
+          )
+          ?.addEventListener(
+            "click",
+            function() {
+
+              window.open(
+                signedUrl,
+                "_blank"
+              );
+
+            }
+          );
+
+      }
+
+    }
+
+  } else if (proofPreview) {
+
+    proofPreview.innerHTML = `
+      <div
+        style="
+          padding:20px;
+          color:#999;
+        "
+      >
+        Tidak ada bukti transfer.
+      </div>
+    `;
+
+  }
+
 
    /* ================================
    STATUS ALOKASI PER BARANG
@@ -4613,20 +4934,31 @@ function updateItemAllocationStatus(
   }
 
 
-  /* ================================
-     NOMINAL CUKUP
+    /* ================================
+     BELUM DIBAYAR
      ================================ */
 
+  const statusSelect =
+    modal.querySelector(
+      `.payment-allocation-status-select[data-recap-id="${recapId}"]`
+    );
+
+  const selectedStatus =
+    statusSelect
+      ? statusSelect.value
+      : "belum_dibayar";
+
+
   if (
-    amount >= target &&
-    target > 0
+    selectedStatus ===
+    "belum_dibayar"
   ) {
 
     status.textContent =
-      "✓ Lunas";
+      "⚪ Belum Dibayar";
 
     status.style.color =
-      "#2f8a57";
+      "#999";
 
     return;
 
@@ -4634,43 +4966,118 @@ function updateItemAllocationStatus(
 
 
   /* ================================
-     NOMINAL KURANG
+     KURANG
      ================================ */
 
   if (
-  amount < target
-) {
-
-  const kurang =
-    target -
-    amount;
-
-  if (
-    select.value ===
-    "dp"
+    selectedStatus ===
+    "kurang"
   ) {
 
-    status.textContent =
-      "⚠ DP Belum Mencukupi • " +
-      formatRupiah(
-        kurang
-      );
+    if (amount <= 0) {
 
-  } else {
+      status.textContent =
+        "⚠ Masukkan nominal pembayaran";
 
-    status.textContent =
-      "⚠ Pembayaran Kurang • " +
-      formatRupiah(
-        kurang
-      );
+    } else {
+
+      const kurang =
+        Math.max(
+          target - amount,
+          0
+        );
+
+      status.textContent =
+        "⚠ Kurang • " +
+        formatRupiah(
+          kurang
+        );
+
+    }
+
+    status.style.color =
+      "#b06b00";
+
+    return;
+
   }
 
-  status.style.color =
-    "#b06b00";
 
-  return;
-}
+  /* ================================
+     LEBIH
+     ================================ */
 
+  if (
+    selectedStatus ===
+    "lebih"
+  ) {
+
+    if (
+      amount >
+      target
+    ) {
+
+      const lebih =
+        amount -
+        target;
+
+      status.textContent =
+        "↑ Lebih • " +
+        formatRupiah(
+          lebih
+        );
+
+      status.style.color =
+        "#8d526d";
+
+    } else {
+
+      status.textContent =
+        "⚠ Nominal belum melebihi tagihan";
+
+      status.style.color =
+        "#b06b00";
+
+    }
+
+    return;
+
+  }
+
+
+  /* ================================
+     SUDAH DIBAYAR
+     ================================ */
+
+  if (
+    selectedStatus ===
+    "sudah_dibayar"
+  ) {
+
+    if (
+      amount >= target &&
+      target > 0
+    ) {
+
+      status.textContent =
+        "✓ Sudah Dibayar";
+
+      status.style.color =
+        "#2f8a57";
+
+    } else {
+
+      status.textContent =
+        "⚠ Nominal belum mencukupi";
+
+      status.style.color =
+        "#b06b00";
+
+    }
+
+    return;
+
+  }
   status.textContent =
     "⚪ Belum dialokasikan";
 
@@ -4766,6 +5173,185 @@ modal
   .forEach(
     function(select) {
 
+  /* ================================
+     STATUS PEMBAYARAN → NOMINAL
+     ================================ */
+
+  modal
+    .querySelectorAll(
+      ".payment-allocation-status-select"
+    )
+    .forEach(
+      function(select) {
+
+        select.addEventListener(
+          "change",
+          function() {
+
+            const recapId =
+              this.dataset.recapId;
+
+            const input =
+              modal.querySelector(
+                `.payment-allocation-input[data-recap-id="${recapId}"]`
+              );
+
+            if (!input) {
+              return;
+            }
+
+            const partSelect =
+              modal.querySelector(
+                `.payment-allocation-part[data-recap-id="${recapId}"]`
+              );
+
+            const part =
+              partSelect
+                ? partSelect.value
+                : "dp";
+
+            const price =
+              Number(
+                this.dataset.price
+              ) || 0;
+
+            const dpPaid =
+              Number(
+                this.dataset.dp
+              ) || 0;
+
+            const minimumDp =
+              Number(
+                this.dataset.minimumDp
+              ) || 0;
+
+            const remaining =
+              Number(
+                this.dataset.remaining
+              ) || 0;
+
+            let target = 0;
+
+            /* ==========================
+               TENTUKAN TARGET
+               ========================== */
+
+            if (part === "dp") {
+
+              target =
+                Math.max(
+                  minimumDp - dpPaid,
+                  0
+                );
+
+            } else if (
+              part === "pelunasan"
+            ) {
+
+              target =
+                Math.max(
+                  remaining,
+                  0
+                );
+
+            } else if (
+              part === "both"
+            ) {
+
+              target =
+                Math.max(
+                  price - dpPaid,
+                  0
+                );
+
+            }
+
+
+            /* ==========================
+               BELUM DIBAYAR
+               ========================== */
+
+            if (
+              this.value ===
+              "belum_dibayar"
+            ) {
+
+              input.value = 0;
+
+            }
+
+
+            /* ==========================
+               KURANG
+               ========================== */
+
+            else if (
+              this.value ===
+              "kurang"
+            ) {
+
+              /*
+               * Jangan otomatis menganggap
+               * berapa nominal yang kurang.
+               *
+               * Admin tetap memasukkan
+               * nominal yang benar-benar
+               * dibayarkan.
+               */
+
+              input.value = 0;
+
+            }
+
+
+            /* ==========================
+               SUDAH DIBAYAR
+               ========================== */
+
+            else if (
+              this.value ===
+              "sudah_dibayar"
+            ) {
+
+              input.value =
+                target;
+
+            }
+
+
+            /* ==========================
+               LEBIH
+               ========================== */
+
+            else if (
+              this.value ===
+              "lebih"
+            ) {
+
+              /*
+               * Mulai dari nominal tagihan.
+               * Admin dapat menaikkan nominal
+               * sesuai bukti transfer.
+               */
+
+              input.value =
+                target;
+
+            }
+
+
+            updateItemAllocationStatus(
+              recapId
+            );
+
+            updateAllocationTotal();
+
+          }
+        );
+
+      }
+    );
+
       select.addEventListener(
         "change",
         function() {
@@ -4848,13 +5434,10 @@ document
     async function() {
 
       console.log(
-        "TOMBOL LANJUT DIKLIK"
-      );
+  "TOMBOL LANJUT DIKLIK"
+);
 
-      alert(
-        "Tombol Lanjutkan berhasil diklik."
-      );
-      const button = this;
+const button = this;
 
       const verifiedAmountElement =
   document.getElementById(
