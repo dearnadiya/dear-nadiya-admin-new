@@ -3840,74 +3840,139 @@ const {
 
 
   /* ================================
-     CARI BARANG YANG TERKAIT
-     ================================ */
+   CARI BARANG YANG TERKAIT
+   ================================ */
 
-  const selectedItems = [];
-
-
-  productCodes.forEach(
-    function(
-      productCode,
-      index
-    ) {
-
-      const productVersion =
-        productVersions[index] ||
-        "";
+const selectedItems = [];
 
 
-      const item =
-        (recapData || []).find(
-          function(row) {
-
-            const rowCode =
-              String(
-                row.batch_code ||
-                row.product_code ||
-                ""
-              )
-                .trim()
-                .toLowerCase();
+/*
+  Jika hanya ada 1 kode produk tetapi
+  memiliki banyak versi, maka semua versi
+  menggunakan kode produk yang sama.
+*/
+let productPairs = [];
 
 
-            const rowVersion =
-              String(
-                row.version ||
-                row.product_version ||
-                ""
-              )
-                .trim()
-                .toLowerCase();
+if (
+  productCodes.length === 1 &&
+  productVersions.length > 1
+) {
 
+  productPairs =
+    productVersions.map(
+      function(productVersion) {
 
-            return (
-              rowCode ===
-                productCode
-                  .trim()
-                  .toLowerCase()
-              &&
-              rowVersion ===
-                productVersion
-                  .trim()
-                  .toLowerCase()
-            );
+        return {
+          productCode:
+            productCodes[0],
 
-          }
-        );
-
-
-      if (item) {
-
-        selectedItems.push(
-          item
-        );
+          productVersion:
+            productVersion
+        };
 
       }
+    );
+
+} else {
+
+  productPairs =
+    productVersions.map(
+      function(productVersion, index) {
+
+        return {
+          productCode:
+            productCodes[index] ||
+            productCodes[0] ||
+            "",
+
+          productVersion:
+            productVersion
+        };
+
+      }
+    );
+
+}
+
+
+/*
+  Cari setiap barang satu per satu
+*/
+productPairs.forEach(
+  function(pair) {
+
+    const productCode =
+      String(
+        pair.productCode || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const productVersion =
+      String(
+        pair.productVersion || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const item =
+      (recapData || []).find(
+        function(row) {
+
+          const rowCode =
+            String(
+              row.batch_code ||
+              row.product_code ||
+              ""
+            )
+              .trim()
+              .toLowerCase();
+
+
+          const rowVersion =
+            String(
+              row.version ||
+              row.product_version ||
+              ""
+            )
+              .trim()
+              .toLowerCase();
+
+
+          return (
+            rowCode === productCode &&
+            rowVersion === productVersion
+          );
+
+        }
+      );
+
+
+    if (
+      item &&
+      !selectedItems.some(
+        function(existing) {
+
+          return (
+            String(existing.id) ===
+            String(item.id)
+          );
+
+        }
+      )
+    ) {
+
+      selectedItems.push(
+        item
+      );
 
     }
-  );
 
+  }
+);
 
   /* ================================
      MODAL
