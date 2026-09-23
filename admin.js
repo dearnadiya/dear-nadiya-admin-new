@@ -1400,19 +1400,32 @@ ${itemsHTML}
     }
 
 
-    /* =====================================
+   /* =====================================
    PELUNASAN
-   AMBIL DEADLINE PER BATCH
+   DEADLINE BATCH + SISA TAGIHAN
    ===================================== */
 
 const batchPaymentDeadlines = {};
 
+
+/* =====================================
+   AMBIL DEADLINE PELUNASAN PER BATCH
+   ===================================== */
+
 rows.forEach(row => {
+
+  const category =
+    String(
+      row.category || ""
+    ).trim();
 
   const batchCode =
     String(
       row.batch_code || ""
     ).trim();
+
+  const batchKey =
+    `${category}::${batchCode}`;
 
   const deadline =
     normalizeDate(
@@ -1422,74 +1435,117 @@ rows.forEach(row => {
   if (
     batchCode &&
     deadline &&
-    !batchPaymentDeadlines[batchCode]
+    !batchPaymentDeadlines[batchKey]
   ) {
-    batchPaymentDeadlines[batchCode] =
+
+    batchPaymentDeadlines[batchKey] =
       deadline;
+
   }
 
 });
 
 
+/* =====================================
+   FILTER CUSTOMER PELUNASAN
+   ===================================== */
+
 const paymentRows =
-  rows.filter(row => {
+  rows
+    .map(row => {
 
-    const batchCode =
-      String(
-        row.batch_code || ""
-      ).trim();
+      const category =
+        String(
+          row.category || ""
+        ).trim();
 
+      const batchCode =
+        String(
+          row.batch_code || ""
+        ).trim();
 
-    /*
-      Gunakan deadline milik customer.
-      Jika kosong, gunakan deadline
-      dari customer lain dalam batch
-      yang sama.
-    */
-    const deadline =
-      normalizeDate(
-        row.payment_deadline
-      ) ||
-      batchPaymentDeadlines[
-        batchCode
-      ] ||
-      "";
+      const batchKey =
+        `${category}::${batchCode}`;
 
 
-    if (!deadline) {
-      return false;
-    }
+      /*
+        Prioritas:
+        1. Deadline pada row customer
+        2. Deadline dari batch
+      */
+      const paymentDeadline =
+        normalizeDate(
+          row.payment_deadline
+        ) ||
+        batchPaymentDeadlines[
+          batchKey
+        ] ||
+        "";
 
 
-    /*
-      Sudah masuk tanggal deadline
-      atau sudah lewat.
-    */
-    if (
-      deadline > todayISO
-    ) {
-      return false;
-    }
+      /*
+        Simpan deadline hasil fallback
+        ke row supaya bagian rendering
+        memakai deadline yang sama.
+      */
+      return {
+        ...row,
+        effective_payment_deadline:
+          paymentDeadline
+      };
+
+    })
+    .filter(row => {
+
+      const deadline =
+        normalizeDate(
+          row.effective_payment_deadline
+        );
 
 
-    /*
-      Ambil sisa tagihan aktual.
-    */
-    const remaining =
-      Number(
-        row.remaining_amount
-      ) || 0;
+      /*
+        Tidak ada deadline
+      */
+      if (!deadline) {
+        return false;
+      }
 
 
-    /*
-      Hanya customer yang masih
-      memiliki tagihan yang ditampilkan.
-    */
-    return (
-      remaining > 0
-    );
+      /*
+        Belum jatuh tempo
+      */
+      if (
+        deadline > todayISO
+      ) {
+        return false;
+      }
 
-  });
+
+      /*
+        Ambil sisa tagihan aktual
+      */
+      const remaining =
+        Number(
+          row.remaining_amount
+        ) || 0;
+
+
+      /*
+        Sudah lunas
+      */
+      if (
+        remaining <= 0
+      ) {
+        return false;
+      }
+
+
+      /*
+        MASUK PELUNASAN
+      */
+      return true;
+
+    });
 
     const paymentGrouped =
       groupCustomers(
@@ -1559,14 +1615,14 @@ totalPayment +=
 
 const hariTerlambat =
   hitungHariTerlambat(
-    row.payment_deadline
+    row.effective_payment_deadline
   );
 
 const denda =
   hitungDenda(
-    row.payment_deadline
+    row.effective_payment_deadline
   );
-
+       
 if (hariTerlambat > 0) {
   totalDendaPayment += denda;
 
@@ -1591,7 +1647,7 @@ if (hariTerlambat > 0) {
     </span>
 
     <span>
-      ${row.payment_deadline || "—"}
+      ${row.effective_payment_deadline || "—"}
     </span>
 
     <span class="dashboard-payment-amount">
@@ -1621,7 +1677,7 @@ let paymentMessage =
 Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${firstCustomerRow?.batch_code || ""} masih memiliki sisa ${formatRupiah(totalPayment)}.
 
 Deadline pelunasan:
-${firstCustomerRow?.payment_deadline || "—"}`;
+${firstCustomerRow?.effective_payment_deadline || "—"}`;
 
 if (totalDendaPayment > 0) {
   paymentMessage += `
