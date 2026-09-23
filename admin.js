@@ -14547,11 +14547,30 @@ else if (
 
 
 /* ==========================================
-   HEADER TAGIHAN WHATSAPP
+   HEADER TAGIHAN
+   NAMA BARANG + KATEGORI
    ========================================== */
 
+const firstBillingRow =
+  selectedRows.find(function(row) {
+    return (
+      String(row.item_name || "").trim() ||
+      String(row.category || "").trim()
+    );
+  }) || selectedRows[0] || {};
+
+const billingItemName =
+  String(
+    firstBillingRow.item_name || ""
+  ).trim() || "—";
+
+const billingCategory =
+  String(
+    firstBillingRow.category || category || ""
+  ).trim() || "—";
+
 const billingHeader =
-  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
+  `*Note Payment ${billingItemName} (${billingCategory}) 📝*\n\n` +
   `${
     lastPaymentText
       ? lastPaymentText + "\n"
