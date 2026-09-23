@@ -1401,46 +1401,69 @@ ${itemsHTML}
 
 
     /* =====================================
-       PELUNASAN
-       
-       Muncul:
-       - tepat pada deadline
-       - atau setelah deadline jika belum lunas
-       
-       Tidak muncul sebelum deadline.
-    ===================================== */
+   PELUNASAN
+   AMBIL DEADLINE PER BATCH
+   ===================================== */
 
-    const paymentRows =
+const batchPaymentDeadlines = {};
+
+rows.forEach(row => {
+
+  const batchCode =
+    String(
+      row.batch_code || ""
+    ).trim();
+
+  const deadline =
+    normalizeDate(
+      row.payment_deadline
+    );
+
+  if (
+    batchCode &&
+    deadline &&
+    !batchPaymentDeadlines[batchCode]
+  ) {
+    batchPaymentDeadlines[batchCode] =
+      deadline;
+  }
+
+});
+
+
+const paymentRows =
   rows.filter(row => {
 
-    const deadline =
-      normalizeDate(
-        row.payment_deadline
-      );
-
-    const status =
+    const batchCode =
       String(
-        row.payment_status || ""
-      )
-        .trim()
-        .toLowerCase();
-
-    const remaining =
-      Number(
-        row.remaining_amount
-      ) || 0;
+        row.batch_code || ""
+      ).trim();
 
 
     /*
-      Tidak ada deadline pelunasan
+      Gunakan deadline milik customer.
+      Jika kosong, gunakan deadline
+      dari customer lain dalam batch
+      yang sama.
     */
+    const deadline =
+      normalizeDate(
+        row.payment_deadline
+      ) ||
+      batchPaymentDeadlines[
+        batchCode
+      ] ||
+      "";
+
+
     if (!deadline) {
       return false;
     }
 
 
     /*
-      Belum masuk tanggal jatuh tempo
+      Sudah masuk tanggal deadline
+      atau sudah lewat.
     */
     if (
       deadline > todayISO
@@ -1450,41 +1473,23 @@ ${itemsHTML}
 
 
     /*
-      Jika status sudah paid DAN
-      sisa pembayaran 0,
-      customer benar-benar sudah lunas.
+      Ambil sisa tagihan aktual.
     */
-    if (
-      status === "paid" &&
-      remaining <= 0
-    ) {
-      return false;
-    }
+    const remaining =
+      Number(
+        row.remaining_amount
+      ) || 0;
 
 
     /*
-      Jika masih ada sisa tagihan,
-      customer harus muncul.
+      Hanya customer yang masih
+      memiliki tagihan yang ditampilkan.
     */
-    if (
+    return (
       remaining > 0
-    ) {
-      return true;
-    }
-
-
-    /*
-      Jika remaining 0 tetapi status
-      belum paid, tetap tampilkan.
-
-      Ini untuk menghindari customer
-      hilang hanya karena remaining_amount
-      belum tersinkron.
-    */
-    return status !== "paid";
+    );
 
   });
-
 
     const paymentGrouped =
       groupCustomers(
