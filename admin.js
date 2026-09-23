@@ -14204,235 +14204,142 @@ async function showWhatsAppBillingBuilder(
 
   function generateBillingMessage() {
 
-    const selectedBatches =
-      Array.from(
-        batchCheckboxes
+  const selectedBatches =
+    Array.from(
+      batchCheckboxes
+    )
+      .filter(
+        checkbox =>
+          checkbox.checked
       )
-        .filter(
-          checkbox =>
-            checkbox.checked
-        )
-        .map(
-          checkbox =>
-            checkbox.value
-        );
-
-
-    if (
-      selectedBatches.length === 0
-    ) {
-
-      preview.value =
-        "Pilih minimal 1 batch.";
-
-      return;
-
-    }
-
-
-    const mode =
-      modal.querySelector(
-        "input[name='whatsappBillingMode']:checked"
-      )?.value ||
-      "customer";
-
-
-    const selectedRows =
-      data.filter(
-        function(row) {
-
-          return selectedBatches.includes(
-            String(
-              row.batch_code || ""
-            ).trim()
-          );
-
-        }
+      .map(
+        checkbox =>
+          checkbox.value
       );
 
 
-    /* ======================================
-       MODE 1
-       GABUNG CUSTOMER
-       ====================================== */
+  if (
+    selectedBatches.length === 0
+  ) {
 
-    if (
-      mode ===
-      "customer"
-    ) {
+    preview.value =
+      "Pilih minimal 1 batch.";
 
-      const customers = {};
+    return;
 
-
-      selectedRows.forEach(
-        function(row) {
-
-          const customerId =
-            Number(
-              row.customer_id
-            ) || null;
-
-          const customerName =
-            String(
-              row.customer_name || ""
-            ).trim();
+  }
 
 
-          if (
-            !customerName &&
-            !customerId
-          ) {
-
-            return;
-
-          }
+  const mode =
+    modal.querySelector(
+      "input[name='whatsappBillingMode']:checked"
+    )?.value ||
+    "customer";
 
 
-          const key =
-            customerId
-              ? `id:${customerId}`
-              : `name:${customerName.toLowerCase()}`;
+  const selectedRows =
+    data.filter(
+      function(row) {
 
-
-          if (
-            !customers[key]
-          ) {
-
-            customers[key] = {
-
-              name:
-                customerName ||
-                "Customer",
-
-              rows: []
-
-            };
-
-          }
-
-
-          customers[key].rows.push(
-            row
-          );
-
-        }
-      );
-
-
-      const customerBlocks =
-        Object.values(
-          customers
-        )
-        .map(
-          function(customer) {
-
-            let total =
-              0;
-
-
-            const itemLines =
-              customer.rows
-                .map(
-                  function(row) {
-
-                    const quantity =
-                      Number(
-                        row.quantity
-                      ) || 1;
-
-                    const price =
-                      Number(
-                        row.item_price
-                      ) || 0;
-
-
-                    const lineTotal =
-                      price;
-
-
-                    total +=
-                      lineTotal;
-
-
-                    const version =
-  String(
-    row.version ||
-    "Versi / Member"
-  ).trim();
-
-
-const batchLabel =
-  selectedBatches.length > 1
-    ? `[${
-        row.batch_code ||
-        "Batch"
-      }] `
-    : "";
-
-
-return (
-  `${batchLabel}` +
-  `${version}` +
-  `${
-    quantity > 1
-      ? ` × ${quantity}`
-      : ""
-  }` +
-  ` - ${money(lineTotal)}`
-);
-
-                  }
-                );
-
-
-            return (
-              `🛍️ ${customer.name}\n\n` +
-              itemLines.join("\n") +
-              `\n\n` +
-              `Total - ${money(total)}`
-            );
-
-          }
+        return selectedBatches.includes(
+          String(
+            row.batch_code || ""
+          ).trim()
         );
 
-
-      preview.value =
-        customerBlocks.join(
-          "\n\n"
-        );
-
-      return;
-
-    }
+      }
+    );
 
 
-    /* ======================================
-       MODE 2
-       SHARING
-       ====================================== */
+  /* ======================================
+     MODE 1
+     GABUNG CUSTOMER
+     ====================================== */
 
-    const batchGroups = {};
+  if (
+    mode ===
+    "customer"
+  ) {
+
+    const customers = {};
 
 
     selectedRows.forEach(
       function(row) {
 
-        const batchCode =
+        /*
+          Jangan masukkan pesanan
+          yang sudah lunas.
+        */
+
+        const remaining =
+          Number(
+            row.remaining_amount
+          ) || 0;
+
+        const paymentStatus =
           String(
-            row.batch_code || ""
-          ).trim();
+            row.payment_status ||
+            ""
+          ).trim().toLowerCase();
 
 
         if (
-          !batchGroups[batchCode]
+          paymentStatus ===
+            "paid" ||
+          remaining <= 0
         ) {
 
-          batchGroups[batchCode] = [];
+          return;
 
         }
 
 
-        batchGroups[batchCode].push(
+        const customerId =
+          Number(
+            row.customer_id
+          ) || null;
+
+        const customerName =
+          String(
+            row.customer_name || ""
+          ).trim();
+
+
+        if (
+          !customerName &&
+          !customerId
+        ) {
+
+          return;
+
+        }
+
+
+        const key =
+          customerId
+            ? `id:${customerId}`
+            : `name:${customerName.toLowerCase()}`;
+
+
+        if (
+          !customers[key]
+        ) {
+
+          customers[key] = {
+
+            name:
+              customerName ||
+              "Customer",
+
+            rows: []
+
+          };
+
+        }
+
+
+        customers[key].rows.push(
           row
         );
 
@@ -14440,64 +14347,282 @@ return (
     );
 
 
-    const sharingBlocks =
-      selectedBatches
-        .filter(
-          batchCode =>
-            batchGroups[
-              batchCode
-            ]
-        )
-        .map(
-          function(batchCode) {
+    const customerBlocks =
+      Object.values(
+        customers
+      )
+      .map(
+        function(customer) {
 
-            const rows =
-              batchGroups[
-                batchCode
-              ];
+          let total =
+            0;
+
+          let totalDp =
+            0;
+
+          let totalRemaining =
+            0;
 
 
-            const lines =
-              rows.map(
+          const itemLines =
+            customer.rows
+              .map(
                 function(row) {
+
+                  const quantity =
+                    Number(
+                      row.quantity
+                    ) || 1;
+
+
+                  const price =
+                    Number(
+                      row.item_price
+                    ) || 0;
+
+
+                  const dpPaid =
+                    Number(
+                      row.dp_amount
+                    ) || 0;
+
+
+                  const remaining =
+                    Number(
+                      row.remaining_amount
+                    ) || 0;
+
+
+                  total +=
+                    price;
+
+                  totalDp +=
+                    dpPaid;
+
+                  totalRemaining +=
+                    remaining;
+
 
                   const version =
                     String(
                       row.version ||
-                      "—"
+                      "Versi / Member"
                     ).trim();
 
-                  const customer =
-                    String(
-                      row.customer_name ||
-                      "—"
-                    ).trim();
+
+                  const batchLabel =
+                    selectedBatches.length > 1
+                      ? `[${
+                          row.batch_code ||
+                          "Batch"
+                        }] `
+                      : "";
 
 
                   return (
-                    `${version} : ${customer}`
+                    `${batchLabel}` +
+                    `${version}` +
+                    `${
+                      quantity > 1
+                        ? ` × ${quantity}`
+                        : ""
+                    }` +
+                    ` - ${money(price)}` +
+                    ` DP ${money(dpPaid)}` +
+                    ` - Sisa ${money(remaining)}`
                   );
 
                 }
               );
 
 
-            return (
-              `${batchCode}\n` +
-              lines.join("\n")
-            );
+          return (
+            `🛍️ ${customer.name}\n\n` +
+            itemLines.join("\n") +
+            `\n\n` +
+            `Total - ${money(total)}\n` +
+            `DP - ${money(totalDp)}\n` +
+            `Tagihan - ${money(totalRemaining)}`
+          );
 
-          }
-        );
+        }
+      );
 
 
     preview.value =
-      sharingBlocks.join(
+      customerBlocks.join(
         "\n\n"
       );
 
+    return;
+
   }
 
+
+  /* ======================================
+     MODE 2
+     SHARING
+     ====================================== */
+
+  const batchGroups = {};
+
+
+  selectedRows.forEach(
+    function(row) {
+
+      const remaining =
+        Number(
+          row.remaining_amount
+        ) || 0;
+
+      const paymentStatus =
+        String(
+          row.payment_status ||
+          ""
+        ).trim().toLowerCase();
+
+
+      if (
+        paymentStatus ===
+          "paid" ||
+        remaining <= 0
+      ) {
+
+        return;
+
+      }
+
+
+      const batchCode =
+        String(
+          row.batch_code || ""
+        ).trim();
+
+
+      if (
+        !batchGroups[
+          batchCode
+        ]
+      ) {
+
+        batchGroups[
+          batchCode
+        ] = [];
+
+      }
+
+
+      batchGroups[
+        batchCode
+      ].push(
+        row
+      );
+
+    }
+  );
+
+
+  const sharingBlocks =
+    selectedBatches
+      .filter(
+        batchCode =>
+          batchGroups[
+            batchCode
+          ]
+      )
+      .map(
+        function(batchCode) {
+
+          const rows =
+            batchGroups[
+              batchCode
+            ];
+
+
+          let total =
+            0;
+
+          let totalDp =
+            0;
+
+          let totalRemaining =
+            0;
+
+
+          const lines =
+            rows.map(
+              function(row) {
+
+                const price =
+                  Number(
+                    row.item_price
+                  ) || 0;
+
+                const dpPaid =
+                  Number(
+                    row.dp_amount
+                  ) || 0;
+
+                const remaining =
+                  Number(
+                    row.remaining_amount
+                  ) || 0;
+
+
+                total +=
+                  price;
+
+                totalDp +=
+                  dpPaid;
+
+                totalRemaining +=
+                  remaining;
+
+
+                const version =
+                  String(
+                    row.version ||
+                    "—"
+                  ).trim();
+
+
+                const customer =
+                  String(
+                    row.customer_name ||
+                    "—"
+                  ).trim();
+
+
+                return (
+                  `${version} : ${customer}` +
+                  ` - ${money(price)}` +
+                  ` DP ${money(dpPaid)}` +
+                  ` - Sisa ${money(remaining)}`
+                );
+
+              }
+            );
+
+
+          return (
+            `${batchCode}\n` +
+            lines.join("\n") +
+            `\n\n` +
+            `Total - ${money(total)}\n` +
+            `DP - ${money(totalDp)}\n` +
+            `Tagihan - ${money(totalRemaining)}`
+          );
+
+        }
+      );
+
+
+  preview.value =
+    sharingBlocks.join(
+      "\n\n"
+    );
+
+}
 
   /* ==========================================
      UPDATE PREVIEW
