@@ -820,6 +820,28 @@ async function loadDashboard() {
 
     const rows = data || [];
 
+   console.table(
+  rows
+    .filter(row =>
+      String(row.batch_code || "")
+        .toLowerCase()
+        .includes("209") ||
+      String(row.item_name || "")
+        .toLowerCase()
+        .includes("treasure")
+    )
+    .map(row => ({
+      customer_id: row.customer_id,
+      customer_name: row.customer_name,
+      category: row.category,
+      batch_code: row.batch_code,
+      item_name: row.item_name,
+      remaining_amount: row.remaining_amount,
+      payment_status: row.payment_status,
+      payment_deadline: row.payment_deadline
+    }))
+);
+
    /* =====================================
    AMBIL NOMOR WA CUSTOMER
 ===================================== */
