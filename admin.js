@@ -13652,6 +13652,153 @@ async function showWhatsAppBillingBuilder(
   category
 ) {
 
+/* ==========================================
+   AMBIL INFO KATEGORI
+   ========================================== */
+
+let categoryIcon =
+  "📦";
+
+const {
+  data: categoryInfo,
+  error: categoryInfoError
+} =
+  await supabaseClient
+    .from("recap_categories")
+    .select(
+      "category_name, icon"
+    )
+    .eq(
+      "category_name",
+      category
+    )
+    .limit(1)
+    .maybeSingle();
+
+
+if (
+  !categoryInfoError &&
+  categoryInfo
+) {
+
+  categoryIcon =
+    String(
+      categoryInfo.icon ||
+      "📦"
+    ).trim();
+
+}
+
+/* ==========================================
+   INFO KATEGORI UNTUK HEADER TAGIHAN
+   ========================================== */
+
+let categoryIcon =
+  "📦";
+
+const {
+  data: categoryInfo,
+  error: categoryInfoError
+} =
+  await supabaseClient
+    .from("recap_categories")
+    .select(
+      "category_name, icon"
+    )
+    .eq(
+      "category_name",
+      category
+    )
+    .limit(1)
+    .maybeSingle();
+
+
+if (
+  !categoryInfoError &&
+  categoryInfo
+) {
+
+  categoryIcon =
+    String(
+      categoryInfo.icon ||
+      "📦"
+    ).trim();
+
+}
+
+
+/* ==========================================
+   FORMAT TANGGAL DEADLINE
+   ========================================== */
+
+function formatBillingDeadline(
+  value
+) {
+
+  const raw =
+    String(
+      value || ""
+    ).trim();
+
+
+  if (!raw) {
+    return "";
+  }
+
+
+  const match =
+    raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})/
+    );
+
+
+  if (match) {
+
+    const date =
+      new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3])
+      );
+
+    return date.toLocaleDateString(
+      "id-ID",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  }
+
+
+  const date =
+    new Date(raw);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return raw;
+
+  }
+
+
+  return date.toLocaleDateString(
+    "id-ID",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }
+  );
+
+}
+
   /* ==========================================
      AMBIL DATA REKAP
      ========================================== */
@@ -13674,6 +13821,63 @@ async function showWhatsAppBillingBuilder(
         }
       );
 
+   function formatBillingDeadline(value) {
+
+  const raw =
+    String(value || "").trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  const match =
+    raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})/
+    );
+
+  if (match) {
+
+    const date =
+      new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3])
+      );
+
+    return date.toLocaleDateString(
+      "id-ID",
+      {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  }
+
+  const date =
+    new Date(raw);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return raw;
+
+  }
+
+  return date.toLocaleDateString(
+    "id-ID",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    }
+  );
+
+}
 
   if (error) {
 
@@ -14236,20 +14440,425 @@ async function showWhatsAppBillingBuilder(
     )?.value ||
     "customer";
 
+/* ==========================================
+   DATA BARIS TERPILIH
+   ========================================== */
 
-  const selectedRows =
-    data.filter(
-      function(row) {
+const selectedRows =
+  data.filter(
+    function(row) {
 
-        return selectedBatches.includes(
-          String(
-            row.batch_code || ""
-          ).trim()
+      return selectedBatches.includes(
+        String(
+          row.batch_code || ""
+        ).trim()
+      );
+
+    }
+  );
+
+
+/* ==========================================
+   LAST PAYMENT PER BATCH
+   HANYA INFORMASI HEADER
+   TIDAK MASUK PERHITUNGAN
+   ========================================== */
+
+const batchDeadlines = {};
+
+
+selectedRows.forEach(
+  function(row) {
+
+    const batchCode =
+      String(
+        row.batch_code || ""
+      ).trim();
+
+    const deadline =
+      String(
+        row.payment_deadline || ""
+      ).trim();
+
+
+    if (
+      batchCode &&
+      deadline &&
+      !batchDeadlines[batchCode]
+    ) {
+
+      batchDeadlines[batchCode] =
+        deadline;
+
+    }
+
+  }
+);
+
+
+const deadlineEntries =
+  selectedBatches
+    .map(
+      function(batchCode) {
+
+        return {
+          batchCode:
+            batchCode,
+
+          deadline:
+            batchDeadlines[
+              batchCode
+            ] || ""
+        };
+
+      }
+    )
+    .filter(
+      function(item) {
+
+        return Boolean(
+          item.deadline
         );
 
       }
     );
 
+
+const uniqueDeadlines =
+  [
+    ...new Set(
+      deadlineEntries.map(
+        function(item) {
+          return item.deadline;
+        }
+      )
+    )
+  ];
+
+
+let lastPaymentText =
+  "";
+
+
+if (
+  deadlineEntries.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      deadlineEntries[0].deadline
+    )}`;
+
+}
+else if (
+  uniqueDeadlines.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      uniqueDeadlines[0]
+    )}`;
+
+}
+else if (
+  deadlineEntries.length > 0
+) {
+
+  lastPaymentText =
+    `Last payment:\n` +
+    deadlineEntries
+      .map(
+        function(item) {
+
+          return (
+            `${item.batchCode} : ` +
+            `${formatBillingDeadline(
+              item.deadline
+            )}`
+          );
+
+        }
+      )
+      .join("\n");
+
+}
+
+
+const billingHeader =
+  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
+  `${
+    lastPaymentText
+      ? lastPaymentText + "\n"
+      : ""
+  }` +
+  `Telat payment denda 3k/hari\n\n`;
+     
+/* ======================================
+   HEADER TAGIHAN
+   LAST PAYMENT + INFO DENDA
+   ====================================== */
+
+const batchDeadlines = {};
+
+selectedRows.forEach(
+  function(row) {
+
+    const batchCode =
+      String(
+        row.batch_code || ""
+      ).trim();
+
+    const deadline =
+      String(
+        row.payment_deadline || ""
+      ).trim();
+
+    if (
+      batchCode &&
+      deadline &&
+      !batchDeadlines[batchCode]
+    ) {
+
+      batchDeadlines[batchCode] =
+        deadline;
+
+    }
+
+  }
+);
+
+
+const deadlineEntries =
+  selectedBatches
+    .map(
+      function(batchCode) {
+
+        return {
+          batchCode:
+            batchCode,
+
+          deadline:
+            batchDeadlines[
+              batchCode
+            ] || ""
+        };
+
+      }
+    )
+    .filter(
+      function(item) {
+
+        return Boolean(
+          item.deadline
+        );
+
+      }
+    );
+
+
+const uniqueDeadlines =
+  [
+    ...new Set(
+      deadlineEntries.map(
+        function(item) {
+
+          return item.deadline;
+
+        }
+      )
+    )
+  ];
+
+
+let lastPaymentText =
+  "";
+
+
+if (
+  deadlineEntries.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      deadlineEntries[0].deadline
+    )}`;
+
+}
+else if (
+  uniqueDeadlines.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      uniqueDeadlines[0]
+    )}`;
+
+}
+else if (
+  deadlineEntries.length > 0
+) {
+
+  lastPaymentText =
+    `Last payment:\n` +
+    deadlineEntries
+      .map(
+        function(item) {
+
+          return (
+            `${item.batchCode} : ` +
+            `${formatBillingDeadline(
+              item.deadline
+            )}`
+          );
+
+        }
+      )
+      .join("\n");
+
+}
+
+
+const billingHeader =
+  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
+  `${lastPaymentText ? lastPaymentText + "\n" : ""}` +
+  `Telat payment denda 3k/hari\n\n`;
+     
+     /* ==========================================
+   LAST PAYMENT PER BATCH
+   HANYA INFORMASI HEADER
+   TIDAK MASUK PERHITUNGAN TAGIHAN
+   ========================================== */
+
+const batchDeadlines = {};
+
+
+selectedRows.forEach(
+  function(row) {
+
+    const batchCode =
+      String(
+        row.batch_code || ""
+      ).trim();
+
+    const deadline =
+      String(
+        row.payment_deadline || ""
+      ).trim();
+
+
+    if (
+      batchCode &&
+      deadline &&
+      !batchDeadlines[batchCode]
+    ) {
+
+      batchDeadlines[batchCode] =
+        deadline;
+
+    }
+
+  }
+);
+
+
+const deadlineEntries =
+  selectedBatches
+    .map(
+      function(batchCode) {
+
+        return {
+          batchCode:
+            batchCode,
+
+          deadline:
+            batchDeadlines[
+              batchCode
+            ] || ""
+        };
+
+      }
+    )
+    .filter(
+      function(item) {
+
+        return Boolean(
+          item.deadline
+        );
+
+      }
+    );
+
+
+const uniqueDeadlines =
+  [
+    ...new Set(
+      deadlineEntries.map(
+        function(item) {
+          return item.deadline;
+        }
+      )
+    )
+  ];
+
+
+let lastPaymentText =
+  "";
+
+
+if (
+  deadlineEntries.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      deadlineEntries[0].deadline
+    )}`;
+
+} else if (
+  uniqueDeadlines.length === 1
+) {
+
+  lastPaymentText =
+    `Last payment ${formatBillingDeadline(
+      uniqueDeadlines[0]
+    )}`;
+
+} else if (
+  deadlineEntries.length > 0
+) {
+
+  lastPaymentText =
+    `Last payment:\n` +
+    deadlineEntries
+      .map(
+        function(item) {
+
+          return (
+            `${item.batchCode} : ` +
+            `${formatBillingDeadline(
+              item.deadline
+            )}`
+          );
+
+        }
+      )
+      .join("\n");
+
+}
+
+
+/* ==========================================
+   HEADER TAGIHAN WHATSAPP
+   ========================================== */
+
+const billingHeader =
+  `*Note Payment ${category} ${categoryIcon} 📝*\n\n` +
+  `${
+    lastPaymentText
+      ? lastPaymentText + "\n"
+      : ""
+  }` +
+  `Telat payment denda 3k/hari\n\n`;
 
   /* ======================================
      MODE 1
@@ -14450,11 +15059,12 @@ async function showWhatsAppBillingBuilder(
 
 
     preview.value =
-      customerBlocks.join(
-        "\n\n"
-      );
+  billingHeader +
+  customerBlocks.join(
+    "\n\n"
+  );
 
-    return;
+return;
 
   }
 
@@ -14618,9 +15228,10 @@ async function showWhatsAppBillingBuilder(
 
 
   preview.value =
-    sharingBlocks.join(
-      "\n\n"
-    );
+  billingHeader +
+  sharingBlocks.join(
+    "\n\n"
+  );
 
 }
 
