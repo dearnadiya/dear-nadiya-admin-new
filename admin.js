@@ -1100,44 +1100,82 @@ document.getElementById(
     ===================================== */
 
     const dpRows =
-      rows.filter(row => {
+  rows.filter(row => {
 
-        const deadline =
-          normalizeDate(
-            row.dp_deadline
-          );
+    const deadline =
+      normalizeDate(
+        row.dp_deadline
+      );
 
-        const status =
-          String(
-            row.dp_status || ""
-          ).trim();
+    const status =
+      String(
+        row.dp_status || ""
+      )
+        .trim()
+        .toLowerCase();
 
-        if (!deadline) {
-          return false;
-        }
+    const dpAmount =
+      Number(
+        row.dp_amount
+      ) || 0;
 
-        const dpAmount =
-  Number(
-    row.dp_amount
-  ) || 0;
+    const minimumDp =
+      Number(
+        row.minimum_dp_amount
+      ) || 0;
 
-const minimumDp =
-  Number(
-    row.minimum_dp_amount
-  ) || 0;
 
-/*
-  Jika DP yang sudah dibayar masih
-  belum mencapai minimum DP, customer
-  tetap harus muncul.
-*/
+    /*
+      Tidak ada deadline DP
+    */
+    if (!deadline) {
+      return false;
+    }
 
-return (
-  deadline <= todayISO &&
-  dpAmount < minimumDp
-);
-      });
 
+    /*
+      Belum masuk tanggal jatuh tempo
+    */
+    if (
+      deadline > todayISO
+    ) {
+      return false;
+    }
+
+
+    /*
+      Jika status sudah paid,
+      DP tidak perlu ditampilkan.
+    */
+    if (
+      status === "paid"
+    ) {
+      return false;
+    }
+
+
+    /*
+      Jika minimum DP tersedia,
+      cek nominal yang sudah dibayar.
+    */
+    if (
+      minimumDp > 0
+    ) {
+      return dpAmount < minimumDp;
+    }
+
+
+    /*
+      Jika minimum DP kosong / 0,
+      jangan hilangkan customer hanya
+      karena nominal minimum tidak tersedia.
+
+      Selama status belum paid,
+      customer tetap ditampilkan.
+    */
+    return true;
+
+  });
 
     const dpGrouped =
       groupCustomers(
@@ -1373,42 +1411,79 @@ ${itemsHTML}
     ===================================== */
 
     const paymentRows =
-      rows.filter(row => {
+  rows.filter(row => {
 
-        const deadline =
-          normalizeDate(
-            row.payment_deadline
-          );
+    const deadline =
+      normalizeDate(
+        row.payment_deadline
+      );
 
-        const status =
-          String(
-            row.payment_status || ""
-          ).trim();
+    const status =
+      String(
+        row.payment_status || ""
+      )
+        .trim()
+        .toLowerCase();
 
-        if (!deadline) {
-          return false;
-        }
+    const remaining =
+      Number(
+        row.remaining_amount
+      ) || 0;
 
-        /*
-  Customer tetap ditampilkan jika:
-  - deadline sudah tiba / lewat
-  - masih memiliki sisa pembayaran
 
-  Status paid tidak dijadikan satu-satunya
-  patokan karena status dan nominal bisa
-  tidak selalu tersinkron.
-*/
+    /*
+      Tidak ada deadline pelunasan
+    */
+    if (!deadline) {
+      return false;
+    }
 
-const remaining =
-  Number(
-    row.remaining_amount
-  ) || 0;
 
-return (
-  deadline <= todayISO &&
-  remaining > 0
-);
-      });
+    /*
+      Belum masuk tanggal jatuh tempo
+    */
+    if (
+      deadline > todayISO
+    ) {
+      return false;
+    }
+
+
+    /*
+      Jika status sudah paid DAN
+      sisa pembayaran 0,
+      customer benar-benar sudah lunas.
+    */
+    if (
+      status === "paid" &&
+      remaining <= 0
+    ) {
+      return false;
+    }
+
+
+    /*
+      Jika masih ada sisa tagihan,
+      customer harus muncul.
+    */
+    if (
+      remaining > 0
+    ) {
+      return true;
+    }
+
+
+    /*
+      Jika remaining 0 tetapi status
+      belum paid, tetap tampilkan.
+
+      Ini untuk menghindari customer
+      hilang hanya karena remaining_amount
+      belum tersinkron.
+    */
+    return status !== "paid";
+
+  });
 
 
     const paymentGrouped =
