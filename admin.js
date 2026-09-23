@@ -10621,6 +10621,820 @@ showRecapCategories(
 }
 
 /* ==========================================
+   TAMBAH CUSTOMER TABUNGAN KE BATCH
+   ========================================== */
+
+async function showAddTabunganMemberForm(
+  batchCode,
+  category
+) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  container.style.display = "block";
+
+  container.innerHTML = `
+    <div class="panel recap-form">
+
+      <h3>
+        💰 Tambah Customer Tabungan
+      </h3>
+
+      <p>
+        Tambahkan customer baru ke batch:
+        <strong>
+          ${escapeHTML(batchCode)}
+        </strong>
+      </p>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+
+          <label>
+            Kategori
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(category)}"
+            disabled
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Kode Batch
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(batchCode)}"
+            disabled
+          >
+
+        </div>
+
+      </div>
+
+      <hr>
+
+      <div class="form-group">
+
+        <label>
+          Customer
+        </label>
+
+        <div
+          class="customer-picker"
+          style="
+            position:relative;
+            width:100%;
+          "
+        >
+
+          <input
+            type="text"
+            id="tabunganAddCustomer"
+            placeholder="🔍 Cari DN ID / nama / username WA..."
+            autocomplete="off"
+          >
+
+          <input
+            type="hidden"
+            id="tabunganAddCustomerId"
+          >
+
+          <div
+            id="tabunganAddCustomerResults"
+            style="
+              display:none;
+              position:absolute;
+              z-index:9999;
+              left:0;
+              right:0;
+              top:100%;
+              background:#fff;
+              border:1px solid #ddd;
+              border-radius:8px;
+              max-height:240px;
+              overflow-y:auto;
+              box-shadow:0 6px 18px rgba(0,0,0,.12);
+            "
+          ></div>
+
+        </div>
+
+      </div>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+
+          <label>
+            Quantity
+          </label>
+
+          <input
+            type="number"
+            id="tabunganAddQuantity"
+            min="1"
+            value="1"
+            required
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Harga Total
+          </label>
+
+          <input
+            type="text"
+            id="tabunganAddPrice"
+            class="currency-input"
+            readonly
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>
+            Target Tabungan
+          </label>
+
+          <input
+            type="text"
+            id="tabunganAddTarget"
+            class="currency-input"
+            readonly
+          >
+
+          <small>
+            Target ini mengikuti target batch.
+            Pembayaran aktual customer tidak diisi di sini.
+          </small>
+
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label>
+          Catatan
+        </label>
+
+        <textarea
+          id="tabunganAddNote"
+          rows="3"
+          placeholder="Catatan tambahan..."
+        ></textarea>
+
+      </div>
+
+      <div
+        class="form-actions"
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelAddTabunganButton"
+        >
+          ← Batal
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="saveAddTabunganButton"
+        >
+          💾 Simpan Customer
+        </button>
+
+      </div>
+
+      <p
+        id="addTabunganMessage"
+        class="login-error"
+      ></p>
+
+    </div>
+  `;
+
+
+  /* ==========================================
+     AMBIL DATA BATCH
+     ========================================== */
+
+  const {
+    data: batchRows,
+    error: batchError
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq("category", category)
+      .eq("batch_code", batchCode)
+      .order("id", {
+        ascending: true
+      });
+
+
+  if (batchError) {
+
+    console.error(
+      "ERROR LOAD TABUNGAN BATCH:",
+      batchError
+    );
+
+    alert(
+      "Gagal memuat batch: " +
+      batchError.message
+    );
+
+    return;
+  }
+
+
+  if (
+    !batchRows ||
+    batchRows.length === 0
+  ) {
+
+    alert(
+      "Batch Tabungan tidak ditemukan."
+    );
+
+    return;
+  }
+
+
+  const batch =
+    batchRows[0];
+
+
+  const itemPrice =
+    Number(
+      batch.item_price
+    ) || 0;
+
+
+  const targetTabungan =
+    Number(
+      batch.minimum_dp_amount
+    ) || 0;
+
+
+  document.getElementById(
+    "tabunganAddPrice"
+  ).value =
+    formatNominalInput(
+      itemPrice
+    );
+
+
+  document.getElementById(
+    "tabunganAddTarget"
+  ).value =
+    formatNominalInput(
+      targetTabungan
+    );
+
+
+  /* ==========================================
+     CUSTOMER YANG SUDAH ADA
+     ========================================== */
+
+  const existingCustomerIds =
+    new Set(
+      batchRows
+        .map(
+          function(row) {
+            return String(
+              row.customer_id || ""
+            );
+          }
+        )
+        .filter(Boolean)
+    );
+
+
+  /* ==========================================
+     SEARCH CUSTOMER
+     ========================================== */
+
+  const customerInput =
+    document.getElementById(
+      "tabunganAddCustomer"
+    );
+
+  const customerIdInput =
+    document.getElementById(
+      "tabunganAddCustomerId"
+    );
+
+  const customerResults =
+    document.getElementById(
+      "tabunganAddCustomerResults"
+    );
+
+
+  const {
+    data: customers,
+    error: customersError
+  } =
+    await supabaseClient
+      .from("customers")
+      .select(
+        "id, dn_id, name, username_wa"
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (customersError) {
+
+    console.error(
+      "ERROR LOAD CUSTOMERS:",
+      customersError
+    );
+
+    customerInput.placeholder =
+      "Gagal memuat customer";
+
+  }
+
+
+  const customerList =
+    customers || [];
+
+
+  customerInput.addEventListener(
+    "input",
+    function() {
+
+      const keyword =
+        this.value
+          .trim()
+          .toLowerCase();
+
+      customerIdInput.value =
+        "";
+
+      if (!keyword) {
+
+        customerResults.innerHTML =
+          "";
+
+        customerResults.style.display =
+          "none";
+
+        return;
+      }
+
+
+      const matches =
+        customerList
+          .filter(
+            function(customer) {
+
+              const dnId =
+                String(
+                  customer.dn_id || ""
+                ).toLowerCase();
+
+              const name =
+                String(
+                  customer.name || ""
+                ).toLowerCase();
+
+              const username =
+                String(
+                  customer.username_wa || ""
+                ).toLowerCase();
+
+              return (
+                dnId.includes(keyword) ||
+                name.includes(keyword) ||
+                username.includes(keyword)
+              );
+
+            }
+          )
+          .slice(0, 10);
+
+
+      if (
+        matches.length === 0
+      ) {
+
+        customerResults.innerHTML = `
+          <div
+            style="
+              padding:10px 12px;
+              color:#777;
+              font-size:12px;
+            "
+          >
+            Customer tidak ditemukan.
+          </div>
+        `;
+
+        customerResults.style.display =
+          "block";
+
+        return;
+      }
+
+
+      customerResults.innerHTML =
+        matches
+          .map(
+            function(customer) {
+
+              const alreadyExists =
+                existingCustomerIds.has(
+                  String(customer.id)
+                );
+
+              return `
+                <button
+                  type="button"
+                  class="tabungan-customer-result"
+                  data-id="${escapeHTML(
+                    String(customer.id)
+                  )}"
+                  data-name="${escapeHTML(
+                    customer.name || ""
+                  )}"
+                  style="
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    padding:8px 10px;
+                    border:0;
+                    border-bottom:1px solid #eee;
+                    background:#fff;
+                    cursor:pointer;
+                    font-size:13px;
+                  "
+                >
+
+                  <strong>
+                    ${escapeHTML(
+                      customer.dn_id || "—"
+                    )}
+                  </strong>
+
+                  —
+                  ${escapeHTML(
+                    customer.name ||
+                    "Tanpa Nama"
+                  )}
+
+                  ${
+                    alreadyExists
+                      ? `
+                        <small
+                          style="
+                            display:block;
+                            color:#b45309;
+                            margin-top:2px;
+                          "
+                        >
+                          Customer sudah ada di batch
+                        </small>
+                      `
+                      : ""
+                  }
+
+                </button>
+              `;
+
+            }
+          )
+          .join("");
+
+
+      customerResults.style.display =
+        "block";
+
+    }
+  );
+
+
+  customerResults.addEventListener(
+    "click",
+    function(event) {
+
+      const button =
+        event.target.closest(
+          ".tabungan-customer-result"
+        );
+
+      if (!button) {
+        return;
+      }
+
+      customerInput.value =
+        button.dataset.name || "";
+
+      customerIdInput.value =
+        button.dataset.id || "";
+
+      customerResults.innerHTML =
+        "";
+
+      customerResults.style.display =
+        "none";
+
+    }
+  );
+
+
+  /* ==========================================
+     BATAL
+     ========================================== */
+
+  document.getElementById(
+    "cancelAddTabunganButton"
+  ).addEventListener(
+    "click",
+    function() {
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+    }
+  );
+
+
+  /* ==========================================
+     SIMPAN CUSTOMER TABUNGAN
+     ========================================== */
+
+  document.getElementById(
+    "saveAddTabunganButton"
+  ).addEventListener(
+    "click",
+    async function() {
+
+      const saveButton =
+        document.getElementById(
+          "saveAddTabunganButton"
+        );
+
+      const message =
+        document.getElementById(
+          "addTabunganMessage"
+        );
+
+
+      const customerId =
+        Number(
+          customerIdInput.value
+        ) || null;
+
+
+      const customerName =
+        customerInput.value
+          .trim();
+
+
+      const quantity =
+        Number(
+          document.getElementById(
+            "tabunganAddQuantity"
+          ).value
+        ) || 1;
+
+
+      const note =
+        document.getElementById(
+          "tabunganAddNote"
+        ).value
+        .trim();
+
+
+      if (
+        !customerId ||
+        !customerName
+      ) {
+
+        message.textContent =
+          "Customer wajib dipilih dari daftar.";
+
+        return;
+      }
+
+
+      if (
+        existingCustomerIds.has(
+          String(customerId)
+        )
+      ) {
+
+        message.textContent =
+          "Customer tersebut sudah ada di batch Tabungan.";
+
+        return;
+      }
+
+
+      if (
+        itemPrice <= 0
+      ) {
+
+        message.textContent =
+          "Harga batch belum valid.";
+
+        return;
+      }
+
+
+      if (
+        targetTabungan < 0 ||
+        targetTabungan > itemPrice
+      ) {
+
+        message.textContent =
+          "Target Tabungan tidak valid.";
+
+        return;
+      }
+
+
+      saveButton.disabled =
+        true;
+
+      saveButton.textContent =
+        "Menyimpan...";
+
+
+      const record = {
+
+        recap_type:
+          "Tabungan",
+
+        category:
+          category,
+
+        batch_code:
+          batchCode,
+
+        item_name:
+          batch.item_name || "",
+
+        customer_id:
+          customerId,
+
+        customer_name:
+          customerName,
+
+        member_id:
+          null,
+
+        version:
+          null,
+
+        quantity:
+          quantity,
+
+        item_price:
+          itemPrice,
+
+        minimum_dp_amount:
+          targetTabungan,
+
+        dp_amount:
+          0,
+
+        dp_status:
+          targetTabungan <= 0
+            ? "paid"
+            : "unpaid",
+
+        remaining_amount:
+          itemPrice,
+
+        payment_status:
+          "unpaid",
+
+        tracking_status:
+          batch.batch_tracking_status ||
+          batch.tracking_status ||
+          "",
+
+        batch_tracking_status:
+          batch.batch_tracking_status ||
+          batch.tracking_status ||
+          "",
+
+        customer_status:
+          "Belum Checkout Shopee",
+
+        note:
+          note || null,
+
+        dp_deadline:
+          batch.dp_deadline ||
+          null,
+
+        payment_deadline:
+          batch.payment_deadline ||
+          null,
+
+        recap_data_type:
+          batch.recap_data_type ||
+          "baru",
+
+        co_deadline:
+          batch.co_deadline ||
+          null,
+
+        arrived_admin_at:
+          batch.arrived_admin_at ||
+          null
+
+      };
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .insert(
+            record
+          );
+
+
+      if (error) {
+
+        console.error(
+          "ERROR ADD TABUNGAN CUSTOMER:",
+          error
+        );
+
+        message.textContent =
+          "Gagal menambahkan customer: " +
+          error.message;
+
+        saveButton.disabled =
+          false;
+
+        saveButton.textContent =
+          "💾 Simpan Customer";
+
+        return;
+      }
+
+
+      alert(
+        "Customer berhasil ditambahkan ke batch Tabungan. ♥"
+      );
+
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+
+      await loadRecapList(
+        category
+      );
+
+    }
+  );
+
+}
+
+/* ==========================================
    TAMBAH MEMBER / VERSI KE BATCH EXISTING
    ========================================== */
 
@@ -18029,12 +18843,17 @@ let html = `
 >
 
   <button
-    type="button"
-    class="add-recap-member-button"
-    data-batch-code="${escapeHTML(batchCode)}"
-  >
-    ＋ Tambah Member / Versi
-  </button>
+  type="button"
+  class="add-recap-member-button"
+  data-batch-code="${escapeHTML(batchCode)}"
+  data-category="${escapeHTML(category)}"
+>
+  ${
+    getRecapTypeFromCategory(category) === "Tabungan"
+      ? "＋ Tambah Customer"
+      : "＋ Tambah Member / Versi"
+  }
+</button>
 
 </div>
 
@@ -18619,10 +19438,31 @@ container
         "click",
         function(event) {
 
+          event.preventDefault();
           event.stopPropagation();
 
           const batchCode =
             this.dataset.batchCode;
+
+          const category =
+            this.dataset.category;
+
+          if (!batchCode) {
+            return;
+          }
+
+          if (
+            getRecapTypeFromCategory(category) ===
+            "Tabungan"
+          ) {
+
+            showAddTabunganMemberForm(
+              batchCode,
+              category
+            );
+
+            return;
+          }
 
           showAddRecapMemberForm(
             batchCode
@@ -21486,6 +22326,401 @@ function getTrackingOptions(
 
 }
 
+/* ==========================================
+   EDIT BATCH TABUNGAN
+   ========================================== */
+
+async function showEditTabunganBatchForm(
+  rows,
+  batchCode,
+  category
+) {
+
+  const container =
+    document.getElementById(
+      "recapFormContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  const firstRow =
+    rows[0];
+
+
+  const currentPrice =
+    Number(
+      firstRow.item_price
+    ) || 0;
+
+
+  const currentTarget =
+    Number(
+      firstRow.minimum_dp_amount
+    ) || 0;
+
+
+  const currentCoDeadline =
+    firstRow.co_deadline
+      ? String(
+          firstRow.co_deadline
+        ).substring(0, 10)
+      : "";
+
+
+  container.style.display =
+    "block";
+
+
+  container.innerHTML = `
+
+    <div class="panel recap-form">
+
+      <h3>
+        ✏️ Edit Batch Tabungan
+      </h3>
+
+      <p>
+        Batch:
+        <strong>
+          ${escapeHTML(batchCode)}
+        </strong>
+      </p>
+
+
+      <form
+        id="editTabunganBatchForm"
+      >
+
+        <label>
+          Kategori
+        </label>
+
+        <input
+          type="text"
+          value="${escapeHTML(category)}"
+          disabled
+        >
+
+
+        <label>
+          Kode Batch
+        </label>
+
+        <input
+          id="editTabunganBatchCode"
+          type="text"
+          value="${escapeHTML(batchCode)}"
+          required
+        >
+
+
+        <label>
+          Nama Barang
+        </label>
+
+        <input
+          id="editTabunganBatchItemName"
+          type="text"
+          value="${escapeHTML(
+            firstRow.item_name || ""
+          )}"
+          required
+        >
+
+
+        <label>
+          Harga Total
+        </label>
+
+        <input
+          id="editTabunganBatchPrice"
+          type="text"
+          class="currency-input"
+          value="${formatNominalInput(
+            currentPrice
+          )}"
+          required
+        >
+
+
+        <label>
+          Target Tabungan
+        </label>
+
+        <input
+          id="editTabunganBatchTarget"
+          type="text"
+          class="currency-input"
+          value="${formatNominalInput(
+            currentTarget
+          )}"
+          required
+        >
+
+        <small>
+          Target Tabungan adalah batas minimum
+          agar barang dapat dipesankan.
+          Ini bukan jumlah pembayaran aktual.
+        </small>
+
+
+        <label>
+          Deadline CO
+        </label>
+
+        <input
+          id="editTabunganBatchCoDeadline"
+          type="date"
+          value="${currentCoDeadline}"
+        >
+
+
+        <label>
+          Catatan Batch
+        </label>
+
+        <textarea
+          id="editTabunganBatchNote"
+          rows="3"
+          placeholder="Catatan..."
+        >${escapeHTML(
+          firstRow.note || ""
+        )}</textarea>
+
+
+        <div
+          class="form-actions"
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            💾 Simpan Perubahan
+          </button>
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancelEditTabunganBatch"
+          >
+            Batal
+          </button>
+
+        </div>
+
+
+        <p
+          id="editTabunganBatchMessage"
+          class="login-error"
+        ></p>
+
+      </form>
+
+    </div>
+
+  `;
+
+
+  document.getElementById(
+    "cancelEditTabunganBatch"
+  ).addEventListener(
+    "click",
+    function() {
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+    }
+  );
+
+
+  document.getElementById(
+    "editTabunganBatchForm"
+  ).addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+
+      const message =
+        document.getElementById(
+          "editTabunganBatchMessage"
+        );
+
+
+      const newBatchCode =
+        document.getElementById(
+          "editTabunganBatchCode"
+        ).value.trim();
+
+
+      const newItemName =
+        document.getElementById(
+          "editTabunganBatchItemName"
+        ).value.trim();
+
+
+      const newPrice =
+        parseNominalInput(
+          document.getElementById(
+            "editTabunganBatchPrice"
+          ).value
+        );
+
+
+      const newTarget =
+        parseNominalInput(
+          document.getElementById(
+            "editTabunganBatchTarget"
+          ).value
+        );
+
+
+      const newCoDeadline =
+        document.getElementById(
+          "editTabunganBatchCoDeadline"
+        ).value ||
+        null;
+
+
+      const newNote =
+        document.getElementById(
+          "editTabunganBatchNote"
+        ).value.trim();
+
+
+      if (!newBatchCode) {
+
+        message.textContent =
+          "Kode Batch wajib diisi.";
+
+        return;
+      }
+
+
+      if (!newItemName) {
+
+        message.textContent =
+          "Nama barang wajib diisi.";
+
+        return;
+      }
+
+
+      if (
+        newPrice <= 0
+      ) {
+
+        message.textContent =
+          "Harga harus lebih dari 0.";
+
+        return;
+      }
+
+
+      if (
+        newTarget < 0 ||
+        newTarget > newPrice
+      ) {
+
+        message.textContent =
+          "Target Tabungan harus berada di antara 0 dan harga barang.";
+
+        return;
+      }
+
+
+      message.textContent =
+        "Menyimpan perubahan batch...";
+
+
+      const updateData = {
+
+        batch_code:
+          newBatchCode,
+
+        item_name:
+          newItemName,
+
+        item_price:
+          newPrice,
+
+        minimum_dp_amount:
+          newTarget,
+
+        co_deadline:
+          newCoDeadline,
+
+        note:
+          newNote || null
+
+      };
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .update(
+            updateData
+          )
+          .eq(
+            "category",
+            category
+          )
+          .eq(
+            "batch_code",
+            batchCode
+          );
+
+
+      if (error) {
+
+        console.error(
+          "ERROR UPDATE BATCH TABUNGAN:",
+          error
+        );
+
+        message.textContent =
+          "Gagal mengubah batch: " +
+          error.message;
+
+        return;
+      }
+
+
+      alert(
+        "Batch Tabungan berhasil diperbarui. ♥"
+      );
+
+
+      container.innerHTML =
+        "";
+
+      container.style.display =
+        "none";
+
+
+      await loadRecapList(
+        category
+      );
+
+    }
+  );
+
+}
+
 /* ============================================
    EDIT HEADER BATCH
    ============================================ */
@@ -21626,6 +22861,20 @@ async function editBatchHeader(
 
   const firstRow =
     data[0];
+
+if (
+  firstRow.recap_type === "Tabungan" ||
+  getRecapTypeFromCategory(category) === "Tabungan"
+) {
+
+  showEditTabunganBatchForm(
+    data,
+    batchCode,
+    category
+  );
+
+  return;
+}
 
   const batchPrice =
     Number(
