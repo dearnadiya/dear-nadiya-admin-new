@@ -780,6 +780,7 @@ async function loadDashboard() {
     version,
     quantity,
     dp_amount,
+    minimum_dp_amount,
     remaining_amount,
     dp_status,
     payment_status,
@@ -1115,13 +1116,26 @@ document.getElementById(
           return false;
         }
 
-        if (
-          status === "paid"
-        ) {
-          return false;
-        }
+        const dpAmount =
+  Number(
+    row.dp_amount
+  ) || 0;
 
-        return deadline <= todayISO;
+const minimumDp =
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
+
+/*
+  Jika DP yang sudah dibayar masih
+  belum mencapai minimum DP, customer
+  tetap harus muncul.
+*/
+
+return (
+  deadline <= todayISO &&
+  dpAmount < minimumDp
+);
       });
 
 
@@ -1375,13 +1389,25 @@ ${itemsHTML}
           return false;
         }
 
-        if (
-          status === "paid"
-        ) {
-          return false;
-        }
+        /*
+  Customer tetap ditampilkan jika:
+  - deadline sudah tiba / lewat
+  - masih memiliki sisa pembayaran
 
-        return deadline <= todayISO;
+  Status paid tidak dijadikan satu-satunya
+  patokan karena status dan nominal bisa
+  tidak selalu tersinkron.
+*/
+
+const remaining =
+  Number(
+    row.remaining_amount
+  ) || 0;
+
+return (
+  deadline <= todayISO &&
+  remaining > 0
+);
       });
 
 
@@ -1641,9 +1667,8 @@ const coRows =
     }
 
     return (
-      deadline >= todayISO &&
-      deadline <= h7ISO
-    );
+  deadline <= h7ISO
+);
   });
 
 
