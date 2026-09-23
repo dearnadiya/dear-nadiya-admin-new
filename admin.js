@@ -14682,6 +14682,521 @@ return (
 }
 
 /* ============================================
+   SINKRONISASI STATUS PEMBAYARAN
+   ============================================ */
+
+async function syncConfirmedPaymentStatuses(
+  category
+) {
+
+  const button =
+    document.getElementById(
+      "syncPaymentStatusButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "🔄 Menyinkronkan...";
+  }
+
+  try {
+
+    /*
+     * 1. AMBIL SEMUA REKAP
+     */
+
+    let recapQuery =
+      supabaseClient
+        .from("purchase_recap")
+        .select("*");
+
+    if (category) {
+      recapQuery =
+        recapQuery.eq(
+          "category",
+          category
+        );
+    }
+
+    const {
+      data: recapRows,
+      error: recapError
+    } = await recapQuery;
+
+    if (recapError) {
+      throw recapError;
+    }
+
+
+    /*
+     * 2. AMBIL SEMUA PEMBAYARAN
+     *    YANG SUDAH DIKONFIRMASI
+     */
+
+    const {
+      data: confirmedPayments,
+      error: paymentError
+    } =
+      await supabaseClient
+        .from(
+          "dn_payment_submissions"
+        )
+        .select("id")
+        .eq(
+          "status",
+          "confirmed"
+        );
+
+    if (paymentError) {
+      throw paymentError;
+    }
+
+
+    const confirmedPaymentIds =
+      new Set(
+        (confirmedPayments || [])
+          .map(
+            payment =>
+              payment.id
+          )
+      );
+
+
+    /*
+     * 3. AMBIL SEMUA ALOKASI
+     */
+
+    const {
+      data: allocationRows,
+      error: allocationError
+    } =
+      await supabaseClient
+        .from(
+          "dn_payment_allocations"
+        )
+        .select(
+          "payment_submission_id, recap_id, allocated_amount, payment_part"
+        );
+
+    if (allocationError) {
+      throw allocationError;
+    }
+
+
+    /*
+     * 4. HANYA HITUNG ALOKASI
+     *    DARI PEMBAYARAN CONFIRMED
+     */
+
+    const validAllocations =
+      (allocationRows || [])
+        .filter(
+          allocation =>
+            confirmedPaymentIds.has(
+              allocation.payment_submission_id
+            )
+        );
+
+
+    /*
+     * 5. KELOMPOKKAN ALOKASI
+     *    BERDASARKAN RECAP ID
+     */
+
+    const allocationsByRecap =
+      {};
+
+    validAllocations.forEach(
+      function(allocation) {
+
+        const recapId =
+          String(
+            allocation.recap_id
+          );
+
+        if (
+          !allocationsByRecap[
+            recapId
+          ]
+        ) {
+          allocationsByRecap[
+            recapId
+          ] = [];
+        }
+
+        allocationsByRecap[
+          recapId
+        ].push(
+          allocation
+        );
+
+      }
+    );
+
+
+    let checkedCount = 0;
+    let updatedCount = 0;
+    let unchangedCount = 0;
+
+
+    /*
+     * 6. HITUNG ULANG SETIAP REKAP
+     */
+
+    for (
+      const recap of
+        recapRows || []
+    ) {
+
+      checkedCount++;
+
+      const recapId =
+        String(
+          recap.id
+        );
+
+      const allocations =
+        allocationsByRecap[
+          recapId
+        ] || [];
+
+
+      let totalDpPaid = 0;
+      let totalPelunasanPaid = 0;
+
+
+      const price =
+        Number(
+          recap.item_price
+        ) || 0;
+
+      const minimumDp =
+        Number(
+          recap.minimum_dp_amount
+        ) || 0;
+
+
+      /*
+       * HITUNG ALOKASI
+       */
+
+      allocations.forEach(
+        function(allocation) {
+
+          const amount =
+            Number(
+              allocation.allocated_amount
+            ) || 0;
+
+          if (
+            amount <= 0
+          ) {
+            return;
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "dp"
+          ) {
+
+            totalDpPaid +=
+              amount;
+
+          }
+
+
+          else if (
+            allocation.payment_part ===
+            "pelunasan"
+          ) {
+
+            totalPelunasanPaid +=
+              amount;
+
+          }
+
+
+          else if (
+            allocation.payment_part ===
+            "both"
+          ) {
+
+            /*
+             * Pembayaran BOTH:
+             * isi kekurangan DP dahulu,
+             * sisanya masuk pelunasan.
+             */
+
+            const dpRemaining =
+              Math.max(
+                minimumDp -
+                totalDpPaid,
+                0
+              );
+
+            const dpPart =
+              Math.min(
+                amount,
+                dpRemaining
+              );
+
+            const pelunasanPart =
+              Math.max(
+                amount -
+                dpPart,
+                0
+              );
+
+            totalDpPaid +=
+              dpPart;
+
+            totalPelunasanPaid +=
+              pelunasanPart;
+
+          }
+
+        }
+      );
+
+
+      /*
+       * 7. HITUNG STATUS DP
+       */
+
+      let dpStatus =
+        "unpaid";
+
+      if (
+        minimumDp <= 0
+      ) {
+
+        dpStatus =
+          "paid";
+
+      }
+
+      else if (
+        totalDpPaid >=
+        minimumDp
+      ) {
+
+        dpStatus =
+          "paid";
+
+      }
+
+      else if (
+        totalDpPaid > 0
+      ) {
+
+        dpStatus =
+          "insufficient";
+
+      }
+
+      else {
+
+        dpStatus =
+          "unpaid";
+
+      }
+
+
+      /*
+       * 8. HITUNG SISA PEMBAYARAN
+       */
+
+      let remainingAmount =
+        0;
+
+      if (
+        dpStatus ===
+        "paid"
+      ) {
+
+        remainingAmount =
+          Math.max(
+            price -
+            totalDpPaid -
+            totalPelunasanPaid,
+            0
+          );
+
+      }
+
+
+      /*
+       * 9. HITUNG STATUS PEMBAYARAN
+       */
+
+      let paymentStatus =
+        "unpaid";
+
+      if (
+        price > 0 &&
+        dpStatus === "paid" &&
+        remainingAmount <= 0
+      ) {
+
+        paymentStatus =
+          "paid";
+
+      }
+
+
+      /*
+       * 10. CEK APAKAH MEMANG PERLU UPDATE
+       */
+
+      const oldDp =
+        Number(
+          recap.dp_amount
+        ) || 0;
+
+      const oldRemaining =
+        Number(
+          recap.remaining_amount
+        ) || 0;
+
+      const oldDpStatus =
+        recap.dp_status ||
+        "unpaid";
+
+      const oldPaymentStatus =
+        recap.payment_status ||
+        "unpaid";
+
+
+      const needsUpdate =
+        oldDp !== totalDpPaid ||
+        oldRemaining !==
+          remainingAmount ||
+        oldDpStatus !==
+          dpStatus ||
+        oldPaymentStatus !==
+          paymentStatus;
+
+
+      if (
+        !needsUpdate
+      ) {
+
+        unchangedCount++;
+
+        continue;
+
+      }
+
+
+      /*
+       * 11. UPDATE PURCHASE_RECAP
+       */
+
+      const {
+        error: updateError
+      } =
+        await supabaseClient
+          .from(
+            "purchase_recap"
+          )
+          .update({
+            dp_amount:
+              totalDpPaid,
+
+            dp_status:
+              dpStatus,
+
+            remaining_amount:
+              remainingAmount,
+
+            payment_status:
+              paymentStatus
+          })
+          .eq(
+            "id",
+            recap.id
+          );
+
+
+      if (updateError) {
+
+        console.error(
+          "GAGAL UPDATE REKAP:",
+          recap.id,
+          updateError
+        );
+
+        continue;
+
+      }
+
+
+      updatedCount++;
+
+    }
+
+
+    /*
+     * 12. SELESAI
+     */
+
+    alert(
+      "Sinkronisasi pembayaran selesai.\n\n" +
+      "Data diperiksa: " +
+      checkedCount +
+      "\n" +
+      "Data diperbarui: " +
+      updatedCount +
+      "\n" +
+      "Data tidak berubah: " +
+      unchangedCount
+    );
+
+
+    /*
+     * 13. REFRESH REKAP
+     */
+
+    if (category) {
+
+      await loadRecapList(
+        category
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR SINKRONISASI PEMBAYARAN:",
+      error
+    );
+
+    alert(
+      "Gagal sinkronisasi status pembayaran:\n\n" +
+      error.message
+    );
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "🔄 Sinkronisasi Status Pembayaran";
+
+    }
+
+  }
+
+}
+
+/* ============================================
    DAFTAR REKAP
    ============================================ */
 
@@ -15064,6 +15579,24 @@ let html = `
 >
   💬 Buat Tagihan WhatsApp
 </button>
+
+<button
+  type="button"
+  class="primary-button"
+  id="syncPaymentStatusButton"
+  style="
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 16px;
+    font-size:13px;
+    white-space:nowrap;
+  "
+>
+  🔄 Sinkronisasi Status Pembayaran
+</button>
+
     </div>
 
   `;
@@ -17008,6 +17541,43 @@ if (
     function() {
 
       showWhatsAppBillingBuilder(
+        category
+      );
+
+    }
+  );
+
+}
+
+/* ==========================================
+   SINKRONISASI STATUS PEMBAYARAN
+   ========================================== */
+
+const syncPaymentStatusButton =
+  container.querySelector(
+    "#syncPaymentStatusButton"
+  );
+
+if (
+  syncPaymentStatusButton
+) {
+
+  syncPaymentStatusButton.addEventListener(
+    "click",
+    async function() {
+
+      const confirmed =
+        confirm(
+          "Sinkronisasi status pembayaran sekarang?\n\n" +
+          "Sistem akan membaca pembayaran yang sudah dikonfirmasi " +
+          "dan memperbarui DP, sisa pembayaran, serta status Rekap GO."
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      await syncConfirmedPaymentStatuses(
         category
       );
 
