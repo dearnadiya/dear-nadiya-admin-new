@@ -13690,44 +13690,6 @@ if (
 }
 
 /* ==========================================
-   INFO KATEGORI UNTUK HEADER TAGIHAN
-   ========================================== */
-
-let categoryIcon =
-  "📦";
-
-const {
-  data: categoryInfo,
-  error: categoryInfoError
-} =
-  await supabaseClient
-    .from("recap_categories")
-    .select(
-      "category_name, icon"
-    )
-    .eq(
-      "category_name",
-      category
-    )
-    .limit(1)
-    .maybeSingle();
-
-
-if (
-  !categoryInfoError &&
-  categoryInfo
-) {
-
-  categoryIcon =
-    String(
-      categoryInfo.icon ||
-      "📦"
-    ).trim();
-
-}
-
-
-/* ==========================================
    FORMAT TANGGAL DEADLINE
    ========================================== */
 
