@@ -14611,16 +14611,11 @@ const billingHeader =
           ).trim().toLowerCase();
 
 
-        if (
-          paymentStatus ===
-            "paid" ||
-          remaining <= 0
-        ) {
-
-          return;
-
-        }
-
+       /* 
+   Semua customer tetap dimasukkan.
+   Customer yang lunas akan diberi tanda
+   ✅ LUNAS pada rincian barang.
+*/
 
         const customerId =
           Number(
@@ -14719,6 +14714,11 @@ const billingHeader =
                       row.remaining_amount
                     ) || 0;
 
+                   const paymentStatus =
+  String(
+    row.payment_status || ""
+  ).trim().toLowerCase();
+
 
                   total +=
                     price;
@@ -14746,18 +14746,26 @@ const billingHeader =
                       : "";
 
 
-                  return (
-                    `${batchLabel}` +
-                    `${version}` +
-                    `${
-                      quantity > 1
-                        ? ` × ${quantity}`
-                        : ""
-                    }` +
-                    ` - ${money(price)}` +
-                     ` DP ${money(dpPaid)}`
-                  );
+                  const isPaid =
+  paymentStatus === "paid" ||
+  remaining <= 0;
 
+return (
+  `${batchLabel}` +
+  `${version}` +
+  `${
+    quantity > 1
+      ? ` × ${quantity}`
+      : ""
+  }` +
+  ` - ${money(price)}` +
+  ` DP ${money(dpPaid)}` +
+  `${
+    isPaid
+      ? " ✅ LUNAS"
+      : ""
+  }`
+);
                 }
               );
 
@@ -14807,18 +14815,6 @@ return;
           row.payment_status ||
           ""
         ).trim().toLowerCase();
-
-
-      if (
-        paymentStatus ===
-          "paid" ||
-        remaining <= 0
-      ) {
-
-        return;
-
-      }
-
 
       const batchCode =
         String(
@@ -14895,6 +14891,11 @@ return;
                     row.remaining_amount
                   ) || 0;
 
+               const paymentStatus =
+  String(
+    row.payment_status || ""
+  ).trim().toLowerCase();
+
 
                 total +=
                   price;
@@ -14920,11 +14921,20 @@ return;
                   ).trim();
 
 
-                return (
-                  `${version} : ${customer}` +
-                  ` - ${money(price)}` +
-                  ` DP ${money(dpPaid)}`
-                );
+                const isPaid =
+  paymentStatus === "paid" ||
+  remaining <= 0;
+
+return (
+  `${version} : ${customer}` +
+  ` - ${money(price)}` +
+  ` DP ${money(dpPaid)}` +
+  `${
+    isPaid
+      ? " ✅ LUNAS"
+      : ""
+  }`
+);
 
               }
             );
