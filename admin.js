@@ -18792,18 +18792,38 @@ console.log(
        * Kode batch yang digunakan
        * di Rekap GO.
        */
-      const batchCode =
+     const batchCode =
   String(
     po.recap_batch_code ||
     ""
   ).trim();
 
 
-      if (!batchCode) {
+if (!batchCode) {
 
-        continue;
+  continue;
 
-      }
+}
+
+
+/* ==========================================
+   LEWATI BATCH DUMMY TEST
+   tr-cj-085
+   ========================================== */
+
+if (
+  batchCode.toLowerCase() ===
+  "tr-cj-085"
+) {
+
+  console.log(
+    "SKIP RESTORE BATCH DUMMY:",
+    batchCode
+  );
+
+  continue;
+
+}
 
 
       /*
