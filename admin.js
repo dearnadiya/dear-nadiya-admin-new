@@ -18276,47 +18276,34 @@ if (
   }
 
 }
-        dpStatus =
-          "paid";
-
-        if (
-          totalDpPaid <
-          minimumDp
-        ) {
-
-          totalDpPaid =
-            minimumDp;
-
-        }
-
-        protectedCount++;
-
-      }
-
-
+       
       /* ========================================
          HITUNG ULANG SISA SETELAH PROTEKSI
          ======================================== */
 
-      remainingAmount =
-        Math.max(
-          price -
-          totalDpPaid -
-          totalPelunasanPaid,
-          0
-        );
+     if (
+  hasConfirmedAllocations
+) {
+
+  remainingAmount =
+    Math.max(
+      price -
+      totalDpPaid -
+      totalPelunasanPaid,
+      0
+    );
 
 
-      if (
-        paymentStatus ===
-        "paid"
-      ) {
+  if (
+    paymentStatus ===
+    "paid"
+  ) {
 
-        remainingAmount =
-          0;
+    remainingAmount = 0;
 
-      }
+  }
 
+}
 
       /* ========================================
          CEK PERUBAHAN
