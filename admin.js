@@ -15723,7 +15723,7 @@ const selectedRows =
 
 const batchDeadlines = {};
 
-selectedRows.forEach(
+data.forEach(
   function(row) {
 
     const batchCode =
@@ -15877,10 +15877,10 @@ const billingHeader =
 
 const paymentFooter =
   `\n\n🧾 Payment :\n\n` +
-  `💳 Dana/Gopay : XXXXXXXX a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
-  `💳 Spay : XXXXXXXX a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
-  `💳 BRI : XXXXXXXX a/n Euis Hunadiyah Al Aini\n\n` +
-  `💳 Seabank : XXXXXXXX a/n Euis Hunadiyah Al Aini\n\n` +
+  `💳 Dana/Gopay : 0895339878010 a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
+  `💳 Spay : 083180662711 a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
+  `💳 BRI : 031901084824506 a/n Euis Hunadiyah Al Aini\n\n` +
+  `💳 Seabank : 901140617711 a/n Euis Hunadiyah Al Aini\n\n` +
   `QRIS? CHAT ADMIN`;
 
   /* ======================================
