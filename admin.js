@@ -16488,11 +16488,15 @@ const paymentFooter =
                     ) || 0;
 
 
-                  const dpPaid =
-                    Number(
-                      row.dp_amount
-                    ) || 0;
+                  const dpMinimum =
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
 
+const dpPaid =
+  Number(
+    row.dp_amount
+  ) || 0;
 
                   const remaining =
   Number(
@@ -16571,7 +16575,11 @@ return (
       : ""
   }` +
   ` - ${money(price)}` +
-  ` DP ${money(dpPaid)}` +
+` DP ${
+  paymentType === "dp"
+    ? money(dpMinimum)
+    : money(dpPaid)
+}` +
   `${
     isPaid
       ? " ✅ LUNAS"
@@ -16705,10 +16713,15 @@ return;
                     row.item_price
                   ) || 0;
 
-                const dpPaid =
-                  Number(
-                    row.dp_amount
-                  ) || 0;
+               const dpMinimum =
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
+
+const dpPaid =
+  Number(
+    row.dp_amount
+  ) || 0;
 
                 const remaining =
   Number(
@@ -16756,7 +16769,11 @@ totalRemaining +=
 return (
   `${version} : ${customer}` +
   ` - ${money(price)}` +
-  ` DP ${money(dpPaid)}` +
+` DP ${
+  paymentType === "dp"
+    ? money(dpMinimum)
+    : money(dpPaid)
+}` +
   `${
     isPaid
       ? " ✅ LUNAS"
