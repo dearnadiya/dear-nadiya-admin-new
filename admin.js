@@ -8732,9 +8732,9 @@ async function loadCOArchive() {
                           white-space:nowrap;
                         "
                       >
-                        <strong>
-                          ${row.customer_name || "-"}
-                        </strong>
+                       <strong>
+  ${row.customer_name || ""}
+</strong>
                       </td>
 
 
