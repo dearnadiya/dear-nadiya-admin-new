@@ -18365,7 +18365,7 @@ async function restoreOldAvailableRecapMembers(
      * ==========================================
      */
 
-    const {
+   const {
   data: completedPOs,
   error: poError
 } =
@@ -18389,6 +18389,16 @@ async function restoreOldAvailableRecapMembers(
       "completed"
     );
 
+console.log(
+  "RESTORE CEK PO COMPLETED:",
+  {
+    category: category,
+    jumlahPO: completedPOs
+      ? completedPOs.length
+      : 0,
+    completedPOs: completedPOs
+  }
+);
 
     if (poError) {
 
@@ -18569,33 +18579,44 @@ if (
        */
 
       const availableRows =
-        listData.filter(
-          function(row) {
+  listData.filter(
+    function(row) {
 
-            const member =
-              String(
-                row.member || ""
-              ).trim();
+      const member =
+        String(
+          row.member || ""
+        ).trim();
 
-            const customer =
-  String(
-    row.customer || ""
-  ).trim();
+      const customer =
+        String(
+          row.customer || ""
+        ).trim();
 
-const customerId =
-  Number(
-    row.customer_id
-  ) || null;
+      const customerId =
+        Number(
+          row.customer_id
+        ) || null;
 
-return (
-  member &&
-  !customer &&
-  !customerId
+      return (
+        member &&
+        !customer &&
+        !customerId
+      );
+
+    }
+  );
+
+console.log(
+  "RESTORE CEK AVAILABLE:",
+  {
+    poId: po.id,
+    title: po.title,
+    batchCode: batchCode,
+    totalListData: listData.length,
+    jumlahAvailable: availableRows.length,
+    availableRows: availableRows
+  }
 );
-             
-          }
-        );
-
 
       if (
         availableRows.length === 0
