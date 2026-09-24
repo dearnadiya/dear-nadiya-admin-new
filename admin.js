@@ -4475,47 +4475,32 @@ const selectedItems = [];
 let productPairs = [];
 
 
-if (
-  productCodes.length === 1 &&
-  productVersions.length > 1
-) {
+/*
+  Buat pasangan berdasarkan JUMLAH BATCH,
+  bukan berdasarkan jumlah versi.
 
-  productPairs =
-    productVersions.map(
-      function(productVersion) {
+  Tujuannya:
+  - 4 batch tetap menghasilkan 4 pasangan
+  - jika ada versi yang sama, tetap dipertahankan
+  - jika versi kurang dari jumlah batch,
+    batch tetap diproses dengan versi kosong
+*/
 
-        return {
-          productCode:
-            productCodes[0],
+productPairs =
+  productCodes.map(
+    function(productCode, index) {
 
-          productVersion:
-            productVersion
-        };
+      return {
+        productCode:
+          productCode,
 
-      }
-    );
+        productVersion:
+          productVersions[index] ||
+          ""
+      };
 
-} else {
-
-  productPairs =
-    productVersions.map(
-      function(productVersion, index) {
-
-        return {
-          productCode:
-            productCodes[index] ||
-            productCodes[0] ||
-            "",
-
-          productVersion:
-            productVersion
-        };
-
-      }
-    );
-
-}
-
+    }
+  );
 
 /*
   Cari setiap barang satu per satu
@@ -4563,11 +4548,19 @@ productPairs.forEach(
               .toLowerCase();
 
 
-          return (
-            rowCode === productCode &&
-            rowVersion === productVersion
-          );
+          if (!productVersion) {
 
+  return (
+    rowCode === productCode
+  );
+
+}
+
+
+return (
+  rowCode === productCode &&
+  rowVersion === productVersion
+);
         }
       );
 
