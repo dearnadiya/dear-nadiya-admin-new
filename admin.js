@@ -30701,20 +30701,26 @@ container
               row.version
             ).trim();
 
-          const hasCustomer =
-            row &&
-            row.customer_name &&
-            String(
-              row.customer_name
-            ).trim();
+          const customerId =
+  Number(
+    row.customer_id
+  ) || null;
 
-          const tracking =
+const hasCustomer =
+  row &&
+  row.customer_name &&
+  String(
+    row.customer_name
+  ).trim();
+
+const tracking =
   String(
     row.batch_tracking_status || ""
   ).trim();
 
 return (
   hasMember &&
+  !customerId &&
   !hasCustomer &&
   tracking !== "Arrived Admin" &&
   tracking !== "Goods Arrive at Customer"
@@ -30955,12 +30961,18 @@ async function showOldRecapClaimDetail(
     row.batch_tracking_status || ""
   ).trim();
 
+const customerId =
+  Number(
+    row.customer_id
+  ) || null;
+
 return (
   row &&
   row.version &&
   String(
     row.version
   ).trim() &&
+  !customerId &&
   !(
     row.customer_name &&
     String(
