@@ -21240,7 +21240,7 @@ let html = `
 
                           <button
                             type="button"
-                            class="delete-button delete-recap-button"
+                            class="delete-button delete-member-button"
                             data-id="${row.id}"
                           >
                             🗑️ Hapus
@@ -21571,6 +21571,112 @@ container
             "Batch " +
             batchCode +
             " berhasil dihapus."
+          );
+
+          await loadRecapList(
+            category
+          );
+
+        }
+      );
+
+    }
+  );
+
+/* ==========================================
+   HAPUS MEMBER / VERSI SAJA
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".delete-member-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        async function(event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const id =
+            this.dataset.id;
+
+          if (!id) {
+
+            alert(
+              "ID member tidak ditemukan."
+            );
+
+            return;
+          }
+
+          const confirmDelete =
+            confirm(
+              "Yakin ingin menghapus member / versi ini?\n\n" +
+              "Hanya member ini yang akan dihapus.\n" +
+              "Batch lainnya tetap aman."
+            );
+
+          if (!confirmDelete) {
+            return;
+          }
+
+          this.disabled = true;
+          this.textContent =
+            "Menghapus...";
+
+          const {
+            data: deletedRows,
+            error: deleteError
+          } =
+            await supabaseClient
+              .from("purchase_recap")
+              .delete()
+              .eq("id", id)
+              .select("id");
+
+          if (deleteError) {
+
+            console.error(
+              "ERROR DELETE MEMBER:",
+              deleteError
+            );
+
+            alert(
+              "Gagal menghapus member / versi:\n\n" +
+              deleteError.message
+            );
+
+            this.disabled = false;
+            this.textContent =
+              "🗑️ Hapus";
+
+            return;
+          }
+
+          if (
+            !deletedRows ||
+            deletedRows.length === 0
+          ) {
+
+            alert(
+              "Member tidak terhapus.\n\n" +
+              "Tidak ada data yang dihapus. " +
+              "Periksa izin DELETE pada Supabase."
+            );
+
+            this.disabled = false;
+            this.textContent =
+              "🗑️ Hapus";
+
+            return;
+          }
+
+          alert(
+            "Member / versi berhasil dihapus. ♥"
           );
 
           await loadRecapList(
