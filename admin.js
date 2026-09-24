@@ -28431,7 +28431,7 @@ container.innerHTML = `
   id="editRemaining"
   type="text"
   value="${formatNominalInput(
-    data.remaining_amount || 0
+    actualRemaining
   )}"
   class="currency-input"
   readonly
@@ -29165,20 +29165,19 @@ function updateEditRemaining() {
 }
 }
 
-if (!isSamePriceMode) {
+/* ==========================================
+   SISA PEMBAYARAN
+   SUDAH DIHITUNG DARI PAYMENT CONFIRMED
+   JANGAN DIHITUNG DARI DP MINIMUM
+   ========================================== */
 
-  editPriceInput?.addEventListener(
-    "input",
-    updateEditRemaining
-  );
+if (editRemainingInput) {
 
-  editDpInput?.addEventListener(
-    "input",
-    updateEditRemaining
-  );
+  editRemainingInput.value =
+    formatNominalInput(
+      actualRemaining
+    );
 
-  // Hitung nilai awal saat form dibuka
-  updateEditRemaining();
 }
 
   document
