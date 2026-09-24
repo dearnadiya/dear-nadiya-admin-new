@@ -18808,12 +18808,12 @@ if (!batchCode) {
 
 /* ==========================================
    LEWATI BATCH DUMMY TEST
-   tr-cj-085
+   tr-ch-085
    ========================================== */
 
 if (
   batchCode.toLowerCase() ===
-  "tr-cj-085"
+  "tr-ch-085"
 ) {
 
   console.log(
