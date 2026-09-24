@@ -18785,66 +18785,78 @@ async function renderTabunganRecapList(
   .forEach(
     function(button) {
 
-      button.addEventListener(
-        "click",
-        async function() {
+      button.onclick = async function(event) {
 
-          const id =
-            this.dataset.id;
+        event.preventDefault();
+        event.stopPropagation();
 
-          if (!id) {
-            return;
-          }
+        const id =
+          this.dataset.id;
 
-          if (
-            !confirm(
-              "Yakin ingin menghapus MEMBER / VERSI ini?\n\n" +
-              "Hanya member yang dipilih yang akan dihapus."
-            )
-          ) {
-            return;
-          }
+        if (!id) {
+          alert(
+            "ID member / versi tidak ditemukan."
+          );
+          return;
+        }
 
-          const {
-            error: deleteMemberError
-          } =
-            await supabaseClient
-              .from("purchase_recap")
-              .delete()
-              .eq(
-                "id",
-                id
-              );
+        const yakin =
+          confirm(
+            "Yakin ingin menghapus MEMBER / VERSI ini?\n\n" +
+            "Hanya member yang dipilih yang akan dihapus.\n" +
+            "Batch lainnya tetap aman."
+          );
 
-          if (deleteMemberError) {
+        if (!yakin) {
+          return;
+        }
 
-            console.error(
-              "ERROR DELETE MEMBER:",
-              deleteMemberError
+        this.disabled = true;
+        this.textContent =
+          "Menghapus...";
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("purchase_recap")
+            .delete()
+            .eq(
+              "id",
+              id
             );
 
-            alert(
-              "Gagal menghapus member / versi: " +
-              deleteMemberError.message
-            );
+        if (error) {
 
-            return;
-          }
+          console.error(
+            "ERROR DELETE MEMBER / VERSI:",
+            error
+          );
 
           alert(
-            "Member / versi berhasil dihapus. ♥"
+            "Gagal menghapus member / versi:\n\n" +
+            error.message
           );
 
-          await loadRecapList(
-            category
-          );
+          this.disabled = false;
+          this.textContent =
+            "🗑️ Hapus";
 
+          return;
         }
-      );
+
+        alert(
+          "Member / versi berhasil dihapus. ♥"
+        );
+
+        await loadRecapList(
+          category
+        );
+
+      };
 
     }
   );
-
   }
 
 
