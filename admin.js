@@ -4409,6 +4409,360 @@ if (archiveContainer) {
 
 }
 
+/* =========================================================
+   HITUNG PEMBAYARAN AKTUAL DARI PAYMENT YANG SUDAH CONFIRMED
+   ========================================================= */
+
+async function getConfirmedPaymentSummary(
+  recapId,
+  minimumDp,
+  price
+) {
+
+  const {
+    data: allocations,
+    error: allocationError
+  } = await supabaseClient
+    .from("dn_payment_allocations")
+    .select(`
+      payment_submission_id,
+      allocated_amount,
+      payment_part,
+      allocation_status,
+      created_at
+    `)
+    .eq(
+      "recap_id",
+      recapId
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
+
+  if (allocationError) {
+
+    console.error(
+      "ERROR FETCH PAYMENT ALLOCATIONS:",
+      allocationError
+    );
+
+    return {
+      error: allocationError,
+      totalDpPaid: 0,
+      totalPelunasanPaid: 0,
+      totalPaid: 0,
+      remainingAmount: Number(price) || 0,
+      dpStatus: "unpaid",
+      paymentStatus: "unpaid"
+    };
+  }
+
+
+  const allocationList =
+    allocations || [];
+
+
+  /* ==========================================
+     AMBIL ID PAYMENT
+     ========================================== */
+
+  const paymentIds =
+    [
+      ...new Set(
+        allocationList
+          .map(function(row) {
+            return row.payment_submission_id;
+          })
+          .filter(Boolean)
+      )
+    ];
+
+
+  let confirmedIds =
+    new Set();
+
+
+  /* ==========================================
+     HANYA PAYMENT YANG SUDAH CONFIRMED
+     ========================================== */
+
+  if (paymentIds.length > 0) {
+
+    const {
+      data: confirmedPayments,
+      error: paymentError
+    } = await supabaseClient
+      .from("dn_payment_submissions")
+      .select("id")
+      .in(
+        "id",
+        paymentIds
+      )
+      .eq(
+        "status",
+        "confirmed"
+      );
+
+
+    if (paymentError) {
+
+      console.error(
+        "ERROR FETCH CONFIRMED PAYMENTS:",
+        paymentError
+      );
+
+      return {
+        error: paymentError,
+        totalDpPaid: 0,
+        totalPelunasanPaid: 0,
+        totalPaid: 0,
+        remainingAmount: Number(price) || 0,
+        dpStatus: "unpaid",
+        paymentStatus: "unpaid"
+      };
+    }
+
+
+    confirmedIds =
+      new Set(
+        (confirmedPayments || [])
+          .map(function(payment) {
+            return payment.id;
+          })
+      );
+
+  }
+
+
+  /* ==========================================
+     FILTER ALLOCATION
+     HANYA DARI PAYMENT CONFIRMED
+     ========================================== */
+
+  const confirmedAllocations =
+    allocationList.filter(
+      function(row) {
+
+        return confirmedIds.has(
+          row.payment_submission_id
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     HITUNG DP & PELUNASAN
+     ========================================== */
+
+  const minimumDpNumber =
+    Number(minimumDp) || 0;
+
+  const priceNumber =
+    Number(price) || 0;
+
+
+  let totalDpPaid = 0;
+
+  let totalPelunasanPaid = 0;
+
+
+  confirmedAllocations.forEach(
+    function(history) {
+
+      const amount =
+        Number(
+          history.allocated_amount
+        ) || 0;
+
+
+      if (amount <= 0) {
+        return;
+      }
+
+
+      /* ==========================
+         DP
+         ========================== */
+
+      if (
+        history.payment_part ===
+        "dp"
+      ) {
+
+        totalDpPaid +=
+          amount;
+
+        return;
+      }
+
+
+      /* ==========================
+         PELUNASAN
+         ========================== */
+
+      if (
+        history.payment_part ===
+        "pelunasan"
+      ) {
+
+        totalPelunasanPaid +=
+          amount;
+
+        return;
+      }
+
+
+      /* ==========================
+         BOTH
+         ========================== */
+
+      if (
+        history.payment_part ===
+        "both"
+      ) {
+
+        const dpNeeded =
+          Math.max(
+            minimumDpNumber -
+            totalDpPaid,
+            0
+          );
+
+
+        const dpPortion =
+          Math.min(
+            amount,
+            dpNeeded
+          );
+
+
+        const pelunasanPortion =
+          Math.max(
+            amount -
+            dpPortion,
+            0
+          );
+
+
+        totalDpPaid +=
+          dpPortion;
+
+
+        totalPelunasanPaid +=
+          pelunasanPortion;
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================
+     JIKA ADA PELUNASAN,
+     DP MINIMUM DIANGGAP SUDAH TERPENUHI
+     ========================================== */
+
+  if (
+    totalPelunasanPaid > 0 &&
+    totalDpPaid < minimumDpNumber
+  ) {
+
+    totalDpPaid =
+      minimumDpNumber;
+
+  }
+
+
+  /* ==========================================
+     STATUS DP
+     ========================================== */
+
+  let dpStatus =
+    "unpaid";
+
+
+  if (
+    minimumDpNumber <= 0
+  ) {
+
+    dpStatus =
+      "paid";
+
+  } else if (
+    totalDpPaid >=
+    minimumDpNumber
+  ) {
+
+    dpStatus =
+      "paid";
+
+  } else if (
+    totalDpPaid > 0
+  ) {
+
+    dpStatus =
+      "insufficient";
+
+  }
+
+
+  /* ==========================================
+     TOTAL TERBAYAR
+     ========================================== */
+
+  const totalPaid =
+    totalDpPaid +
+    totalPelunasanPaid;
+
+
+  /* ==========================================
+     SISA
+     ========================================== */
+
+  const remainingAmount =
+    Math.max(
+      priceNumber -
+      totalPaid,
+      0
+    );
+
+
+  /* ==========================================
+     STATUS PEMBAYARAN
+     ========================================== */
+
+  const paymentStatus =
+    priceNumber > 0 &&
+    dpStatus === "paid" &&
+    remainingAmount <= 0
+      ? "paid"
+      : "unpaid";
+
+
+  return {
+
+    error: null,
+
+    totalDpPaid,
+
+    totalPelunasanPaid,
+
+    totalPaid,
+
+    remainingAmount,
+
+    dpStatus,
+
+    paymentStatus
+
+  };
+
+}
+
 /* ============================================
    ALOKASI PEMBAYARAN
    ============================================ */
@@ -6853,27 +7207,30 @@ for (
   ================================ */
 
   const {
-    data: historyAllocations,
-    error: historyError
-  } =
-    await supabaseClient
-      .from(
-        "dn_payment_allocations"
-      )
-      .select(
-        "allocated_amount, payment_part, allocation_status, created_at"
-      )
-      .eq(
-        "recap_id",
-        allocation.recap_id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: true
-        }
-      );
-
+  data: historyAllocations,
+  error: historyError
+} =
+  await supabaseClient
+    .from(
+      "dn_payment_allocations"
+    )
+    .select(`
+      payment_submission_id,
+      allocated_amount,
+      payment_part,
+      allocation_status,
+      created_at
+    `)
+    .eq(
+      "recap_id",
+      allocation.recap_id
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
 
   if (
     historyError
@@ -6898,6 +7255,97 @@ for (
     return;
   }
 
+/* ==========================================
+   FILTER HANYA PAYMENT YANG CONFIRMED
+   ========================================== */
+
+const paymentSubmissionIds =
+  [
+    ...new Set(
+      (historyAllocations || [])
+        .map(function(row) {
+          return row.payment_submission_id;
+        })
+        .filter(Boolean)
+    )
+  ];
+
+let confirmedPaymentIds =
+  new Set();
+
+
+if (
+  paymentSubmissionIds.length > 0
+) {
+
+  const {
+    data: confirmedPayments,
+    error: confirmedPaymentError
+  } = await supabaseClient
+    .from(
+      "dn_payment_submissions"
+    )
+    .select("id")
+    .in(
+      "id",
+      paymentSubmissionIds
+    )
+    .eq(
+      "status",
+      "confirmed"
+    );
+
+
+  if (
+    confirmedPaymentError
+  ) {
+
+    console.error(
+      "ERROR FETCH CONFIRMED PAYMENT:",
+      confirmedPaymentError
+    );
+
+    alert(
+      "Pembayaran sudah dikonfirmasi, tetapi status pembayaran gagal dibaca: " +
+      confirmedPaymentError.message
+    );
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Lanjutkan";
+
+    return;
+  }
+
+
+  confirmedPaymentIds =
+    new Set(
+      (confirmedPayments || [])
+        .map(function(payment) {
+          return payment.id;
+        })
+    );
+
+}
+
+
+/* ==========================================
+   SISAKAN ALLOCATION DARI PAYMENT CONFIRMED
+   ========================================== */
+
+const confirmedHistoryAllocations =
+  (historyAllocations || [])
+    .filter(
+      function(history) {
+
+        return confirmedPaymentIds.has(
+          history.payment_submission_id
+        );
+
+      }
+    );
 
   /* ================================
      HITUNG DP KUMULATIF
@@ -6920,10 +7368,7 @@ for (
     0;
 
 
-  (
-    historyAllocations ||
-    []
-  ).forEach(
+  confirmedHistoryAllocations.forEach(
     function(history) {
 
       const amount =
@@ -26984,10 +27429,8 @@ function showEditTabunganRecapForm(
           type="text"
           class="currency-input"
           value="${formatNominalInput(
-            Number(
-              data.dp_amount
-            ) || 0
-          )}"
+  actualDp
+)}"
           readonly
         >
 
@@ -27010,10 +27453,8 @@ function showEditTabunganRecapForm(
           type="text"
           class="currency-input"
           value="${formatNominalInput(
-            Number(
-              data.remaining_amount
-            ) || 0
-          )}"
+  actualRemaining
+)}"
           readonly
         >
 
@@ -27624,6 +28065,81 @@ const isSamePriceMode =
   isSamePrice &&
   isSameDp;
 
+/* ==========================================
+   HITUNG PEMBAYARAN AKTUAL
+   DARI PAYMENT YANG SUDAH CONFIRMED
+   ========================================== */
+
+const currentPrice =
+  Number(
+    data.item_price
+  ) || 0;
+
+const currentMinimumDp =
+  Number(
+    data.minimum_dp_amount
+  ) || 0;
+
+
+const paymentSummary =
+  await getConfirmedPaymentSummary(
+    data.id,
+    currentMinimumDp,
+    currentPrice
+  );
+
+
+if (
+  paymentSummary.error
+) {
+
+  console.error(
+    "ERROR HITUNG PEMBAYARAN AKTUAL UNTUK EDIT:",
+    paymentSummary.error
+  );
+
+  alert(
+    "Gagal membaca histori pembayaran customer: " +
+    paymentSummary.error.message
+  );
+
+  return;
+}
+
+
+const actualDp =
+  Number(
+    paymentSummary.totalDpPaid
+  ) || 0;
+
+
+const actualPelunasan =
+  Number(
+    paymentSummary.totalPelunasanPaid
+  ) || 0;
+
+
+const actualTotalPaid =
+  Number(
+    paymentSummary.totalPaid
+  ) || 0;
+
+
+const actualRemaining =
+  Number(
+    paymentSummary.remainingAmount
+  ) || 0;
+
+
+const actualDpStatus =
+  paymentSummary.dpStatus ||
+  "unpaid";
+
+
+const actualPaymentStatus =
+  paymentSummary.paymentStatus ||
+  "unpaid";
+
 container.innerHTML = `
 
   <div
@@ -27866,6 +28382,42 @@ container.innerHTML = `
   readonly
 >
 
+<!-- ======================================
+     PELUNASAN TERBAYAR
+     ====================================== -->
+
+<label>
+  Pelunasan Terbayar
+</label>
+
+<input
+  id="editPelunasanPaid"
+  type="text"
+  value="${formatNominalInput(
+    actualPelunasan
+  )}"
+  class="currency-input"
+  readonly
+>
+
+
+<!-- ======================================
+     TOTAL TERBAYAR
+     ====================================== -->
+
+<label>
+  Total Terbayar
+</label>
+
+<input
+  id="editTotalPaid"
+  type="text"
+  value="${formatNominalInput(
+    actualTotalPaid
+  )}"
+  class="currency-input"
+  readonly
+>
 
 <!-- ======================================
      SISA PEMBAYARAN
@@ -27894,8 +28446,8 @@ container.innerHTML = `
         type="hidden"
         id="editDpStatus"
         value="${
-          data.dp_status || "unpaid"
-        }"
+  actualDpStatus
+}"
       >
       
       <!-- ======================================
@@ -27907,8 +28459,8 @@ container.innerHTML = `
         type="hidden"
         id="editPaymentStatus"
         value="${
-          data.payment_status || "unpaid"
-        }"
+  actualPaymentStatus
+}"
       >
 
 
@@ -28574,7 +29126,7 @@ const editPriceInput =
 
 const editDpInput =
   document.getElementById(
-    "editDpAmount"
+    "editDpMinimum"
   );
 
 const editRemainingInput =
@@ -28669,25 +29221,21 @@ const newDpMinimum =
   Jangan ambil dari input form.
 */
 const actualDp =
-  Number(data.dp_amount) || 0;
+  Number(
+    paymentSummary.totalDpPaid
+  ) || 0;
 
-/*
-  Ambil total pembayaran aktual lama.
 
-  Harga lama - Sisa lama
-  = total uang yang sudah benar-benar dibayar.
-*/
-const oldPrice =
-  Number(data.item_price) || 0;
+const actualPelunasan =
+  Number(
+    paymentSummary.totalPelunasanPaid
+  ) || 0;
 
-const oldRemaining =
-  Number(data.remaining_amount) || 0;
 
 const totalActualPaid =
-  Math.max(
-    0,
-    oldPrice - oldRemaining
-  );
+  Number(
+    paymentSummary.totalPaid
+  ) || 0;
 
 /*
   Setelah harga berubah,
@@ -28718,6 +29266,7 @@ const newDpStatus =
 */
 const newPaymentStatus =
   newPrice > 0 &&
+  actualDp >= newDpMinimum &&
   newRemaining <= 0
     ? "paid"
     : "unpaid";
