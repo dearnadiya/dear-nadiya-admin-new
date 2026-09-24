@@ -15199,7 +15199,7 @@ function formatBillingDeadline(
   );
 
 
-  const batchCodes =
+const batchCodes =
   Object.keys(
     batches
   ).filter(
@@ -15224,10 +15224,16 @@ function formatBillingDeadline(
               ""
             ).trim().toLowerCase();
 
-          return true;
+          return (
+            paymentStatus !== "paid" &&
+            remaining > 0
+          );
 
         }
       );
+
+    }
+  );
 
     }
   );
