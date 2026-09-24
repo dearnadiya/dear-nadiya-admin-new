@@ -20140,18 +20140,8 @@ async function loadRecapList(
     return;
   }
 
-/* ==========================================
-   PULIHKAN MEMBER AVAILABLE DARI PO LAMA
-   ========================================== */
-
-await restoreOldAvailableRecapMembers(
-  category
-);
-
-
-  container.innerHTML =
-    "<p>Memuat rekap...</p>";
-
+container.innerHTML =
+  "<p>Memuat rekap...</p>";
 
   const {
     data,
