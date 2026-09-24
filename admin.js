@@ -20990,89 +20990,248 @@ try {
 
     else {
 
-      (recapAllocationRows || [])
-        .filter(allocation =>
+  /* ======================================
+     CEK PEMBAYARAN DARI PAYMENT SYSTEM
+     ====================================== */
+
+  const confirmedRecapAllocations =
+    (recapAllocationRows || [])
+      .filter(function (allocation) {
+
+        return (
           String(
             allocation.recap_id
           ) === recapId &&
+
           recapConfirmedPaymentIds.has(
             String(
               allocation.payment_submission_id
             )
           )
-        )
-        .forEach(allocation => {
+        );
 
-          const amount =
-            Number(
-              allocation.allocated_amount
-            ) || 0;
-
-          if (amount <= 0) {
-            return;
-          }
+      });
 
 
-          if (
-            allocation.payment_part ===
-            "dp"
-          ) {
+  /* ======================================
+     JIKA ADA PAYMENT CONFIRMED
+     Gunakan payment system
+     ====================================== */
 
-            totalDpPaid +=
-              amount;
+  if (
+    confirmedRecapAllocations.length > 0
+  ) {
 
-            return;
-          }
+    confirmedRecapAllocations
+      .forEach(function (allocation) {
 
-
-          if (
-            allocation.payment_part ===
-            "pelunasan"
-          ) {
-
-            totalPelunasanPaid +=
-              amount;
-
-            return;
-          }
+        const amount =
+          Number(
+            allocation.allocated_amount
+          ) || 0;
 
 
-          if (
-            allocation.payment_part ===
-            "both"
-          ) {
+        if (amount <= 0) {
+          return;
+        }
 
-            const dpNeeded =
-              Math.max(
-                minimumDp -
-                totalDpPaid,
-                0
-              );
 
-            const dpPortion =
-              Math.min(
-                amount,
-                dpNeeded
-              );
+        /* ==========================
+           DP
+           ========================== */
 
-            const pelunasanPortion =
-              Math.max(
-                amount -
-                dpPortion,
-                0
-              );
+        if (
+          allocation.payment_part ===
+          "dp"
+        ) {
 
-            totalDpPaid +=
-              dpPortion;
+          totalDpPaid +=
+            amount;
 
-            totalPelunasanPaid +=
-              pelunasanPortion;
-          }
+          return;
 
-        });
+        }
+
+
+        /* ==========================
+           PELUNASAN
+           ========================== */
+
+        if (
+          allocation.payment_part ===
+          "pelunasan"
+        ) {
+
+          totalPelunasanPaid +=
+            amount;
+
+          return;
+
+        }
+
+
+        /* ==========================
+           DP + PELUNASAN
+           ========================== */
+
+        if (
+          allocation.payment_part ===
+          "both"
+        ) {
+
+          const dpNeeded =
+            Math.max(
+              minimumDp -
+              totalDpPaid,
+              0
+            );
+
+
+          const dpPortion =
+            Math.min(
+              amount,
+              dpNeeded
+            );
+
+
+          const pelunasanPortion =
+            Math.max(
+              amount -
+              dpPortion,
+              0
+            );
+
+
+          totalDpPaid +=
+            dpPortion;
+
+
+          totalPelunasanPaid +=
+            pelunasanPortion;
+
+        }
+
+      });
+
+  }
+
+
+  /* ======================================
+     JIKA TIDAK ADA PAYMENT CONFIRMED
+     Gunakan pembayaran MANUAL ADMIN
+     dari purchase_recap
+     ====================================== */
+
+  else {
+
+    const storedDp =
+      Number(
+        row.dp_amount
+      ) || 0;
+
+
+    /* ==================================
+       ADMIN MENANDAI LUNAS
+       ================================== */
+
+    if (
+      row.payment_status ===
+      "paid"
+    ) {
+
+      totalDpPaid =
+        storedDp > 0
+          ? Math.min(
+              storedDp,
+              price
+            )
+          : Math.min(
+              minimumDp,
+              price
+            );
+
+
+      totalPelunasanPaid =
+        Math.max(
+          price -
+          totalDpPaid,
+          0
+        );
 
     }
 
+
+    /* ==================================
+       ADMIN MENANDAI DP SUDAH DIBAYAR
+       ================================== */
+
+    else if (
+      row.dp_status ===
+      "paid"
+    ) {
+
+      totalDpPaid =
+        storedDp > 0
+          ? Math.min(
+              storedDp,
+              price
+            )
+          : Math.min(
+              minimumDp,
+              price
+            );
+
+
+      totalPelunasanPaid =
+        0;
+
+    }
+
+
+    /* ==================================
+       BELUM ADA PEMBAYARAN
+       ================================== */
+
+    else {
+
+      totalDpPaid =
+        Math.min(
+          storedDp,
+          price
+        );
+
+
+      const storedRemaining =
+        Math.max(
+          Number(
+            row.remaining_amount
+          ) || 0,
+          0
+        );
+
+
+      const storedTotalPaid =
+        price > 0
+          ? Math.max(
+              price -
+              storedRemaining,
+              0
+            )
+          : storedDp;
+
+
+      totalPelunasanPaid =
+        Math.max(
+          storedTotalPaid -
+          totalDpPaid,
+          0
+        );
+
+    }
+
+  }
+
+}
 
     const actualTotalPaid =
       totalDpPaid +
@@ -23355,8 +23514,135 @@ recapStatusSelects.forEach(
         }
 
 
+        /* ==================================
+           CUSTOMER STATUS
+           Tidak berhubungan dengan pembayaran
+           ================================== */
+
+        if (
+          select.classList.contains(
+            "recap-customer-status"
+          )
+        ) {
+
+          select.disabled = true;
+
+
+          const {
+            error
+          } =
+            await supabaseClient
+              .from(
+                "purchase_recap"
+              )
+              .update({
+                customer_status:
+                  value
+              })
+              .eq(
+                "id",
+                id
+              );
+
+
+          select.disabled = false;
+
+
+          if (error) {
+
+            console.error(
+              "ERROR UPDATE CUSTOMER STATUS:",
+              error
+            );
+
+            alert(
+              "Gagal menyimpan perubahan status customer."
+            );
+
+          }
+
+          return;
+
+        }
+
+
+        /* ==================================
+           AMBIL DATA REKAP
+           ================================== */
+
+        const {
+          data: recap,
+          error: recapFetchError
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .select(`
+              id,
+              item_price,
+              minimum_dp_amount,
+              dp_amount,
+              dp_status,
+              remaining_amount,
+              payment_status
+            `)
+            .eq(
+              "id",
+              id
+            )
+            .single();
+
+
+        if (recapFetchError) {
+
+          console.error(
+            "ERROR GET RECAP STATUS:",
+            recapFetchError
+          );
+
+          alert(
+            "Gagal mengambil data Rekap GO."
+          );
+
+          return;
+
+        }
+
+
+        const price =
+          Number(
+            recap.item_price
+          ) || 0;
+
+
+        const minimumDp =
+          Number(
+            recap.minimum_dp_amount
+          ) || 0;
+
+
+        let dpAmount =
+          Number(
+            recap.dp_amount
+          ) || 0;
+
+
+        let remainingAmount =
+          Math.max(
+            Number(
+              recap.remaining_amount
+            ) || 0,
+            0
+          );
+
+
         let updateData = {};
 
+
+        /* ==================================
+           ADMIN MENGUBAH STATUS DP
+           ================================== */
 
         if (
           select.classList.contains(
@@ -23364,12 +23650,107 @@ recapStatusSelects.forEach(
           )
         ) {
 
-          updateData = {
-            dp_status: value
-          };
+          if (
+            value === "paid"
+          ) {
+
+            /*
+             * Jika sebelumnya DP masih 0,
+             * otomatis gunakan DP minimum.
+             */
+
+            if (
+              dpAmount <= 0
+            ) {
+
+              dpAmount =
+                Math.min(
+                  minimumDp,
+                  price
+                );
+
+            } else {
+
+              dpAmount =
+                Math.min(
+                  dpAmount,
+                  price
+                );
+
+            }
+
+
+            remainingAmount =
+              Math.max(
+                price -
+                dpAmount,
+                0
+              );
+
+
+            updateData = {
+
+              dp_status:
+                "paid",
+
+              dp_amount:
+                dpAmount,
+
+              remaining_amount:
+                remainingAmount,
+
+              /*
+               * Kalau sebelumnya belum lunas,
+               * jangan otomatis membuat pembayaran
+               * menjadi lunas.
+               */
+
+              payment_status:
+                remainingAmount <= 0 &&
+                price > 0
+                  ? "paid"
+                  : "unpaid"
+
+            };
+
+          }
+
+          else {
+
+            /*
+             * DP dikembalikan menjadi belum dibayar.
+             */
+
+            dpAmount = 0;
+
+            remainingAmount =
+              price;
+
+
+            updateData = {
+
+              dp_status:
+                "unpaid",
+
+              dp_amount:
+                0,
+
+              remaining_amount:
+                remainingAmount,
+
+              payment_status:
+                "unpaid"
+
+            };
+
+          }
 
         }
 
+
+        /* ==================================
+           ADMIN MENGUBAH STATUS PEMBAYARAN
+           ================================== */
 
         else if (
           select.classList.contains(
@@ -23377,38 +23758,135 @@ recapStatusSelects.forEach(
           )
         ) {
 
-          updateData = {
-            payment_status: value
-          };
+          if (
+            value === "paid"
+          ) {
+
+            /*
+             * Pembayaran lunas.
+             *
+             * DP tetap merupakan bagian DP,
+             * bukan seluruh pembayaran.
+             */
+
+            if (
+              dpAmount <= 0
+            ) {
+
+              dpAmount =
+                Math.min(
+                  minimumDp,
+                  price
+                );
+
+            } else {
+
+              dpAmount =
+                Math.min(
+                  dpAmount,
+                  price
+                );
+
+            }
+
+
+            remainingAmount =
+              0;
+
+
+            updateData = {
+
+              dp_amount:
+                dpAmount,
+
+              dp_status:
+                (
+                  minimumDp <= 0 ||
+                  dpAmount >= minimumDp
+                )
+                  ? "paid"
+                  : recap.dp_status,
+
+              remaining_amount:
+                0,
+
+              payment_status:
+                "paid"
+
+            };
+
+          }
+
+          else {
+
+            /*
+             * Pembayaran tidak lunas.
+             *
+             * DP yang sudah dibayar tetap dipertahankan.
+             */
+
+            dpAmount =
+              Math.min(
+                dpAmount,
+                price
+              );
+
+
+            remainingAmount =
+              Math.max(
+                price -
+                dpAmount,
+                0
+              );
+
+
+            updateData = {
+
+              dp_amount:
+                dpAmount,
+
+              dp_status:
+                (
+                  minimumDp <= 0 ||
+                  dpAmount >= minimumDp
+                )
+                  ? "paid"
+                  : "unpaid",
+
+              remaining_amount:
+                remainingAmount,
+
+              payment_status:
+                "unpaid"
+
+            };
+
+          }
 
         }
 
 
-        else if (
-          select.classList.contains(
-            "recap-customer-status"
-          )
+        /* ==================================
+           SIMPAN
+           ================================== */
+
+        if (
+          Object.keys(
+            updateData
+          ).length === 0
         ) {
 
-          updateData = {
-            customer_status: value
-          };
+          return;
 
         }
 
 
-        const originalText =
-          select.dataset.originalText ||
-          select.options[
-            select.selectedIndex
-          ].textContent;
-
-
-        select.disabled = true;
+        select.disabled =
+          true;
 
 
         const {
-          error
+          error: updateError
         } =
           await supabaseClient
             .from(
@@ -23423,19 +23901,20 @@ recapStatusSelects.forEach(
             );
 
 
-        select.disabled = false;
+        select.disabled =
+          false;
 
 
-        if (error) {
+        if (updateError) {
 
           console.error(
             "ERROR UPDATE STATUS REKAP:",
-            error
+            updateError
           );
 
-
           alert(
-            "Gagal menyimpan perubahan status."
+            "Gagal menyimpan perubahan pembayaran:\n\n" +
+            updateError.message
           );
 
           return;
@@ -23443,10 +23922,19 @@ recapStatusSelects.forEach(
         }
 
 
-        select.dataset.originalText =
-          select.options[
-            select.selectedIndex
-          ].textContent;
+        /*
+         * Muat ulang Rekap GO agar:
+         * DP
+         * Pelunasan Terbayar
+         * Sisa
+         * Status
+         *
+         * langsung ikut berubah.
+         */
+
+        await loadRecapList(
+          category
+        );
 
       }
     );
