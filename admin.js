@@ -18374,7 +18374,6 @@ async function restoreOldAvailableRecapMembers(
     .select(`
       id,
       title,
-      batch_code,
       price_text,
       dp_text,
       last_dp_date,
@@ -18481,11 +18480,10 @@ console.log(
        * di Rekap GO.
        */
       const batchCode =
-        String(
-          po.recap_batch_code ||
-          po.batch_code ||
-          ""
-        ).trim();
+  String(
+    po.recap_batch_code ||
+    ""
+  ).trim();
 
 
       if (!batchCode) {
