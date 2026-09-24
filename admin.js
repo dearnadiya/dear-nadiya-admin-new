@@ -21954,84 +21954,170 @@ if (
 
   }
 
-  /* ==========================================
-     TOMBOL HAPUS
-     ========================================== */
+/* ==========================================
+   TOMBOL HAPUS BATCH
+   ========================================== */
 
-  container
-    .querySelectorAll(
-      ".delete-recap-button"
-    )
-    .forEach(
-      function (button) {
+container
+  .querySelectorAll(
+    ".delete-recap-button"
+  )
+  .forEach(
+    function(button) {
 
-        button.addEventListener(
-          "click",
-          async function () {
+      button.addEventListener(
+        "click",
+        async function() {
 
-            const id =
-              this.dataset.id;
+          const id =
+            this.dataset.id;
 
 
-            if (
-              !confirm(
-                "Yakin ingin menghapus data Rekap GO ini?"
+          if (!id) {
+            return;
+          }
+
+
+          if (
+            !confirm(
+              "Yakin ingin menghapus seluruh batch Rekap GO ini?"
+            )
+          ) {
+
+            return;
+
+          }
+
+
+          /* =====================================
+             AMBIL DATA BARIS YANG DIPILIH
+             UNTUK MENDAPATKAN CATEGORY
+             DAN BATCH CODE
+             ===================================== */
+
+          const {
+            data: selectedRow,
+            error: selectedRowError
+          } =
+            await supabaseClient
+              .from(
+                "purchase_recap"
               )
-            ) {
-
-              return;
-
-            }
-
-
-            const {
-              error
-            } =
-              await supabaseClient
-                .from(
-                  "purchase_recap"
-                )
-                .delete()
-                .eq(
-                  "id",
-                  id
-                );
+              .select(
+                "category, batch_code"
+              )
+              .eq(
+                "id",
+                id
+              )
+              .single();
 
 
-            if (error) {
+          if (selectedRowError) {
 
-              console.error(
-                "ERROR DELETE RECAP:",
-                error
-              );
-
-
-              alert(
-                "Gagal menghapus data: " +
-                error.message
-              );
-
-              return;
-
-            }
+            console.error(
+              "ERROR LOAD DATA BATCH:",
+              selectedRowError
+            );
 
 
             alert(
-              "Data Rekap GO berhasil dihapus."
+              "Gagal menemukan data batch: " +
+              selectedRowError.message
             );
 
-
-            await loadRecapList(
-              category
-            );
+            return;
 
           }
-        );
 
-      }
-    );
 
-}
+          const category =
+            String(
+              selectedRow?.category ||
+              ""
+            ).trim();
+
+
+          const batchCode =
+            String(
+              selectedRow?.batch_code ||
+              ""
+            ).trim();
+
+
+          if (
+            !category ||
+            !batchCode
+          ) {
+
+            alert(
+              "Kategori atau kode batch tidak ditemukan."
+            );
+
+            return;
+
+          }
+
+
+          /* =====================================
+             HAPUS SELURUH BARIS DALAM BATCH
+             CATEGORY + BATCH CODE
+             ===================================== */
+
+          const {
+            error
+          } =
+            await supabaseClient
+              .from(
+                "purchase_recap"
+              )
+              .delete()
+              .eq(
+                "category",
+                category
+              )
+              .eq(
+                "batch_code",
+                batchCode
+              );
+
+
+          if (error) {
+
+            console.error(
+              "ERROR DELETE BATCH RECAP:",
+              error
+            );
+
+
+            alert(
+              "Gagal menghapus batch: " +
+              error.message
+            );
+
+            return;
+
+          }
+
+
+          alert(
+            "Seluruh data batch berhasil dihapus."
+          );
+
+
+          /* =====================================
+             REFRESH DAFTAR KATEGORI
+             ===================================== */
+
+          await loadRecapList(
+            category
+          );
+
+        }
+      );
+
+    }
+  );
 
 /* ============================================
    BAGIAN 3
