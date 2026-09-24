@@ -18221,42 +18221,61 @@ async function syncConfirmedPaymentStatuses(
 
 
       /* ========================================
-         PROTEKSI DATA YANG SUDAH LUNAS
-         ======================================== */
+   PROTEKSI STATUS MANUAL
+   ======================================== */
 
-      if (
-        recap.payment_status ===
-          "paid" &&
-        paymentStatus !==
-          "paid"
-      ) {
+/*
+ * Kalau REKAP INI tidak mempunyai
+ * confirmed allocation, berarti statusnya
+ * berasal dari pembayaran manual admin.
+ *
+ * Dalam kondisi ini status manual tetap
+ * dipertahankan.
+ *
+ * Kalau mempunyai confirmed allocation,
+ * status WAJIB mengikuti histori pembayaran.
+ */
 
-        /*
-         * JANGAN TURUNKAN
-         * STATUS LUNAS
-         */
-
-        paymentStatus =
-          "paid";
-
-        protectedCount++;
-
-      }
+const hasConfirmedAllocations =
+  allocations.length > 0;
 
 
-      if (
-        recap.dp_status ===
-          "paid" &&
-        dpStatus ===
-          "unpaid" &&
-        !hasPelunasan
-      ) {
+if (
+  !hasConfirmedAllocations
+) {
 
-        /*
-         * JANGAN TURUNKAN
-         * STATUS DP
-         */
+  if (
+    recap.payment_status ===
+      "paid"
+  ) {
 
+    paymentStatus =
+      "paid";
+
+  }
+
+
+  if (
+    recap.dp_status ===
+      "paid"
+  ) {
+
+    dpStatus =
+      "paid";
+
+    if (
+      totalDpPaid <
+      minimumDp
+    ) {
+
+      totalDpPaid =
+        minimumDp;
+
+    }
+
+  }
+
+}
         dpStatus =
           "paid";
 
