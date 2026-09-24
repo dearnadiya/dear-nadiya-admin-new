@@ -782,24 +782,26 @@ while (true) {
   } = await supabaseClient
     .from("purchase_recap")
     .select(`
-      customer_id,
-      customer_name,
-      category,
-      batch_code,
-      item_name,
-      version,
-      quantity,
-      dp_amount,
-      minimum_dp_amount,
-      remaining_amount,
-      dp_status,
-      payment_status,
-      customer_status,
-      batch_tracking_status,
-      dp_deadline,
-      payment_deadline,
-      co_deadline
-    `)
+  id,
+  customer_id,
+  customer_name,
+  category,
+  batch_code,
+  item_name,
+  version,
+  quantity,
+  item_price,
+  dp_amount,
+  minimum_dp_amount,
+  remaining_amount,
+  dp_status,
+  payment_status,
+  customer_status,
+  batch_tracking_status,
+  dp_deadline,
+  payment_deadline,
+  co_deadline
+`)
     .range(
       dashboardFrom,
       dashboardFrom + dashboardPageSize - 1
@@ -876,6 +878,192 @@ const error = null;
     }
 
     const rows = data || [];
+
+   /* =====================================
+   HITUNG PEMBAYARAN AKTUAL DASHBOARD
+   Hanya memakai payment submission CONFIRMED.
+===================================== */
+
+const dashboardPaymentSummary = {};
+
+try {
+
+  const {
+    data: dashboardAllocationRows,
+    error: dashboardAllocationError
+  } = await supabaseClient
+    .from("dn_payment_allocations")
+    .select(`
+      payment_submission_id,
+      recap_id,
+      allocated_amount,
+      payment_part,
+      created_at
+    `)
+    .order("created_at", {
+      ascending: true
+    });
+
+  if (dashboardAllocationError) {
+    throw dashboardAllocationError;
+  }
+
+  const {
+    data: dashboardConfirmedPayments,
+    error: dashboardConfirmedPaymentError
+  } = await supabaseClient
+    .from("dn_payment_submissions")
+    .select("id")
+    .eq("status", "confirmed");
+
+  if (dashboardConfirmedPaymentError) {
+    throw dashboardConfirmedPaymentError;
+  }
+
+  const confirmedPaymentIds = new Set(
+    (dashboardConfirmedPayments || []).map(payment =>
+      String(payment.id)
+    )
+  );
+
+  rows.forEach(row => {
+
+    const recapId = String(row.id);
+
+    const minimumDp =
+      Number(row.minimum_dp_amount) || 0;
+
+    const price =
+      Number(row.item_price) || 0;
+
+    let totalDpPaid = 0;
+    let totalPelunasanPaid = 0;
+
+    (dashboardAllocationRows || [])
+      .filter(allocation =>
+        String(allocation.recap_id) === recapId &&
+        confirmedPaymentIds.has(
+          String(allocation.payment_submission_id)
+        )
+      )
+      .forEach(allocation => {
+
+        const amount =
+          Number(allocation.allocated_amount) || 0;
+
+        if (amount <= 0) {
+          return;
+        }
+
+        if (allocation.payment_part === "dp") {
+          totalDpPaid += amount;
+          return;
+        }
+
+        if (allocation.payment_part === "pelunasan") {
+          totalPelunasanPaid += amount;
+          return;
+        }
+
+        if (allocation.payment_part === "both") {
+
+          const dpNeeded =
+            Math.max(
+              minimumDp - totalDpPaid,
+              0
+            );
+
+          const dpPortion =
+            Math.min(
+              amount,
+              dpNeeded
+            );
+
+          const pelunasanPortion =
+            Math.max(
+              amount - dpPortion,
+              0
+            );
+
+          totalDpPaid += dpPortion;
+          totalPelunasanPaid += pelunasanPortion;
+        }
+
+      });
+
+    const dpTargetReached =
+      minimumDp <= 0 ||
+      totalDpPaid >= minimumDp;
+
+    const actualTotalPaid =
+      totalDpPaid +
+      totalPelunasanPaid;
+
+    const actualRemaining =
+      price > 0
+        ? Math.max(
+            price - actualTotalPaid,
+            0
+          )
+        : Math.max(
+            Number(row.remaining_amount) || 0,
+            0
+          );
+
+    dashboardPaymentSummary[recapId] = {
+      totalDpPaid,
+      totalPelunasanPaid,
+      dpTarget: minimumDp,
+      dpOutstanding:
+        Math.max(
+          minimumDp - totalDpPaid,
+          0
+        ),
+      dpTargetReached,
+      actualTotalPaid,
+      actualRemaining
+    };
+
+  });
+
+} catch (dashboardPaymentError) {
+
+  console.error(
+    "ERROR HITUNG PEMBAYARAN DASHBOARD:",
+    dashboardPaymentError
+  );
+
+  rows.forEach(row => {
+
+    const minimumDp =
+      Number(row.minimum_dp_amount) || 0;
+
+    const storedDp =
+      Number(row.dp_amount) || 0;
+
+    dashboardPaymentSummary[String(row.id)] = {
+      totalDpPaid: storedDp,
+      totalPelunasanPaid: 0,
+      dpTarget: minimumDp,
+      dpOutstanding:
+        Math.max(
+          minimumDp - storedDp,
+          0
+        ),
+      dpTargetReached:
+        minimumDp <= 0 ||
+        storedDp >= minimumDp,
+      actualTotalPaid: 0,
+      actualRemaining:
+        Math.max(
+          Number(row.remaining_amount) || 0,
+          0
+        )
+    };
+
+  });
+
+}
 
    console.table(
   rows
@@ -1179,7 +1367,7 @@ document.getElementById(
        Tidak muncul sebelum deadline.
     ===================================== */
 
-    const dpRows =
+const dpRows =
   rows.filter(row => {
 
     const deadline =
@@ -1187,73 +1375,37 @@ document.getElementById(
         row.dp_deadline
       );
 
-    const status =
-      String(
-        row.dp_status || ""
-      )
-        .trim()
-        .toLowerCase();
-
-    const dpAmount =
-      Number(
-        row.dp_amount
-      ) || 0;
+    const summary =
+      dashboardPaymentSummary[
+        String(row.id)
+      ] || {};
 
     const minimumDp =
       Number(
+        summary.dpTarget ??
         row.minimum_dp_amount
       ) || 0;
 
+    const dpOutstanding =
+      Number(
+        summary.dpOutstanding
+      ) || 0;
 
-    /*
-      Tidak ada deadline DP
-    */
     if (!deadline) {
       return false;
     }
 
-
-    /*
-      Belum masuk tanggal jatuh tempo
-    */
-    if (
-      deadline > todayISO
-    ) {
+    if (deadline > todayISO) {
       return false;
     }
 
-
-    /*
-      Jika status sudah paid,
-      DP tidak perlu ditampilkan.
-    */
-    if (
-      status === "paid"
-    ) {
+    /* DP 0 bukan tagihan DP. */
+    if (minimumDp <= 0) {
       return false;
     }
 
-
-    /*
-      Jika minimum DP tersedia,
-      cek nominal yang sudah dibayar.
-    */
-    if (
-      minimumDp > 0
-    ) {
-      return dpAmount < minimumDp;
-    }
-
-
-    /*
-      Jika minimum DP kosong / 0,
-      jangan hilangkan customer hanya
-      karena nominal minimum tidak tersedia.
-
-      Selama status belum paid,
-      customer tetap ditampilkan.
-    */
-    return true;
+    /* Hanya tampil jika target DP belum tercapai. */
+    return dpOutstanding > 0;
 
   });
 
@@ -1320,14 +1472,19 @@ const rincianDendaDP = [];
               customerRows
                 .map(row => {
 
-                  const dpAmount =
+                  const summary =
+  dashboardPaymentSummary[
+    String(row.id)
+  ] || {};
+
+const dpAmount =
   Number(
-    row.dp_amount
+    summary.dpOutstanding
   ) || 0;
 
 totalDP +=
   dpAmount;
-
+                   
 const hariTerlambat =
   hitungHariTerlambat(
     row.dp_deadline
@@ -1547,12 +1704,6 @@ const paymentRows =
       const batchKey =
         `${category}::${batchCode}`;
 
-
-      /*
-        Prioritas:
-        1. Deadline pada row customer
-        2. Deadline dari batch
-      */
       const paymentDeadline =
         normalizeDate(
           row.payment_deadline
@@ -1562,16 +1713,42 @@ const paymentRows =
         ] ||
         "";
 
+      const summary =
+        dashboardPaymentSummary[
+          String(row.id)
+        ] || {};
 
-      /*
-        Simpan deadline hasil fallback
-        ke row supaya bagian rendering
-        memakai deadline yang sama.
-      */
+      const minimumDp =
+        Number(
+          summary.dpTarget ??
+          row.minimum_dp_amount
+        ) || 0;
+
+      const dpTargetReached =
+        Boolean(
+          summary.dpTargetReached ??
+          (
+            minimumDp <= 0 ||
+            (
+              Number(row.dp_amount) || 0
+            ) >= minimumDp
+          )
+        );
+
+      const remaining =
+        Number(
+          summary.actualRemaining ??
+          row.remaining_amount
+        ) || 0;
+
       return {
         ...row,
         effective_payment_deadline:
-          paymentDeadline
+          paymentDeadline,
+        dashboard_remaining_amount:
+          remaining,
+        dashboard_dp_target_reached:
+          dpTargetReached
       };
 
     })
@@ -1582,48 +1759,27 @@ const paymentRows =
           row.effective_payment_deadline
         );
 
-
-      /*
-        Tidak ada deadline
-      */
       if (!deadline) {
         return false;
       }
 
+      if (deadline > todayISO) {
+        return false;
+      }
 
-      /*
-        Belum jatuh tempo
-      */
+      /* Pelunasan hanya setelah target DP tercapai. */
       if (
-        deadline > todayISO
+        !row.dashboard_dp_target_reached
       ) {
         return false;
       }
 
-
-      /*
-        Ambil sisa tagihan aktual
-      */
       const remaining =
         Number(
-          row.remaining_amount
+          row.dashboard_remaining_amount
         ) || 0;
 
-
-      /*
-        Sudah lunas
-      */
-      if (
-        remaining <= 0
-      ) {
-        return false;
-      }
-
-
-      /*
-        MASUK PELUNASAN
-      */
-      return true;
+      return remaining > 0;
 
     });
 
@@ -1692,7 +1848,7 @@ const rincianDendaPayment = [];
 
       const remaining =
   Number(
-    row.remaining_amount
+    row.dashboard_remaining_amount
   ) || 0;
 
 totalPayment +=
@@ -31436,7 +31592,8 @@ async function loadPOArchiveList(showData = false) {
           last_dp_date,
           created_at,
           order_mode,
-          list_data
+          list_data,
+          recap_status
         `)
         .not(
           "close_date",
@@ -31462,74 +31619,33 @@ console.log("ARCHIVE ERROR:", error);
     }
 
     const archivedPOs =
-      (data || []).filter(
-        function (po) {
+  (data || []).filter(
+    function (po) {
 
-          let rows =
-            po.list_data || [];
+      const recapStatus =
+        String(
+          po.recap_status || ""
+        )
+          .trim()
+          .toLowerCase();
 
-          if (
-            typeof rows ===
-            "string"
-          ) {
+      /*
+       * Archive dan Masih Bisa Claim berdiri sendiri.
+       *
+       * PO closed + masih ada member available
+       * -> Arsip + Masih Bisa Claim
+       *
+       * PO closed + semua member sudah claimed
+       * -> Arsip
+       *
+       * PO sudah masuk Rekap GO
+       * -> hilang dari Arsip
+       */
 
-            try {
+      return recapStatus !== "completed";
 
-              rows =
-                JSON.parse(
-                  rows
-                );
-
-            } catch (error) {
-
-              rows = [];
-
-            }
-
-          }
-
-          if (
-            !Array.isArray(
-              rows
-            )
-          ) {
-
-            rows = [];
-
-          }
-
-          /*
-           * Arsip jika:
-           * - tidak ada member kosong
-           * - semua member yang dikonfigurasi
-           *   sudah memiliki customer
-           */
-
-          const hasAvailableMember =
-            rows.some(
-              function (row) {
-
-                return (
-                  row &&
-                  row.member &&
-                  String(
-                    row.member
-                  ).trim() &&
-                  !(
-                    row.customer &&
-                    String(
-                      row.customer
-                    ).trim()
-                  )
-                );
-
-              }
-            );
-
-          return !hasAvailableMember;
-
-        }
-      );
+    }
+  );
 
     if (
       archivedPOs.length === 0
@@ -32592,14 +32708,43 @@ arrived_admin_at:
     .eq("id", po.id);
 
 if (recapStatusError) {
+
   console.error(
     "GAGAL MENYIMPAN STATUS REKAP PO:",
     recapStatusError
   );
-}
 
+  alert(
+    "Data sudah masuk Rekap GO, tetapi status Arsip gagal diperbarui. " +
+    "Silakan muat ulang halaman dan cek PO ini."
+  );
+
+  archiveRecapSubmitButton.disabled =
+    false;
+
+  archiveRecapSubmitButton.textContent =
+    "📥 Masukkan ke Rekap GO";
+
+  return;
+}
         archiveRecapSubmitButton.textContent =
           "✅ Sudah Masuk Rekap GO";
+
+   localStorage.removeItem(
+  "dearNadiyaSelectedArchivePO"
+);
+
+const currentArchiveDetail =
+  document.getElementById(
+    "poArchiveDetailContainer"
+  );
+
+if (currentArchiveDetail) {
+  currentArchiveDetail.innerHTML = "";
+  currentArchiveDetail.style.display = "none";
+}
+
+await loadPOArchiveList(true);
 
 
       } catch (error) {
