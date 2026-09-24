@@ -22827,10 +22827,12 @@ function getTrackingOptions(
 async function showEditTabunganBatchForm(
   rows,
   batchCode,
-  category
+  category,
+  targetContainer = null
 ) {
 
-  const container =
+    const container =
+    targetContainer ||
     document.getElementById(
       "recapFormContainer"
     );
@@ -22838,7 +22840,6 @@ async function showEditTabunganBatchForm(
   if (!container) {
     return;
   }
-
 
   const firstRow =
     rows[0];
@@ -23224,20 +23225,97 @@ async function editBatchHeader(
   category
 ) {
 
-  const container =
-    document.getElementById(
-      "recapFormContainer"
+    /* ==========================================
+     CARI BATCH YANG TOMBOL EDIT-NYA DIKLIK
+     FORM AKAN MUNCUL DI DALAM BATCH TERSEBUT
+     ========================================== */
+
+  const editButton =
+    Array.from(
+      document.querySelectorAll(
+        "#recapListContainer .edit-batch-header-button"
+      )
+    ).find(function(button) {
+
+      return (
+        button.dataset.batchCode ===
+          batchCode &&
+        button.dataset.category ===
+          category
+      );
+
+    });
+
+  const batchCard =
+    editButton
+      ? editButton.closest(
+          ".recap-batch-card"
+        )
+      : null;
+
+  if (!batchCard) {
+    console.error(
+      "Batch card untuk Edit tidak ditemukan:",
+      batchCode,
+      category
+    );
+    return;
+  }
+
+
+  /* ==========================================
+     BUAT CONTAINER FORM DI DALAM BATCH
+     ========================================== */
+
+  let container =
+    batchCard.querySelector(
+      ".edit-batch-inline-container"
     );
 
   if (!container) {
-    return;
+
+    container =
+      document.createElement(
+        "div"
+      );
+
+    container.className =
+      "edit-batch-inline-container";
+
+    const batchHeader =
+      batchCard.querySelector(
+        ".recap-batch-header"
+      );
+
+    if (batchHeader) {
+
+      batchHeader.insertAdjacentElement(
+        "afterend",
+        container
+      );
+
+    } else {
+
+      batchCard.prepend(
+        container
+      );
+
+    }
+
   }
+
 
   container.style.display =
     "block";
 
   container.innerHTML = `
-    <div class="panel recap-form">
+    <div
+      class="panel recap-form"
+      style="
+        margin:12px 0;
+        border:1px solid var(--line);
+      "
+    >
 
       <h3>
         ✏️ Edit Batch
@@ -23259,15 +23337,15 @@ async function editBatchHeader(
     </div>
   `;
 
-   setTimeout(function () {
 
-  container.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  setTimeout(function() {
 
-}, 50);
+    container.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
 
+  }, 50);
   /* ==========================================
      AMBIL SEMUA CUSTOMER DALAM BATCH
      ========================================== */
@@ -23364,7 +23442,8 @@ if (
   showEditTabunganBatchForm(
     data,
     batchCode,
-    category
+    category,
+    container
   );
 
   return;
@@ -24282,7 +24361,7 @@ const {
         }
 
 
-        alert(
+                alert(
           "Data batch berhasil diperbarui. ♥"
         );
 
@@ -24297,6 +24376,84 @@ const {
         await loadRecapList(
           category
         );
+
+
+        /* ======================================
+           KEMBALI OTOMATIS KE BATCH YANG BARU
+           DIEDIT
+           ====================================== */
+
+        setTimeout(function() {
+
+          const batchCards =
+            Array.from(
+              document.querySelectorAll(
+                "#recapListContainer .recap-batch-card"
+              )
+            );
+
+          const targetCard =
+            batchCards.find(
+              function(card) {
+
+                const title =
+                  card.querySelector(
+                    ".recap-batch-header h3"
+                  );
+
+                return (
+                  title &&
+                  title.textContent.trim() ===
+                    newBatchCode
+                );
+
+              }
+            );
+
+          if (!targetCard) {
+            return;
+          }
+
+
+          /* Buka batch */
+
+          targetCard.classList.remove(
+            "recap-batch-collapsed"
+          );
+
+
+          const tracking =
+            targetCard.querySelector(
+              ".batch-tracking"
+            );
+
+          const tableWrapper =
+            targetCard.querySelector(
+              ".product-table-wrapper"
+            );
+
+
+          if (tracking) {
+            tracking.style.display =
+              "";
+          }
+
+          if (tableWrapper) {
+            tableWrapper.style.display =
+              "";
+          }
+
+
+          /* Scroll ke batch */
+
+          targetCard.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+        }, 100);
+
+      }
 
       }
     );
