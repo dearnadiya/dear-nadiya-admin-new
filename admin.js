@@ -909,6 +909,7 @@ try {
     throw dashboardAllocationError;
   }
 
+
   const {
     data: dashboardConfirmedPayments,
     error: dashboardConfirmedPaymentError
@@ -921,96 +922,345 @@ try {
     throw dashboardConfirmedPaymentError;
   }
 
-  const confirmedPaymentIds = new Set(
-    (dashboardConfirmedPayments || []).map(payment =>
-      String(payment.id)
-    )
-  );
 
-rows.forEach(row => {
+  const confirmedPaymentIds =
+    new Set(
+      (dashboardConfirmedPayments || [])
+        .map(function (payment) {
+          return String(payment.id);
+        })
+    );
 
-  const recapId = String(row.id);
 
-  const minimumDp =
-    Number(row.minimum_dp_amount) || 0;
+  rows.forEach(function (row) {
 
-  const price =
-    Number(row.item_price) || 0;
+    const recapId =
+      String(row.id);
 
-  const isLegacy =
-    String(row.recap_data_type || "")
-      .trim()
-      .toLowerCase() === "lama";
+    const minimumDp =
+      Number(row.minimum_dp_amount) || 0;
 
-  let totalDpPaid = 0;
-  let totalPelunasanPaid = 0;
+    const price =
+      Number(row.item_price) || 0;
 
-  /* ==========================================
-     DATA REKAP LAMA
-     Pembayaran dilakukan secara manual.
-     Gunakan data yang tersimpan di purchase_recap.
-     ========================================== */
+    const isLegacy =
+      String(row.recap_data_type || "")
+        .trim()
+        .toLowerCase() === "lama";
 
-  if (isLegacy) {
 
-    const storedDp =
-      Number(row.dp_amount) || 0;
+    let totalDpPaid = 0;
+    let totalPelunasanPaid = 0;
 
-    const storedRemaining =
-      Math.max(
-        Number(row.remaining_amount) || 0,
-        0
-      );
 
-    /*
-      Untuk data lama:
-      dp_amount = DP aktual yang sudah dibayar.
+    /* ==========================================
+       REKAP LAMA
+       ========================================== */
 
-      Jika minimum DP > 0,
-      DP yang dihitung sebagai pemenuhan target
-      tidak boleh melebihi target DP.
-    */
+    if (isLegacy) {
 
-    totalDpPaid =
-      minimumDp > 0
-        ? Math.min(storedDp, minimumDp)
-        : storedDp;
+      const storedDp =
+        Number(row.dp_amount) || 0;
 
-    /*
-      Total pembayaran aktual dihitung dari:
-      Harga - Sisa.
-    */
+      const storedRemaining =
+        Math.max(
+          Number(row.remaining_amount) || 0,
+          0
+        );
+
+
+      totalDpPaid =
+        minimumDp > 0
+          ? Math.min(
+              storedDp,
+              minimumDp
+            )
+          : storedDp;
+
+
+      const actualTotalPaid =
+        price > 0
+          ? Math.max(
+              price - storedRemaining,
+              0
+            )
+          : storedDp;
+
+
+      totalPelunasanPaid =
+        Math.max(
+          actualTotalPaid -
+          totalDpPaid,
+          0
+        );
+
+    }
+
+
+    /* ==========================================
+       REKAP BARU
+       ========================================== */
+
+    else {
+
+      const confirmedRecapAllocations =
+        (dashboardAllocationRows || [])
+          .filter(function (allocation) {
+
+            return (
+              String(
+                allocation.recap_id
+              ) === recapId &&
+
+              confirmedPaymentIds.has(
+                String(
+                  allocation.payment_submission_id
+                )
+              )
+            );
+
+          });
+
+
+      /* ========================================
+         JIKA ADA PAYMENT CONFIRMED
+         → allocation menjadi sumber utama
+         ======================================== */
+
+      if (
+        confirmedRecapAllocations.length > 0
+      ) {
+
+        confirmedRecapAllocations.forEach(
+          function (allocation) {
+
+            const amount =
+              Number(
+                allocation.allocated_amount
+              ) || 0;
+
+            if (amount <= 0) {
+              return;
+            }
+
+
+            if (
+              allocation.payment_part ===
+              "dp"
+            ) {
+
+              totalDpPaid +=
+                amount;
+
+              return;
+            }
+
+
+            if (
+              allocation.payment_part ===
+              "pelunasan"
+            ) {
+
+              totalPelunasanPaid +=
+                amount;
+
+              return;
+            }
+
+
+            if (
+              allocation.payment_part ===
+              "both"
+            ) {
+
+              const dpNeeded =
+                Math.max(
+                  minimumDp -
+                  totalDpPaid,
+                  0
+                );
+
+              const dpPortion =
+                Math.min(
+                  amount,
+                  dpNeeded
+                );
+
+              const pelunasanPortion =
+                Math.max(
+                  amount -
+                  dpPortion,
+                  0
+                );
+
+              totalDpPaid +=
+                dpPortion;
+
+              totalPelunasanPaid +=
+                pelunasanPortion;
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ========================================
+         TIDAK ADA PAYMENT CONFIRMED
+         → gunakan status manual Rekap GO
+         ======================================== */
+
+      else {
+
+        const storedDp =
+          Number(row.dp_amount) || 0;
+
+
+        /* --------------------------------------
+           MANUAL LUNAS
+           -------------------------------------- */
+
+        if (
+          row.payment_status ===
+          "paid"
+        ) {
+
+          totalDpPaid =
+            storedDp > 0
+              ? Math.min(
+                  storedDp,
+                  price
+                )
+              : Math.min(
+                  minimumDp,
+                  price
+                );
+
+
+          totalPelunasanPaid =
+            Math.max(
+              price -
+              totalDpPaid,
+              0
+            );
+
+        }
+
+
+        /* --------------------------------------
+           MANUAL DP PAID
+           -------------------------------------- */
+
+        else if (
+          row.dp_status ===
+          "paid"
+        ) {
+
+          totalDpPaid =
+            storedDp > 0
+              ? Math.min(
+                  storedDp,
+                  price
+                )
+              : Math.min(
+                  minimumDp,
+                  price
+                );
+
+
+          totalPelunasanPaid =
+            0;
+
+        }
+
+
+        /* --------------------------------------
+           BELUM DIBAYAR / DATA TERSIMPAN
+           -------------------------------------- */
+
+        else {
+
+          totalDpPaid =
+            Math.min(
+              storedDp,
+              price
+            );
+
+
+          const storedRemaining =
+            Math.max(
+              Number(
+                row.remaining_amount
+              ) || 0,
+              0
+            );
+
+
+          const storedTotalPaid =
+            price > 0
+              ? Math.max(
+                  price -
+                  storedRemaining,
+                  0
+                )
+              : storedDp;
+
+
+          totalPelunasanPaid =
+            Math.max(
+              storedTotalPaid -
+              totalDpPaid,
+              0
+            );
+
+        }
+
+      }
+
+    }
+
+
+    /* ==========================================
+       TOTAL PEMBAYARAN
+       ========================================== */
 
     const actualTotalPaid =
+      totalDpPaid +
+      totalPelunasanPaid;
+
+
+    const actualRemaining =
       price > 0
         ? Math.max(
-            price - storedRemaining,
+            price -
+            actualTotalPaid,
             0
           )
-        : storedDp;
+        : 0;
 
-    /*
-      Sisa pembayaran setelah bagian DP.
-    */
-
-    totalPelunasanPaid =
-      Math.max(
-        actualTotalPaid - totalDpPaid,
-        0
-      );
 
     const dpTargetReached =
       minimumDp <= 0 ||
       totalDpPaid >= minimumDp;
 
-    dashboardPaymentSummary[recapId] = {
+
+    dashboardPaymentSummary[
+      recapId
+    ] = {
+
       totalDpPaid,
+
       totalPelunasanPaid,
-      dpTarget: minimumDp,
+
+      dpTarget:
+        minimumDp,
 
       dpOutstanding:
         Math.max(
-          minimumDp - totalDpPaid,
+          minimumDp -
+          totalDpPaid,
           0
         ),
 
@@ -1018,155 +1268,81 @@ rows.forEach(row => {
 
       actualTotalPaid,
 
-      actualRemaining:
-        storedRemaining
+      actualRemaining
+
     };
 
-    return;
-  }
+  });
 
 
-  /* ==========================================
-     DATA BARU
-     Tetap gunakan sistem pembayaran baru.
-     ========================================== */
-
-  (dashboardAllocationRows || [])
-    .filter(allocation =>
-      String(allocation.recap_id) === recapId &&
-      confirmedPaymentIds.has(
-        String(allocation.payment_submission_id)
-      )
-    )
-    .forEach(allocation => {
-
-      const amount =
-        Number(allocation.allocated_amount) || 0;
-
-      if (amount <= 0) {
-        return;
-      }
-
-      if (allocation.payment_part === "dp") {
-
-        totalDpPaid += amount;
-
-        return;
-      }
-
-      if (allocation.payment_part === "pelunasan") {
-
-        totalPelunasanPaid += amount;
-
-        return;
-      }
-
-      if (allocation.payment_part === "both") {
-
-        const dpNeeded =
-          Math.max(
-            minimumDp - totalDpPaid,
-            0
-          );
-
-        const dpPortion =
-          Math.min(
-            amount,
-            dpNeeded
-          );
-
-        const pelunasanPortion =
-          Math.max(
-            amount - dpPortion,
-            0
-          );
-
-        totalDpPaid += dpPortion;
-
-        totalPelunasanPaid +=
-          pelunasanPortion;
-      }
-
-    });
-
-
-  const dpTargetReached =
-    minimumDp <= 0 ||
-    totalDpPaid >= minimumDp;
-
-  const actualTotalPaid =
-    totalDpPaid +
-    totalPelunasanPaid;
-
-  const actualRemaining =
-    price > 0
-      ? Math.max(
-          price - actualTotalPaid,
-          0
-        )
-      : Math.max(
-          Number(row.remaining_amount) || 0,
-          0
-        );
-
-
-  dashboardPaymentSummary[recapId] = {
-
-    totalDpPaid,
-
-    totalPelunasanPaid,
-
-    dpTarget: minimumDp,
-
-    dpOutstanding:
-      Math.max(
-        minimumDp - totalDpPaid,
-        0
-      ),
-
-    dpTargetReached,
-
-    actualTotalPaid,
-
-    actualRemaining
-
-  };
-
-});
-
-} catch (dashboardPaymentError) {
+} catch (
+  dashboardPaymentError
+) {
 
   console.error(
     "ERROR HITUNG PEMBAYARAN DASHBOARD:",
     dashboardPaymentError
   );
 
-  rows.forEach(row => {
+
+  rows.forEach(function (row) {
 
     const minimumDp =
-      Number(row.minimum_dp_amount) || 0;
+      Number(
+        row.minimum_dp_amount
+      ) || 0;
 
     const storedDp =
-      Number(row.dp_amount) || 0;
+      Number(
+        row.dp_amount
+      ) || 0;
 
-    dashboardPaymentSummary[String(row.id)] = {
-      totalDpPaid: storedDp,
-      totalPelunasanPaid: 0,
-      dpTarget: minimumDp,
+
+    dashboardPaymentSummary[
+      String(row.id)
+    ] = {
+
+      totalDpPaid:
+        storedDp,
+
+      totalPelunasanPaid:
+        0,
+
+      dpTarget:
+        minimumDp,
+
       dpOutstanding:
         Math.max(
-          minimumDp - storedDp,
+          minimumDp -
+          storedDp,
           0
         ),
+
       dpTargetReached:
         minimumDp <= 0 ||
         storedDp >= minimumDp,
-      actualTotalPaid: 0,
+
+      actualTotalPaid:
+        Math.max(
+          (
+            Number(row.item_price) || 0
+          ) -
+          (
+            Number(
+              row.remaining_amount
+            ) || 0
+          ),
+          0
+        ),
+
       actualRemaining:
         Math.max(
-          Number(row.remaining_amount) || 0,
+          Number(
+            row.remaining_amount
+          ) || 0,
           0
         )
+
     };
 
   });
