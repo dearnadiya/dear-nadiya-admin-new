@@ -781,7 +781,7 @@ while (true) {
     error: dashboardPageError
   } = await supabaseClient
     .from("purchase_recap")
-    .select(`
+.select(`
   id,
   customer_id,
   customer_name,
@@ -796,6 +796,7 @@ while (true) {
   remaining_amount,
   dp_status,
   payment_status,
+  recap_data_type,
   customer_status,
   batch_tracking_status,
   dp_deadline,
