@@ -15224,10 +15224,7 @@ function formatBillingDeadline(
               ""
             ).trim().toLowerCase();
 
-          return (
-            paymentStatus !== "paid" &&
-            remaining > 0
-          );
+          return true;
 
         }
       );
@@ -15348,6 +15345,50 @@ function formatBillingDeadline(
           Jenis Tagihan
         </strong>
 
+      <div
+  style="
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  "
+>
+
+  <label
+    style="
+      cursor:pointer;
+    "
+  >
+
+    <input
+      type="radio"
+      name="whatsappBillingPaymentType"
+      value="dp"
+      checked
+    >
+
+    💰 Tagih DP
+
+  </label>
+
+
+  <label
+    style="
+      cursor:pointer;
+    "
+  >
+
+    <input
+      type="radio"
+      name="whatsappBillingPaymentType"
+      value="pelunasan"
+    >
+
+    💳 Tagih Pelunasan
+
+  </label>
+
+</div>
 
         <div
           style="
@@ -15696,6 +15737,12 @@ function formatBillingDeadline(
       "input[name='whatsappBillingMode']:checked"
     )?.value ||
     "customer";
+
+   const paymentType =
+  modal.querySelector(
+    "input[name='whatsappBillingPaymentType']:checked"
+  )?.value ||
+  "dp";
 
 /* ==========================================
    DATA BARIS TERPILIH
@@ -16059,6 +16106,29 @@ totalRemaining +=
                         }] `
                       : "";
 
+if (
+  paymentType === "pelunasan"
+) {
+
+  return (
+    `${batchLabel}` +
+    `${version}` +
+    `${
+      quantity > 1
+        ? ` × ${quantity}`
+        : ""
+    }` +
+    ` - Sisa Pelunasan ${money(billRemaining)}` +
+    `${
+      isPaid
+        ? " ✅ LUNAS"
+        : ""
+    }`
+  );
+
+}
+
+
 return (
   `${batchLabel}` +
   `${version}` +
@@ -16079,14 +16149,27 @@ return (
               );
 
 
-          return (
+          if (
+  paymentType === "pelunasan"
+) {
+
+  return (
+    `🛍️ ${customer.name}\n\n` +
+    itemLines.join("\n") +
+    `\n\n` +
+    `*Sisa Pelunasan - ${money(totalRemaining)}*`
+  );
+
+}
+
+
+return (
   `🛍️ ${customer.name}\n\n` +
   itemLines.join("\n") +
   `\n\n` +
   `*Total - ${money(total)}*\n` +
   `*DP - ${money(totalDp)}*`
 );
-
         }
       );
 
