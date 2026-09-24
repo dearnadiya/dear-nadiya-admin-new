@@ -21022,10 +21022,9 @@ try {
         .trim()
         .toLowerCase() === "lama";
 
-
     let totalDpPaid = 0;
     let totalPelunasanPaid = 0;
-
+    let hasConfirmedPayment = false;
 
     /* ======================================
        REKAP LAMA
@@ -21104,8 +21103,10 @@ try {
      ====================================== */
 
   if (
-    confirmedRecapAllocations.length > 0
-  ) {
+  confirmedRecapAllocations.length > 0
+) {
+
+  hasConfirmedPayment = true;
 
     confirmedRecapAllocations
       .forEach(function (allocation) {
@@ -21333,22 +21334,73 @@ try {
         : 0;
 
 
-    const actualDpStatus =
-  totalDpPaid > 0 &&
-  (
-    minimumDp <= 0 ||
-    totalDpPaid >= minimumDp
-  )
-    ? "paid"
-    : "unpaid";
+   let actualDpStatus;
+let actualPaymentStatus;
 
 
-    const actualPaymentStatus =
-      price > 0 &&
-      actualRemaining <= 0
-        ? "paid"
-        : "unpaid";
+/* ==========================================
+   STATUS REKAP LAMA
+   Tetap mengikuti data manual tersimpan
+   ========================================== */
 
+if (
+  isLegacy
+) {
+
+  actualDpStatus =
+    row.dp_status ||
+    "unpaid";
+
+  actualPaymentStatus =
+    row.payment_status ||
+    "unpaid";
+
+}
+
+
+/* ==========================================
+   REKAP BARU + ADA PAYMENT CONFIRMED
+   Histori pembayaran adalah sumber utama
+   ========================================== */
+
+else if (
+  hasConfirmedPayment
+) {
+
+  actualDpStatus =
+    totalDpPaid > 0 &&
+    (
+      minimumDp <= 0 ||
+      totalDpPaid >= minimumDp
+    )
+      ? "paid"
+      : "unpaid";
+
+  actualPaymentStatus =
+    price > 0 &&
+    actualRemaining <= 0
+      ? "paid"
+      : "unpaid";
+
+}
+
+
+/* ==========================================
+   REKAP BARU TANPA PAYMENT CONFIRMED
+   Pertahankan pilihan manual ADMIN
+   ========================================== */
+
+else {
+
+  actualDpStatus =
+    row.dp_status ||
+    "unpaid";
+
+  actualPaymentStatus =
+    row.payment_status ||
+    "unpaid";
+
+}
 
     /* ======================================
        SIMPAN HASIL PEMBAYARAN AKTUAL
