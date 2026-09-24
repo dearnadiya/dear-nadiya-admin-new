@@ -18366,32 +18366,28 @@ async function restoreOldAvailableRecapMembers(
      */
 
     const {
-      data: completedPOs,
-      error: poError
-    } =
-      await supabaseClient
-        .from("po_posts")
-        .select(`
-          id,
-          title,
-          batch_code,
-          price_text,
-          dp_text,
-          last_dp_date,
-          recap_type,
-          recap_category,
-          recap_batch_code,
-          recap_status,
-          list_data
-        `)
-        .eq(
-          "recap_status",
-          "completed"
-        )
-        .eq(
-          "recap_category",
-          category
-        );
+  data: completedPOs,
+  error: poError
+} =
+  await supabaseClient
+    .from("po_posts")
+    .select(`
+      id,
+      title,
+      batch_code,
+      price_text,
+      dp_text,
+      last_dp_date,
+      recap_type,
+      recap_category,
+      recap_batch_code,
+      recap_status,
+      list_data
+    `)
+    .eq(
+      "recap_status",
+      "completed"
+    );
 
 
     if (poError) {
@@ -18496,37 +18492,34 @@ async function restoreOldAvailableRecapMembers(
        */
 
       const {
-        data: existingRows,
-        error: existingError
-      } =
-        await supabaseClient
-          .from("purchase_recap")
-          .select(`
-            id,
-            version,
-            customer_id,
-            customer_name,
-            item_price,
-            minimum_dp_amount,
-            dp_amount,
-            remaining_amount,
-            dp_deadline,
-            payment_deadline,
-            co_deadline,
-            tracking_status,
-            batch_tracking_status,
-            customer_status,
-            recap_type,
-            recap_data_type
-          `)
-          .eq(
-            "category",
-            category
-          )
-          .eq(
-            "batch_code",
-            batchCode
-          );
+  data: existingRows,
+  error: existingError
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      id,
+      category,
+      version,
+      customer_id,
+      customer_name,
+      item_price,
+      minimum_dp_amount,
+      dp_amount,
+      remaining_amount,
+      dp_deadline,
+      payment_deadline,
+      co_deadline,
+      tracking_status,
+      batch_tracking_status,
+      customer_status,
+      recap_type,
+      recap_data_type
+    `)
+    .eq(
+      "batch_code",
+      batchCode
+    );
 
 
       if (existingError) {
@@ -18553,6 +18546,21 @@ async function restoreOldAvailableRecapMembers(
         rowsAlreadyExist[0] ||
         {};
 
+      const targetCategory =
+  String(
+    existingBatch.category ||
+    po.recap_category ||
+    category ||
+    ""
+  ).trim();
+
+if (
+  targetCategory !==
+  String(category || "").trim()
+) {
+  continue;
+}
+
 
       /*
        * ========================================
@@ -18570,19 +18578,21 @@ async function restoreOldAvailableRecapMembers(
               ).trim();
 
             const customer =
-              String(
-                row.customer || ""
-              ).trim();
+  String(
+    row.customer || ""
+  ).trim();
 
-            /*
-             * Harus punya member/version
-             * dan customer masih kosong.
-             */
-            return (
-              member &&
-              !customer
-            );
+const customerId =
+  Number(
+    row.customer_id
+  ) || null;
 
+return (
+  member &&
+  !customer &&
+  !customerId
+);
+             
           }
         );
 
@@ -18789,7 +18799,7 @@ async function restoreOldAvailableRecapMembers(
             recapType,
 
           category:
-            category,
+  targetCategory,
 
           batch_code:
             batchCode,
