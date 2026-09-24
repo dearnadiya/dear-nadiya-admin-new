@@ -3559,27 +3559,9 @@ const {
                   </td>
 
 
-                  <td>
-
-                    ${
-                      payment.proof_path
-                        ? `
-
-                          <button
-                            type="button"
-                            class="primary-button payment-proof-button"
-                            data-proof="${escapeHTML(
-                              payment.proof_path
-                            )}"
-                          >
-                            👁️ Lihat Bukti
-                          </button>
-
-                        `
-                        : "—"
-                    }
-
-                  </td>
+                 <td>
+  —
+</td>
 
 
                   <td>
@@ -3664,35 +3646,6 @@ const {
     </div>
 
   `;
-
-
-  /* ==========================================
-     TOMBOL LIHAT BUKTI
-     ========================================== */
-
-  container
-    .querySelectorAll(
-      ".payment-proof-button"
-    )
-    .forEach(
-      function (button) {
-
-        button.addEventListener(
-          "click",
-          function () {
-
-            const path =
-              this.dataset.proof;
-
-            viewPaymentProof(
-              path
-            );
-
-          }
-        );
-
-      }
-    );
 
      /* ==========================================
      TOMBOL DETAIL PEMBAYARAN
