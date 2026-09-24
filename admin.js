@@ -15105,12 +15105,277 @@ dp_amount:
 }
 
 /* ============================================
+   PERBAIKI DP MINIMUM BATCH LAMA
+   ============================================ */
+
+async function repairOldMinimumDP(
+  category
+) {
+
+  try {
+
+    /* ==========================================
+       1. AMBIL REKAP DENGAN DP MINIMUM 0
+       ========================================== */
+
+    const {
+      data: recapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(
+          "id, category, batch_code, quantity, minimum_dp_amount"
+        )
+        .eq(
+          "category",
+          category
+        )
+        .eq(
+          "minimum_dp_amount",
+          0
+        );
+
+    if (recapError) {
+
+      console.error(
+        "ERROR LOAD REKAP DP LAMA:",
+        recapError
+      );
+
+      return 0;
+
+    }
+
+
+    if (
+      !recapRows ||
+      !recapRows.length
+    ) {
+
+      return 0;
+
+    }
+
+
+    /* ==========================================
+       2. AMBIL PO YANG SUDAH MENJADI REKAP
+       ========================================== */
+
+    const {
+      data: poRows,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(
+          "id, batch_code, recap_batch_code, recap_category, dp_text"
+        )
+        .eq(
+          "recap_category",
+          category
+        );
+
+
+    if (poError) {
+
+      console.error(
+        "ERROR LOAD PO UNTUK REPAIR DP:",
+        poError
+      );
+
+      return 0;
+
+    }
+
+
+    if (
+      !poRows ||
+      !poRows.length
+    ) {
+
+      return 0;
+
+    }
+
+
+    let updatedCount = 0;
+
+
+    /* ==========================================
+       3. PERBAIKI SATU PER SATU
+       ========================================== */
+
+    for (
+      const row of recapRows
+    ) {
+
+      const batchCode =
+        String(
+          row.batch_code ||
+          ""
+        ).trim().toLowerCase();
+
+
+      if (!batchCode) {
+
+        continue;
+
+      }
+
+
+      const po =
+        poRows.find(
+          function(item) {
+
+            const recapBatch =
+              String(
+                item.recap_batch_code ||
+                ""
+              ).trim().toLowerCase();
+
+            const poBatch =
+              String(
+                item.batch_code ||
+                ""
+              ).trim().toLowerCase();
+
+            return (
+              recapBatch ===
+                batchCode ||
+              poBatch ===
+                batchCode
+            );
+
+          }
+        );
+
+
+      if (!po) {
+
+        continue;
+
+      }
+
+
+      const unitDP =
+        Number(
+          String(
+            po.dp_text ||
+            ""
+          ).replace(
+            /[^\d]/g,
+            ""
+          )
+        ) || 0;
+
+
+      if (
+        unitDP <= 0
+      ) {
+
+        continue;
+
+      }
+
+
+      const quantity =
+        Number(
+          row.quantity
+        ) || 1;
+
+
+      const minimumDP =
+        unitDP *
+        quantity;
+
+
+      if (
+        minimumDP <= 0
+      ) {
+
+        continue;
+
+      }
+
+
+      const {
+        error: updateError
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .update({
+            minimum_dp_amount:
+              minimumDP
+          })
+          .eq(
+            "id",
+            row.id
+          );
+
+
+      if (updateError) {
+
+        console.error(
+          "ERROR REPAIR DP:",
+          row.id,
+          updateError
+        );
+
+        continue;
+
+      }
+
+
+      updatedCount++;
+
+    }
+
+
+    if (
+      updatedCount > 0
+    ) {
+
+      console.log(
+        "DP MINIMUM BATCH LAMA DIPERBAIKI:",
+        updatedCount
+      );
+
+    }
+
+
+    return updatedCount;
+
+  }
+  catch (error) {
+
+    console.error(
+      "ERROR REPAIR DP MINIMUM:",
+      error
+    );
+
+    return 0;
+
+  }
+
+}
+
+
+/* ============================================
    GENERATOR TAGIHAN WHATSAPP
    ============================================ */
 
 async function showWhatsAppBillingBuilder(
   category
 ) {
+
+/* ==========================================
+   REPAIR DP MINIMUM BATCH LAMA
+   ========================================== */
+
+await repairOldMinimumDP(
+  category
+);
 
 /* ==========================================
    AMBIL INFO KATEGORI
@@ -16505,10 +16770,7 @@ return (
 
           return (
   `${batchCode}\n` +
-  lines.join("\n") +
-  `\n\n` +
-  `*Total - ${money(total)}*\n` +
-  `*DP - ${money(totalDp)}*`
+  lines.join("\n")
 );
         }
       );
