@@ -21319,137 +21319,190 @@ try {
 
 }
 
-    const actualTotalPaid =
-      totalDpPaid +
-      totalPelunasanPaid;
+   /* ==========================================
+   REKAP GO - ATURAN PEMBAYARAN SEDERHANA
 
+   DP = NOMINAL DP MINIMUM
+   BUKAN jumlah uang yang sudah ditransfer.
 
-    const actualRemaining =
-      price > 0
-        ? Math.max(
-            price -
-            actualTotalPaid,
-            0
-          )
-        : 0;
+   Status pembayaran tetap berasal dari
+   status admin / payment system.
+   ========================================== */
 
-
-   let actualDpStatus;
-let actualPaymentStatus;
+const fixedDp =
+  Math.min(
+    minimumDp,
+    price
+  );
 
 
 /* ==========================================
-   STATUS REKAP LAMA
-   Tetap mengikuti data manual tersimpan
+   STATUS ADMIN / PAYMENT SYSTEM
    ========================================== */
+
+const finalDpStatus =
+  row.dp_status ||
+  "unpaid";
+
+const finalPaymentStatus =
+  row.payment_status ||
+  "unpaid";
+
+
+/* ==========================================
+   PELUNASAN
+
+   Kalau sudah LUNAS:
+   Pelunasan = Harga - DP
+
+   Kalau belum:
+   Pelunasan = 0
+   ========================================== */
+
+let finalPelunasanPaid =
+  0;
 
 if (
-  isLegacy
+  finalPaymentStatus ===
+  "paid"
 ) {
 
-  actualDpStatus =
-    row.dp_status ||
-    "unpaid";
-
-  actualPaymentStatus =
-    row.payment_status ||
-    "unpaid";
+  finalPelunasanPaid =
+    Math.max(
+      price -
+      fixedDp,
+      0
+    );
 
 }
 
 
 /* ==========================================
-   REKAP BARU + ADA PAYMENT CONFIRMED
-   Histori pembayaran adalah sumber utama
+   TOTAL TERBAYAR
+
+   DP dianggap terbayar hanya jika
+   status DP = paid.
+
+   Kalau langsung LUNAS,
+   otomatis seluruh harga dianggap
+   sudah dibayar.
    ========================================== */
+
+let finalTotalPaid =
+  0;
+
+
+if (
+  finalPaymentStatus ===
+  "paid"
+) {
+
+  finalTotalPaid =
+    price;
+
+}
 
 else if (
-  hasConfirmedPayment
+  finalDpStatus ===
+  "paid"
 ) {
 
-  actualDpStatus =
-    totalDpPaid > 0 &&
-    (
-      minimumDp <= 0 ||
-      totalDpPaid >= minimumDp
-    )
-      ? "paid"
-      : "unpaid";
-
-  actualPaymentStatus =
-    price > 0 &&
-    actualRemaining <= 0
-      ? "paid"
-      : "unpaid";
+  finalTotalPaid =
+    fixedDp;
 
 }
 
 
 /* ==========================================
-   REKAP BARU TANPA PAYMENT CONFIRMED
-   Pertahankan pilihan manual ADMIN
+   SISA
    ========================================== */
 
-else {
-
-  actualDpStatus =
-    row.dp_status ||
-    "unpaid";
-
-  actualPaymentStatus =
-    row.payment_status ||
-    "unpaid";
-
-}
-
-    /* ======================================
-       SIMPAN HASIL PEMBAYARAN AKTUAL
-       ====================================== */
-
-    recapPaymentSummary[
-      recapId
-    ] = {
-
-      totalDpPaid,
-
-      totalPelunasanPaid,
-
-      actualTotalPaid,
-
-      actualRemaining,
-
-      dpStatus:
-        actualDpStatus,
-
-      paymentStatus:
-        actualPaymentStatus
-
-    };
+const finalRemaining =
+  Math.max(
+    price -
+    finalTotalPaid,
+    0
+  );
 
 
-    /* ======================================
-       GUNAKAN HASIL AKTUAL UNTUK
-       TAMPILAN REKAP GO
-       ====================================== */
+/* ==========================================
+   GUNAKAN NILAI FINAL
+   ========================================== */
 
-    row.dp_amount =
-      totalDpPaid;
+recapPaymentSummary[
+  recapId
+] = {
 
-    row.remaining_amount =
-      actualRemaining;
+  totalDpPaid:
+    finalDpStatus === "paid"
+      ? fixedDp
+      : 0,
 
-    row.dp_status =
-      actualDpStatus;
+  totalPelunasanPaid:
+    finalPelunasanPaid,
 
-    row.payment_status =
-      actualPaymentStatus;
+  actualTotalPaid:
+    finalTotalPaid,
 
-    row._pelunasan_paid =
-      totalPelunasanPaid;
+  actualRemaining:
+    finalRemaining,
 
-    row._total_paid =
-      actualTotalPaid;
+  dpStatus:
+    finalDpStatus,
 
+  paymentStatus:
+    finalPaymentStatus
+
+};
+
+
+/* ==========================================
+   TAMPILAN REKAP GO
+   ========================================== */
+
+/*
+ * DP yang ditampilkan SELALU
+ * adalah DP minimum.
+ */
+
+row.dp_amount =
+  fixedDp;
+
+
+/*
+ * Status tetap mengikuti admin.
+ */
+
+row.dp_status =
+  finalDpStatus;
+
+row.payment_status =
+  finalPaymentStatus;
+
+
+/*
+ * Pelunasan hanya muncul
+ * ketika status pembayaran LUNAS.
+ */
+
+row._pelunasan_paid =
+  finalPelunasanPaid;
+
+
+/*
+ * Sisa mengikuti status pembayaran.
+ */
+
+row.remaining_amount =
+  finalRemaining;
+
+
+/*
+ * Total pembayaran.
+ */
+
+row._total_paid =
+  finalTotalPaid;
   });
 
 
