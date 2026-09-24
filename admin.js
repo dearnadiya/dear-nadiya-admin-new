@@ -15163,19 +15163,14 @@ async function repairOldMinimumDP(
        ========================================== */
 
     const {
-      data: poRows,
-      error: poError
-    } =
-      await supabaseClient
-        .from("po_posts")
-        .select(
-          "id, batch_code, recap_batch_code, recap_category, dp_text"
-        )
-        .eq(
-          "recap_category",
-          category
-        );
-
+  data: poRows,
+  error: poError
+} =
+  await supabaseClient
+    .from("po_posts")
+    .select(
+      "id, batch_code, recap_batch_code, recap_category, dp_text"
+    );
 
     if (poError) {
 
@@ -16768,12 +16763,6 @@ totalRemaining +=
 
 return (
   `${version} : ${customer}` +
-  ` - ${money(price)}` +
-` DP ${
-  paymentType === "dp"
-    ? money(dpMinimum)
-    : money(dpPaid)
-}` +
   `${
     isPaid
       ? " ✅ LUNAS"
@@ -16785,8 +16774,43 @@ return (
             );
 
 
-          return (
-  `${batchCode}\n` +
+          const headerRow =
+  rows[0] || {};
+
+const headerPrice =
+  Number(
+    headerRow.item_price
+  ) || 0;
+
+const headerDp =
+  Number(
+    headerRow.minimum_dp_amount
+  ) || 0;
+
+const headerRemaining =
+  Number(
+    headerRow.remaining_amount
+  ) || 0;
+
+
+if (
+  paymentType === "pelunasan"
+) {
+
+  return (
+    `*${batchCode}*\n` +
+    `Harga : ${money(headerPrice)}\n` +
+    `Sisa Pelunasan : ${money(headerRemaining)}\n\n` +
+    lines.join("\n")
+  );
+
+}
+
+
+return (
+  `*${batchCode}*\n` +
+  `Harga : ${money(headerPrice)}\n` +
+  `DP : ${money(headerDp)}\n\n` +
   lines.join("\n")
 );
         }
