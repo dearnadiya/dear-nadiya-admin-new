@@ -15109,7 +15109,8 @@ dp_amount:
    ============================================ */
 
 async function repairOldMinimumDP(
-  category
+  category,
+  targetBatchCode = ""
 ) {
 
   try {
@@ -15118,24 +15119,41 @@ async function repairOldMinimumDP(
        1. AMBIL REKAP DENGAN DP MINIMUM 0
        ========================================== */
 
-    const {
-      data: recapRows,
-      error: recapError
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select(
-          "id, category, batch_code, quantity, minimum_dp_amount"
-        )
-        .eq(
-          "category",
-          category
-        )
-        .eq(
-          "minimum_dp_amount",
-          0
-        );
+    let recapQuery =
+  supabaseClient
+    .from("purchase_recap")
+    .select(
+      "id, category, batch_code, quantity, minimum_dp_amount"
+    )
+    .eq(
+      "category",
+      category
+    )
+    .eq(
+      "minimum_dp_amount",
+      0
+    );
 
+if (
+  targetBatchCode &&
+  String(targetBatchCode).trim()
+) {
+
+  recapQuery =
+    recapQuery.eq(
+      "batch_code",
+      String(
+        targetBatchCode
+      ).trim()
+    );
+
+}
+
+const {
+  data: recapRows,
+  error: recapError
+} =
+  await recapQuery;
     if (recapError) {
 
       console.error(
@@ -20527,6 +20545,23 @@ let html = `
 <button
   type="button"
   class="primary-button"
+  id="repairMinimumDPButton"
+  style="
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 16px;
+    font-size:13px;
+    white-space:nowrap;
+  "
+>
+  🔧 Perbaiki DP Batch
+</button>
+
+<button
+  type="button"
+  class="primary-button"
   id="syncPaymentStatusButton"
   style="
     width:auto;
@@ -22592,6 +22627,129 @@ if (addRecapBatchButton) {
       showRecapForm(
         category
       );
+
+    }
+  );
+
+}
+
+/* ==========================================
+   PERBAIKI DP MINIMUM PER BATCH
+   ========================================== */
+
+const repairMinimumDPButton =
+  container.querySelector(
+    "#repairMinimumDPButton"
+  );
+
+if (
+  repairMinimumDPButton
+) {
+
+  repairMinimumDPButton.addEventListener(
+    "click",
+    async function() {
+
+      const batchCode =
+        prompt(
+          "Masukkan Kode Batch yang ingin diperbaiki.\n\n" +
+          "Contoh: Tr-INA-027"
+        );
+
+      if (
+        !batchCode ||
+        !batchCode.trim()
+      ) {
+        return;
+      }
+
+      const cleanBatchCode =
+        batchCode.trim();
+
+      const yakin =
+        confirm(
+          "Perbaiki DP Minimum batch berikut?\n\n" +
+          "Kategori: " +
+          category +
+          "\n" +
+          "Batch: " +
+          cleanBatchCode +
+          "\n\n" +
+          "Sistem akan mengambil DP dari data PO.\n" +
+          "DP Aktual customer TIDAK akan diubah.\n" +
+          "Pembayaran yang sudah masuk TIDAK akan diubah."
+        );
+
+      if (!yakin) {
+        return;
+      }
+
+      repairMinimumDPButton.disabled =
+        true;
+
+      repairMinimumDPButton.textContent =
+        "⏳ Memperbaiki...";
+
+      try {
+
+        const updatedCount =
+          await repairOldMinimumDP(
+            category,
+            cleanBatchCode
+          );
+
+        if (
+          updatedCount === 0
+        ) {
+
+          alert(
+            "Tidak ada data yang diperbaiki.\n\n" +
+            "Kemungkinan:\n" +
+            "• DP Minimum batch tersebut tidak 0, atau\n" +
+            "• Batch tidak ditemukan, atau\n" +
+            "• DP pada PO juga tidak tersedia."
+          );
+
+        } else {
+
+          alert(
+            "DP Minimum berhasil diperbaiki. ♥\n\n" +
+            "Batch: " +
+            cleanBatchCode +
+            "\n" +
+            "Member yang diperbaiki: " +
+            updatedCount
+          );
+
+        }
+
+        await loadRecapList(
+          category
+        );
+
+      }
+      catch (error) {
+
+        console.error(
+          "ERROR REPAIR DP BATCH:",
+          error
+        );
+
+        alert(
+          "Gagal memperbaiki DP Minimum:\n\n" +
+          error.message
+        );
+
+      }
+      finally {
+
+        repairMinimumDPButton.disabled =
+          false;
+
+        repairMinimumDPButton.textContent =
+          "🔧 Perbaiki DP Batch";
+
+      }
 
     }
   );
