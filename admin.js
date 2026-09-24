@@ -23478,8 +23478,11 @@ version:
         quantity:
           quantity,
 
-        item_price:
+                item_price:
           price,
+
+        minimum_dp_amount:
+          dp,
 
         dp_amount:
           dp,
