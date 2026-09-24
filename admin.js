@@ -1783,16 +1783,53 @@ const paymentRows =
 
     });
 
-    const paymentGrouped =
-      groupCustomers(
-        paymentRows
-      );
+    /* =====================================
+   GROUP PELUNASAN PER BATCH
+   1 BATCH = 1 CARD
+   ===================================== */
+
+const paymentGrouped = {};
+
+paymentRows.forEach(
+  function(row) {
+
+    const category =
+      String(
+        row.category || ""
+      ).trim();
+
+    const batchCode =
+      String(
+        row.batch_code || ""
+      ).trim();
+
+    const batchKey =
+      `${category}::${batchCode}`;
+
+    if (
+      !paymentGrouped[
+        batchKey
+      ]
+    ) {
+
+      paymentGrouped[
+        batchKey
+      ] = [];
+
+    }
+
+    paymentGrouped[
+      batchKey
+    ].push(row);
+
+  }
+);
 
 
-    const paymentCustomerNames =
-      Object.keys(
-        paymentGrouped
-      );
+const paymentBatchKeys =
+  Object.keys(
+    paymentGrouped
+  );
 
 
     const paymentList =
@@ -1802,205 +1839,387 @@ const paymentRows =
 
 
     if (
-      paymentCustomerNames.length === 0
-    ) {
+  paymentBatchKeys.length === 0
+) {
 
-      paymentList.innerHTML = `
-        <p>
-          Tidak ada customer yang
-          jatuh tempo pelunasan hari ini.
-        </p>
-      `;
+  paymentList.innerHTML = `
+    <p>
+      Tidak ada customer yang
+      jatuh tempo pelunasan hari ini.
+    </p>
+  `;
 
-    } else {
+} else {
 
-      paymentList.innerHTML =
-        paymentCustomerNames
-  .map(customerKey => {
+  paymentList.innerHTML =
+    paymentBatchKeys
+      .map(
+        function(batchKey) {
 
-    const customerRows =
-      paymentGrouped[
-        customerKey
-      ];
+          const batchRows =
+            paymentGrouped[
+              batchKey
+            ];
 
-    const customerName =
-      String(
-        customerRows[0]?.customer_name || ""
-      ).trim() ||
-      customerKey;
-            let totalPayment = 0;
-let totalDendaPayment = 0;
-const rincianDendaPayment = [];
+          const firstBatchRow =
+            batchRows[0];
 
-             const paymentHeader = `
-  <div class="dashboard-payment-header">
-    <span>Kode Batch</span>
-    <span>Nama Barang</span>
-    <span>Versi / Member</span>
-    <span>Deadline</span>
-    <span>Tagihan Pelunasan</span>
-  </div>
-`;
+          const batchCode =
+            String(
+              firstBatchRow?.batch_code ||
+              "—"
+            ).trim();
 
-            const itemsHTML =
-  customerRows
-    .map(row => {
+          const itemName =
+            String(
+              firstBatchRow?.item_name ||
+              "—"
+            ).trim();
 
-      const remaining =
-  Number(
-    row.dashboard_remaining_amount
-  ) || 0;
+          const deadline =
+            String(
+              firstBatchRow?.effective_payment_deadline ||
+              "—"
+            ).trim();
 
-totalPayment +=
-  remaining;
 
-const hariTerlambat =
-  hitungHariTerlambat(
-    row.effective_payment_deadline
-  );
+          /* =================================
+             GROUP CUSTOMER DALAM BATCH
+             ================================= */
 
-const denda =
-  hitungDenda(
-    row.effective_payment_deadline
-  );
-       
-if (hariTerlambat > 0) {
-  totalDendaPayment += denda;
+          const customerGrouped =
+            {};
 
-  rincianDendaPayment.push(
-    `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
-  );
-}
+          batchRows.forEach(
+            function(row) {
 
-      return `
-  <div class="dashboard-payment-item">
+              const customerId =
+                Number(
+                  row.customer_id
+                ) || 0;
 
-    <strong>
-      ${row.batch_code || "—"}
-    </strong>
+              const customerName =
+                String(
+                  row.customer_name ||
+                  "—"
+                ).trim();
 
-    <span>
-      ${row.item_name || "—"}
-    </span>
+              const customerKey =
+                customerId
+                  ? `id:${customerId}`
+                  : `name:${customerName}`;
 
-    <span>
-      ${row.version || "—"}
-    </span>
+              if (
+                !customerGrouped[
+                  customerKey
+                ]
+              ) {
 
-    <span>
-      ${row.effective_payment_deadline || "—"}
-    </span>
+                customerGrouped[
+                  customerKey
+                ] = [];
 
-    <span class="dashboard-payment-amount">
-      ${formatRupiah(remaining)}
-    </span>
+              }
 
-  </div>
-`;
-                })
-                .join("");
+              customerGrouped[
+                customerKey
+              ].push(row);
 
-             const firstCustomerRow =
-  customerRows[0];
+            }
+          );
 
-const customerId =
-  Number(
-    firstCustomerRow?.customer_id
-  ) || null;
 
-const customerWhatsApp =
-  customerWhatsAppMap[
-    String(customerId)
-  ] || "";
+          /* =================================
+             RENDER CUSTOMER DALAM BATCH
+             ================================= */
 
-let paymentMessage =
+          const customerHTML =
+            Object.keys(
+              customerGrouped
+            )
+              .map(
+                function(customerKey) {
+
+                  const customerRows =
+                    customerGrouped[
+                      customerKey
+                    ];
+
+                  const customerName =
+                    String(
+                      customerRows[0]?.customer_name ||
+                      "—"
+                    ).trim();
+
+
+                  let totalCustomer =
+                    0;
+
+                  let totalDendaCustomer =
+                    0;
+
+                  const rincianDendaCustomer =
+                    [];
+
+
+                  customerRows.forEach(
+                    function(row) {
+
+                      const remaining =
+                        Number(
+                          row.dashboard_remaining_amount
+                        ) || 0;
+
+                      totalCustomer +=
+                        remaining;
+
+
+                      const hariTerlambat =
+                        hitungHariTerlambat(
+                          row.effective_payment_deadline
+                        );
+
+                      const denda =
+                        hitungDenda(
+                          row.effective_payment_deadline
+                        );
+
+
+                      if (
+                        hariTerlambat > 0
+                      ) {
+
+                        totalDendaCustomer +=
+                          denda;
+
+                        rincianDendaCustomer.push(
+                          `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+                        );
+
+                      }
+
+                    }
+                  );
+
+
+                  /* =============================
+                     VERSI / MEMBER
+                     ============================= */
+
+                  const versions =
+                    [
+                      ...new Set(
+                        customerRows
+                          .map(
+                            function(row) {
+
+                              return String(
+                                row.version ||
+                                "—"
+                              ).trim();
+
+                            }
+                          )
+                          .filter(Boolean)
+                      )
+                    ];
+
+
+                  const versionHTML =
+                    versions
+                      .map(
+                        function(version) {
+
+                          return `
+                            <span
+                              class="dashboard-batch-customer-version"
+                            >
+                              ${version}
+                            </span>
+                          `;
+
+                        }
+                      )
+                      .join("");
+
+
+                  /* =============================
+                     WHATSAPP
+                     ============================= */
+
+                  const customerId =
+                    Number(
+                      customerRows[0]?.customer_id
+                    ) || null;
+
+                  const customerWhatsApp =
+                    customerWhatsAppMap[
+                      String(customerId)
+                    ] || "";
+
+
+                  let paymentMessage =
 `Halo ${customerName} ♥
-Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${firstCustomerRow?.batch_code || ""} masih memiliki sisa ${formatRupiah(totalPayment)}.
+Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${batchCode} masih memiliki sisa ${formatRupiah(totalCustomer)}.
 
 Deadline pelunasan:
-${firstCustomerRow?.effective_payment_deadline || "—"}`;
+${deadline}`;
 
-if (totalDendaPayment > 0) {
-  paymentMessage += `
 
-Rincian keterlambatan:
-${rincianDendaPayment.join("\n")}
+                  if (
+                    totalDendaCustomer > 0
+                  ) {
 
-Total denda keterlambatan: ${formatRupiah(totalDendaPayment)}
+                    paymentMessage +=
+`\n\nRincian keterlambatan:
+${rincianDendaCustomer.join("\n")}
+
+Total denda keterlambatan: ${formatRupiah(totalDendaCustomer)}
 
 Total yang perlu dibayarkan:
-${formatRupiah(totalPayment + totalDendaPayment)}`;
-}
+${formatRupiah(totalCustomer + totalDendaCustomer)}`;
 
-paymentMessage += `
+                  }
 
-Mohon segera melakukan pelunasan ya.
+
+                  paymentMessage +=
+`\n\nMohon segera melakukan pelunasan ya.
 Terima kasih ♥
 Dear Nadiya`;
 
-            return `
-              <div class="dashboard-customer-card">
 
-                <div
-  style="
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-  "
->
-  <h4>
-    ${customerName}
-  </h4>
+                  return `
+                    <div
+                      class="dashboard-batch-customer-row"
+                    >
 
-  ${
-    customerWhatsApp
-      ? `
-        <button
-          type="button"
-          class="secondary-button"
-          onclick='openCustomerWhatsApp(
-            ${JSON.stringify(customerWhatsApp)},
-            ${JSON.stringify(paymentMessage)}
-          )'
-        >
-          💬 Chat WhatsApp
-        </button>
-      `
-      : `
-        <span
-          style="
-            color:#999;
-            font-size:13px;
-          "
-        >
-          WA belum tersedia
-        </span>
-      `
-  }
-</div>
+                      <div
+                        class="dashboard-batch-customer-name"
+                      >
 
-                ${paymentHeader}
-${itemsHTML}
-                <div class="dashboard-payment-total">
+                        <strong>
+                          ${customerName}
+                        </strong>
+
+                        ${
+                          customerWhatsApp
+                            ? `
+                              <button
+                                type="button"
+                                class="dashboard-wa-button"
+                                onclick='openCustomerWhatsApp(
+                                  ${JSON.stringify(customerWhatsApp)},
+                                  ${JSON.stringify(paymentMessage)}
+                                )'
+                              >
+                                💬 Chat
+                              </button>
+                            `
+                            : `
+                              <span
+                                class="dashboard-wa-unavailable"
+                              >
+                                WA belum tersedia
+                              </span>
+                            `
+                        }
+
+                      </div>
+
+
+                      <div
+                        class="dashboard-batch-customer-version-list"
+                      >
+                        ${versionHTML}
+                      </div>
+
+
+                      <div
+                        class="dashboard-batch-customer-total"
+                      >
+                        ${formatRupiah(
+                          totalCustomer
+                        )}
+                      </div>
+
+                    </div>
+                  `;
+
+                }
+              )
+              .join("");
+
+
+          /* =================================
+             CARD BATCH
+             ================================= */
+
+          return `
+            <div
+              class="dashboard-batch-payment-card"
+            >
+
+              <div
+                class="dashboard-batch-payment-header"
+              >
+
+                <div>
+                  <span>KODE BATCH</span>
                   <strong>
-                    Total Tagihan Pelunasan:
+                    ${batchCode}
                   </strong>
+                </div>
 
+                <div>
+                  <span>NAMA BARANG</span>
                   <strong>
-                    ${formatRupiah(
-                      totalPayment
-                    )}
+                    ${itemName}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>DEADLINE</span>
+                  <strong>
+                    ${deadline}
                   </strong>
                 </div>
 
               </div>
-            `;
 
-          })
-          .join("");
-    }
+
+              <div
+                class="dashboard-batch-customer-header"
+              >
+
+                <span>
+                  CUSTOMER
+                </span>
+
+                <span>
+                  VERSI / MEMBER
+                </span>
+
+                <span>
+                  TAGIHAN PELUNASAN
+                </span>
+
+              </div>
+
+
+              <div
+                class="dashboard-batch-customer-list"
+              >
+                ${customerHTML}
+              </div>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+}
 
 
     /* =====================================
