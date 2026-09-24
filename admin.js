@@ -28127,31 +28127,54 @@ container.innerHTML = `
     Member / Versi
   </label>
 
-  ${
-    orderMode === "claim"
-      ? `
-        <select
-          class="po-row-member"
-        >
-          <option value="">
-            Pilih Member / Versi
-          </option>
-        </select>
-      `
-      : `
-        <input
-          type="text"
-          class="po-row-member"
-          placeholder="Contoh: Hyunsuk"
-          value="${escapeHTML(
-            rowData.member ||
-            rowData.version ||
-            ""
-          )}"
-        >
-      `
-  }
+    <div
+    style="
+      position:relative;
+    "
+  >
 
+    <input
+      type="text"
+      class="po-row-member"
+      placeholder="🔍 Cari Member / Versi dari Master atau ketik manual..."
+      value="${escapeHTML(
+        rowData.member ||
+        rowData.version ||
+        ""
+      )}"
+      autocomplete="off"
+    >
+
+    <input
+      type="hidden"
+      class="po-row-member-id"
+      value="${escapeHTML(
+        String(
+          rowData.member_id ||
+          ""
+        )
+      )}"
+    >
+
+    <div
+      class="po-row-member-results"
+      style="
+        display:none;
+        position:absolute;
+        z-index:9999;
+        left:0;
+        right:0;
+        top:100%;
+        background:#fff;
+        border:1px solid #ddd;
+        border-radius:8px;
+        max-height:240px;
+        overflow-y:auto;
+        box-shadow:0 6px 18px rgba(0,0,0,.12);
+      "
+    ></div>
+
+  </div>
 </div>
 
 <div
@@ -28968,80 +28991,234 @@ if (
 }
      
 /* ==========================================
-   LOAD MASTER MEMBER UNTUK PO CLAIM
+   SEARCH MASTER MEMBER / VERSI UNTUK PO
+   Bisa dipilih dari master ATAU diketik manual
 ========================================== */
 
-if (orderMode === "claim") {
+const memberInput =
+  row.querySelector(
+    ".po-row-member"
+  );
 
-  const memberSelect =
-    row.querySelector(
-      ".po-row-member"
-    );
+const memberIdInput =
+  row.querySelector(
+    ".po-row-member-id"
+  );
 
-  if (memberSelect) {
+const memberResults =
+  row.querySelector(
+    ".po-row-member-results"
+  );
 
-    loadPOMembers()
-      .then(function (members) {
+if (
+  memberInput &&
+  memberIdInput &&
+  memberResults
+) {
 
-        members.forEach(
-          function (member) {
+  const members =
+    await loadPOMembers();
 
-            const option =
-              document.createElement(
-                "option"
-              );
+  const memberList =
+    members || [];
 
-            option.value =
-              member.member_name;
+  function renderPOMemberResults(
+    keyword = ""
+  ) {
 
-            option.textContent =
-              member.member_name +
-              (
-                member.group_name
-                  ? " — " +
-                    member.group_name
-                  : ""
-              );
+    const q =
+      String(
+        keyword || ""
+      )
+        .trim()
+        .toLowerCase();
 
-            const currentMember =
+    const filtered =
+      memberList
+        .filter(
+          function(member) {
+
+            const groupName =
               String(
-                rowData.member ||
-                rowData.version ||
-                ""
-              ).trim();
+                member.group_name || ""
+              ).toLowerCase();
 
-            if (
-              currentMember &&
-              currentMember ===
-                String(
-                  member.member_name ||
-                  ""
-                ).trim()
-            ) {
+            const memberName =
+              String(
+                member.member_name || ""
+              ).toLowerCase();
 
-              option.selected =
-                true;
-
-            }
-
-            memberSelect.appendChild(
-              option
+            return (
+              !q ||
+              groupName.includes(q) ||
+              memberName.includes(q)
             );
 
           }
-        );
+        )
+        .slice(0, 15);
 
-      })
-      .catch(function (error) {
+    if (
+      filtered.length === 0
+    ) {
 
-        console.error(
-          "Gagal mengisi dropdown member:",
-          error
-        );
+      memberResults.innerHTML = `
+        <div
+          style="
+            padding:10px 12px;
+            color:#777;
+            font-size:12px;
+          "
+        >
+          Member / versi tidak ditemukan.
+          <br>
+          <strong>
+            Tetap boleh mengetik manual.
+          </strong>
+        </div>
+      `;
 
-      });
+    } else {
+
+      memberResults.innerHTML =
+        filtered
+          .map(
+            function(member) {
+
+              return `
+                <button
+                  type="button"
+                  class="po-member-option"
+                  data-id="${escapeHTML(
+                    String(member.id)
+                  )}"
+                  data-name="${escapeHTML(
+                    member.member_name || ""
+                  )}"
+                  style="
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    border:0;
+                    background:#fff;
+                    padding:9px 10px;
+                    cursor:pointer;
+                    border-bottom:1px solid #eee;
+                  "
+                >
+
+                  <strong>
+                    ${escapeHTML(
+                      member.member_name ||
+                      "Tanpa Nama"
+                    )}
+                  </strong>
+
+                  ${
+                    member.group_name
+                      ? `
+                        <span
+                          style="
+                            color:#777;
+                          "
+                        >
+                          — ${escapeHTML(
+                            member.group_name
+                          )}
+                        </span>
+                      `
+                      : ""
+                  }
+
+                </button>
+              `;
+
+            }
+          )
+          .join("");
+
+    }
+
+    memberResults.style.display =
+      "block";
 
   }
+
+  memberInput.addEventListener(
+    "input",
+    function() {
+
+      /*
+       * Jika admin mengubah teks,
+       * pilihan Master sebelumnya dianggap
+       * tidak dipakai lagi.
+       */
+      memberIdInput.value =
+        "";
+
+      renderPOMemberResults(
+        memberInput.value
+      );
+
+    }
+  );
+
+  memberInput.addEventListener(
+    "focus",
+    function() {
+
+      renderPOMemberResults(
+        memberInput.value
+      );
+
+    }
+  );
+
+  memberResults.addEventListener(
+    "click",
+    function(event) {
+
+      const button =
+        event.target.closest(
+          ".po-member-option"
+        );
+
+      if (!button) {
+        return;
+      }
+
+      memberInput.value =
+        button.dataset.name || "";
+
+      memberIdInput.value =
+        button.dataset.id || "";
+
+      memberResults.style.display =
+        "none";
+
+    }
+  );
+
+  document.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        !memberInput.contains(
+          event.target
+        ) &&
+        !memberResults.contains(
+          event.target
+        )
+      ) {
+
+        memberResults.style.display =
+          "none";
+
+      }
+
+    }
+  );
 
 }
 
@@ -29335,14 +29512,23 @@ function saveCurrentPODraft() {
       rows.push({
 
         member:
-          row
-            .querySelector(
-              ".po-row-member"
-            )
-            ?.value
-            ?.trim() || "",
+  row
+    .querySelector(
+      ".po-row-member"
+    )
+    ?.value
+    ?.trim() || "",
 
-        customer_id:
+member_id:
+  Number(
+    row
+      .querySelector(
+        ".po-row-member-id"
+      )
+      ?.value
+  ) || null,
+
+customer_id:
   Number(
     row
       .querySelector(
@@ -29586,15 +29772,24 @@ async function savePO(
     function (row) {
 
       const member =
-        row
-          .querySelector(
-            ".po-row-member"
-          )
-          .value
-          .trim();
+  row
+    .querySelector(
+      ".po-row-member"
+    )
+    .value
+    .trim();
+
+const memberId =
+  Number(
+    row
+      .querySelector(
+        ".po-row-member-id"
+      )
+      ?.value
+  ) || null;
 
 
-      const customerInput =
+const customerInput =
   row.querySelector(
     ".po-row-customer"
   );
@@ -29651,10 +29846,13 @@ if (
   customer
 ) {
 
-  listData.push({
+ listData.push({
 
   member:
     member,
+
+  member_id:
+    memberId,
 
   customer_id:
     customerId,
