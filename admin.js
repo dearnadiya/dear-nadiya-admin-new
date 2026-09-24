@@ -15850,44 +15850,25 @@ async function repairOldMinimumDP(
   try {
 
     /* ==========================================
-       1. AMBIL REKAP DENGAN DP MINIMUM 0
+       1. AMBIL SEMUA REKAP KATEGORI
+       Jangan filter minimum_dp_amount di Supabase
+       karena nilainya bisa 0 atau NULL.
        ========================================== */
 
-    let recapQuery =
-  supabaseClient
-    .from("purchase_recap")
-    .select(
-      "id, category, batch_code, quantity, minimum_dp_amount"
-    )
-    .eq(
-      "category",
-      category
-    )
-    .eq(
-      "minimum_dp_amount",
-      0
-    );
+    const {
+      data: allRecapRows,
+      error: recapError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(
+          "id, category, batch_code, quantity, minimum_dp_amount"
+        )
+        .eq(
+          "category",
+          category
+        );
 
-if (
-  targetBatchCode &&
-  String(targetBatchCode).trim()
-) {
-
-  recapQuery =
-    recapQuery.eq(
-      "batch_code",
-      String(
-        targetBatchCode
-      ).trim()
-    );
-
-}
-
-const {
-  data: recapRows,
-  error: recapError
-} =
-  await recapQuery;
     if (recapError) {
 
       console.error(
@@ -15901,8 +15882,8 @@ const {
 
 
     if (
-      !recapRows ||
-      !recapRows.length
+      !allRecapRows ||
+      !allRecapRows.length
     ) {
 
       return 0;
@@ -15911,18 +15892,91 @@ const {
 
 
     /* ==========================================
-       2. AMBIL PO YANG SUDAH MENJADI REKAP
+       2. FILTER REKAP YANG DP-NYA 0 / NULL
+       DAN SESUAI BATCH JIKA ADA TARGET BATCH
+       ========================================== */
+
+    const cleanTargetBatch =
+      String(
+        targetBatchCode || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const recapRows =
+      allRecapRows.filter(
+        function(row) {
+
+          const currentDP =
+            Number(
+              row.minimum_dp_amount
+            ) || 0;
+
+
+          if (
+            currentDP !== 0
+          ) {
+
+            return false;
+
+          }
+
+
+          if (
+            !cleanTargetBatch
+          ) {
+
+            return true;
+
+          }
+
+
+          const recapBatch =
+            String(
+              row.batch_code || ""
+            )
+              .trim()
+              .toLowerCase();
+
+
+          return (
+            recapBatch ===
+            cleanTargetBatch
+          );
+
+        }
+      );
+
+
+    if (
+      !recapRows.length
+    ) {
+
+      console.log(
+        "REPAIR DP: tidak ada recap dengan DP minimum 0/NULL untuk batch:",
+        targetBatchCode
+      );
+
+      return 0;
+
+    }
+
+
+    /* ==========================================
+       3. AMBIL DATA PO
        ========================================== */
 
     const {
-  data: poRows,
-  error: poError
-} =
-  await supabaseClient
-    .from("po_posts")
-    .select(
-      "id, batch_code, recap_batch_code, recap_category, dp_text"
-    );
+      data: poRows,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(
+          "id, batch_code, recap_batch_code, recap_category, dp_text"
+        );
+
 
     if (poError) {
 
@@ -15950,7 +16004,7 @@ const {
 
 
     /* ==========================================
-       3. PERBAIKI SATU PER SATU
+       4. PERBAIKI SATU PER SATU
        ========================================== */
 
     for (
@@ -15959,17 +16013,24 @@ const {
 
       const batchCode =
         String(
-          row.batch_code ||
-          ""
-        ).trim().toLowerCase();
+          row.batch_code || ""
+        )
+          .trim()
+          .toLowerCase();
 
 
-      if (!batchCode) {
+      if (
+        !batchCode
+      ) {
 
         continue;
 
       }
 
+
+      /* ========================================
+         CARI PO YANG SESUAI BATCH
+         ======================================== */
 
       const po =
         poRows.find(
@@ -15977,39 +16038,51 @@ const {
 
             const recapBatch =
               String(
-                item.recap_batch_code ||
-                ""
-              ).trim().toLowerCase();
+                item.recap_batch_code || ""
+              )
+                .trim()
+                .toLowerCase();
+
 
             const poBatch =
               String(
-                item.batch_code ||
-                ""
-              ).trim().toLowerCase();
+                item.batch_code || ""
+              )
+                .trim()
+                .toLowerCase();
+
 
             return (
-              recapBatch ===
-                batchCode ||
-              poBatch ===
-                batchCode
+              recapBatch === batchCode ||
+              poBatch === batchCode
             );
 
           }
         );
 
 
-      if (!po) {
+      if (
+        !po
+      ) {
+
+        console.warn(
+          "REPAIR DP: PO tidak ditemukan untuk batch:",
+          row.batch_code
+        );
 
         continue;
 
       }
 
 
+      /* ========================================
+         AMBIL DP DARI PO
+         ======================================== */
+
       const unitDP =
         Number(
           String(
-            po.dp_text ||
-            ""
+            po.dp_text || ""
           ).replace(
             /[^\d]/g,
             ""
@@ -16021,10 +16094,22 @@ const {
         unitDP <= 0
       ) {
 
+        console.warn(
+          "REPAIR DP: DP PO kosong/0 untuk batch:",
+          row.batch_code,
+          "dp_text:",
+          po.dp_text
+        );
+
         continue;
 
       }
 
+
+      /* ========================================
+         HITUNG DP MINIMUM
+         DP PO × QUANTITY
+         ======================================== */
 
       const quantity =
         Number(
@@ -16046,6 +16131,15 @@ const {
       }
 
 
+      /* ========================================
+         SIMPAN HANYA MINIMUM DP
+         Tidak menyentuh:
+         - dp_amount
+         - dp_status
+         - payment_status
+         - pembayaran
+         ======================================== */
+
       const {
         error: updateError
       } =
@@ -16061,7 +16155,9 @@ const {
           );
 
 
-      if (updateError) {
+      if (
+        updateError
+      ) {
 
         console.error(
           "ERROR REPAIR DP:",
@@ -16076,19 +16172,29 @@ const {
 
       updatedCount++;
 
-    }
-
-
-    if (
-      updatedCount > 0
-    ) {
-
       console.log(
-        "DP MINIMUM BATCH LAMA DIPERBAIKI:",
-        updatedCount
+        "DP MINIMUM DIPERBAIKI:",
+        {
+          batch:
+            row.batch_code,
+          customer:
+            row.id,
+          quantity:
+            quantity,
+          dpPO:
+            unitDP,
+          minimumDP:
+            minimumDP
+        }
       );
 
     }
+
+
+    console.log(
+      "TOTAL DP MINIMUM DIPERBAIKI:",
+      updatedCount
+    );
 
 
     return updatedCount;
