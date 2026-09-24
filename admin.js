@@ -32581,18 +32581,8 @@ if (archiveRecapSubmitButton) {
       try {
 
         const recapRows =
-          rows
-            .filter(function(row) {
-
-              return (
-                row.customer &&
-                String(
-                  row.customer
-                ).trim()
-              );
-
-            })
-            .map(function(row) {
+  rows
+    .map(function(row) {
 
               const quantity =
   Number(row.quantity) || 1;
