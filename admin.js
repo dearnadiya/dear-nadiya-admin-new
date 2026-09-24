@@ -23574,21 +23574,6 @@ recapStatusSelects.forEach(
           ) || 0;
 
 
-        let dpAmount =
-          Number(
-            recap.dp_amount
-          ) || 0;
-
-
-        let remainingAmount =
-          Math.max(
-            Number(
-              recap.remaining_amount
-            ) || 0,
-            0
-          );
-
-
         let updateData = {};
 
 
