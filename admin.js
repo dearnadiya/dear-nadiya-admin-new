@@ -22013,11 +22013,11 @@ let html = `
 </th>
 
 <th>
-  Pelunasan Terbayar
+  Status DP
 </th>
 
 <th>
-  Status DP
+  Pelunasan Terbayar
 </th>
 
 <th>
@@ -22103,30 +22103,30 @@ let html = `
 </td>
 
 <td>
-  ${formatRupiah(
-    row._pelunasan_paid || 0
-  )}
-</td>
-
-<td>
   <select
     class="recap-status-select recap-dp-status"
     data-id="${escapeHTML(String(row.id))}"
   >
     <option
-  value="unpaid"
-  ${row.dp_status === "unpaid" ? "selected" : ""}
->
-  🟠 ⏳ Belum Dibayar
-</option>
+      value="unpaid"
+      ${row.dp_status === "unpaid" ? "selected" : ""}
+    >
+      🟠 ⏳ Belum Dibayar
+    </option>
 
-<option
-  value="paid"
-  ${row.dp_status === "paid" ? "selected" : ""}
->
-  🟢 ✓ Sudah Dibayar
-</option>
+    <option
+      value="paid"
+      ${row.dp_status === "paid" ? "selected" : ""}
+    >
+      🟢 ✓ Sudah Dibayar
+    </option>
   </select>
+</td>
+
+<td>
+  ${formatRupiah(
+    row._pelunasan_paid || 0
+  )}
 </td>
 
 <td>
@@ -22134,7 +22134,6 @@ let html = `
     row.remaining_amount
   )}
 </td>
-
                         <td>
   <select
     class="recap-status-select recap-payment-status"
