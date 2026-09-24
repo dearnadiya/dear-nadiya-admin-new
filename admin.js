@@ -18349,6 +18349,595 @@ if (
 }
 
 /* ============================================
+   PULIHKAN MEMBER AVAILABLE DARI PO LAMA
+   ============================================ */
+
+async function restoreOldAvailableRecapMembers(
+  category
+) {
+
+  try {
+
+    /*
+     * ==========================================
+     * 1. CARI PO YANG SUDAH PERNAH
+     *    DIMASUKKAN KE REKAP GO
+     * ==========================================
+     */
+
+    const {
+      data: completedPOs,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          batch_code,
+          price_text,
+          dp_text,
+          last_dp_date,
+          recap_type,
+          recap_category,
+          recap_batch_code,
+          recap_status,
+          list_data
+        `)
+        .eq(
+          "recap_status",
+          "completed"
+        )
+        .eq(
+          "recap_category",
+          category
+        );
+
+
+    if (poError) {
+
+      console.error(
+        "ERROR CARI PO LAMA UNTUK PEMULIHAN:",
+        poError
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !completedPOs ||
+      completedPOs.length === 0
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * ==========================================
+     * 2. PROSES SETIAP PO
+     * ==========================================
+     */
+
+    for (
+      const po
+      of completedPOs
+    ) {
+
+      let listData =
+        po.list_data || [];
+
+
+      /*
+       * Jika JSON tersimpan sebagai string
+       */
+      if (
+        typeof listData ===
+        "string"
+      ) {
+
+        try {
+
+          listData =
+            JSON.parse(
+              listData
+            );
+
+        } catch (error) {
+
+          console.error(
+            "GAGAL PARSE LIST DATA PO:",
+            po.id,
+            error
+          );
+
+          continue;
+
+        }
+
+      }
+
+
+      if (
+        !Array.isArray(listData)
+      ) {
+
+        continue;
+
+      }
+
+
+      /*
+       * Kode batch yang digunakan
+       * di Rekap GO.
+       */
+      const batchCode =
+        String(
+          po.recap_batch_code ||
+          po.batch_code ||
+          ""
+        ).trim();
+
+
+      if (!batchCode) {
+
+        continue;
+
+      }
+
+
+      /*
+       * ========================================
+       * 3. AMBIL REKAP YANG SUDAH ADA
+       * ========================================
+       */
+
+      const {
+        data: existingRows,
+        error: existingError
+      } =
+        await supabaseClient
+          .from("purchase_recap")
+          .select(`
+            id,
+            version,
+            customer_id,
+            customer_name,
+            item_price,
+            minimum_dp_amount,
+            dp_amount,
+            remaining_amount,
+            dp_deadline,
+            payment_deadline,
+            co_deadline,
+            tracking_status,
+            batch_tracking_status,
+            customer_status,
+            recap_type,
+            recap_data_type
+          `)
+          .eq(
+            "category",
+            category
+          )
+          .eq(
+            "batch_code",
+            batchCode
+          );
+
+
+      if (existingError) {
+
+        console.error(
+          "ERROR CEK REKAP LAMA:",
+          existingError
+        );
+
+        continue;
+
+      }
+
+
+      const rowsAlreadyExist =
+        existingRows || [];
+
+
+      /*
+       * Ambil data batch dari baris
+       * Rekap GO yang sudah ada.
+       */
+      const existingBatch =
+        rowsAlreadyExist[0] ||
+        {};
+
+
+      /*
+       * ========================================
+       * 4. CARI MEMBER YANG MASIH AVAILABLE
+       * ========================================
+       */
+
+      const availableRows =
+        listData.filter(
+          function(row) {
+
+            const member =
+              String(
+                row.member || ""
+              ).trim();
+
+            const customer =
+              String(
+                row.customer || ""
+              ).trim();
+
+            /*
+             * Harus punya member/version
+             * dan customer masih kosong.
+             */
+            return (
+              member &&
+              !customer
+            );
+
+          }
+        );
+
+
+      if (
+        availableRows.length === 0
+      ) {
+
+        continue;
+
+      }
+
+
+      /*
+       * ========================================
+       * 5. HANYA MASUKKAN MEMBER YANG
+       *    BELUM ADA DI REKAP GO
+       * ========================================
+       */
+
+      const rowsToInsert = [];
+
+
+      for (
+        const row
+        of availableRows
+      ) {
+
+        const member =
+          String(
+            row.member || ""
+          ).trim();
+
+
+        /*
+         * Cek apakah versi/member ini
+         * sudah ada di Rekap GO.
+         */
+        const alreadyExists =
+          rowsAlreadyExist.some(
+            function(existing) {
+
+              return (
+                String(
+                  existing.version ||
+                  ""
+                ).trim() ===
+                member
+              );
+
+            }
+          );
+
+
+        /*
+         * Kalau sudah ada,
+         * jangan buat duplikat.
+         */
+        if (
+          alreadyExists
+        ) {
+
+          continue;
+
+        }
+
+
+        /*
+         * ====================================
+         * HARGA
+         * ====================================
+         */
+
+        let price =
+          Number(
+            String(
+              row.price || ""
+            ).replace(
+              /[^\d]/g,
+              ""
+            )
+          ) || 0;
+
+
+        if (
+          price === 0
+        ) {
+
+          const unitPrice =
+            Number(
+              String(
+                po.price_text || ""
+              ).replace(
+                /[^\d]/g,
+                ""
+              )
+            ) || 0;
+
+
+          price =
+            unitPrice *
+            (
+              Number(
+                row.quantity
+              ) || 1
+            );
+
+        }
+
+
+        /*
+         * ====================================
+         * DP MINIMUM
+         * ====================================
+         */
+
+        let minimumDp =
+          Number(
+            String(
+              row.dp || ""
+            ).replace(
+              /[^\d]/g,
+              ""
+            )
+          ) || 0;
+
+
+        if (
+          minimumDp === 0
+        ) {
+
+          const unitDp =
+            Number(
+              String(
+                po.dp_text || ""
+              ).replace(
+                /[^\d]/g,
+                ""
+              )
+            ) || 0;
+
+
+          minimumDp =
+            unitDp *
+            (
+              Number(
+                row.quantity
+              ) || 1
+            );
+
+        }
+
+
+        /*
+         * ====================================
+         * DATA BATCH
+         * ====================================
+         */
+
+        const quantity =
+          Number(
+            row.quantity
+          ) || 1;
+
+
+        const trackingStatus =
+          existingBatch
+            .batch_tracking_status ||
+          existingBatch
+            .tracking_status ||
+          "";
+
+
+        const customerStatus =
+          existingBatch
+            .customer_status ||
+          "Belum Checkout Shopee";
+
+
+        const recapType =
+          existingBatch
+            .recap_type ||
+          po.recap_type ||
+          getRecapTypeFromCategory(
+            category
+          );
+
+
+        const recapDataType =
+          existingBatch
+            .recap_data_type ||
+          "baru";
+
+
+        /*
+         * ====================================
+         * MASUKKAN MEMBER AVAILABLE
+         * ====================================
+         */
+
+        rowsToInsert.push({
+
+          recap_type:
+            recapType,
+
+          category:
+            category,
+
+          batch_code:
+            batchCode,
+
+          item_name:
+            po.title || "",
+
+          customer_id:
+            null,
+
+          customer_name:
+            "",
+
+          version:
+            member,
+
+          quantity:
+            quantity,
+
+          item_price:
+            price,
+
+          minimum_dp_amount:
+            minimumDp,
+
+          dp_amount:
+            0,
+
+          dp_status:
+            "unpaid",
+
+          remaining_amount:
+            price,
+
+          payment_status:
+            "unpaid",
+
+          tracking_status:
+            trackingStatus,
+
+          batch_tracking_status:
+            trackingStatus,
+
+          customer_status:
+            customerStatus,
+
+          note:
+            String(
+              row.note || ""
+            ).trim(),
+
+          dp_deadline:
+            existingBatch
+              .dp_deadline ||
+            po.last_dp_date ||
+            null,
+
+          payment_deadline:
+            existingBatch
+              .payment_deadline ||
+            null,
+
+          co_deadline:
+            existingBatch
+              .co_deadline ||
+            null,
+
+          recap_data_type:
+            recapDataType
+
+        });
+
+      }
+
+
+      /*
+       * ========================================
+       * 6. INSERT DATA YANG HILANG
+       * ========================================
+       */
+
+      if (
+        rowsToInsert.length > 0
+      ) {
+
+        const {
+          error: insertError
+        } =
+          await supabaseClient
+            .from(
+              "purchase_recap"
+            )
+            .insert(
+              rowsToInsert
+            );
+
+
+        if (insertError) {
+
+          console.error(
+            "ERROR MEMULIHKAN MEMBER REKAP:",
+            {
+              category:
+                category,
+
+              batchCode:
+                batchCode,
+
+              error:
+                insertError
+            }
+          );
+
+          continue;
+
+        }
+
+
+        console.log(
+          "MEMBER AVAILABLE BERHASIL DIPULIHKAN:",
+          {
+            category:
+              category,
+
+            batchCode:
+              batchCode,
+
+            jumlah:
+              rowsToInsert.length
+          }
+        );
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "ERROR RESTORE OLD AVAILABLE RECAP:",
+      error
+    );
+
+  }
+
+}
+
+/* ============================================
    DAFTAR REKAP
    ============================================ */
 
@@ -18365,6 +18954,14 @@ async function loadRecapList(
   if (!container) {
     return;
   }
+
+/* ==========================================
+   PULIHKAN MEMBER AVAILABLE DARI PO LAMA
+   ========================================== */
+
+await restoreOldAvailableRecapMembers(
+  category
+);
 
 
   container.innerHTML =
