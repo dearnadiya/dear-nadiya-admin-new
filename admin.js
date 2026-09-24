@@ -7549,13 +7549,11 @@ let dpStatus = "unpaid";
 */
 
 if (
-  minimumDp <= 0
-) {
-
-  dpStatus = "paid";
-
-} else if (
-  totalDpPaid >= minimumDp
+  totalDpPaid > 0 &&
+  (
+    minimumDp <= 0 ||
+    totalDpPaid >= minimumDp
+  )
 ) {
 
   dpStatus = "paid";
@@ -18136,36 +18134,37 @@ async function syncConfirmedPaymentStatuses(
          ======================================== */
 
       let dpStatus =
-        "unpaid";
+  "unpaid";
 
 
-      if (
-        minimumDp <= 0
-      ) {
+if (
+  totalDpPaid > 0 &&
+  (
+    minimumDp <= 0 ||
+    totalDpPaid >= minimumDp
+  )
+) {
 
-        dpStatus =
-          "paid";
+  dpStatus =
+    "paid";
 
-      }
+}
 
-      else if (
-        totalDpPaid >=
-        minimumDp
-      ) {
+else if (
+  totalDpPaid > 0
+) {
 
-        dpStatus =
-          "paid";
+  dpStatus =
+    "insufficient";
 
-      }
+}
 
-      else if (
-        totalDpPaid > 0
-      ) {
+else {
 
-        dpStatus =
-          "insufficient";
+  dpStatus =
+    "unpaid";
 
-      }
+}
 
 
       /* ========================================
@@ -21335,10 +21334,13 @@ try {
 
 
     const actualDpStatus =
-      minimumDp <= 0 ||
-      totalDpPaid >= minimumDp
-        ? "paid"
-        : "unpaid";
+  totalDpPaid > 0 &&
+  (
+    minimumDp <= 0 ||
+    totalDpPaid >= minimumDp
+  )
+    ? "paid"
+    : "unpaid";
 
 
     const actualPaymentStatus =
@@ -23886,12 +23888,15 @@ recapStatusSelects.forEach(
                 dpAmount,
 
               dp_status:
-                (
-                  minimumDp <= 0 ||
-                  dpAmount >= minimumDp
-                )
-                  ? "paid"
-                  : recap.dp_status,
+  (
+    dpAmount > 0 &&
+    (
+      minimumDp <= 0 ||
+      dpAmount >= minimumDp
+    )
+  )
+    ? "paid"
+    : recap.dp_status,
 
               remaining_amount:
                 0,
@@ -23932,12 +23937,15 @@ recapStatusSelects.forEach(
                 dpAmount,
 
               dp_status:
-                (
-                  minimumDp <= 0 ||
-                  dpAmount >= minimumDp
-                )
-                  ? "paid"
-                  : "unpaid",
+  (
+    dpAmount > 0 &&
+    (
+      minimumDp <= 0 ||
+      dpAmount >= minimumDp
+    )
+  )
+    ? "paid"
+    : "unpaid",
 
               remaining_amount:
                 remainingAmount,
