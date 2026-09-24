@@ -4533,39 +4533,85 @@ const selectedItems = [];
   memiliki banyak versi, maka semua versi
   menggunakan kode produk yang sama.
 */
+/* ==========================================
+   PASANGKAN BATCH + VERSI / MEMBER
+   ========================================== */
+
 let productPairs = [];
 
 
 /*
-  Buat pasangan berdasarkan JUMLAH BATCH,
-  bukan berdasarkan jumlah versi.
+  KASUS 1:
+  Satu batch memiliki beberapa versi/member.
 
-  Tujuannya:
-  - 4 batch tetap menghasilkan 4 pasangan
-  - jika ada versi yang sama, tetap dipertahankan
-  - jika versi kurang dari jumlah batch,
-    batch tetap diproses dengan versi kosong
+  Contoh:
+  productCodes:
+    ["Tr-CH-072"]
+
+  productVersions:
+    ["Junghwan", "Hyunsuk"]
+
+  Maka harus menjadi:
+
+  Tr-CH-072 + Junghwan
+  Tr-CH-072 + Hyunsuk
 */
 
-productPairs =
-  productCodes.map(
-    function(productCode, index) {
+if (
+  productCodes.length === 1 &&
+  productVersions.length > 1
+) {
 
-      return {
+  productVersions.forEach(
+    function(version) {
+
+      productPairs.push({
         productCode:
-          productCode,
+          productCodes[0],
 
         productVersion:
-          productVersions[index] ||
-          ""
-      };
+          version
+      });
 
     }
   );
 
+}
+
+
 /*
-  Cari setiap barang satu per satu
+  KASUS 2:
+  Jumlah batch dan versi sama.
+
+  Contoh:
+
+  Tr-CH-072 + Junghwan
+  Tr-KR-010 + Hyunsuk
 */
+
+else {
+
+  productCodes.forEach(
+    function(productCode, index) {
+
+      productPairs.push({
+        productCode:
+          productCode,
+
+        productVersion:
+          productVersions[index] || ""
+      });
+
+    }
+  );
+
+}
+
+
+/* ==========================================
+   CARI SEMUA BARANG YANG SESUAI
+   ========================================== */
+
 productPairs.forEach(
   function(pair) {
 
@@ -4585,8 +4631,15 @@ productPairs.forEach(
         .toLowerCase();
 
 
-    const item =
-      (recapData || []).find(
+    /*
+      PENTING:
+      Jangan menggunakan .find()
+      karena satu customer dapat memiliki
+      lebih dari satu barang dalam batch yang sama.
+    */
+
+    const matchedItems =
+      (recapData || []).filter(
         function(row) {
 
           const rowCode =
@@ -4609,42 +4662,101 @@ productPairs.forEach(
               .toLowerCase();
 
 
-          if (!productVersion) {
-
-  return (
-    rowCode === productCode
-  );
-
-}
+          const rowCustomerId =
+            String(
+              row.customer_id ?? ""
+            )
+              .trim();
 
 
-return (
-  rowCode === productCode &&
-  rowVersion === productVersion
-);
+          const paymentCustomerId =
+            String(
+              payment.customer_id ?? ""
+            )
+              .trim();
+
+
+          /*
+            Cocokkan batch.
+          */
+
+          if (
+            rowCode !== productCode
+          ) {
+            return false;
+          }
+
+
+          /*
+            Kalau customer_id tersedia,
+            wajib cocok dengan customer pembayaran.
+          */
+
+          if (
+            paymentCustomerId &&
+            rowCustomerId &&
+            rowCustomerId !==
+              paymentCustomerId
+          ) {
+            return false;
+          }
+
+
+          /*
+            Kalau versi dikirim,
+            cocokkan versi/member.
+          */
+
+          if (
+            productVersion
+          ) {
+
+            return (
+              rowVersion ===
+              productVersion
+            );
+
+          }
+
+
+          return true;
+
         }
       );
 
 
-    if (
-      item &&
-      !selectedItems.some(
-        function(existing) {
+    /*
+      Masukkan SEMUA hasil yang cocok.
+    */
 
-          return (
-            String(existing.id) ===
-            String(item.id)
+    matchedItems.forEach(
+      function(item) {
+
+        if (
+          !selectedItems.some(
+            function(existing) {
+
+              return (
+                String(
+                  existing.id
+                ) ===
+                String(
+                  item.id
+                )
+              );
+
+            }
+          )
+        ) {
+
+          selectedItems.push(
+            item
           );
 
         }
-      )
-    ) {
 
-      selectedItems.push(
-        item
-      );
-
-    }
+      }
+    );
 
   }
 );
