@@ -19597,6 +19597,532 @@ console.log(
 }
 
 /* ============================================
+   PEMULIHAN KHUSUS TR-CH-074
+   ============================================ */
+
+async function restoreTRCH074() {
+
+  const TARGET_BATCH =
+    "TR-CH-074";
+
+  try {
+
+    console.log(
+      "MULAI PEMULIHAN:",
+      TARGET_BATCH
+    );
+
+
+    /* ==========================================
+       1. AMBIL PO SUMBER
+       ========================================== */
+
+    const {
+      data: po,
+      error: poError
+    } =
+      await supabaseClient
+        .from("po_posts")
+        .select(`
+          id,
+          title,
+          price_text,
+          dp_text,
+          last_dp_date,
+          recap_type,
+          recap_category,
+          recap_batch_code,
+          recap_status,
+          list_data
+        `)
+        .eq(
+          "recap_batch_code",
+          TARGET_BATCH
+        )
+        .maybeSingle();
+
+
+    if (poError) {
+
+      console.error(
+        "ERROR CARI PO TR-CH-074:",
+        poError
+      );
+
+      alert(
+        "Gagal mencari PO TR-CH-074:\n" +
+        poError.message
+      );
+
+      return;
+
+    }
+
+
+    if (!po) {
+
+      alert(
+        "PO sumber TR-CH-074 tidak ditemukan di po_posts."
+      );
+
+      return;
+
+    }
+
+
+    /* ==========================================
+       2. PARSE list_data
+       ========================================== */
+
+    let listData =
+      po.list_data || [];
+
+
+    if (
+      typeof listData ===
+      "string"
+    ) {
+
+      try {
+
+        listData =
+          JSON.parse(
+            listData
+          );
+
+      } catch (parseError) {
+
+        console.error(
+          "GAGAL PARSE list_data TR-CH-074:",
+          parseError
+        );
+
+        alert(
+          "list_data TR-CH-074 tidak dapat dibaca."
+        );
+
+        return;
+
+      }
+
+    }
+
+
+    if (
+      !Array.isArray(
+        listData
+      )
+    ) {
+
+      alert(
+        "list_data TR-CH-074 bukan array."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      listData.length === 0
+    ) {
+
+      alert(
+        "list_data TR-CH-074 kosong."
+      );
+
+      return;
+
+    }
+
+
+    /* ==========================================
+       3. CEK DATA REKAP YANG MASIH ADA
+       ========================================== */
+
+    const {
+      data: existingRows,
+      error: existingError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          category,
+          batch_code,
+          version,
+          customer_id,
+          customer_name
+        `)
+        .eq(
+          "batch_code",
+          TARGET_BATCH
+        );
+
+
+    if (existingError) {
+
+      console.error(
+        "ERROR CEK REKAP TR-CH-074:",
+        existingError
+      );
+
+      alert(
+        "Gagal mengecek Rekap GO TR-CH-074:\n" +
+        existingError.message
+      );
+
+      return;
+
+    }
+
+
+    const existing =
+      existingRows || [];
+
+
+    /* ==========================================
+       4. JANGAN DUPLIKASI MEMBER
+       ========================================== */
+
+    const rowsToInsert = [];
+
+
+    for (
+      const row
+      of listData
+    ) {
+
+      const member =
+        String(
+          row.member || ""
+        ).trim();
+
+
+      if (!member) {
+
+        continue;
+
+      }
+
+
+      const alreadyExists =
+        existing.some(
+          function(existingRow) {
+
+            return (
+              String(
+                existingRow.version || ""
+              )
+                .trim()
+                .toLowerCase() ===
+              member
+                .trim()
+                .toLowerCase()
+            );
+
+          }
+        );
+
+
+      if (
+        alreadyExists
+      ) {
+
+        continue;
+
+      }
+
+
+      /* ========================================
+         HARGA
+         ======================================== */
+
+      let price =
+        Number(
+          String(
+            row.price || ""
+          ).replace(
+            /[^\d]/g,
+            ""
+          )
+        ) || 0;
+
+
+      if (
+        price === 0
+      ) {
+
+        const unitPrice =
+          Number(
+            String(
+              po.price_text || ""
+            ).replace(
+              /[^\d]/g,
+              ""
+            )
+          ) || 0;
+
+
+        price =
+          unitPrice *
+          (
+            Number(
+              row.quantity
+            ) || 1
+          );
+
+      }
+
+
+      /* ========================================
+         DP MINIMUM
+         ======================================== */
+
+      let minimumDp =
+        Number(
+          String(
+            row.dp || ""
+          ).replace(
+            /[^\d]/g,
+            ""
+          )
+        ) || 0;
+
+
+      if (
+        minimumDp === 0
+      ) {
+
+        const unitDp =
+          Number(
+            String(
+              po.dp_text || ""
+            ).replace(
+              /[^\d]/g,
+              ""
+            )
+          ) || 0;
+
+
+        minimumDp =
+          unitDp *
+          (
+            Number(
+              row.quantity
+            ) || 1
+          );
+
+      }
+
+
+      /* ========================================
+         CUSTOMER
+         ======================================== */
+
+      const customerId =
+        row.customer_id ||
+        null;
+
+
+      const customerName =
+        String(
+          row.customer || ""
+        ).trim();
+
+
+      /* ========================================
+         QUANTITY
+         ======================================== */
+
+      const quantity =
+        Number(
+          row.quantity
+        ) || 1;
+
+
+      /* ========================================
+         MASUKKAN KEMBALI
+         ======================================== */
+
+      rowsToInsert.push({
+
+        recap_type:
+          po.recap_type ||
+          getRecapTypeFromCategory(
+            po.recap_category || ""
+          ),
+
+        category:
+          po.recap_category ||
+          "",
+
+        batch_code:
+          TARGET_BATCH,
+
+        item_name:
+          po.title ||
+          "",
+
+        customer_id:
+          customerId,
+
+        customer_name:
+          customerName,
+
+        version:
+          member,
+
+        quantity:
+          quantity,
+
+        item_price:
+          price,
+
+        minimum_dp_amount:
+          minimumDp,
+
+        /*
+         * Untuk sementara pembayaran
+         * dikembalikan sebagai belum
+         * dibayar.
+         *
+         * Nanti kita sambungkan kembali
+         * dengan dn_payment_allocations.
+         */
+
+        dp_amount:
+          0,
+
+        dp_status:
+          "unpaid",
+
+        remaining_amount:
+          price,
+
+        payment_status:
+          "unpaid",
+
+        tracking_status:
+          "",
+
+        batch_tracking_status:
+          "",
+
+        customer_status:
+          "Belum Checkout Shopee",
+
+        note:
+          String(
+            row.note || ""
+          ).trim(),
+
+        dp_deadline:
+          po.last_dp_date ||
+          null,
+
+        payment_deadline:
+          null,
+
+        co_deadline:
+          null,
+
+        recap_data_type:
+          "baru"
+
+      });
+
+    }
+
+
+    /* ==========================================
+       5. JIKA SEMUA SUDAH ADA
+       ========================================== */
+
+    if (
+      rowsToInsert.length === 0
+    ) {
+
+      alert(
+        "Tidak ada member TR-CH-074 yang perlu dipulihkan.\n\n" +
+        "Data member sudah ada di purchase_recap."
+      );
+
+      console.log(
+        "TR-CH-074 TIDAK PERLU INSERT.",
+        existing
+      );
+
+      return;
+
+    }
+
+
+    /* ==========================================
+       6. INSERT DATA
+       ========================================== */
+
+    const {
+      data: insertedRows,
+      error: insertError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .insert(
+          rowsToInsert
+        )
+        .select("*");
+
+
+    if (insertError) {
+
+      console.error(
+        "ERROR RESTORE TR-CH-074:",
+        insertError
+      );
+
+      alert(
+        "Gagal mengembalikan TR-CH-074:\n\n" +
+        insertError.message
+      );
+
+      return;
+
+    }
+
+
+    console.log(
+      "TR-CH-074 BERHASIL DIPULIHKAN:",
+      insertedRows
+    );
+
+
+    alert(
+      "TR-CH-074 berhasil dikembalikan.\n\n" +
+      "Member dipulihkan: " +
+      rowsToInsert.length +
+      "\n\n" +
+      "Silakan buka Rekap GO dan cek batch tersebut."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "ERROR PEMULIHAN TR-CH-074:",
+      error
+    );
+
+    alert(
+      "Terjadi kesalahan saat memulihkan TR-CH-074:\n\n" +
+      error.message
+    );
+
+  }
+
+}
+
+/* ============================================
    DAFTAR REKAP
    ============================================ */
 
