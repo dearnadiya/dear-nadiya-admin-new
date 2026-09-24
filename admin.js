@@ -15871,7 +15871,17 @@ const billingHeader =
       ? lastPaymentText + "\n"
       : ""
   }` +
-  `Telat payment denda 3k/hari\n\n`;
+  `Telat payment denda 3k/hari\n\n` +
+  `*Kirimkan bukti pembayaran di bagian upload pembayaran di web* :\n` +
+  `https://dearnadiya.github.io/Dear-nadiya-website/\n\n`;
+
+const paymentFooter =
+  `\n\n🧾 Payment :\n\n` +
+  `💳 Dana/Gopay : XXXXXXXX a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
+  `💳 Spay : XXXXXXXX a/n Euis Hunadiyah Al Aini (+1k jika dari bank)\n\n` +
+  `💳 BRI : XXXXXXXX a/n Euis Hunadiyah Al Aini\n\n` +
+  `💳 Seabank : XXXXXXXX a/n Euis Hunadiyah Al Aini\n\n` +
+  `QRIS? CHAT ADMIN`;
 
   /* ======================================
      MODE 1
@@ -16070,13 +16080,12 @@ return (
 
 
           return (
-            `🛍️ ${customer.name}\n\n` +
-            itemLines.join("\n") +
-            `\n\n` +
-            `Total - ${money(total)}\n` +
-            `DP - ${money(totalDp)}\n` +
-            `Tagihan - ${money(totalRemaining)}`
-          );
+  `🛍️ ${customer.name}\n\n` +
+  itemLines.join("\n") +
+  `\n\n` +
+  `*Total - ${money(total)}*\n` +
+  `*DP - ${money(totalDp)}*`
+);
 
         }
       );
@@ -16086,10 +16095,10 @@ return (
   billingHeader +
   customerBlocks.join(
     "\n\n"
-  );
+  ) +
+  paymentFooter;
 
 return;
-
   }
 
 
@@ -16244,14 +16253,12 @@ return (
 
 
           return (
-            `${batchCode}\n` +
-            lines.join("\n") +
-            `\n\n` +
-            `Total - ${money(total)}\n` +
-            `DP - ${money(totalDp)}\n` +
-            `Tagihan - ${money(totalRemaining)}`
-          );
-
+  `${batchCode}\n` +
+  lines.join("\n") +
+  `\n\n` +
+  `*Total - ${money(total)}*\n` +
+  `*DP - ${money(totalDp)}*`
+);
         }
       );
 
@@ -16260,7 +16267,8 @@ return (
   billingHeader +
   sharingBlocks.join(
     "\n\n"
-  );
+  ) +
+  paymentFooter;
 
 }
 
