@@ -5063,80 +5063,137 @@ const selectedItems = [];
   memiliki banyak versi, maka semua versi
   menggunakan kode produk yang sama.
 */
-/* ==========================================
-   PASANGKAN BATCH + VERSI / MEMBER
+
+   /* ==========================================
+   CARI SEMUA BARANG BERDASARKAN
+   BATCH + VERSI / MEMBER
    ========================================== */
 
-let productPairs = [];
+const normalizedProductCodes =
+  productCodes.map(function(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase();
+  });
+
+const normalizedProductVersions =
+  productVersions.map(function(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase();
+  });
 
 
-/*
-  KASUS 1:
-  Satu batch memiliki beberapa versi/member.
+/* ==========================================
+   CARI SEMUA BARANG YANG SESUAI
+   ========================================== */
 
-  Contoh:
-  productCodes:
-    ["Tr-CH-072"]
+(recapData || []).forEach(
+  function(row) {
 
-  productVersions:
-    ["Junghwan", "Hyunsuk"]
+    const rowCode =
+      String(
+        row.batch_code ||
+        row.product_code ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
 
-  Maka harus menjadi:
 
-  Tr-CH-072 + Junghwan
-  Tr-CH-072 + Hyunsuk
-*/
+    const rowVersion =
+      String(
+        row.version ||
+        row.product_version ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
 
-if (
-  productCodes.length === 1 &&
-  productVersions.length > 1
-) {
 
-  productVersions.forEach(
-    function(version) {
+    const rowCustomerId =
+      String(
+        row.customer_id ?? ""
+      )
+        .trim();
 
-      productPairs.push({
-        productCode:
-          productCodes[0],
 
-        productVersion:
-          version
-      });
+    const paymentCustomerId =
+      String(
+        payment.customer_id ?? ""
+      )
+        .trim();
 
+
+    /* ======================================
+       CUSTOMER HARUS SAMA
+       ====================================== */
+
+    if (
+      paymentCustomerId &&
+      rowCustomerId &&
+      rowCustomerId !==
+        paymentCustomerId
+    ) {
+      return;
     }
-  );
-
-}
 
 
-/*
-  KASUS 2:
-  Jumlah batch dan versi sama.
+    /* ======================================
+       BATCH HARUS TERMASUK DALAM PAYMENT
+       ====================================== */
 
-  Contoh:
-
-  Tr-CH-072 + Junghwan
-  Tr-KR-010 + Hyunsuk
-*/
-
-else {
-
-  productCodes.forEach(
-    function(productCode, index) {
-
-      productPairs.push({
-        productCode:
-          productCode,
-
-        productVersion:
-          productVersions[index] || ""
-      });
-
+    if (
+      !normalizedProductCodes.includes(
+        rowCode
+      )
+    ) {
+      return;
     }
-  );
 
-}
 
+    /* ======================================
+       VERSI HARUS TERMASUK DALAM PAYMENT
+       ====================================== */
+
+    if (
+      normalizedProductVersions.length > 0 &&
+      !normalizedProductVersions.includes(
+        rowVersion
+      )
+    ) {
+      return;
+    }
+
+
+    /* ======================================
+       JANGAN DUPLIKAT
+       ====================================== */
+
+    if (
+      selectedItems.some(
+        function(existing) {
+
+          return (
+            String(existing.id) ===
+            String(row.id)
+          );
+
+        }
+      )
+    ) {
+      return;
+    }
+
+
+    /* ======================================
+       MASUKKAN BARANG
+       ====================================== */
+
+    selectedItems.push(row);
+
+  }
+);
 
 /* ==========================================
    CARI SEMUA BARANG YANG SESUAI
