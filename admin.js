@@ -20869,6 +20869,300 @@ container.innerHTML =
 
   }
 
+/* ==========================================
+   HITUNG PEMBAYARAN AKTUAL REKAP GO
+   Hanya pembayaran CONFIRMED
+   ========================================== */
+
+const recapPaymentSummary = {};
+
+try {
+
+  const {
+    data: recapAllocationRows,
+    error: recapAllocationError
+  } = await supabaseClient
+    .from("dn_payment_allocations")
+    .select(`
+      payment_submission_id,
+      recap_id,
+      allocated_amount,
+      payment_part,
+      created_at
+    `)
+    .order("created_at", {
+      ascending: true
+    });
+
+  if (recapAllocationError) {
+    throw recapAllocationError;
+  }
+
+
+  const {
+    data: recapConfirmedPayments,
+    error: recapConfirmedPaymentError
+  } = await supabaseClient
+    .from("dn_payment_submissions")
+    .select("id")
+    .eq("status", "confirmed");
+
+  if (recapConfirmedPaymentError) {
+    throw recapConfirmedPaymentError;
+  }
+
+
+  const recapConfirmedPaymentIds =
+    new Set(
+      (recapConfirmedPayments || [])
+        .map(payment =>
+          String(payment.id)
+        )
+    );
+
+
+  (data || []).forEach(row => {
+
+    const recapId =
+      String(row.id);
+
+    const price =
+      Number(row.item_price) || 0;
+
+    const minimumDp =
+      Number(row.minimum_dp_amount) || 0;
+
+    const isLegacy =
+      String(row.recap_data_type || "")
+        .trim()
+        .toLowerCase() === "lama";
+
+
+    let totalDpPaid = 0;
+    let totalPelunasanPaid = 0;
+
+
+    /* ======================================
+       REKAP LAMA
+       ====================================== */
+
+    if (isLegacy) {
+
+      const storedDp =
+        Number(row.dp_amount) || 0;
+
+      const storedRemaining =
+        Math.max(
+          Number(row.remaining_amount) || 0,
+          0
+        );
+
+      totalDpPaid =
+        minimumDp > 0
+          ? Math.min(
+              storedDp,
+              minimumDp
+            )
+          : storedDp;
+
+      const actualTotalPaid =
+        price > 0
+          ? Math.max(
+              price - storedRemaining,
+              0
+            )
+          : storedDp;
+
+      totalPelunasanPaid =
+        Math.max(
+          actualTotalPaid -
+          totalDpPaid,
+          0
+        );
+
+    }
+
+    /* ======================================
+       REKAP BARU
+       Hanya allocation dari payment
+       yang sudah CONFIRMED
+       ====================================== */
+
+    else {
+
+      (recapAllocationRows || [])
+        .filter(allocation =>
+          String(
+            allocation.recap_id
+          ) === recapId &&
+          recapConfirmedPaymentIds.has(
+            String(
+              allocation.payment_submission_id
+            )
+          )
+        )
+        .forEach(allocation => {
+
+          const amount =
+            Number(
+              allocation.allocated_amount
+            ) || 0;
+
+          if (amount <= 0) {
+            return;
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "dp"
+          ) {
+
+            totalDpPaid +=
+              amount;
+
+            return;
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "pelunasan"
+          ) {
+
+            totalPelunasanPaid +=
+              amount;
+
+            return;
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "both"
+          ) {
+
+            const dpNeeded =
+              Math.max(
+                minimumDp -
+                totalDpPaid,
+                0
+              );
+
+            const dpPortion =
+              Math.min(
+                amount,
+                dpNeeded
+              );
+
+            const pelunasanPortion =
+              Math.max(
+                amount -
+                dpPortion,
+                0
+              );
+
+            totalDpPaid +=
+              dpPortion;
+
+            totalPelunasanPaid +=
+              pelunasanPortion;
+          }
+
+        });
+
+    }
+
+
+    const actualTotalPaid =
+      totalDpPaid +
+      totalPelunasanPaid;
+
+
+    const actualRemaining =
+      price > 0
+        ? Math.max(
+            price -
+            actualTotalPaid,
+            0
+          )
+        : 0;
+
+
+    const actualDpStatus =
+      minimumDp <= 0 ||
+      totalDpPaid >= minimumDp
+        ? "paid"
+        : "unpaid";
+
+
+    const actualPaymentStatus =
+      price > 0 &&
+      actualRemaining <= 0
+        ? "paid"
+        : "unpaid";
+
+
+    /* ======================================
+       SIMPAN HASIL PEMBAYARAN AKTUAL
+       ====================================== */
+
+    recapPaymentSummary[
+      recapId
+    ] = {
+
+      totalDpPaid,
+
+      totalPelunasanPaid,
+
+      actualTotalPaid,
+
+      actualRemaining,
+
+      dpStatus:
+        actualDpStatus,
+
+      paymentStatus:
+        actualPaymentStatus
+
+    };
+
+
+    /* ======================================
+       GUNAKAN HASIL AKTUAL UNTUK
+       TAMPILAN REKAP GO
+       ====================================== */
+
+    row.dp_amount =
+      totalDpPaid;
+
+    row.remaining_amount =
+      actualRemaining;
+
+    row.dp_status =
+      actualDpStatus;
+
+    row.payment_status =
+      actualPaymentStatus;
+
+    row._pelunasan_paid =
+      totalPelunasanPaid;
+
+    row._total_paid =
+      actualTotalPaid;
+
+  });
+
+
+} catch (recapPaymentError) {
+
+  console.error(
+    "ERROR HITUNG PEMBAYARAN REKAP GO:",
+    recapPaymentError
+  );
+
+}
+
      /* ==========================================
      AMBIL TRACKING OPTIONS KATEGORI
      ========================================== */
@@ -21710,21 +22004,25 @@ let html = `
                     Qty
                   </th>
 
-                  <th>
-                    Harga
-                  </th>
+                 <th>
+  Harga
+</th>
 
-                  <th>
-                    DP
-                  </th>
+<th>
+  DP
+</th>
 
-                  <th>
-                    Status DP
-                  </th>
-                  
-                  <th>
-                    Sisa
-                  </th>
+<th>
+  Pelunasan Terbayar
+</th>
+
+<th>
+  Status DP
+</th>
+
+<th>
+  Sisa
+</th>
 
                   <th>
                     Pembayaran
@@ -21801,6 +22099,12 @@ let html = `
                        <td>
   ${formatRupiah(
     row.dp_amount
+  )}
+</td>
+
+<td>
+  ${formatRupiah(
+    row._pelunasan_paid || 0
   )}
 </td>
 
