@@ -18720,15 +18720,15 @@ async function renderTabunganRecapList(
                   </button>
 
 
-                  <button
-                    type="button"
-                    class="delete-button delete-recap-button"
-                    data-id="${escapeHTML(
-                      String(row.id)
-                    )}"
-                  >
-                    🗑️ Hapus
-                  </button>
+                 <button
+  type="button"
+  class="delete-button delete-member-button"
+  data-id="${escapeHTML(
+    String(row.id)
+  )}"
+>
+  🗑️ Hapus
+</button>
 
                 </div>
 
@@ -18778,36 +18778,72 @@ async function renderTabunganRecapList(
       );
 
 
-    container
-      .querySelectorAll(
-        ".delete-recap-button"
-      )
-      .forEach(
-        function(button) {
+   container
+  .querySelectorAll(
+    ".delete-member-button"
+  )
+  .forEach(
+    function(button) {
 
-          button.addEventListener(
-            "click",
-            async function() {
+      button.addEventListener(
+        "click",
+        async function() {
 
-              const id =
-                this.dataset.id;
+          const id =
+            this.dataset.id;
 
-              if (
-                typeof deleteRecap ===
-                "function"
-              ) {
+          if (!id) {
+            return;
+          }
 
-                await deleteRecap(
-                  id
-                );
+          if (
+            !confirm(
+              "Yakin ingin menghapus MEMBER / VERSI ini?\n\n" +
+              "Hanya member yang dipilih yang akan dihapus."
+            )
+          ) {
+            return;
+          }
 
-              }
+          const {
+            error: deleteMemberError
+          } =
+            await supabaseClient
+              .from("purchase_recap")
+              .delete()
+              .eq(
+                "id",
+                id
+              );
 
-            }
+          if (deleteMemberError) {
+
+            console.error(
+              "ERROR DELETE MEMBER:",
+              deleteMemberError
+            );
+
+            alert(
+              "Gagal menghapus member / versi: " +
+              deleteMemberError.message
+            );
+
+            return;
+          }
+
+          alert(
+            "Member / versi berhasil dihapus. ♥"
+          );
+
+          await loadRecapList(
+            category
           );
 
         }
       );
+
+    }
+  );
 
   }
 
@@ -22229,7 +22265,7 @@ if (
 
 container
   .querySelectorAll(
-    ".delete-recap-button"
+    ".delete-batch-button"
   )
   .forEach(
     function(button) {
