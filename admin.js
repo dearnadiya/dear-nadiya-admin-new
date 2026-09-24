@@ -4813,21 +4813,12 @@ DP Terbayar:
 
                   <br>
 
-                  Sisa Pelunasan:
-                  <strong>
-                    ${formatRupiah(
-                      remaining
-                    )}
-                  </strong>
-
-                  <br>
-
-                  Total:
-                  <strong>
-                    ${formatRupiah(
-                      total
-                    )}
-                  </strong>
+                 Sisa Pelunasan:
+<strong>
+  ${formatRupiah(
+    remaining
+  )}
+</strong>
 
                 </div>
 
