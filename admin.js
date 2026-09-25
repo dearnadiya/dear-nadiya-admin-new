@@ -21724,6 +21724,7 @@ let html = `
 
         <div
   class="recap-batch-card recap-batch-collapsed"
+  data-batch-code="${escapeHTML(batchCode)}"
   data-search="${escapeHTML(
             (
               batchCode +
@@ -22771,6 +22772,42 @@ container
    COLLAPSE / EXPAND BATCH
    ========================================== */
 
+/* ==========================================
+   SIMPAN BATCH YANG SEDANG TERBUKA
+   ========================================== */
+
+const recapOpenBatchKey =
+  "recapGO_openBatch_" + category;
+
+function saveOpenBatch(batchCode) {
+
+  if (!batchCode) {
+    return;
+  }
+
+  sessionStorage.setItem(
+    recapOpenBatchKey,
+    batchCode
+  );
+
+}
+
+function getOpenBatch() {
+
+  return sessionStorage.getItem(
+    recapOpenBatchKey
+  );
+
+}
+
+function clearOpenBatch() {
+
+  sessionStorage.removeItem(
+    recapOpenBatchKey
+  );
+
+}
+
 container
   .querySelectorAll(
     ".recap-batch-card .recap-batch-header"
@@ -22838,6 +22875,28 @@ container
     "recap-batch-collapsed"
   );
 
+const batchCode =
+  card.dataset.batchCode;
+
+if (isCollapsed) {
+
+  /* Batch ditutup */
+  if (
+    batchCode &&
+    getOpenBatch() === batchCode
+  ) {
+    clearOpenBatch();
+  }
+
+} else {
+
+  /* Batch dibuka */
+  saveOpenBatch(
+    batchCode
+  );
+
+}
+
           if (isCollapsed) {
 
             if (tracking) {
@@ -22869,6 +22928,55 @@ container
 
     }
   );
+
+   /* ==========================================
+   KEMBALI MEMBUKA BATCH TERAKHIR
+   ========================================== */
+
+const savedOpenBatch =
+  getOpenBatch();
+
+if (savedOpenBatch) {
+
+  const targetCard =
+    container.querySelector(
+      `.recap-batch-card[data-batch-code="${CSS.escape(
+        savedOpenBatch
+      )}"]`
+    );
+
+  if (targetCard) {
+
+    targetCard.classList.remove(
+      "recap-batch-collapsed"
+    );
+
+    const tracking =
+      targetCard.querySelector(
+        ".batch-tracking"
+      );
+
+    const tableWrapper =
+      targetCard.querySelector(
+        ".product-table-wrapper"
+      );
+
+    if (tracking) {
+      tracking.style.display = "";
+    }
+
+    if (tableWrapper) {
+      tableWrapper.style.display = "";
+    }
+
+  } else {
+
+    /* Batch sudah tidak ada */
+    clearOpenBatch();
+
+  }
+
+}
 
    /* ==========================================
    PAGINATION CUSTOMER PER BATCH
