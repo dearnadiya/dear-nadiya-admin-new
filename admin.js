@@ -22233,19 +22233,12 @@ let html = `
         const dps =
   rows
     .map(row => {
-      const minimumDp =
-        Number(
-          row.minimum_dp_amount
-        ) || 0;
+     const minimumDp =
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
 
-      const actualDp =
-        Number(
-          row.dp_amount
-        ) || 0;
-
-      return minimumDp > 0
-        ? minimumDp
-        : actualDp;
+return minimumDp;
     })
     .filter(
       value => value > 0
@@ -27744,19 +27737,15 @@ const existingCoDeadline =
   value="${
     (() => {
       const dps =
-        data
-          .map(row => {
-            const minimumDp =
-              Number(row.minimum_dp_amount) || 0;
-
-            const actualDp =
-              Number(row.dp_amount) || 0;
-
-            return minimumDp > 0
-              ? minimumDp
-              : actualDp;
-          })
-          .filter(value => value > 0);
+  data
+    .map(row =>
+      Number(
+        row.minimum_dp_amount
+      ) || 0
+    )
+    .filter(
+      value => value > 0
+    );
 
       if (!dps.length) return "0";
 
