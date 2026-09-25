@@ -29885,24 +29885,7 @@ const totalActualPaid =
   Number(
     paymentSummary.totalPaid
   ) || 0;
-
-/*
-  Setelah harga berubah,
-  sisa pembayaran dihitung ulang
-  berdasarkan total pembayaran aktual
-  yang sudah ada.
-*/
-const newRemaining =
-  Math.max(
-    0,
-    newPrice - totalActualPaid
-  );
-
-/*
-  Status DP ditentukan dari:
-  DP Aktual vs DP Minimum
-*/
-
+         
          /* ==========================================
    STATUS PEMBAYARAN REKAP GO
    ========================================== */
