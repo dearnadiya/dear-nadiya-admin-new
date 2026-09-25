@@ -18975,25 +18975,15 @@ async function renderTabunganRecapList(
            ========================================== */
 
         const progress =
-          target > 0
-            ? Math.min(
-                (
-                  totalPaid /
-                  target
-                ) * 100,
-                100
-              )
-            : (
-                price > 0
-                  ? Math.min(
-                      (
-                        totalPaid /
-                        price
-                      ) * 100,
-                      100
-                    )
-                  : 0
-              );
+  price > 0
+    ? Math.min(
+        (
+          totalPaid /
+          price
+        ) * 100,
+        100
+      )
+    : 0;
 
 
         /* ==========================================
