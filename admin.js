@@ -15851,8 +15851,6 @@ async function repairOldMinimumDP(
 
     /* ==========================================
        1. AMBIL SEMUA REKAP KATEGORI
-       Jangan filter minimum_dp_amount di Supabase
-       karena nilainya bisa 0 atau NULL.
        ========================================== */
 
     const {
@@ -15861,9 +15859,16 @@ async function repairOldMinimumDP(
     } =
       await supabaseClient
         .from("purchase_recap")
-        .select(
-          "id, category, batch_code, quantity, minimum_dp_amount"
-        )
+        .select(`
+          id,
+          category,
+          batch_code,
+          quantity,
+          minimum_dp_amount,
+          dp_status,
+          payment_status,
+          item_price
+        `)
         .eq(
           "category",
           category
@@ -15892,8 +15897,7 @@ async function repairOldMinimumDP(
 
 
     /* ==========================================
-       2. FILTER REKAP YANG DP-NYA 0 / NULL
-       DAN SESUAI BATCH JIKA ADA TARGET BATCH
+       2. FILTER DP YANG MASIH 0 / NULL
        ========================================== */
 
     const cleanTargetBatch =
@@ -16019,18 +16023,12 @@ async function repairOldMinimumDP(
           .toLowerCase();
 
 
-      if (
-        !batchCode
-      ) {
+      if (!batchCode) {
 
         continue;
 
       }
 
-
-      /* ========================================
-         CARI PO YANG SESUAI BATCH
-         ======================================== */
 
       const po =
         poRows.find(
@@ -16043,7 +16041,6 @@ async function repairOldMinimumDP(
                 .trim()
                 .toLowerCase();
 
-
             const poBatch =
               String(
                 item.batch_code || ""
@@ -16053,20 +16050,20 @@ async function repairOldMinimumDP(
 
 
             return (
-              recapBatch === batchCode ||
-              poBatch === batchCode
+              recapBatch ===
+                batchCode ||
+              poBatch ===
+                batchCode
             );
 
           }
         );
 
 
-      if (
-        !po
-      ) {
+      if (!po) {
 
         console.warn(
-          "REPAIR DP: PO tidak ditemukan untuk batch:",
+          "REPAIR DP: PO tidak ditemukan:",
           row.batch_code
         );
 
@@ -16075,9 +16072,9 @@ async function repairOldMinimumDP(
       }
 
 
-      /* ========================================
-         AMBIL DP DARI PO
-         ======================================== */
+      /* ==========================================
+         5. AMBIL DP DARI PO
+         ========================================== */
 
       const unitDP =
         Number(
@@ -16095,9 +16092,8 @@ async function repairOldMinimumDP(
       ) {
 
         console.warn(
-          "REPAIR DP: DP PO kosong/0 untuk batch:",
+          "REPAIR DP: DP PO kosong/0:",
           row.batch_code,
-          "dp_text:",
           po.dp_text
         );
 
@@ -16105,11 +16101,6 @@ async function repairOldMinimumDP(
 
       }
 
-
-      /* ========================================
-         HITUNG DP MINIMUM
-         DP PO × QUANTITY
-         ======================================== */
 
       const quantity =
         Number(
@@ -16131,14 +16122,15 @@ async function repairOldMinimumDP(
       }
 
 
-      /* ========================================
-         SIMPAN HANYA MINIMUM DP
-         Tidak menyentuh:
-         - dp_amount
+      /* ==========================================
+         6. SIMPAN HANYA DP MINIMUM
+         
+         PENTING:
+         JANGAN mengubah:
          - dp_status
          - payment_status
-         - pembayaran
-         ======================================== */
+         - dp_amount
+      ========================================== */
 
       const {
         error: updateError
@@ -16155,13 +16147,11 @@ async function repairOldMinimumDP(
           );
 
 
-      if (
-        updateError
-      ) {
+      if (updateError) {
 
         console.error(
-          "ERROR REPAIR DP:",
-          row.id,
+          "REPAIR DP GAGAL:",
+          row.batch_code,
           updateError
         );
 
@@ -16172,27 +16162,21 @@ async function repairOldMinimumDP(
 
       updatedCount++;
 
+
       console.log(
-        "DP MINIMUM DIPERBAIKI:",
-        {
-          batch:
-            row.batch_code,
-          customer:
-            row.id,
-          quantity:
-            quantity,
-          dpPO:
-            unitDP,
-          minimumDP:
-            minimumDP
-        }
+        "REPAIR DP BERHASIL:",
+        row.batch_code,
+        "DP:",
+        minimumDP,
+        "Status DP lama:",
+        row.dp_status
       );
 
     }
 
 
     console.log(
-      "TOTAL DP MINIMUM DIPERBAIKI:",
+      "REPAIR DP SELESAI. Jumlah diperbaiki:",
       updatedCount
     );
 
@@ -16203,7 +16187,7 @@ async function repairOldMinimumDP(
   catch (error) {
 
     console.error(
-      "ERROR REPAIR DP MINIMUM:",
+      "ERROR REPAIR DP:",
       error
     );
 
@@ -16212,7 +16196,6 @@ async function repairOldMinimumDP(
   }
 
 }
-
 
 /* ============================================
    GENERATOR TAGIHAN WHATSAPP
@@ -23449,11 +23432,11 @@ const recapStatusSelects =
 
 
 recapStatusSelects.forEach(
-  function (select) {
+  function(select) {
 
     select.addEventListener(
       "change",
-      async function () {
+      async function() {
 
         const id =
           select.dataset.id;
@@ -23461,14 +23444,20 @@ recapStatusSelects.forEach(
         const value =
           select.value;
 
+
         if (!id) {
+
+          console.error(
+            "ID REKAP GO TIDAK DITEMUKAN"
+          );
+
           return;
+
         }
 
 
         /* ==================================
            CUSTOMER STATUS
-           Tidak berhubungan dengan pembayaran
            ================================== */
 
         if (
@@ -23511,7 +23500,10 @@ recapStatusSelects.forEach(
               "Gagal menyimpan perubahan status customer."
             );
 
+            return;
+
           }
+
 
           return;
 
@@ -23534,10 +23526,9 @@ recapStatusSelects.forEach(
               id,
               item_price,
               minimum_dp_amount,
-              dp_amount,
               dp_status,
-              remaining_amount,
-              payment_status
+              payment_status,
+              remaining_amount
             `)
             .eq(
               "id",
@@ -23568,10 +23559,24 @@ recapStatusSelects.forEach(
           ) || 0;
 
 
+        /*
+         * DP Rekap GO SELALU berasal
+         * dari minimum_dp_amount.
+         *
+         * Tidak menggunakan dp_amount.
+         */
+
         const minimumDp =
           Number(
             recap.minimum_dp_amount
           ) || 0;
+
+
+        const fixedDp =
+          Math.min(
+            minimumDp,
+            price
+          );
 
 
         let updateData = {};
@@ -23587,42 +23592,23 @@ recapStatusSelects.forEach(
           )
         ) {
 
+          /*
+           * DP DIBAYAR
+           */
+
           if (
             value === "paid"
           ) {
 
-            /*
-             * Jika sebelumnya DP masih 0,
-             * otomatis gunakan DP minimum.
-             */
-
-            if (
-              dpAmount <= 0
-            ) {
-
-              dpAmount =
-                Math.min(
-                  minimumDp,
-                  price
-                );
-
-            } else {
-
-              dpAmount =
-                Math.min(
-                  dpAmount,
-                  price
-                );
-
-            }
-
-
-            remainingAmount =
-              Math.max(
-                price -
-                dpAmount,
-                0
-              );
+            const newRemaining =
+              recap.payment_status ===
+              "paid"
+                ? 0
+                : Math.max(
+                    price -
+                    fixedDp,
+                    0
+                  );
 
 
             updateData = {
@@ -23630,38 +23616,25 @@ recapStatusSelects.forEach(
               dp_status:
                 "paid",
 
-              dp_amount:
-                dpAmount,
-
               remaining_amount:
-                remainingAmount,
-
-              /*
-               * Kalau sebelumnya belum lunas,
-               * jangan otomatis membuat pembayaran
-               * menjadi lunas.
-               */
-
-              payment_status:
-                remainingAmount <= 0 &&
-                price > 0
-                  ? "paid"
-                  : "unpaid"
+                newRemaining
 
             };
 
           }
 
+
+          /*
+           * DP BELUM DIBAYAR
+           */
+
           else {
 
-            /*
-             * DP dikembalikan menjadi belum dibayar.
-             */
-
-            dpAmount = 0;
-
-            remainingAmount =
-              price;
+            const newRemaining =
+              recap.payment_status ===
+              "paid"
+                ? 0
+                : price;
 
 
             updateData = {
@@ -23669,14 +23642,8 @@ recapStatusSelects.forEach(
               dp_status:
                 "unpaid",
 
-              dp_amount:
-                0,
-
               remaining_amount:
-                remainingAmount,
-
-              payment_status:
-                "unpaid"
+                newRemaining
 
             };
 
@@ -23695,112 +23662,51 @@ recapStatusSelects.forEach(
           )
         ) {
 
+          /*
+           * PEMBAYARAN LUNAS
+           */
+
           if (
             value === "paid"
           ) {
 
-            /*
-             * Pembayaran lunas.
-             *
-             * DP tetap merupakan bagian DP,
-             * bukan seluruh pembayaran.
-             */
-
-            if (
-              dpAmount <= 0
-            ) {
-
-              dpAmount =
-                Math.min(
-                  minimumDp,
-                  price
-                );
-
-            } else {
-
-              dpAmount =
-                Math.min(
-                  dpAmount,
-                  price
-                );
-
-            }
-
-
-            remainingAmount =
-              0;
-
-
             updateData = {
 
-              dp_amount:
-                dpAmount,
-
-              dp_status:
-  (
-    dpAmount > 0 &&
-    (
-      minimumDp <= 0 ||
-      dpAmount >= minimumDp
-    )
-  )
-    ? "paid"
-    : recap.dp_status,
+              payment_status:
+                "paid",
 
               remaining_amount:
-                0,
-
-              payment_status:
-                "paid"
+                0
 
             };
 
           }
 
+
+          /*
+           * PEMBAYARAN BELUM LUNAS
+           */
+
           else {
 
-            /*
-             * Pembayaran tidak lunas.
-             *
-             * DP yang sudah dibayar tetap dipertahankan.
-             */
-
-            dpAmount =
-              Math.min(
-                dpAmount,
-                price
-              );
-
-
-            remainingAmount =
-              Math.max(
-                price -
-                dpAmount,
-                0
-              );
+            const newRemaining =
+              recap.dp_status ===
+              "paid"
+                ? Math.max(
+                    price -
+                    fixedDp,
+                    0
+                  )
+                : price;
 
 
             updateData = {
 
-              dp_amount:
-                dpAmount,
-
-              dp_status:
-  (
-    dpAmount > 0 &&
-    (
-      minimumDp <= 0 ||
-      dpAmount >= minimumDp
-    )
-  )
-    ? "paid"
-    : "unpaid",
+              payment_status:
+                "unpaid",
 
               remaining_amount:
-                remainingAmount,
-
-              payment_status:
-                "unpaid"
+                newRemaining
 
             };
 
@@ -23810,7 +23716,7 @@ recapStatusSelects.forEach(
 
 
         /* ==================================
-           SIMPAN
+           TIDAK ADA DATA YANG PERLU DISIMPAN
            ================================== */
 
         if (
@@ -23823,6 +23729,10 @@ recapStatusSelects.forEach(
 
         }
 
+
+        /* ==================================
+           SIMPAN KE SUPABASE
+           ================================== */
 
         select.disabled =
           true;
@@ -23865,21 +23775,27 @@ recapStatusSelects.forEach(
         }
 
 
-        /*
-         * Muat ulang Rekap GO agar:
-         * DP
-         * Pelunasan Terbayar
-         * Sisa
-         * Status
-         *
-         * langsung ikut berubah.
-         */
+        console.log(
+          "STATUS REKAP BERHASIL DISIMPAN:",
+          {
+            id:
+              id,
+            updateData:
+              updateData
+          }
+        );
+
+
+        /* ==================================
+           REFRESH REKAP GO
+           ================================== */
 
         await loadRecapList(
           category
         );
 
       }
+
     );
 
   }
