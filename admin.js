@@ -28527,6 +28527,54 @@ function showEditTabunganRecapForm(
   container.style.display =
     "block";
 
+     /* ==========================================
+     HITUNG PEMBAYARAN AKTUAL
+     DARI HISTORI PAYMENT CONFIRMED
+     ========================================== */
+
+  const currentPrice =
+    Number(
+      data.item_price
+    ) || 0;
+
+  const currentMinimumDp =
+    Number(
+      data.minimum_dp_amount
+    ) || 0;
+
+  const paymentSummary =
+    await getConfirmedPaymentSummary(
+      data.id,
+      currentMinimumDp,
+      currentPrice
+    );
+
+  if (
+    paymentSummary.error
+  ) {
+
+    console.error(
+      "ERROR HITUNG PEMBAYARAN AKTUAL TABUNGAN:",
+      paymentSummary.error
+    );
+
+    alert(
+      "Gagal membaca histori pembayaran Tabungan: " +
+      paymentSummary.error.message
+    );
+
+    return;
+  }
+
+  const actualDp =
+    Number(
+      paymentSummary.totalDpPaid
+    ) || 0;
+
+  const actualRemaining =
+    Number(
+      paymentSummary.remainingAmount
+    ) || 0;
 
   container.innerHTML = `
 
