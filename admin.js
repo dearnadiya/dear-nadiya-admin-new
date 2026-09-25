@@ -21863,10 +21863,11 @@ let html = `
     display:grid;
     grid-template-columns:
   100px
-  380px
-  80px
-  80px
-  180px
+  350px
+  70px
+  70px
+  150px
+  150px
   45px;
     align-items:center;
     gap:8px;
@@ -22099,7 +22100,76 @@ let html = `
 
 </div>
 
+<!-- STATUS DP BATCH -->
+<div
+  style="
+    grid-column:5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    white-space:nowrap;
+  "
+>
+  <select
+    class="batch-header-dp-status"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
+    style="
+      padding:5px 7px;
+      font-size:11px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      cursor:pointer;
+    "
+  >
+    <option value="">
+      Status DP Batch
+    </option>
+    <option value="unpaid">
+      DP Belum Dibayar
+    </option>
+    <option value="paid">
+      DP Sudah Dibayar
+    </option>
+  </select>
+</div>
 
+<!-- STATUS PELUNASAN BATCH -->
+<div
+  style="
+    grid-column:5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    white-space:nowrap;
+    margin-top:4px;
+  "
+>
+  <select
+    class="batch-header-payment-status"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
+    style="
+      padding:5px 7px;
+      font-size:11px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      cursor:pointer;
+    "
+  >
+    <option value="">
+      Status Pelunasan Batch
+    </option>
+    <option value="unpaid">
+      Belum Lunas
+    </option>
+    <option value="paid">
+      Lunas
+    </option>
+  </select>
+</div>
 
   <!-- PANAH -->
   <div
@@ -22718,6 +22788,303 @@ container
           showAddRecapMemberForm(
             batchCode
           );
+
+        }
+      );
+
+    }
+  );
+
+/* ==========================================
+   UBAH STATUS DP SELURUH CUSTOMER DALAM BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".batch-header-dp-status"
+  )
+  .forEach(
+    function(select) {
+
+      select.addEventListener(
+        "change",
+        async function() {
+
+          const newStatus =
+            this.value;
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          if (!newStatus) {
+            return;
+          }
+
+          const statusText =
+            newStatus === "paid"
+              ? "SUDAH DIBAYAR"
+              : "BELUM DIBAYAR";
+
+          const confirmed =
+            confirm(
+              "Ubah STATUS DP seluruh customer dalam batch " +
+              batchCode +
+              " menjadi " +
+              statusText +
+              "?\n\n" +
+              "Perubahan ini hanya mengubah status DP."
+            );
+
+          if (!confirmed) {
+
+            this.value = "";
+
+            return;
+          }
+
+          try {
+
+            const {
+              data: batchRows,
+              error: batchError
+            } =
+              await supabaseClient
+                .from("purchase_recap")
+                .select(`
+                  id
+                `)
+                .eq(
+                  "category",
+                  category
+                )
+                .eq(
+                  "batch_code",
+                  batchCode
+                );
+
+            if (batchError) {
+              throw batchError;
+            }
+
+            if (
+              !batchRows ||
+              !batchRows.length
+            ) {
+
+              alert(
+                "Tidak ada customer dalam batch ini."
+              );
+
+              this.value = "";
+
+              return;
+            }
+
+            const recapIds =
+              batchRows.map(
+                function(row) {
+                  return row.id;
+                }
+              );
+
+            const {
+              error: updateError
+            } =
+              await supabaseClient
+                .from("purchase_recap")
+                .update({
+                  dp_status:
+                    newStatus
+                })
+                .in(
+                  "id",
+                  recapIds
+                );
+
+            if (updateError) {
+              throw updateError;
+            }
+
+            alert(
+              "Status DP " +
+              batchRows.length +
+              " customer berhasil diubah menjadi " +
+              statusText +
+              "."
+            );
+
+            await loadRecapList(
+              category
+            );
+
+          }
+          catch (error) {
+
+            console.error(
+              "Gagal mengubah status DP batch:",
+              error
+            );
+
+            alert(
+              "Gagal mengubah status DP batch:\n" +
+              (
+                error.message ||
+                error
+              )
+            );
+
+            this.value = "";
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+   /* ==========================================
+   UBAH STATUS PELUNASAN SELURUH CUSTOMER
+   DALAM BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".batch-header-payment-status"
+  )
+  .forEach(
+    function(select) {
+
+      select.addEventListener(
+        "change",
+        async function() {
+
+          const newStatus =
+            this.value;
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          if (!newStatus) {
+            return;
+          }
+
+          const statusText =
+            newStatus === "paid"
+              ? "LUNAS"
+              : "BELUM LUNAS";
+
+          const confirmed =
+            confirm(
+              "Ubah STATUS PELUNASAN seluruh customer dalam batch " +
+              batchCode +
+              " menjadi " +
+              statusText +
+              "?\n\n" +
+              "Perubahan ini hanya mengubah status pelunasan."
+            );
+
+          if (!confirmed) {
+
+            this.value = "";
+
+            return;
+          }
+
+          try {
+
+            const {
+              data: batchRows,
+              error: batchError
+            } =
+              await supabaseClient
+                .from("purchase_recap")
+                .select(`
+                  id
+                `)
+                .eq(
+                  "category",
+                  category
+                )
+                .eq(
+                  "batch_code",
+                  batchCode
+                );
+
+            if (batchError) {
+              throw batchError;
+            }
+
+            if (
+              !batchRows ||
+              !batchRows.length
+            ) {
+
+              alert(
+                "Tidak ada customer dalam batch ini."
+              );
+
+              this.value = "";
+
+              return;
+            }
+
+            const recapIds =
+              batchRows.map(
+                function(row) {
+                  return row.id;
+                }
+              );
+
+            const {
+              error: updateError
+            } =
+              await supabaseClient
+                .from("purchase_recap")
+                .update({
+                  payment_status:
+                    newStatus
+                })
+                .in(
+                  "id",
+                  recapIds
+                );
+
+            if (updateError) {
+              throw updateError;
+            }
+
+            alert(
+              "Status pelunasan " +
+              batchRows.length +
+              " customer berhasil diubah menjadi " +
+              statusText +
+              "."
+            );
+
+            await loadRecapList(
+              category
+            );
+
+          }
+          catch (error) {
+
+            console.error(
+              "Gagal mengubah status pelunasan batch:",
+              error
+            );
+
+            alert(
+              "Gagal mengubah status pelunasan batch:\n" +
+              (
+                error.message ||
+                error
+              )
+            );
+
+            this.value = "";
+
+          }
 
         }
       );
