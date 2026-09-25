@@ -36585,18 +36585,19 @@ async function loadPOClaimList() {
       new Date().toISOString();
 
     const { data, error } =
-      await supabaseClient
-        .from("po_posts")
-        .select(`
-          id,
-          title,
-          image_url,
-          close_date,
-          last_dp_date,
-          created_at,
-          order_mode,
-          list_data
-        `)
+  await supabaseClient
+    .from("po_posts")
+    .select(`
+      id,
+      title,
+      image_url,
+      close_date,
+      last_dp_date,
+      created_at,
+      order_mode,
+      list_data,
+      recap_status
+    `)
         .eq(
           "order_mode",
           "claim"
@@ -36622,11 +36623,31 @@ async function loadPOClaimList() {
     }
 
     const claimablePOs =
-      (data || []).filter(
-        function (po) {
+  (data || []).filter(
+    function (po) {
 
-          let rows =
-            po.list_data || [];
+      /* ==========================================
+         PO YANG SUDAH MASUK REKAP GO
+         TIDAK BOLEH MUNCUL LAGI DI SINI
+         ========================================== */
+
+      const recapStatus =
+        String(
+          po.recap_status || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        recapStatus ===
+        "completed"
+      ) {
+        return false;
+      }
+
+
+      let rows =
+        po.list_data || [];
 
           if (
             typeof rows ===
