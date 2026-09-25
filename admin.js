@@ -30351,20 +30351,63 @@ if (editRemainingInput) {
           "Menyimpan perubahan...";
 
 
-        const newPrice =
-  parseNominalInput(
+        /* ==========================================
+   HARGA & DP BERDASARKAN QUANTITY
+   ========================================== */
+
+const newQuantity =
+  Number(
     document
-      .getElementById("editItemPrice")
+      .getElementById("editQuantity")
       ?.value
+  ) || 1;
+
+
+/*
+ * Ambil nilai lama dari database.
+ * Harga dan DP yang tersimpan adalah TOTAL
+ * sesuai quantity lama.
+ */
+const oldQuantity =
+  Number(data.quantity) || 1;
+
+const oldPrice =
+  Number(data.item_price) || 0;
+
+const oldDpMinimum =
+  Number(data.minimum_dp_amount) || 0;
+
+
+/*
+ * Hitung harga SATUAN dan DP SATUAN
+ * berdasarkan data sebelum diedit.
+ */
+const unitPrice =
+  oldQuantity > 0
+    ? oldPrice / oldQuantity
+    : oldPrice;
+
+const unitDpMinimum =
+  oldQuantity > 0
+    ? oldDpMinimum / oldQuantity
+    : oldDpMinimum;
+
+
+/*
+ * Hitung ulang TOTAL berdasarkan
+ * quantity baru.
+ */
+const newPrice =
+  Math.round(
+    unitPrice *
+    newQuantity
   );
 
 const newDpMinimum =
-  parseNominalInput(
-    document
-      .getElementById("editDpMinimum")
-      ?.value
+  Math.round(
+    unitDpMinimum *
+    newQuantity
   );
-
 /*
   DP Aktual berasal dari pembayaran yang sudah dikonfirmasi.
   Jangan ambil dari input form.
@@ -30520,18 +30563,14 @@ const updatedData = {
       .trim(),
 
   quantity:
-    Number(
-      document
-        .getElementById("editQuantity")
-        .value
-    ) || 1,
+  newQuantity,
 
-  item_price:
-    newPrice,
+item_price:
+  newPrice,
 
-  minimum_dp_amount:
-    newDpMinimum,
-
+minimum_dp_amount:
+  newDpMinimum,
+   
    /*
    * STATUS PEMBAYARAN TIDAK DIUBAH
    * DARI FORM EDIT.
