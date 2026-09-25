@@ -27610,14 +27610,8 @@ if (
         row.item_price
       ) || 0;
 
-    const rowDp =
-      Number(
-        row.minimum_dp_amount
-      ) || 0;
-
     return (
-      rowPrice === batchPrice &&
-      rowDp === batchDp
+      rowPrice === batchPrice
     );
 
   });
@@ -28069,20 +28063,38 @@ updateEditCoDeadlineMode();
             .trim();
 
 
-        /* ======================================
-   HARGA & DP
-   HANYA UNTUK HARGA SAMA
+/* ======================================
+   HARGA & DP HEADER
+   HANYA MENGUBAH DATA BATCH
+   TIDAK MENGUBAH PEMBAYARAN
    ====================================== */
 
 let newPrice = null;
 let newDp = null;
-let totalDpPaid = 0;
-let totalPelunasanPaid = 0;
-let newDpStatus = null;
-let newRemaining = null;
-let newPaymentStatus = null;
 
-if (isSamePriceModeHeader) {
+if (
+  isSamePriceModeHeader
+) {
+
+  newPrice =
+    parseNominalInput(
+      document
+        .getElementById(
+          "editBatchHeaderPrice"
+        )
+        ?.value
+    );
+
+  newDp =
+    parseNominalInput(
+      document
+        .getElementById(
+          "editBatchHeaderDp"
+        )
+        ?.value
+    );
+
+}
 
   newPrice =
   parseNominalInput(
@@ -28440,29 +28452,19 @@ const updateData = {
 };
          
 /* ======================================
-   HARGA & DP
-   HANYA JIKA HARGA SAMA
+   HARGA & DP HEADER
+   HANYA MENGUBAH HARGA DAN DP MINIMUM
    ====================================== */
 
-if (isSamePriceModeHeader) {
+if (
+  isSamePriceModeHeader
+) {
 
   updateData.item_price =
     newPrice;
 
   updateData.minimum_dp_amount =
     newDp;
-
-  updateData.dp_amount =
-    totalDpPaid;
-
-  updateData.dp_status =
-    newDpStatus;
-
-  updateData.remaining_amount =
-    newRemaining;
-
-  updateData.payment_status =
-    newPaymentStatus;
 
 }
 
