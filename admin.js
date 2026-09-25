@@ -27605,13 +27605,41 @@ if (
   data.length > 0 &&
   data.every(function(row) {
 
+    const quantity =
+      Number(row.quantity) || 1;
+
     const rowPrice =
-      Number(
-        row.item_price
-      ) || 0;
+      Number(row.item_price) || 0;
+
+    const rowDp =
+      Number(row.minimum_dp_amount) || 0;
+
+    const unitPrice =
+      quantity > 0
+        ? rowPrice / quantity
+        : rowPrice;
+
+    const unitDp =
+      quantity > 0
+        ? rowDp / quantity
+        : rowDp;
+
+    const firstQuantity =
+      Number(firstRow.quantity) || 1;
+
+    const firstUnitPrice =
+      firstQuantity > 0
+        ? batchPrice / firstQuantity
+        : batchPrice;
+
+    const firstUnitDp =
+      firstQuantity > 0
+        ? batchDp / firstQuantity
+        : batchDp;
 
     return (
-      rowPrice === batchPrice
+      unitPrice === firstUnitPrice &&
+      unitDp === firstUnitDp
     );
 
   });
@@ -27704,22 +27732,40 @@ const existingCoDeadline =
   type="text"
   class="currency-input"
   value="${
-    (() => {
-      const prices =
-        data
-          .map(row =>
-            Number(row.item_price) || 0
-          )
-          .filter(value => value > 0);
+  (() => {
 
-      if (!prices.length) return "0";
+    const prices =
+      data
+        .map(row => {
 
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
+          const quantity =
+            Number(row.quantity) || 1;
 
-      return formatNominalInput(minPrice);
-    })()
-  }"
+          const totalPrice =
+            Number(row.item_price) || 0;
+
+          return quantity > 0
+            ? totalPrice / quantity
+            : totalPrice;
+
+        })
+        .filter(
+          value => value > 0
+        );
+
+    if (!prices.length) {
+      return "0";
+    }
+
+    const minPrice =
+      Math.min(...prices);
+
+    return formatNominalInput(
+      minPrice
+    );
+
+  })()
+}"
 >
 
 <label>DP</label>
@@ -27729,26 +27775,51 @@ const existingCoDeadline =
   type="text"
   class="currency-input"
   value="${
-    (() => {
-      const dps =
-  data
-    .map(row =>
-      Number(
-        row.minimum_dp_amount
-      ) || 0
-    )
-    .filter(
-      value => value > 0
+  (() => {
+
+    const dps =
+      data
+        .map(row => {
+
+          const quantity =
+            Number(row.quantity) || 1;
+
+          const minimumDp =
+            Number(
+              row.minimum_dp_amount
+            ) || 0;
+
+          const minimumDp =
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
+
+return quantity > 0
+  ? minimumDp / quantity
+  : minimumDp;
+           
+          return quantity > 0
+            ? totalDp / quantity
+            : totalDp;
+
+        })
+        .filter(
+          value => value > 0
+        );
+
+    if (!dps.length) {
+      return "0";
+    }
+
+    const minDp =
+      Math.min(...dps);
+
+    return formatNominalInput(
+      minDp
     );
 
-      if (!dps.length) return "0";
-
-      const minDp = Math.min(...dps);
-      const maxDp = Math.max(...dps);
-
-      return formatNominalInput(minDp);
-    })()
-  }"
+  })()
+}"
 >
         <label>
           Deadline DP
@@ -28255,18 +28326,73 @@ const updateData = {
          
 /* ======================================
    HARGA & DP HEADER
-   HANYA MENGUBAH HARGA DAN DP MINIMUM
+   PER CUSTOMER SESUAI QUANTITY
    ====================================== */
 
 if (
   isSamePriceModeHeader
 ) {
 
-  updateData.item_price =
+  const headerPrice =
     newPrice;
 
-  updateData.minimum_dp_amount =
+  const headerDp =
     newDp;
+
+  for (
+    const row of data
+  ) {
+
+    const quantity =
+      Number(row.quantity) || 1;
+
+    const totalPrice =
+      Math.round(
+        headerPrice *
+        quantity
+      );
+
+    const totalDp =
+      Math.round(
+        headerDp *
+        quantity
+      );
+
+    const {
+      error: priceDpError
+    } =
+      await supabaseClient
+        .from("purchase_recap")
+        .update({
+          item_price:
+            totalPrice,
+
+          minimum_dp_amount:
+            totalDp
+        })
+        .eq(
+          "id",
+          row.id
+        );
+
+    if (
+      priceDpError
+    ) {
+
+      console.error(
+        "ERROR UPDATE HARGA DP CUSTOMER:",
+        row.id,
+        priceDpError
+      );
+
+      message.textContent =
+        "Gagal mengubah harga/DP customer: " +
+        priceDpError.message;
+
+      return;
+    }
+
+  }
 
 }
 
@@ -30403,9 +30529,18 @@ const newPrice =
     newQuantity
   );
 
+const dpUnit =
+  parseNominalInput(
+    document
+      .getElementById(
+        "editDpMinimum"
+      )
+      ?.value
+  );
+
 const newDpMinimum =
   Math.round(
-    unitDpMinimum *
+    dpUnit *
     newQuantity
   );
 /*
