@@ -12468,15 +12468,21 @@ async function showAddTabunganMemberForm(
           "unpaid",
 
         tracking_status:
-          batch.batch_tracking_status ||
-          batch.tracking_status ||
-          "",
+  category === "Tabungan Lightstick"
+    ? "Menabung"
+    : (
+        batch.batch_tracking_status ||
+        batch.tracking_status ||
+        "Menabung"
+      ),
 
-        batch_tracking_status:
-          batch.batch_tracking_status ||
-          batch.tracking_status ||
-          "",
-
+batch_tracking_status:
+  category === "Tabungan Album"
+    ? (
+        batch.batch_tracking_status ||
+        "Menabung"
+      )
+    : null,
         customer_status:
           "Belum Checkout Shopee",
 
@@ -26420,10 +26426,10 @@ const customerId =
       "unpaid",
 
     tracking_status:
-      "",
+  "Menabung",
 
-    batch_tracking_status:
-      "",
+batch_tracking_status:
+  "Menabung",
 
     recap_data_type:
       "baru",
@@ -27093,6 +27099,65 @@ if (incomplete) {
 }
 
 /* ============================================
+   TRACKING KHUSUS TABUNGAN
+   ============================================ */
+
+function getTabunganTrackingOptions(
+  category
+) {
+
+  /* ==========================================
+     TABUNGAN LIGHTSTICK
+     ========================================== */
+
+  if (
+    category ===
+    "Tabungan Lightstick"
+  ) {
+
+    return [
+      "Menabung",
+      "Target Tercapai",
+      "Order Barang",
+      "Arrived WH KR",
+      "Shipping INA",
+      "Arrived WH INA",
+      "Arrived Admin",
+      "Goods Arrive at Customer"
+    ];
+
+  }
+
+
+  /* ==========================================
+     TABUNGAN ALBUM
+     ========================================== */
+
+  if (
+    category ===
+    "Tabungan Album"
+  ) {
+
+    return [
+      "Menabung",
+      "Target Tercapai"
+    ];
+
+  }
+
+
+  /* ==========================================
+     FALLBACK
+     ========================================== */
+
+  return [
+    "Menabung",
+    "Target Tercapai"
+  ];
+
+}
+
+/* ============================================
    TRACKING OPTIONS
    ============================================ */
 
@@ -27268,6 +27333,15 @@ async function showEditTabunganBatchForm(
       firstRow.minimum_dp_amount
     ) || 0;
 
+   const tabunganTrackingOptions =
+  getTabunganTrackingOptions(
+    category
+  );
+
+const currentTabunganTracking =
+  firstRow.batch_tracking_status ||
+  firstRow.tracking_status ||
+  "Menabung";
 
   const currentCoDeadline =
     firstRow.co_deadline
@@ -27373,6 +27447,50 @@ async function showEditTabunganBatchForm(
           Ini bukan jumlah pembayaran aktual.
         </small>
 
+        ${
+  category === "Tabungan Album"
+    ? `
+      <label>
+        📦 Tracking Tabungan
+      </label>
+
+      <select
+        id="editTabunganBatchTracking"
+      >
+
+        ${
+          tabunganTrackingOptions
+            .map(
+              function(status) {
+
+                return `
+                  <option
+                    value="${escapeHTML(status)}"
+                    ${
+                      status ===
+                      currentTabunganTracking
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    ${escapeHTML(status)}
+                  </option>
+                `;
+
+              }
+            )
+            .join("")
+        }
+
+      </select>
+
+      <small>
+        Tracking berlaku untuk seluruh customer
+        dalam batch Tabungan Album.
+      </small>
+    `
+    : ""
+}
 
         <label>
           Deadline CO
@@ -27491,7 +27609,21 @@ async function showEditTabunganBatchForm(
         );
 
 
-      const newCoDeadline =
+      let newTracking = null;
+
+if (category === "Tabungan Album") {
+  const trackingSelect =
+    document.getElementById(
+      "editTabunganBatchTracking"
+    );
+
+  if (trackingSelect) {
+    newTracking =
+      trackingSelect.value;
+  }
+}
+
+const newCoDeadline =
         document.getElementById(
           "editTabunganBatchCoDeadline"
         ).value ||
@@ -27549,27 +27681,34 @@ async function showEditTabunganBatchForm(
         "Menyimpan perubahan batch...";
 
 
-      const updateData = {
+    const updateData = {
 
-        batch_code:
-          newBatchCode,
+  batch_code:
+    newBatchCode,
 
-        item_name:
-          newItemName,
+  item_name:
+    newItemName,
 
-        item_price:
-          newPrice,
+  item_price:
+    newPrice,
 
-        minimum_dp_amount:
-          newTarget,
+  minimum_dp_amount:
+    newTarget,
 
-        co_deadline:
-          newCoDeadline,
+  co_deadline:
+    newCoDeadline,
 
-        note:
-          newNote || null
+  note:
+    newNote || null
 
-      };
+};
+
+if (category === "Tabungan Album") {
+
+  updateData.batch_tracking_status =
+    newTracking;
+
+}
 
 
       const {
@@ -29062,6 +29201,58 @@ async function showEditTabunganRecapForm(
           Target ini bukan jumlah uang yang sudah dibayar.
         </small>
 
+            <!-- ==================================
+                  Tracking Tabungan Lighstick
+             ================================== -->
+             
+        ${
+  data.category ===
+  "Tabungan Lightstick"
+    ? `
+      <label>
+        📦 Tracking Barang
+      </label>
+
+      <select
+        id="editTabunganTracking"
+      >
+        ${
+          getTabunganTrackingOptions(
+            data.category
+          )
+            .map(
+              function(status) {
+
+                const currentTracking =
+                  data.tracking_status ||
+                  "Menabung";
+
+                return `
+                  <option
+                    value="${escapeHTML(status)}"
+                    ${
+                      status ===
+                      currentTracking
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    ${escapeHTML(status)}
+                  </option>
+                `;
+
+              }
+            )
+            .join("")
+        }
+      </select>
+
+      <small>
+        Tracking hanya berlaku untuk customer ini.
+      </small>
+    `
+    : ""
+}
 
         <!-- ==================================
              PEMBAYARAN AKTUAL
@@ -29782,6 +29973,25 @@ if (
           note || null
 
       };
+
+       if (
+  data.category ===
+  "Tabungan Lightstick"
+) {
+
+  const trackingSelect =
+    document.getElementById(
+      "editTabunganTracking"
+    );
+
+  if (trackingSelect) {
+
+    updatedData.tracking_status =
+      trackingSelect.value;
+
+  }
+
+}
 
 
       const {
