@@ -4586,6 +4586,80 @@ if (archiveContainer) {
 }
 
 /* =========================================================
+   AMBIL TABUNGAN MANUAL
+   KHUSUS REKAP TABUNGAN
+   ========================================================= */
+
+async function getManualTabunganSummary(
+  recapId
+) {
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("dn_manual_tabungan")
+    .select(`
+      id,
+      amount,
+      note,
+      created_at
+    `)
+    .eq(
+      "recap_id",
+      recapId
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
+
+  if (error) {
+
+    console.error(
+      "ERROR FETCH TABUNGAN MANUAL:",
+      error
+    );
+
+    return {
+      error: error,
+      totalManual: 0,
+      history: []
+    };
+
+  }
+
+  const history =
+    data || [];
+
+  const totalManual =
+    history.reduce(
+      function(total, row) {
+
+        return (
+          total +
+          (
+            Number(
+              row.amount
+            ) || 0
+          )
+        );
+
+      },
+      0
+    );
+
+  return {
+    error: null,
+    totalManual: totalManual,
+    history: history
+  };
+
+}
+
+/* =========================================================
    HITUNG PEMBAYARAN AKTUAL DARI PAYMENT YANG SUDAH CONFIRMED
    ========================================================= */
 
@@ -28576,6 +28650,42 @@ async function showEditTabunganRecapForm(
       paymentSummary.remainingAmount
     ) || 0;
 
+  /* ==========================================
+     AMBIL TABUNGAN MANUAL
+     ========================================== */
+
+  const manualTabunganSummary =
+    await getManualTabunganSummary(
+      data.id
+    );
+
+  if (
+    manualTabunganSummary.error
+  ) {
+
+    console.error(
+      "ERROR HITUNG TABUNGAN MANUAL:",
+      manualTabunganSummary.error
+    );
+
+    alert(
+      "Gagal membaca tabungan manual: " +
+      manualTabunganSummary.error.message
+    );
+
+    return;
+
+  }
+
+  const manualTabungan =
+    Number(
+      manualTabunganSummary.totalManual
+    ) || 0;
+
+  const totalTabungan =
+    actualDp +
+    manualTabungan;
+
   container.innerHTML = `
 
     <div
@@ -28732,23 +28842,71 @@ async function showEditTabunganRecapForm(
              ================================== -->
 
         <label>
-          DP / Tabungan Aktual
-        </label>
+  DP / Tabungan Aktual
+</label>
 
-        <input
-          type="text"
-          class="currency-input"
-          value="${formatNominalInput(
-  actualDp
-)}"
-          readonly
-        >
+<input
+  type="text"
+  class="currency-input"
+  value="${formatNominalInput(
+    actualDp
+  )}"
+  readonly
+>
 
-        <small>
-          Nilai ini berasal dari pembayaran yang
-          sudah dikonfirmasi dan tidak dapat diubah
-          melalui Edit Tabungan.
-        </small>
+<small>
+  Pembayaran yang berasal dari histori
+  payment yang sudah dikonfirmasi.
+</small>
+
+
+<label>
+  Tabungan Manual
+</label>
+
+<input
+  type="text"
+  class="currency-input"
+  value="${formatNominalInput(
+    manualTabungan
+  )}"
+  readonly
+>
+
+<small>
+  Tabungan yang ditambahkan secara manual
+  oleh admin.
+</small>
+
+
+<label>
+  Total Tabungan
+</label>
+
+<input
+  type="text"
+  class="currency-input"
+  value="${formatNominalInput(
+    totalTabungan
+  )}"
+  readonly
+>
+
+  <button
+  type="button"
+  id="addManualTabunganBtn"
+  class="btn btn-primary"
+>
+  ＋ Tambah Tabungan Manual
+</button>
+
+<div
+  id="manualTabunganFormContainer"
+  style="
+    display:none;
+    margin-top:15px;
+  "
+></div>     
 
 
         <!-- ==================================
@@ -28942,6 +29100,279 @@ async function showEditTabunganRecapForm(
     );
 
   }
+
+/* ==========================================
+   TAMBAH TABUNGAN MANUAL
+   ========================================== */
+
+const addManualTabunganBtn =
+  document.getElementById(
+    "addManualTabunganBtn"
+  );
+
+const manualTabunganFormContainer =
+  document.getElementById(
+    "manualTabunganFormContainer"
+  );
+
+if (
+  addManualTabunganBtn &&
+  manualTabunganFormContainer
+) {
+
+  addManualTabunganBtn.addEventListener(
+    "click",
+    function() {
+
+      manualTabunganFormContainer.style.display =
+        "block";
+
+      manualTabunganFormContainer.innerHTML = `
+
+        <div
+          style="
+            padding:15px;
+            margin-top:10px;
+            border:1px solid #ddd;
+            border-radius:10px;
+          "
+        >
+
+          <label>
+            Nominal Tabungan
+          </label>
+
+          <input
+            type="text"
+            id="manualTabunganAmount"
+            class="currency-input"
+            placeholder="Rp 0"
+          >
+
+          <label>
+            Catatan
+          </label>
+
+          <input
+            type="text"
+            id="manualTabunganNote"
+            placeholder="Contoh: Tabungan lama"
+          >
+
+          <div
+            style="
+              display:flex;
+              gap:8px;
+              margin-top:12px;
+            "
+          >
+
+            <button
+              type="button"
+              id="saveManualTabunganBtn"
+              class="btn btn-primary"
+            >
+              Simpan Tabungan
+            </button>
+
+            <button
+              type="button"
+              id="cancelManualTabunganBtn"
+              class="btn btn-secondary"
+            >
+              Batal
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+
+      /* FORMAT NOMINAL */
+
+      const amountInput =
+        document.getElementById(
+          "manualTabunganAmount"
+        );
+
+      if (amountInput) {
+
+        amountInput.addEventListener(
+          "input",
+          function() {
+
+            this.value =
+              formatNominalInput(
+                parseNominalInput(
+                  this.value
+                )
+              );
+
+          }
+        );
+
+      }
+
+
+      /* BATAL */
+
+      const cancelManualBtn =
+        document.getElementById(
+          "cancelManualTabunganBtn"
+        );
+
+      if (cancelManualBtn) {
+
+        cancelManualBtn.addEventListener(
+          "click",
+          function() {
+
+            manualTabunganFormContainer.style.display =
+              "none";
+
+            manualTabunganFormContainer.innerHTML =
+              "";
+
+          }
+        );
+
+      }
+
+
+      /* SIMPAN */
+
+      const saveManualBtn =
+        document.getElementById(
+          "saveManualTabunganBtn"
+        );
+
+      if (saveManualBtn) {
+
+        saveManualBtn.addEventListener(
+          "click",
+          async function() {
+
+            const amount =
+              parseNominalInput(
+                document
+                  .getElementById(
+                    "manualTabunganAmount"
+                  )
+                  ?.value
+              );
+
+            const note =
+              document
+                .getElementById(
+                  "manualTabunganNote"
+                )
+                ?.value
+                .trim() || null;
+
+
+            if (
+              !amount ||
+              amount <= 0
+            ) {
+
+              alert(
+                "Nominal tabungan harus lebih dari 0."
+              );
+
+              return;
+
+            }
+
+
+            const confirmed =
+              confirm(
+                "Tambahkan tabungan manual sebesar " +
+                formatNominalInput(
+                  amount
+                ) +
+                "?"
+              );
+
+            if (!confirmed) {
+              return;
+            }
+
+
+            saveManualBtn.disabled =
+              true;
+
+            saveManualBtn.textContent =
+              "Menyimpan...";
+
+
+            const {
+              error
+            } = await supabaseClient
+              .from(
+                "dn_manual_tabungan"
+              )
+              .insert({
+                recap_id:
+                  data.id,
+
+                amount:
+                  amount,
+
+                note:
+                  note
+              });
+
+
+            if (error) {
+
+              console.error(
+                "ERROR SAVE TABUNGAN MANUAL:",
+                error
+              );
+
+              alert(
+                "Gagal menyimpan tabungan manual: " +
+                error.message
+              );
+
+              saveManualBtn.disabled =
+                false;
+
+              saveManualBtn.textContent =
+                "Simpan Tabungan";
+
+              return;
+
+            }
+
+
+            alert(
+              "Tabungan manual berhasil ditambahkan. ♥"
+            );
+
+
+            /*
+             * Muat ulang form supaya
+             * Total Tabungan langsung berubah.
+             */
+
+            await showEditTabunganRecapForm(
+              data
+            );
+
+          }
+
+        );
+
+      }
+
+    }
+
+  );
+
+}
 
 
   /* ==========================================
