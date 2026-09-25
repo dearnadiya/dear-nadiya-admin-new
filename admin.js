@@ -32838,18 +32838,15 @@ async function loadOrders() {
     <div>
       <h3>🎟️ Masih Bisa Claim</h3>
       <p>
-        PO yang sudah melewati deadline tetapi masih memiliki
-        member yang belum di-claim.
-      </p>
+  Member / versi yang masih tersedia untuk di-claim.
+</p>
     </div>
   </div>
 
   <div
-    id="poClaimContainer"
-    class="po-running-scroll"
-  >
-    <p>Memuat PO yang masih bisa di-claim...</p>
-  </div>
+  id="poClaimContainer"
+  class="po-running-scroll"
+></div>
 </div>
 
 <div class="po-running-section po-archive-section">
@@ -32925,7 +32922,6 @@ async function loadOrders() {
   }
    
 await loadPORunningList();
-await loadPOClaimList();
 await loadOldRecapClaimList();
 await loadPOArchiveList();
 await loadPOList();
@@ -37133,80 +37129,153 @@ return (
     );
 
     const cards =
-      Object.values(
-        grouped
-      )
-      .map(
-        function(group) {
+  Object.values(
+    grouped
+  )
+  .sort(
+    function(a, b) {
 
-          const count =
-            group.rows.length;
+      return String(
+        a.batch_code || ""
+      ).localeCompare(
+        String(
+          b.batch_code || ""
+        ),
+        undefined,
+        {
+          numeric: true,
+          sensitivity: "base"
+        }
+      );
 
-          return `
-            <div
-              class="po-running-card po-claim-card po-recap-claim-card"
-              data-recap-batch="${escapeHTML(
-                group.batch_code
+    }
+  )
+  .map(
+    function(group) {
+
+          const availableMembers =
+  group.rows
+    .map(function(row) {
+
+      return String(
+        row.version || ""
+      ).trim();
+
+    })
+    .filter(function(name) {
+
+      return name !== "";
+
+    });
+
+
+return `
+  <div
+    class="po-running-card po-claim-card po-recap-claim-card"
+    data-recap-batch="${escapeHTML(
+      group.batch_code
+    )}"
+    data-recap-category="${escapeHTML(
+      group.category
+    )}"
+  >
+
+    <div
+      class="po-running-card-image"
+    >
+      ${
+        group.image_url
+          ? `
+            <img
+              src="${escapeHTML(
+                group.image_url
               )}"
-              data-recap-category="${escapeHTML(
-                group.category
+              alt="${escapeHTML(
+                group.item_name ||
+                group.batch_code ||
+                "Foto Rekap GO"
               )}"
             >
-
-              <div
-  class="po-running-card-image"
->
-  ${
-    group.image_url
-      ? `
-        <img
-          src="${escapeHTML(
-            group.image_url
-          )}"
-          alt="${escapeHTML(
-            group.item_name ||
-            group.batch_code ||
-            "Foto Rekap GO"
-          )}"
-        >
-      `
-      : `
-        <div
-          class="po-running-card-no-image"
-        >
-          📦
-        </div>
-      `
-  }
-</div>
-              <div
-                class="po-running-card-info"
-              >
-
-                <h4>
-                  ${escapeHTML(
-                    group.batch_code ||
-                    "Rekap GO"
-                  )}
-                </h4>
-
-                <p>
-                  ${escapeHTML(
-                    group.item_name ||
-                    group.category ||
-                    "Rekap GO Lama"
-                  )}
-                </p>
-
-                <strong>
-                  🟢 ${count}
-                  member masih tersedia
-                </strong>
-
-              </div>
-
+          `
+          : `
+            <div
+              class="po-running-card-no-image"
+            >
+              📦
             </div>
-          `;
+          `
+      }
+    </div>
+
+
+    <div
+      class="po-running-card-info"
+      style="
+        padding: 12px 14px 14px;
+      "
+    >
+
+      <!-- KODE BATCH -->
+      <div
+        style="
+          font-size: 12px;
+          color: #777;
+          font-weight: 500;
+          margin-bottom: 4px;
+        "
+      >
+        ${escapeHTML(
+          group.batch_code ||
+          "—"
+        )}
+      </div>
+
+
+      <!-- NAMA BARANG -->
+      <div
+        style="
+          font-size: 18px;
+          line-height: 1.3;
+          font-weight: 700;
+          color: #172554;
+          margin-bottom: 9px;
+        "
+      >
+        ${escapeHTML(
+          group.item_name ||
+          group.category ||
+          "Rekap GO"
+        )}
+      </div>
+
+
+      <!-- MEMBER YANG TERSEDIA -->
+      <div
+        style="
+          font-size: 14px;
+          line-height: 1.45;
+          font-weight: 600;
+          color: #374151;
+        "
+      >
+        <span
+          style="
+            color: #16a34a;
+            font-weight: 700;
+          "
+        >
+          🟢 Available :
+        </span>
+
+        ${escapeHTML(
+          availableMembers.join(", ")
+        )}
+      </div>
+
+    </div>
+
+  </div>
+`;
 
         }
       )
