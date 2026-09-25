@@ -37047,6 +37047,60 @@ container
       return;
     }
 
+        /* ==========================================
+       BATCH YANG SUDAH ARRIVED ADMIN
+       
+       Jika SATU BATCH sudah Arrived Admin,
+       seluruh batch tidak boleh muncul
+       di "Masih Bisa Claim".
+       ========================================== */
+
+    const arrivedAdminBatches =
+      new Set(
+        (data || [])
+          .filter(
+            function(row) {
+
+              const tracking =
+                String(
+                  row.batch_tracking_status || ""
+                )
+                  .trim()
+                  .toLowerCase();
+
+              return (
+                tracking ===
+                "arrived admin"
+              );
+
+            }
+          )
+          .map(
+            function(row) {
+
+              return (
+                String(
+                  row.category || ""
+                )
+                  .trim()
+                  .toLowerCase() +
+                "|" +
+                String(
+                  row.batch_code || ""
+                )
+                  .trim()
+                  .toLowerCase()
+              );
+
+            }
+          )
+      );
+
+
+    /* ==========================================
+       CARI MEMBER YANG MASIH AVAILABLE
+       ========================================== */
+
     const availableRows =
       (data || []).filter(
         function(row) {
@@ -37059,29 +37113,59 @@ container
             ).trim();
 
           const customerId =
-  Number(
-    row.customer_id
-  ) || null;
+            Number(
+              row.customer_id
+            ) || null;
 
-const hasCustomer =
-  row &&
-  row.customer_name &&
-  String(
-    row.customer_name
-  ).trim();
+          const hasCustomer =
+            row &&
+            row.customer_name &&
+            String(
+              row.customer_name
+            ).trim();
 
-const tracking =
-  String(
-    row.batch_tracking_status || ""
-  ).trim();
+          const batchKey =
+            String(
+              row.category || ""
+            )
+              .trim()
+              .toLowerCase() +
+            "|" +
+            String(
+              row.batch_code || ""
+            )
+              .trim()
+              .toLowerCase();
 
-return (
-  hasMember &&
-  !customerId &&
-  !hasCustomer &&
-  tracking !== "Arrived Admin" &&
-  tracking !== "Goods Arrive at Customer"
-);
+          /* ==================================
+             JIKA BATCH SUDAH ARRIVED ADMIN
+             MAKA SELURUH BATCH DISEMBUNYIKAN
+             ================================== */
+
+          if (
+            arrivedAdminBatches.has(
+              batchKey
+            )
+          ) {
+            return false;
+          }
+
+          const tracking =
+            String(
+              row.batch_tracking_status || ""
+            )
+              .trim()
+              .toLowerCase();
+
+          return (
+            hasMember &&
+            !customerId &&
+            !hasCustomer &&
+            tracking !==
+              "arrived admin" &&
+            tracking !==
+              "goods arrive at customer"
+          );
 
         }
       );
