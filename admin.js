@@ -19337,9 +19337,734 @@ async function renderTabunganRecapList(
 
     }
 
+     /* ==========================================
+   RENDER KHUSUS TABUNGAN ALBUM
+   GROUP PER BATCH
+   ========================================== */
 
-    list.innerHTML =
-      filtered
+function renderAlbumBatchCards(
+  albumRows
+) {
+
+  const batchMap =
+    new Map();
+
+  albumRows.forEach(
+    function(row) {
+
+      const batchCode =
+        String(
+          row.batch_code || "Tanpa Batch"
+        ).trim();
+
+      if (!batchMap.has(batchCode)) {
+
+        batchMap.set(
+          batchCode,
+          []
+        );
+
+      }
+
+      batchMap
+        .get(batchCode)
+        .push(row);
+
+    }
+  );
+
+
+  return Array.from(
+    batchMap.entries()
+  )
+    .map(
+      function(entry) {
+
+        const batchCode =
+          entry[0];
+
+        const batchRows =
+          entry[1];
+
+        const firstRow =
+          batchRows[0];
+
+        const tracking =
+          firstRow.batch_tracking_status ||
+          "Menabung";
+
+
+        const trackingOptions =
+          getTabunganTrackingOptions(
+            "Tabungan Album"
+          );
+
+
+        const totalTarget =
+          batchRows.reduce(
+            function(total, row) {
+
+              return (
+                total +
+                (
+                  Number(
+                    row.tabungan_target
+                  ) || 0
+                )
+              );
+
+            },
+            0
+          );
+
+
+        const totalPaid =
+          batchRows.reduce(
+            function(total, row) {
+
+              return (
+                total +
+                (
+                  Number(
+                    row.tabungan_paid
+                  ) || 0
+                )
+              );
+
+            },
+            0
+          );
+
+
+        return `
+
+          <div
+            class="panel tabungan-album-batch"
+            data-batch-code="${escapeHTML(
+              batchCode
+            )}"
+            style="
+              padding:18px;
+              border-radius:14px;
+            "
+          >
+
+            <!-- ==========================
+                 HEADER BATCH
+                 ========================== -->
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:12px;
+                flex-wrap:wrap;
+                padding-bottom:14px;
+                border-bottom:1px solid var(--line);
+              "
+            >
+
+              <div>
+
+                <div
+                  style="
+                    font-size:17px;
+                    font-weight:700;
+                  "
+                >
+                  📦 Batch
+                  ${escapeHTML(
+                    batchCode
+                  )}
+                </div>
+
+                <div
+                  style="
+                    margin-top:4px;
+                    font-size:12px;
+                    color:#777;
+                  "
+                >
+                  ${escapeHTML(
+                    firstRow.item_name ||
+                    "Tabungan Album"
+                  )}
+                </div>
+
+                <div
+                  style="
+                    margin-top:6px;
+                    font-size:11px;
+                    color:#777;
+                  "
+                >
+                  ${batchRows.length}
+                  customer
+                </div>
+
+              </div>
+
+
+              <div
+                style="
+                  display:flex;
+                  align-items:center;
+                  gap:8px;
+                  flex-wrap:wrap;
+                "
+              >
+
+                <select
+                  class="tabungan-album-tracking-select"
+                  data-batch-code="${escapeHTML(
+                    batchCode
+                  )}"
+                  style="
+                    padding:7px 10px;
+                    border-radius:999px;
+                    border:1px solid #ddd;
+                    background:#fff;
+                    font-size:11px;
+                    font-weight:700;
+                    cursor:pointer;
+                  "
+                >
+
+                  ${
+                    trackingOptions
+                      .map(
+                        function(status) {
+
+                          return `
+                            <option
+                              value="${escapeHTML(
+                                status
+                              )}"
+                              ${
+                                status ===
+                                tracking
+                                  ? "selected"
+                                  : ""
+                              }
+                            >
+                              ${escapeHTML(
+                                status
+                              )}
+                            </option>
+                          `;
+
+                        }
+                      )
+                      .join("")
+                  }
+
+                </select>
+
+              </div>
+
+            </div>
+
+
+            <!-- ==========================
+                 RINGKASAN BATCH
+                 ========================== -->
+
+            <div
+              style="
+                display:grid;
+                grid-template-columns:
+                  repeat(
+                    auto-fit,
+                    minmax(150px, 1fr)
+                  );
+                gap:10px;
+                margin-top:14px;
+              "
+            >
+
+              <div
+                style="
+                  padding:10px;
+                  border-radius:10px;
+                  background:#fafafa;
+                "
+              >
+
+                <div
+                  style="
+                    font-size:11px;
+                    color:#777;
+                  "
+                >
+                  Total Target
+                </div>
+
+                <strong>
+                  ${formatRupiah(
+                    totalTarget
+                  )}
+                </strong>
+
+              </div>
+
+
+              <div
+                style="
+                  padding:10px;
+                  border-radius:10px;
+                  background:#fafafa;
+                "
+              >
+
+                <div
+                  style="
+                    font-size:11px;
+                    color:#777;
+                  "
+                >
+                  Total Terkumpul
+                </div>
+
+                <strong>
+                  ${formatRupiah(
+                    totalPaid
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- ==========================
+                 CUSTOMER DALAM BATCH
+                 ========================== -->
+
+            <div
+              style="
+                display:grid;
+                gap:12px;
+                margin-top:16px;
+              "
+            >
+
+              ${
+                batchRows
+                  .map(
+                    function(row) {
+
+                      const progress =
+                        Math.round(
+                          row.tabungan_progress
+                        );
+
+                      const history =
+                        row.payment_history ||
+                        [];
+
+                      return `
+
+                        <div
+                          style="
+                            padding:14px;
+                            border:1px solid var(--line);
+                            border-radius:12px;
+                            background:#fff;
+                          "
+                        >
+
+                          <div
+                            style="
+                              display:flex;
+                              justify-content:space-between;
+                              align-items:flex-start;
+                              gap:10px;
+                              flex-wrap:wrap;
+                            "
+                          >
+
+                            <div>
+
+                              <div
+                                style="
+                                  font-size:15px;
+                                  font-weight:700;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.customer_name ||
+                                  "Tanpa Customer"
+                                )}
+                              </div>
+
+                              ${
+                                row.version
+                                  ? `
+                                    <div
+                                      style="
+                                        margin-top:3px;
+                                        font-size:11px;
+                                        color:#777;
+                                      "
+                                    >
+                                      ${escapeHTML(
+                                        row.version
+                                      )}
+                                    </div>
+                                  `
+                                  : ""
+                              }
+
+                            </div>
+
+
+                            <div
+                              style="
+                                padding:6px 9px;
+                                border-radius:999px;
+                                background:#f6f1f7;
+                                font-size:10px;
+                                font-weight:700;
+                              "
+                            >
+                              ${escapeHTML(
+                                row.tabungan_status
+                              )}
+                            </div>
+
+                          </div>
+
+
+                          <div
+                            style="
+                              display:grid;
+                              grid-template-columns:
+                                repeat(
+                                  auto-fit,
+                                  minmax(130px, 1fr)
+                                );
+                              gap:10px;
+                              margin-top:12px;
+                            "
+                          >
+
+                            <div>
+
+                              <div
+                                style="
+                                  font-size:10px;
+                                  color:#777;
+                                "
+                              >
+                                Harga Barang
+                              </div>
+
+                              <strong>
+                                ${formatRupiah(
+                                  row.item_price
+                                )}
+                              </strong>
+
+                            </div>
+
+
+                            <div>
+
+                              <div
+                                style="
+                                  font-size:10px;
+                                  color:#777;
+                                "
+                              >
+                                Target
+                              </div>
+
+                              <strong>
+                                ${formatRupiah(
+                                  row.tabungan_target
+                                )}
+                              </strong>
+
+                            </div>
+
+
+                            <div>
+
+                              <div
+                                style="
+                                  font-size:10px;
+                                  color:#777;
+                                "
+                              >
+                                Terkumpul
+                              </div>
+
+                              <strong>
+                                ${formatRupiah(
+                                  row.tabungan_paid
+                                )}
+                              </strong>
+
+                            </div>
+
+
+                            <div>
+
+                              <div
+                                style="
+                                  font-size:10px;
+                                  color:#777;
+                                "
+                              >
+                                Sisa
+                              </div>
+
+                              <strong>
+                                ${formatRupiah(
+                                  row.tabungan_remaining
+                                )}
+                              </strong>
+
+                            </div>
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:12px;
+                            "
+                          >
+
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:space-between;
+                                font-size:10px;
+                                margin-bottom:5px;
+                              "
+                            >
+
+                              <span>
+                                Progress Tabungan
+                              </span>
+
+                              <strong>
+                                ${progress}%
+                              </strong>
+
+                            </div>
+
+                            <div
+                              style="
+                                height:8px;
+                                border-radius:999px;
+                                background:#eee;
+                                overflow:hidden;
+                              "
+                            >
+
+                              <div
+                                style="
+                                  width:${progress}%;
+                                  height:100%;
+                                  background:var(
+                                    --primary,
+                                    #8b5cf6
+                                  );
+                                "
+                              ></div>
+
+                            </div>
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:12px;
+                              border-top:1px solid var(--line);
+                              padding-top:10px;
+                            "
+                          >
+
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:space-between;
+                                align-items:center;
+                                margin-bottom:7px;
+                              "
+                            >
+
+                              <strong
+                                style="
+                                  font-size:12px;
+                                "
+                              >
+                                Riwayat Tabungan
+                              </strong>
+
+                              <span
+                                style="
+                                  font-size:10px;
+                                  color:#777;
+                                "
+                              >
+                                ${
+                                  history.length
+                                }
+                                pembayaran
+                              </span>
+
+                            </div>
+
+
+                            ${
+                              history.length === 0
+
+                                ? `
+                                  <div
+                                    style="
+                                      padding:8px;
+                                      color:#888;
+                                      font-size:11px;
+                                    "
+                                  >
+                                    Belum ada pembayaran
+                                    yang dikonfirmasi.
+                                  </div>
+                                `
+
+                                : `
+                                  <div
+                                    style="
+                                      display:grid;
+                                      gap:5px;
+                                    "
+                                  >
+
+                                    ${
+                                      history
+                                        .map(
+                                          function(
+                                            payment
+                                          ) {
+
+                                            return `
+                                              <div
+                                                style="
+                                                  display:flex;
+                                                  justify-content:space-between;
+                                                  gap:8px;
+                                                  padding:7px 9px;
+                                                  border-radius:8px;
+                                                  background:#fafafa;
+                                                  font-size:11px;
+                                                "
+                                              >
+
+                                                <span>
+                                                  ${
+                                                    payment.payment_part ===
+                                                    "manual"
+
+                                                      ? "Tabungan Manual"
+
+                                                      : payment.payment_part ===
+                                                        "pelunasan"
+
+                                                        ? "Pelunasan"
+
+                                                        : payment.payment_part ===
+                                                          "both"
+
+                                                          ? "Tabungan + Pelunasan"
+
+                                                          : "Tabungan"
+                                                  }
+                                                </span>
+
+                                                <strong>
+                                                  ${formatRupiah(
+                                                    payment.allocated_amount
+                                                  )}
+                                                </strong>
+
+                                              </div>
+                                            `;
+
+                                          }
+                                        )
+                                        .join("")
+                                    }
+
+                                  </div>
+                                `
+                            }
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:12px;
+                              display:flex;
+                              justify-content:flex-end;
+                              gap:8px;
+                              flex-wrap:wrap;
+                            "
+                          >
+
+                            <button
+                              type="button"
+                              class="primary-button edit-recap-button"
+                              data-id="${escapeHTML(
+                                String(row.id)
+                              )}"
+                            >
+                              ✏️ Edit
+                            </button>
+
+
+                            <button
+                              type="button"
+                              class="delete-button delete-member-button"
+                              data-id="${escapeHTML(
+                                String(row.id)
+                              )}"
+                            >
+                              🗑️ Hapus
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      `;
+
+                    }
+                  )
+                  .join("")
+              }
+
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    )
+    .join("");
+
+}
+
+list.innerHTML =
+  category === "Tabungan Album"
+    ? renderAlbumBatchCards(filtered)
+    : filtered
         .map(
           function(row) {
 
@@ -19901,6 +20626,99 @@ container
               category,
               data,
               container
+            );
+
+          } finally {
+
+            this.disabled = false;
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+/* ==========================================
+   TRACKING TABUNGAN ALBUM
+   UPDATE PER BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".tabungan-album-tracking-select"
+  )
+  .forEach(
+    function(select) {
+
+      select.addEventListener(
+        "change",
+        async function() {
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          const newTracking =
+            this.value;
+
+          if (!batchCode) {
+            return;
+          }
+
+          this.disabled = true;
+
+          try {
+
+            const {
+              error
+            } =
+              await supabaseClient
+                .from(
+                  "purchase_recap"
+                )
+                .update({
+                  batch_tracking_status:
+                    newTracking
+                })
+                .eq(
+                  "category",
+                  "Tabungan Album"
+                )
+                .eq(
+                  "batch_code",
+                  batchCode
+                );
+
+            if (error) {
+              throw error;
+            }
+
+            console.log(
+              "TRACKING TABUNGAN ALBUM UPDATED:",
+              {
+                batch_code:
+                  batchCode,
+
+                batch_tracking_status:
+                  newTracking
+              }
+            );
+
+          } catch (error) {
+
+            console.error(
+              "ERROR UPDATE TRACKING TABUNGAN ALBUM:",
+              error
+            );
+
+            alert(
+              "Gagal mengubah tracking batch:\n\n" +
+              error.message
+            );
+
+            await loadRecapList(
+              category
             );
 
           } finally {
