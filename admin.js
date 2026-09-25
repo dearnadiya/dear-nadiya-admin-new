@@ -19435,18 +19435,87 @@ async function renderTabunganRecapList(
 
 
                   <div
-                    style="
-                      padding:7px 10px;
-                      border-radius:999px;
-                      background:#f6f1f7;
-                      font-size:11px;
-                      font-weight:700;
-                    "
-                  >
-                    ${escapeHTML(
-                      row.tabungan_status
-                    )}
-                  </div>
+  style="
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+  "
+>
+
+  ${
+    category === "Tabungan Lightstick"
+      ? `
+        <select
+          class="tabungan-tracking-select"
+          data-id="${escapeHTML(
+            String(row.id)
+          )}"
+          style="
+            padding:7px 10px;
+            border-radius:999px;
+            border:1px solid #ddd;
+            background:#fff;
+            font-size:11px;
+            font-weight:700;
+            cursor:pointer;
+          "
+        >
+          ${
+            getTabunganTrackingOptions(
+              category
+            )
+              .map(
+                function(status) {
+
+                  const currentTracking =
+                    row.tracking_status ||
+                    "Menabung";
+
+                  return `
+                    <option
+                      value="${escapeHTML(
+                        status
+                      )}"
+                      ${
+                        status ===
+                        currentTracking
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${escapeHTML(
+                        status
+                      )}
+                    </option>
+                  `;
+
+                }
+              )
+              .join("")
+          }
+        </select>
+      `
+      : ""
+  }
+
+  <div
+    style="
+      padding:7px 10px;
+      border-radius:999px;
+      background:#f6f1f7;
+      font-size:11px;
+      font-weight:700;
+      white-space:nowrap;
+    "
+  >
+    ${escapeHTML(
+      row.tabungan_status
+    )}
+  </div>
+
+</div>
 
                 </div>
 
@@ -19758,6 +19827,98 @@ async function renderTabunganRecapList(
         )
         .join("");
 
+     /* ==========================================
+   TRACKING TABUNGAN LIGHTSTICK
+   UPDATE PER CUSTOMER
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".tabungan-tracking-select"
+  )
+  .forEach(
+    function(select) {
+
+      select.addEventListener(
+        "change",
+        async function() {
+
+          const recapId =
+            this.dataset.id;
+
+          const newTracking =
+            this.value;
+
+          if (!recapId) {
+            return;
+          }
+
+          this.disabled = true;
+
+          try {
+
+            const {
+              error
+            } = await supabaseClient
+              .from(
+                "purchase_recap"
+              )
+              .update({
+                tracking_status:
+                  newTracking
+              })
+              .eq(
+                "id",
+                recapId
+              );
+
+            if (error) {
+              throw error;
+            }
+
+            console.log(
+              "TRACKING TABUNGAN LIGHTSTICK UPDATED:",
+              {
+                recapId,
+                tracking_status:
+                  newTracking
+              }
+            );
+
+          } catch (error) {
+
+            console.error(
+              "ERROR UPDATE TRACKING TABUNGAN:",
+              error
+            );
+
+            alert(
+              "Gagal mengubah tracking: " +
+              error.message
+            );
+
+            await renderTabunganRecapList(
+              category,
+              data,
+              container
+            );
+
+          } finally {
+
+            this.disabled = false;
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+/* ==========================================
+   EVENT TOMBOL EDIT / HAPUS
+   ========================================== */
 
     /*
      * Event tombol edit/hapus tetap
