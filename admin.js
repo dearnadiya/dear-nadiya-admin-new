@@ -18599,6 +18599,107 @@ async function renderTabunganRecapList(
 
   }
 
+     /* ==========================================
+     AMBIL TABUNGAN MANUAL
+     UNTUK SEMUA CUSTOMER DI REKAP INI
+     ========================================== */
+
+  let manualTabunganRows = [];
+
+  if (
+    recapIds.length > 0
+  ) {
+
+    const {
+      data: manualData,
+      error: manualError
+    } = await supabaseClient
+      .from(
+        "dn_manual_tabungan"
+      )
+      .select(`
+        id,
+        recap_id,
+        amount,
+        note,
+        created_at
+      `)
+      .in(
+        "recap_id",
+        recapIds
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+    if (manualError) {
+
+      console.error(
+        "ERROR LOAD TABUNGAN MANUAL:",
+        manualError
+      );
+
+      container.innerHTML = `
+        <div class="panel">
+
+          <h3>
+            Gagal memuat tabungan manual
+          </h3>
+
+          <p>
+            ${escapeHTML(
+              manualError.message
+            )}
+          </p>
+
+        </div>
+      `;
+
+      return;
+
+    }
+
+    manualTabunganRows =
+      manualData || [];
+
+  }
+
+
+  /* ==========================================
+     KELOMPOKKAN TABUNGAN MANUAL PER RECAP
+     ========================================== */
+
+  const manualTabunganByRecap = {};
+
+  manualTabunganRows.forEach(
+    function(row) {
+
+      const recapId =
+        String(
+          row.recap_id
+        );
+
+      if (
+        !manualTabunganByRecap[
+          recapId
+        ]
+      ) {
+
+        manualTabunganByRecap[
+          recapId
+        ] = [];
+
+      }
+
+      manualTabunganByRecap[
+        recapId
+      ].push(row);
+
+    }
+  );
 
   /* ==========================================
      AMBIL PEMBAYARAN YANG SUDAH DIKONFIRMASI
@@ -18733,7 +18834,7 @@ async function renderTabunganRecapList(
      HITUNG STATUS SETIAP CUSTOMER
      ========================================== */
 
-  const rows =
+    const rows =
     (data || []).map(
       function(row) {
 
@@ -18749,8 +18850,11 @@ async function renderTabunganRecapList(
           ) || 0;
 
 
-        let totalPaid = 0;
+        /* ==========================================
+           PAYMENT CONFIRMED
+           ========================================== */
 
+        let paymentPaid = 0;
 
         const history =
           allocationsByRecap[
@@ -18761,7 +18865,7 @@ async function renderTabunganRecapList(
         history.forEach(
           function(payment) {
 
-            totalPaid +=
+            paymentPaid +=
               Number(
                 payment.allocated_amount
               ) || 0;
@@ -18770,17 +18874,53 @@ async function renderTabunganRecapList(
         );
 
 
-        /*
-         * Jangan biarkan pembayaran
-         * melebihi harga barang.
-         */
+        /* ==========================================
+           TABUNGAN MANUAL
+           ========================================== */
 
-        totalPaid =
+        const manualHistory =
+          manualTabunganByRecap[
+            String(row.id)
+          ] || [];
+
+
+        const manualPaid =
+          manualHistory.reduce(
+            function(total, manual) {
+
+              return (
+                total +
+                (
+                  Number(
+                    manual.amount
+                  ) || 0
+                )
+              );
+
+            },
+            0
+          );
+
+
+        /* ==========================================
+           TOTAL TABUNGAN
+           
+           Payment confirmed
+           +
+           Tabungan manual
+           ========================================== */
+
+        const totalPaid =
           Math.min(
-            totalPaid,
+            paymentPaid +
+            manualPaid,
             price
           );
 
+
+        /* ==========================================
+           SISA HARGA
+           ========================================== */
 
         const remaining =
           Math.max(
@@ -18790,10 +18930,18 @@ async function renderTabunganRecapList(
           );
 
 
+        /* ==========================================
+           TARGET TABUNGAN
+           ========================================== */
+
         const targetReached =
           target <= 0 ||
           totalPaid >= target;
 
+
+        /* ==========================================
+           STATUS
+           ========================================== */
 
         let status =
           "Menabung";
@@ -18819,6 +18967,13 @@ async function renderTabunganRecapList(
         }
 
 
+        /* ==========================================
+           PROGRESS TABUNGAN
+           
+           Tetap mengikuti logika lama:
+           progress menuju TARGET TABUNGAN.
+           ========================================== */
+
         const progress =
           target > 0
             ? Math.min(
@@ -18841,6 +18996,61 @@ async function renderTabunganRecapList(
               );
 
 
+        /* ==========================================
+           GABUNGKAN RIWAYAT PAYMENT
+           + TABUNGAN MANUAL
+           ========================================== */
+
+        const combinedHistory = [
+
+          ...history,
+
+          ...manualHistory.map(
+            function(manual) {
+
+              return {
+
+                id:
+                  "manual-" +
+                  String(
+                    manual.id
+                  ),
+
+                payment_part:
+                  "manual",
+
+                allocated_amount:
+                  Number(
+                    manual.amount
+                  ) || 0,
+
+                created_at:
+                  manual.created_at,
+
+                note:
+                  manual.note || ""
+
+              };
+
+            }
+          )
+
+        ].sort(
+          function(a, b) {
+
+            return (
+              new Date(
+                a.created_at
+              ) -
+              new Date(
+                b.created_at
+              )
+            );
+
+          }
+        );
+
+
         return {
 
           ...row,
@@ -18861,13 +19071,12 @@ async function renderTabunganRecapList(
             status,
 
           payment_history:
-            history
+            combinedHistory
 
         };
 
       }
     );
-
 
   /* ==========================================
      HEADER
@@ -19470,14 +19679,23 @@ async function renderTabunganRecapList(
 
                                       <span>
                                         ${
-                                          payment.payment_part ===
-                                          "pelunasan"
-                                            ? "Pelunasan"
-                                            : payment.payment_part ===
-                                              "both"
-                                                ? "Tabungan + Pelunasan"
-                                                : "Tabungan"
-                                        }
+  payment.payment_part ===
+  "manual"
+
+    ? "Tabungan Manual"
+
+    : payment.payment_part ===
+      "pelunasan"
+
+        ? "Pelunasan"
+
+        : payment.payment_part ===
+          "both"
+
+            ? "Tabungan + Pelunasan"
+
+            : "Tabungan"
+}
                                       </span>
 
                                       <strong>
@@ -28645,11 +28863,6 @@ async function showEditTabunganRecapForm(
       paymentSummary.totalDpPaid
     ) || 0;
 
-  const actualRemaining =
-    Number(
-      paymentSummary.remainingAmount
-    ) || 0;
-
   /* ==========================================
      AMBIL TABUNGAN MANUAL
      ========================================== */
@@ -28677,14 +28890,37 @@ async function showEditTabunganRecapForm(
 
   }
 
-  const manualTabungan =
+    const manualTabungan =
     Number(
       manualTabunganSummary.totalManual
     ) || 0;
 
+
+  /* ==========================================
+     TOTAL TABUNGAN
+     PAYMENT CONFIRMED
+     +
+     TABUNGAN MANUAL
+     ========================================== */
+
   const totalTabungan =
-    actualDp +
-    manualTabungan;
+    Math.min(
+      actualDp +
+      manualTabungan,
+      currentPrice
+    );
+
+
+  /* ==========================================
+     SISA PEMBAYARAN
+     ========================================== */
+
+  const actualRemaining =
+    Math.max(
+      currentPrice -
+      totalTabungan,
+      0
+    );
 
   container.innerHTML = `
 
