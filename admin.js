@@ -7638,19 +7638,16 @@ if (
       )
       .update({
 
-        dp_amount:
-          totalDpPaid,
+  dp_status:
+    dpStatus,
 
-        dp_status:
-          dpStatus,
+  remaining_amount:
+    remainingAmount,
 
-        remaining_amount:
-          remainingAmount,
+  payment_status:
+    paymentStatus
 
-        payment_status:
-          paymentStatus
-
-      })
+})
       .eq(
         "id",
         allocation.recap_id
@@ -27588,11 +27585,9 @@ if (
     ) || 0;
 
   const batchDp =
-    Number(
-      firstRow.minimum_dp_amount ||
-      firstRow.dp_amount ||
-      0
-    ) || 0;
+  Number(
+    firstRow.minimum_dp_amount
+  ) || 0;
 
   const batchRemaining =
     Math.max(
@@ -27778,35 +27773,26 @@ const existingCoDeadline =
   (() => {
 
     const dps =
-      data
-        .map(row => {
+  data
+    .map(row => {
 
-          const quantity =
-            Number(row.quantity) || 1;
+      const quantity =
+        Number(row.quantity) || 1;
 
-          const minimumDp =
-            Number(
-              row.minimum_dp_amount
-            ) || 0;
+      const minimumDp =
+        Number(
+          row.minimum_dp_amount
+        ) || 0;
 
-          const minimumDp =
-  Number(
-    row.minimum_dp_amount
-  ) || 0;
+      return quantity > 0
+        ? minimumDp / quantity
+        : minimumDp;
 
-return quantity > 0
-  ? minimumDp / quantity
-  : minimumDp;
-           
-          return quantity > 0
-            ? totalDp / quantity
-            : totalDp;
-
-        })
-        .filter(
-          value => value > 0
-        );
-
+    })
+    .filter(
+      value => value > 0
+    );
+     
     if (!dps.length) {
       return "0";
     }
