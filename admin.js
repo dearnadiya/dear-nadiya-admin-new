@@ -29902,24 +29902,155 @@ const newRemaining =
   Status DP ditentukan dari:
   DP Aktual vs DP Minimum
 */
-const newDpStatus =
-  actualDp <= 0
-    ? "unpaid"
-    : actualDp >= newDpMinimum
-      ? "paid"
-      : "insufficient";
+
+         /* ==========================================
+   STATUS PEMBAYARAN REKAP GO
+   ========================================== */
 
 /*
-  Status pembayaran ditentukan dari
-  sisa pembayaran.
-*/
-const newPaymentStatus =
-  newPrice > 0 &&
-  actualDp >= newDpMinimum &&
-  newRemaining <= 0
-    ? "paid"
-    : "unpaid";
+ * Untuk Rekap GO:
+ * - Tidak menggunakan DP Aktual
+ * - Tidak menggunakan paymentSummary
+ * - Status yang sudah tersimpan dipertahankan
+ */
 
+const isRekapGO =
+  data.recap_data_type === "baru";
+
+
+let newDpStatus =
+  data.dp_status ||
+  "unpaid";
+
+
+let newPaymentStatus =
+  data.payment_status ||
+  "unpaid";
+
+
+let newRemaining = 0;
+
+
+/* ==========================================
+   HITUNG ULANG SISA
+   ========================================== */
+
+if (
+  isRekapGO
+) {
+
+  const fixedDp =
+    Math.min(
+      newDpMinimum,
+      newPrice
+    );
+
+
+  /*
+   * Jika pembayaran sudah lunas,
+   * sisa tetap 0.
+   */
+  if (
+    newPaymentStatus ===
+    "paid"
+  ) {
+
+    newRemaining =
+      0;
+
+  }
+
+  /*
+   * Jika DP sudah dibayar,
+   * sisa = harga - DP minimum.
+   */
+  else if (
+    newDpStatus ===
+    "paid"
+  ) {
+
+    newRemaining =
+      Math.max(
+        newPrice -
+        fixedDp,
+        0
+      );
+
+  }
+
+  /*
+   * Jika DP belum dibayar
+   * dan pembayaran belum lunas,
+   * seluruh harga masih menjadi sisa.
+   */
+  else {
+
+    newRemaining =
+      Math.max(
+        newPrice,
+        0
+      );
+
+  }
+
+}
+else {
+
+  /*
+   * REKAP LAMA
+   *
+   * Jangan mengubah perilaku lama.
+   */
+  const actualDp =
+    Number(
+      data.dp_amount
+    ) || 0;
+
+
+  const oldPrice =
+    Number(
+      data.item_price
+    ) || 0;
+
+
+  const oldRemaining =
+    Number(
+      data.remaining_amount
+    ) || 0;
+
+
+  const totalActualPaid =
+    Math.max(
+      0,
+      oldPrice -
+      oldRemaining
+    );
+
+
+  newRemaining =
+    Math.max(
+      0,
+      newPrice -
+      totalActualPaid
+    );
+
+
+  newDpStatus =
+    actualDp <= 0
+      ? "unpaid"
+      : actualDp >= newDpMinimum
+        ? "paid"
+        : "insufficient";
+
+
+  newPaymentStatus =
+    newPrice > 0 &&
+    newRemaining <= 0
+      ? "paid"
+      : "unpaid";
+
+}
+         
 const updatedData = {
 
   batch_code:
@@ -29948,17 +30079,17 @@ const updatedData = {
       .trim(),
 
   member_id:
-  Number(
-    document
-      .getElementById("editMemberId")
-      ?.value
-  ) || null,
+    Number(
+      document
+        .getElementById("editMemberId")
+        ?.value
+    ) || null,
 
-version:
-  document
-    .getElementById("editVersion")
-    .value
-    .trim(),
+  version:
+    document
+      .getElementById("editVersion")
+      .value
+      .trim(),
 
   quantity:
     Number(
@@ -29974,11 +30105,18 @@ version:
     newDpMinimum,
 
   /*
-    PENTING:
-    DP Aktual tidak diubah dari form.
-  */
+   * Rekap GO tidak memakai DP Aktual.
+   * Jangan menjadikan paymentSummary sebagai
+   * sumber status DP.
+   */
   dp_amount:
-    actualDp,
+    isRekapGO
+      ? 0
+      : (
+          Number(
+            data.dp_amount
+          ) || 0
+        ),
 
   dp_status:
     newDpStatus,
@@ -30001,7 +30139,6 @@ version:
       .trim()
 
 };
-
         const {
   error
 } =
