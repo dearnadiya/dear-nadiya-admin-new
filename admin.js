@@ -954,273 +954,292 @@ try {
 
 
     /* ==========================================
-       REKAP LAMA
-       ========================================== */
+   CEK PAYMENT SYSTEM
+   BERLAKU UNTUK REKAP LAMA DAN REKAP BARU
+   ========================================== */
 
-    if (isLegacy) {
+const confirmedRecapAllocations =
+  (dashboardAllocationRows || [])
+    .filter(function(allocation) {
 
-      const storedDp =
-        Number(row.dp_amount) || 0;
+      return (
+        String(
+          allocation.recap_id
+        ) === recapId &&
 
-      const storedRemaining =
-        Math.max(
-          Number(row.remaining_amount) || 0,
-          0
-        );
+        confirmedPaymentIds.has(
+          String(
+            allocation.payment_submission_id
+          )
+        )
+      );
 
-
-      totalDpPaid =
-        minimumDp > 0
-          ? Math.min(
-              storedDp,
-              minimumDp
-            )
-          : storedDp;
-
-
-      const actualTotalPaid =
-        price > 0
-          ? Math.max(
-              price - storedRemaining,
-              0
-            )
-          : storedDp;
+    });
 
 
-      totalPelunasanPaid =
-        Math.max(
-          actualTotalPaid -
-          totalDpPaid,
-          0
-        );
+/* ==========================================
+   JIKA ADA PAYMENT CONFIRMED
+   → PAYMENT SYSTEM MENJADI SUMBER UTAMA
+   ========================================== */
 
-    }
+if (
+  confirmedRecapAllocations.length > 0
+) {
 
+  confirmedRecapAllocations.forEach(
+    function(allocation) {
 
-    /* ==========================================
-       REKAP BARU
-       ========================================== */
+      const amount =
+        Number(
+          allocation.allocated_amount
+        ) || 0;
 
-    else {
-
-      const confirmedRecapAllocations =
-        (dashboardAllocationRows || [])
-          .filter(function (allocation) {
-
-            return (
-              String(
-                allocation.recap_id
-              ) === recapId &&
-
-              confirmedPaymentIds.has(
-                String(
-                  allocation.payment_submission_id
-                )
-              )
-            );
-
-          });
+      if (amount <= 0) {
+        return;
+      }
 
 
-      /* ========================================
-         JIKA ADA PAYMENT CONFIRMED
-         → allocation menjadi sumber utama
-         ======================================== */
+      /* ==========================
+         DP
+         ========================== */
 
       if (
-        confirmedRecapAllocations.length > 0
+        allocation.payment_part ===
+        "dp"
       ) {
 
-        confirmedRecapAllocations.forEach(
-          function (allocation) {
+        totalDpPaid +=
+          amount;
 
-            const amount =
-              Number(
-                allocation.allocated_amount
-              ) || 0;
-
-            if (amount <= 0) {
-              return;
-            }
-
-
-            if (
-              allocation.payment_part ===
-              "dp"
-            ) {
-
-              totalDpPaid +=
-                amount;
-
-              return;
-            }
-
-
-            if (
-              allocation.payment_part ===
-              "pelunasan"
-            ) {
-
-              totalPelunasanPaid +=
-                amount;
-
-              return;
-            }
-
-
-            if (
-              allocation.payment_part ===
-              "both"
-            ) {
-
-              const dpNeeded =
-                Math.max(
-                  minimumDp -
-                  totalDpPaid,
-                  0
-                );
-
-              const dpPortion =
-                Math.min(
-                  amount,
-                  dpNeeded
-                );
-
-              const pelunasanPortion =
-                Math.max(
-                  amount -
-                  dpPortion,
-                  0
-                );
-
-              totalDpPaid +=
-                dpPortion;
-
-              totalPelunasanPaid +=
-                pelunasanPortion;
-
-            }
-
-          }
-        );
+        return;
 
       }
 
 
-      /* ========================================
-         TIDAK ADA PAYMENT CONFIRMED
-         → gunakan status manual Rekap GO
-         ======================================== */
+      /* ==========================
+         PELUNASAN
+         ========================== */
 
-      else {
+      if (
+        allocation.payment_part ===
+        "pelunasan"
+      ) {
 
-        const storedDp =
-          Number(row.dp_amount) || 0;
+        totalPelunasanPaid +=
+          amount;
 
+        return;
 
-        /* --------------------------------------
-           MANUAL LUNAS
-           -------------------------------------- */
-
-        if (
-          row.payment_status ===
-          "paid"
-        ) {
-
-          totalDpPaid =
-            storedDp > 0
-              ? Math.min(
-                  storedDp,
-                  price
-                )
-              : Math.min(
-                  minimumDp,
-                  price
-                );
+      }
 
 
-          totalPelunasanPaid =
-            Math.max(
-              price -
-              totalDpPaid,
-              0
-            );
+      /* ==========================
+         DP + PELUNASAN
+         ========================== */
 
-        }
+      if (
+        allocation.payment_part ===
+        "both"
+      ) {
 
+        const dpNeeded =
+          Math.max(
+            minimumDp -
+            totalDpPaid,
+            0
+          );
 
-        /* --------------------------------------
-           MANUAL DP PAID
-           -------------------------------------- */
+        const dpPortion =
+          Math.min(
+            amount,
+            dpNeeded
+          );
 
-        else if (
-          row.dp_status ===
-          "paid"
-        ) {
+        const pelunasanPortion =
+          Math.max(
+            amount -
+            dpPortion,
+            0
+          );
 
-          totalDpPaid =
-            storedDp > 0
-              ? Math.min(
-                  storedDp,
-                  price
-                )
-              : Math.min(
-                  minimumDp,
-                  price
-                );
+        totalDpPaid +=
+          dpPortion;
 
-
-          totalPelunasanPaid =
-            0;
-
-        }
-
-
-        /* --------------------------------------
-           BELUM DIBAYAR / DATA TERSIMPAN
-           -------------------------------------- */
-
-        else {
-
-          totalDpPaid =
-            Math.min(
-              storedDp,
-              price
-            );
-
-
-          const storedRemaining =
-            Math.max(
-              Number(
-                row.remaining_amount
-              ) || 0,
-              0
-            );
-
-
-          const storedTotalPaid =
-            price > 0
-              ? Math.max(
-                  price -
-                  storedRemaining,
-                  0
-                )
-              : storedDp;
-
-
-          totalPelunasanPaid =
-            Math.max(
-              storedTotalPaid -
-              totalDpPaid,
-              0
-            );
-
-        }
+        totalPelunasanPaid +=
+          pelunasanPortion;
 
       }
 
     }
+  );
 
+
+}
+
+
+/* ==========================================
+   TIDAK ADA PAYMENT CONFIRMED
+   → GUNAKAN DATA MANUAL purchase_recap
+   ========================================== */
+
+else if (isLegacy) {
+
+  const storedDp =
+    Number(
+      row.dp_amount
+    ) || 0;
+
+  const storedRemaining =
+    Math.max(
+      Number(
+        row.remaining_amount
+      ) || 0,
+      0
+    );
+
+
+  totalDpPaid =
+    minimumDp > 0
+      ? Math.min(
+          storedDp,
+          minimumDp
+        )
+      : storedDp;
+
+
+  const actualTotalPaid =
+    price > 0
+      ? Math.max(
+          price -
+          storedRemaining,
+          0
+        )
+      : storedDp;
+
+
+  totalPelunasanPaid =
+    Math.max(
+      actualTotalPaid -
+      totalDpPaid,
+      0
+    );
+
+}
+
+
+/* ==========================================
+   REKAP BARU TANPA PAYMENT CONFIRMED
+   → GUNAKAN STATUS MANUAL ADMIN
+   ========================================== */
+
+else {
+
+  const storedDp =
+    Number(
+      row.dp_amount
+    ) || 0;
+
+
+  /* --------------------------------------
+     MANUAL LUNAS
+     -------------------------------------- */
+
+  if (
+    row.payment_status ===
+    "paid"
+  ) {
+
+    totalDpPaid =
+      storedDp > 0
+        ? Math.min(
+            storedDp,
+            price
+          )
+        : Math.min(
+            minimumDp,
+            price
+          );
+
+
+    totalPelunasanPaid =
+      Math.max(
+        price -
+        totalDpPaid,
+        0
+      );
+
+  }
+
+
+  /* --------------------------------------
+     MANUAL DP PAID
+     -------------------------------------- */
+
+  else if (
+    row.dp_status ===
+    "paid"
+  ) {
+
+    totalDpPaid =
+      storedDp > 0
+        ? Math.min(
+            storedDp,
+            price
+          )
+        : Math.min(
+            minimumDp,
+            price
+          );
+
+
+    totalPelunasanPaid =
+      0;
+
+  }
+
+
+  /* --------------------------------------
+     BELUM DIBAYAR / DATA TERSIMPAN
+     -------------------------------------- */
+
+  else {
+
+    totalDpPaid =
+      Math.min(
+        storedDp,
+        price
+      );
+
+
+    const storedRemaining =
+      Math.max(
+        Number(
+          row.remaining_amount
+        ) || 0,
+        0
+      );
+
+
+    const storedTotalPaid =
+      price > 0
+        ? Math.max(
+            price -
+            storedRemaining,
+            0
+          )
+        : storedDp;
+
+
+    totalPelunasanPaid =
+      Math.max(
+        storedTotalPaid -
+        totalDpPaid,
+        0
+      );
+
+  }
+
+}
 
     /* ==========================================
        TOTAL PEMBAYARAN
