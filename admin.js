@@ -2180,27 +2180,23 @@ Dear Nadiya`;
 
                 <strong>
                   ${formatRupiah(
-                    batchRows.reduce(
-                      function(total, row) {
+  batchRows.reduce(
+    function(total, row) {
 
-                        const summary =
-                          dashboardPaymentSummary[
-                            String(row.id)
-                          ] || {};
+      return (
+        total +
+        (
+          Number(
+            row.minimum_dp_amount
+          ) || 0
+        )
+      );
 
-                        return (
-                          total +
-                          (
-                            Number(
-                              summary.dpOutstanding
-                            ) || 0
-                          )
-                        );
+    },
+    0
+  )
+)}
 
-                      },
-                      0
-                    )
-                  )}
                 </strong>
 
               </div>
