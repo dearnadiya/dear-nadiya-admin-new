@@ -1928,9 +1928,9 @@ if (
                         ] || {};
 
                       const dpAmount =
-                        Number(
-                          summary.dpOutstanding
-                        ) || 0;
+  Number(
+    row.minimum_dp_amount
+  ) || 0;
 
                       totalCustomer +=
                         dpAmount;
