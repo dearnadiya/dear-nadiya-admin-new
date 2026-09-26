@@ -30030,7 +30030,8 @@ const updateData = {
    ====================================== */
 
 if (
-  isSamePriceModeHeader
+  newPrice !== null &&
+  newDp !== null
 ) {
 
   const headerPrice =
@@ -30042,7 +30043,6 @@ if (
   for (
     const row of data
   ) {
-
     const quantity =
       Number(row.quantity) || 1;
 
@@ -32717,26 +32717,67 @@ const unitDpMinimum =
  * Hitung ulang TOTAL berdasarkan
  * quantity baru.
  */
-const newPrice =
-  Math.round(
-    unitPrice *
-    newQuantity
-  );
+let newPrice;
+let newDpMinimum;
 
-const dpUnit =
-  parseNominalInput(
-    document
-      .getElementById(
-        "editDpMinimum"
-      )
-      ?.value
-  );
+if (!isSamePriceMode) {
 
-const newDpMinimum =
-  Math.round(
-    dpUnit *
-    newQuantity
-  );
+  /*
+   * HARGA BERBEDA:
+   * Harga yang diinput adalah
+   * harga TOTAL customer ini.
+   */
+  newPrice =
+    parseNominalInput(
+      document
+        .getElementById(
+          "editItemPrice"
+        )
+        ?.value
+    );
+
+  /*
+   * DP minimum juga merupakan
+   * nominal TOTAL customer ini.
+   */
+  newDpMinimum =
+    parseNominalInput(
+      document
+        .getElementById(
+          "editDpMinimum"
+        )
+        ?.value
+    );
+
+} else {
+
+  /*
+   * HARGA SAMA:
+   * Pertahankan logika lama
+   * berdasarkan harga satuan × quantity.
+   */
+  newPrice =
+    Math.round(
+      unitPrice *
+      newQuantity
+    );
+
+  const dpUnit =
+    parseNominalInput(
+      document
+        .getElementById(
+          "editDpMinimum"
+        )
+        ?.value
+    );
+
+  newDpMinimum =
+    Math.round(
+      dpUnit *
+      newQuantity
+    );
+
+}
 /*
   DP Aktual berasal dari pembayaran yang sudah dikonfirmasi.
   Jangan ambil dari input form.
