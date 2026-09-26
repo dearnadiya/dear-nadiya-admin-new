@@ -1690,26 +1690,53 @@ const dpRows =
       ) || 0;
 
     const dpOutstanding =
-      Number(
-        summary.dpOutstanding
-      ) || 0;
+  Number(
+    summary.dpOutstanding
+  ) || 0;
 
-    if (!deadline) {
-      return false;
-    }
+const dpStatus =
+  String(
+    row.dp_status || ""
+  )
+    .trim()
+    .toLowerCase();
 
-    if (deadline > todayISO) {
-      return false;
-    }
+const paymentStatus =
+  String(
+    row.payment_status || ""
+  )
+    .trim()
+    .toLowerCase();
 
-    /* DP 0 bukan tagihan DP. */
-    if (minimumDp <= 0) {
-      return false;
-    }
+if (!deadline) {
+  return false;
+}
 
-    /* Hanya tampil jika target DP belum tercapai. */
-    return dpOutstanding > 0;
+if (deadline > todayISO) {
+  return false;
+}
 
+/* DP 0 bukan tagihan DP. */
+if (minimumDp <= 0) {
+  return false;
+}
+
+/*
+ * Jika DP sudah dibayar,
+ * jangan pernah tampil di Jatuh Tempo DP.
+ */
+if (
+  dpStatus === "paid" ||
+  paymentStatus === "paid"
+) {
+  return false;
+}
+
+/*
+ * Hanya tampil jika target DP
+ * memang masih belum tercapai.
+ */
+return dpOutstanding > 0;
   });
 
     const dpGrouped =
@@ -2071,18 +2098,16 @@ const paymentRows =
       }
 
       /* Pelunasan hanya setelah target DP tercapai. */
-      if (
-        !row.dashboard_dp_target_reached
-      ) {
-        return false;
-      }
+      if (!row.dashboard_dp_target_reached) {
+  return false;
+}
 
-      const remaining =
-        Number(
-          row.dashboard_remaining_amount
-        ) || 0;
+const remaining =
+  Number(
+    row.dashboard_remaining_amount
+  ) || 0;
 
-      return remaining > 0;
+return remaining > 0;
 
     });
 
