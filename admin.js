@@ -1739,233 +1739,485 @@ const dpRows =
 
   });
      
-    const dpGrouped =
-      groupCustomers(
-        dpRows
-      );
+    /* =====================================
+   GROUP DP PER BATCH
+   1 BATCH = 1 CARD
+   ===================================== */
 
+const dpGrouped = {};
 
-    const dpCustomerNames =
-      Object.keys(
-        dpGrouped
-      );
+dpRows.forEach(
+  function(row) {
 
+    const category =
+      String(
+        row.category || ""
+      ).trim();
 
-    const dpList =
-      document.getElementById(
-        "dashboardDpList"
-      );
+    const batchCode =
+      String(
+        row.batch_code || ""
+      ).trim();
 
+    const batchKey =
+      `${category}::${batchCode}`;
 
     if (
-      dpCustomerNames.length === 0
+      !dpGrouped[
+        batchKey
+      ]
     ) {
 
-      dpList.innerHTML = `
-        <p>
-          Tidak ada customer yang
-          jatuh tempo DP hari ini.
-        </p>
-      `;
+      dpGrouped[
+        batchKey
+      ] = [];
 
-    } else {
+    }
 
-      dpList.innerHTML =
-        dpCustomerNames
-          .map(customerName => {
+    dpGrouped[
+      batchKey
+    ].push(row);
 
-            const customerRows =
-              dpGrouped[
-                customerName
-              ];
-
-             const customerDisplayName =
-  customerRows.find(row =>
-    String(row.customer_name || "").trim()
-  )?.customer_name || customerName;
-
-            let totalDP = 0;
-let totalDendaDP = 0;
-const rincianDendaDP = [];
-
-             const paymentHeader = `
-  <div class="dashboard-payment-header">
-    <span>Kode Batch</span>
-    <span>Nama Barang</span>
-    <span>Versi / Member</span>
-    <span>Deadline</span>
-    <span>Tagihan DP</span>
-  </div>
-`;
-
-            const itemsHTML =
-              customerRows
-                .map(row => {
-
-                  const summary =
-  dashboardPaymentSummary[
-    String(row.id)
-  ] || {};
-
-const dpAmount =
-  Number(
-    row.minimum_dp_amount
-  ) || 0;
-
-totalDP +=
-  dpAmount;
-                   
-const hariTerlambat =
-  hitungHariTerlambat(
-    row.dp_deadline
-  );
-
-const denda =
-  hitungDenda(
-    row.dp_deadline
-  );
-
-if (hariTerlambat > 0) {
-  totalDendaDP += denda;
-
-  rincianDendaDP.push(
-    `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
-  );
-}
-
-                  return `
-  <div class="dashboard-payment-item">
-
-    <strong>
-      ${row.batch_code || "—"}
-    </strong>
-
-    <span>
-      ${row.item_name || "—"}
-    </span>
-
-    <span>
-  ${row.version || "—"}
-</span>
-
-<span>
-  ${
-    row.dp_deadline
-      ? String(row.dp_deadline).substring(0, 10)
-      : "—"
   }
-</span>
-
-<span class="dashboard-payment-amount">
-  ${formatRupiah(dpAmount)}
-</span>
-  </div>
-`;
-                })
-                .join("");
+);
 
 
-            const firstCustomerRow =
-  customerRows[0];
+const dpBatchKeys =
+  Object.keys(
+    dpGrouped
+  );
 
-const customerId =
-  Number(
-    firstCustomerRow?.customer_id
-  ) || null;
 
-const customerWhatsApp =
-  customerWhatsAppMap[
-    String(customerId)
-  ] || "";
+const dpList =
+  document.getElementById(
+    "dashboardDpList"
+  );
 
-let dpMessage =
-`Halo ${customerDisplayName} ♥
-Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${firstCustomerRow?.batch_code || ""}.
 
-Total tagihan DP: ${formatRupiah(totalDP)}`;
+if (
+  dpBatchKeys.length === 0
+) {
 
-if (totalDendaDP > 0) {
-  dpMessage += `
+  dpList.innerHTML = `
+    <p>
+      Tidak ada customer yang
+      jatuh tempo DP hari ini.
+    </p>
+  `;
 
-Rincian keterlambatan:
-${rincianDendaDP.join("\n")}
+} else {
 
-Total denda keterlambatan: ${formatRupiah(totalDendaDP)}
+  dpList.innerHTML =
+    dpBatchKeys
+      .map(
+        function(batchKey) {
+
+          const batchRows =
+            dpGrouped[
+              batchKey
+            ];
+
+          const firstBatchRow =
+            batchRows[0];
+
+          const batchCode =
+            String(
+              firstBatchRow?.batch_code ||
+              "—"
+            ).trim();
+
+          const itemName =
+            String(
+              firstBatchRow?.item_name ||
+              "—"
+            ).trim();
+
+          const deadline =
+            String(
+              firstBatchRow?.dp_deadline ||
+              "—"
+            ).substring(0, 10);
+
+
+          /* =================================
+             GROUP CUSTOMER DALAM BATCH
+             ================================= */
+
+          const customerGrouped =
+            {};
+
+          batchRows.forEach(
+            function(row) {
+
+              const customerId =
+                Number(
+                  row.customer_id
+                ) || 0;
+
+              const customerName =
+                String(
+                  row.customer_name ||
+                  "—"
+                ).trim();
+
+              const customerKey =
+                customerId
+                  ? `id:${customerId}`
+                  : `name:${customerName}`;
+
+              if (
+                !customerGrouped[
+                  customerKey
+                ]
+              ) {
+
+                customerGrouped[
+                  customerKey
+                ] = [];
+
+              }
+
+              customerGrouped[
+                customerKey
+              ].push(row);
+
+            }
+          );
+
+
+          /* =================================
+             HEADER CUSTOMER
+             SAMA DENGAN PELUNASAN
+             ================================= */
+
+          const customerHTML =
+            Object.keys(
+              customerGrouped
+            )
+              .map(
+                function(customerKey) {
+
+                  const customerRows =
+                    customerGrouped[
+                      customerKey
+                    ];
+
+                  const customerName =
+                    String(
+                      customerRows[0]
+                        ?.customer_name ||
+                      "—"
+                    ).trim();
+
+
+                  let totalCustomer =
+                    0;
+
+                  let totalDendaCustomer =
+                    0;
+
+                  const rincianDendaCustomer =
+                    [];
+
+
+                  /* =============================
+                     HITUNG TAGIHAN CUSTOMER
+                     ============================= */
+
+                  customerRows.forEach(
+                    function(row) {
+
+                      const summary =
+                        dashboardPaymentSummary[
+                          String(row.id)
+                        ] || {};
+
+                      const dpAmount =
+                        Number(
+                          summary.dpOutstanding
+                        ) || 0;
+
+                      totalCustomer +=
+                        dpAmount;
+
+
+                      const hariTerlambat =
+                        hitungHariTerlambat(
+                          row.dp_deadline
+                        );
+
+                      const denda =
+                        hitungDenda(
+                          row.dp_deadline
+                        );
+
+
+                      if (
+                        hariTerlambat > 0
+                      ) {
+
+                        totalDendaCustomer +=
+                          denda;
+
+                        rincianDendaCustomer.push(
+                          `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+                        );
+
+                      }
+
+                    }
+                  );
+
+
+                  /* =============================
+                     VERSI / MEMBER
+                     ============================= */
+
+                  const versions =
+                    [
+                      ...new Set(
+                        customerRows
+                          .map(
+                            function(row) {
+
+                              return String(
+                                row.version ||
+                                "—"
+                              ).trim();
+
+                            }
+                          )
+                          .filter(Boolean)
+                      )
+                    ];
+
+
+                  const versionHTML =
+                    versions
+                      .map(
+                        function(version) {
+
+                          return `
+                            <span
+                              class="dashboard-batch-customer-version"
+                            >
+                              ${version}
+                            </span>
+                          `;
+
+                        }
+                      )
+                      .join("");
+
+
+                  /* =============================
+                     WHATSAPP
+                     ============================= */
+
+                  const customerId =
+                    Number(
+                      customerRows[0]
+                        ?.customer_id
+                    ) || null;
+
+                  const customerWhatsApp =
+                    customerWhatsAppMap[
+                      String(customerId)
+                    ] || "";
+
+
+                  let dpMessage =
+`Halo ${customerName} ♥
+Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${batchCode}.
+
+Total tagihan DP: ${formatRupiah(totalCustomer)}`;
+
+                  if (
+                    totalDendaCustomer > 0
+                  ) {
+
+                    dpMessage +=
+`\\n\\nRincian keterlambatan:
+${rincianDendaCustomer.join("\\n")}
+
+Total denda keterlambatan: ${formatRupiah(totalDendaCustomer)}
 
 Total yang perlu dibayarkan:
-${formatRupiah(totalDP + totalDendaDP)}`;
-}
+${formatRupiah(totalCustomer + totalDendaCustomer)}`;
 
-dpMessage += `
+                  }
 
-Mohon segera melakukan pembayaran ya.
+                  dpMessage +=
+`\\n\\nMohon segera melakukan pembayaran ya.
 Terima kasih ♥
 Dear Nadiya`;
 
-return `
-  <div class="dashboard-customer-card">
 
-    <div
-      style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-        flex-wrap:wrap;
-      "
-    >
-      <h4>
-        ${customerDisplayName}
-      </h4>
+                  return `
+                    <div
+                      class="dashboard-batch-customer-row"
+                    >
 
-      ${
-        customerWhatsApp
-          ? `
-            <button
-              type="button"
-              class="secondary-button"
-              onclick='openCustomerWhatsApp(
-                ${JSON.stringify(customerWhatsApp)},
-                ${JSON.stringify(dpMessage)}
-              )'
+                      <div
+                        class="dashboard-batch-customer-name"
+                      >
+
+                        <strong>
+                          ${customerName}
+                        </strong>
+
+                        ${
+                          customerWhatsApp
+                            ? `
+                              <button
+                                type="button"
+                                class="dashboard-wa-button"
+                                onclick='openCustomerWhatsApp(
+                                  ${JSON.stringify(customerWhatsApp)},
+                                  ${JSON.stringify(dpMessage)}
+                                )'
+                              >
+                                💬 Chat
+                              </button>
+                            `
+                            : `
+                              <span
+                                class="dashboard-wa-unavailable"
+                              >
+                                WA belum tersedia
+                              </span>
+                            `
+                        }
+
+                      </div>
+
+
+                      <div
+                        class="dashboard-batch-customer-version-list"
+                      >
+                        ${versionHTML}
+                      </div>
+
+
+                      <div
+                        class="dashboard-batch-customer-total"
+                      >
+                        ${formatRupiah(
+                          totalCustomer
+                        )}
+                      </div>
+
+                    </div>
+                  `;
+
+                }
+              )
+              .join("");
+
+
+          /* =================================
+             CARD BATCH
+             SAMA DENGAN PELUNASAN
+             ================================= */
+
+          return `
+            <div
+              class="dashboard-batch-payment-card"
             >
-              💬 Chat WhatsApp
-            </button>
-          `
-          : `
-            <span
-              style="
-                color:#999;
-                font-size:13px;
-              "
-            >
-              WA belum tersedia
-            </span>
-          `
-      }
-    </div>
-                
-                ${paymentHeader}
-${itemsHTML}
-                <div class="dashboard-payment-total">
+
+              <div
+                class="dashboard-batch-payment-header"
+              >
+
+                <div>
+                  <span>KODE BATCH</span>
                   <strong>
-                    Total Tagihan DP:
+                    ${batchCode}
                   </strong>
+                </div>
 
+                <div>
+                  <span>NAMA BARANG</span>
                   <strong>
-                    ${formatRupiah(
-                      totalDP
-                    )}
+                    ${itemName}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>DEADLINE</span>
+                  <strong>
+                    ${deadline}
                   </strong>
                 </div>
 
               </div>
-            `;
 
-          })
-          .join("");
-    }
 
+              <div
+                class="dashboard-batch-customer-header"
+              >
+
+                <span>
+                  CUSTOMER
+                </span>
+
+                <span>
+                  VERSI / MEMBER
+                </span>
+
+                <span>
+                  TAGIHAN DP
+                </span>
+
+              </div>
+
+
+              ${customerHTML}
+
+
+              <div
+                class="dashboard-batch-payment-total"
+              >
+
+                <strong>
+                  Total Tagihan DP:
+                </strong>
+
+                <strong>
+                  ${formatRupiah(
+                    batchRows.reduce(
+                      function(total, row) {
+
+                        const summary =
+                          dashboardPaymentSummary[
+                            String(row.id)
+                          ] || {};
+
+                        return (
+                          total +
+                          (
+                            Number(
+                              summary.dpOutstanding
+                            ) || 0
+                          )
+                        );
+
+                      },
+                      0
+                    )
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+}
 
    /* =====================================
    PELUNASAN
