@@ -8567,6 +8567,20 @@ return (
       const customerItems =
         customer.items;
 
+       const checkoutNotes =
+  customerItems
+    .map(function(item) {
+      return String(
+        item.checkout_note || ""
+      ).trim();
+    })
+    .filter(function(note, index, arr) {
+      return (
+        note &&
+        arr.indexOf(note) === index
+      );
+    });
+
 
       container.innerHTML = `
 
@@ -8623,6 +8637,47 @@ return (
               ${customerItems.length}
               barang sudah CO
             </p>
+
+            ${
+  checkoutNotes.length
+    ? `
+      <div
+        style="
+          margin-top:12px;
+          padding:12px 14px;
+          border:1px solid #f0d9a6;
+          border-radius:9px;
+          background:#fffaf0;
+        "
+      >
+        <strong
+          style="
+            display:block;
+            margin-bottom:5px;
+          "
+        >
+          📝 Catatan Customer
+        </strong>
+
+        ${checkoutNotes
+          .map(function(note) {
+            return `
+              <div
+                style="
+                  margin-top:4px;
+                  color:#555;
+                  white-space:pre-wrap;
+                "
+              >
+                ${note}
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `
+    : ""
+}
 
           </div>
 
