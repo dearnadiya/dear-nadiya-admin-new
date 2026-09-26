@@ -1673,6 +1673,20 @@ document.getElementById(
 const dpRows =
   rows.filter(row => {
 
+    /* =================================
+       WAJIB SUDAH MEMILIKI CUSTOMER
+       ================================= */
+
+    const customerId =
+      Number(
+        row.customer_id
+      ) || 0;
+
+    if (customerId <= 0) {
+      return false;
+    }
+
+
     const deadline =
       normalizeDate(
         row.dp_deadline
@@ -1701,24 +1715,14 @@ const dpRows =
       return false;
     }
 
-    /*
-     * Belum waktunya DP.
-     */
     if (deadline > todayISO) {
       return false;
     }
 
-    /*
-     * DP minimum 0 bukan tagihan DP.
-     */
     if (minimumDp <= 0) {
       return false;
     }
 
-    /*
-     * Jika DP sudah dibayar,
-     * jangan tampil di Jatuh Tempo DP.
-     */
     if (
       dpStatus === "paid" ||
       paymentStatus === "paid"
@@ -1726,15 +1730,6 @@ const dpRows =
       return false;
     }
 
-    /*
-     * Jika deadline sudah lewat
-     * dan DP belum paid,
-     * tampilkan sebagai tagihan DP.
-     *
-     * TIDAK menggunakan dpOutstanding
-     * karena perhitungan pembayaran lama
-     * bisa membuat nilainya 0.
-     */
     return true;
 
   });
