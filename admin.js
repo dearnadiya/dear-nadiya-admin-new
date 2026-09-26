@@ -1678,67 +1678,67 @@ const dpRows =
         row.dp_deadline
       );
 
-    const summary =
-      dashboardPaymentSummary[
-        String(row.id)
-      ] || {};
-
     const minimumDp =
       Number(
-        summary.dpTarget ??
         row.minimum_dp_amount
       ) || 0;
 
-    const dpOutstanding =
-  Number(
-    summary.dpOutstanding
-  ) || 0;
+    const dpStatus =
+      String(
+        row.dp_status || ""
+      )
+        .trim()
+        .toLowerCase();
 
-const dpStatus =
-  String(
-    row.dp_status || ""
-  )
-    .trim()
-    .toLowerCase();
+    const paymentStatus =
+      String(
+        row.payment_status || ""
+      )
+        .trim()
+        .toLowerCase();
 
-const paymentStatus =
-  String(
-    row.payment_status || ""
-  )
-    .trim()
-    .toLowerCase();
+    if (!deadline) {
+      return false;
+    }
 
-if (!deadline) {
-  return false;
-}
+    /*
+     * Belum waktunya DP.
+     */
+    if (deadline > todayISO) {
+      return false;
+    }
 
-if (deadline > todayISO) {
-  return false;
-}
+    /*
+     * DP minimum 0 bukan tagihan DP.
+     */
+    if (minimumDp <= 0) {
+      return false;
+    }
 
-/* DP 0 bukan tagihan DP. */
-if (minimumDp <= 0) {
-  return false;
-}
+    /*
+     * Jika DP sudah dibayar,
+     * jangan tampil di Jatuh Tempo DP.
+     */
+    if (
+      dpStatus === "paid" ||
+      paymentStatus === "paid"
+    ) {
+      return false;
+    }
 
-/*
- * Jika DP sudah dibayar,
- * jangan pernah tampil di Jatuh Tempo DP.
- */
-if (
-  dpStatus === "paid" ||
-  paymentStatus === "paid"
-) {
-  return false;
-}
+    /*
+     * Jika deadline sudah lewat
+     * dan DP belum paid,
+     * tampilkan sebagai tagihan DP.
+     *
+     * TIDAK menggunakan dpOutstanding
+     * karena perhitungan pembayaran lama
+     * bisa membuat nilainya 0.
+     */
+    return true;
 
-/*
- * Hanya tampil jika target DP
- * memang masih belum tercapai.
- */
-return dpOutstanding > 0;
   });
-
+     
     const dpGrouped =
       groupCustomers(
         dpRows
@@ -1809,7 +1809,7 @@ const rincianDendaDP = [];
 
 const dpAmount =
   Number(
-    summary.dpOutstanding
+    row.minimum_dp_amount
   ) || 0;
 
 totalDP +=
