@@ -16509,6 +16509,299 @@ function formatBillingDeadline(
 
   }
 
+   /* ==========================================
+   HITUNG SISA PELUNASAN AKTUAL
+   TAGIH PELUNASAN
+   ========================================== */
+
+const billingAllocationRows = {};
+
+const {
+  data: billingAllocations,
+  error: billingAllocationError
+} =
+  await supabaseClient
+    .from("dn_payment_allocations")
+    .select(`
+      recap_id,
+      payment_submission_id,
+      allocated_amount,
+      payment_part
+    `)
+    .order("created_at", {
+      ascending: true
+    });
+
+if (billingAllocationError) {
+
+  console.error(
+    "ERROR AMBIL ALOKASI TAGIHAN:",
+    billingAllocationError
+  );
+
+}
+
+
+/* ==========================================
+   AMBIL PAYMENT YANG SUDAH CONFIRMED
+   ========================================== */
+
+const {
+  data: billingConfirmedPayments,
+  error: billingConfirmedPaymentError
+} =
+  await supabaseClient
+    .from("dn_payment_submissions")
+    .select("id")
+    .eq("status", "confirmed");
+
+if (billingConfirmedPaymentError) {
+
+  console.error(
+    "ERROR AMBIL PAYMENT CONFIRMED:",
+    billingConfirmedPaymentError
+  );
+
+}
+
+
+const billingConfirmedPaymentIds =
+  new Set(
+    (billingConfirmedPayments || [])
+      .map(function(payment) {
+        return String(payment.id);
+      })
+  );
+
+
+/* ==========================================
+   HITUNG TOTAL PEMBAYARAN PER REKAP
+   ========================================== */
+
+data.forEach(
+  function(row) {
+
+    const recapId =
+      String(row.id);
+
+    const price =
+      Number(row.item_price) || 0;
+
+    const minimumDp =
+      Number(row.minimum_dp_amount) || 0;
+
+    const allocations =
+      (billingAllocations || [])
+        .filter(
+          function(allocation) {
+
+            return (
+              String(
+                allocation.recap_id
+              ) === recapId &&
+
+              billingConfirmedPaymentIds.has(
+                String(
+                  allocation.payment_submission_id
+                )
+              )
+            );
+
+          }
+        );
+
+    let totalPaid = 0;
+
+
+    /* ======================================
+       ADA PAYMENT CONFIRMED
+       ====================================== */
+
+    if (
+      allocations.length > 0
+    ) {
+
+      let totalDpPaid = 0;
+      let totalPelunasanPaid = 0;
+
+      allocations.forEach(
+        function(allocation) {
+
+          const amount =
+            Number(
+              allocation.allocated_amount
+            ) || 0;
+
+          if (
+            amount <= 0
+          ) {
+            return;
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "dp"
+          ) {
+
+            totalDpPaid +=
+              amount;
+
+            return;
+
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "pelunasan"
+          ) {
+
+            totalPelunasanPaid +=
+              amount;
+
+            return;
+
+          }
+
+
+          if (
+            allocation.payment_part ===
+            "both"
+          ) {
+
+            const dpNeeded =
+              Math.max(
+                minimumDp -
+                totalDpPaid,
+                0
+              );
+
+            const dpPortion =
+              Math.min(
+                amount,
+                dpNeeded
+              );
+
+            const pelunasanPortion =
+              Math.max(
+                amount -
+                dpPortion,
+                0
+              );
+
+            totalDpPaid +=
+              dpPortion;
+
+            totalPelunasanPaid +=
+              pelunasanPortion;
+
+          }
+
+        }
+      );
+
+      totalPaid =
+        totalDpPaid +
+        totalPelunasanPaid;
+
+    }
+
+
+    /* ======================================
+       TIDAK ADA PAYMENT CONFIRMED
+       GUNAKAN DATA REKAP
+       ====================================== */
+
+    else {
+
+      const storedDp =
+        Number(
+          row.dp_amount
+        ) || 0;
+
+
+      if (
+        String(
+          row.payment_status || ""
+        ).trim().toLowerCase() ===
+        "paid"
+      ) {
+
+        totalPaid =
+          price;
+
+      }
+
+
+      else if (
+        String(
+          row.dp_status || ""
+        ).trim().toLowerCase() ===
+        "paid"
+      ) {
+
+        totalPaid =
+          storedDp > 0
+            ? Math.min(
+                storedDp,
+                price
+              )
+            : Math.min(
+                minimumDp,
+                price
+              );
+
+      }
+
+
+      else {
+
+        const storedRemaining =
+          Math.max(
+            Number(
+              row.remaining_amount
+            ) || 0,
+            0
+          );
+
+        totalPaid =
+          Math.max(
+            price -
+            storedRemaining,
+            0
+          );
+
+      }
+
+    }
+
+
+    totalPaid =
+      Math.min(
+        totalPaid,
+        price
+      );
+
+
+    billingAllocationRows[
+      recapId
+    ] = {
+
+      totalPaid:
+        totalPaid,
+
+      remaining:
+        Math.max(
+          price -
+          totalPaid,
+          0
+        )
+
+    };
+
+  }
+);
 
   /* ==========================================
      KELOMPOKKAN BATCH
@@ -17032,6 +17325,11 @@ const batchCodes =
       "input[name='whatsappBillingMode']"
     );
 
+   const paymentTypeRadios =
+  modal.querySelectorAll(
+    "input[name='whatsappBillingPaymentType']"
+  );
+
 
   /* ==========================================
      FORMAT NOMINAL
@@ -17297,10 +17595,15 @@ const paymentFooter =
           yang sudah lunas.
         */
 
-        const remaining =
-          Number(
-            row.remaining_amount
-          ) || 0;
+        const billingSummary =
+  billingAllocationRows[
+    String(row.id)
+  ] || {};
+
+const remaining =
+  Number(
+    billingSummary.remaining
+  ) || 0;
 
         const paymentStatus =
           String(
@@ -17411,9 +17714,14 @@ const dpPaid =
     row.dp_amount
   ) || 0;
 
-                  const remaining =
+                  const billingSummary =
+  billingAllocationRows[
+    String(row.id)
+  ] || {};
+
+const remaining =
   Number(
-    row.remaining_amount
+    billingSummary.remaining
   ) || 0;
 
 const paymentStatus =
@@ -17422,7 +17730,6 @@ const paymentStatus =
   ).trim().toLowerCase();
 
 const isPaid =
-  paymentStatus === "paid" ||
   remaining <= 0;
 
 const billRemaining =
@@ -17636,18 +17943,17 @@ const dpPaid =
     row.dp_amount
   ) || 0;
 
-                const remaining =
+                const billingSummary =
+  billingAllocationRows[
+    String(row.id)
+  ] || {};
+
+const remaining =
   Number(
-    row.remaining_amount
+    billingSummary.remaining
   ) || 0;
 
-const paymentStatus =
-  String(
-    row.payment_status || ""
-  ).trim().toLowerCase();
-
 const isPaid =
-  paymentStatus === "paid" ||
   remaining <= 0;
 
 const billRemaining =
@@ -17706,15 +18012,13 @@ const headerDp =
   ) || 0;
 
 const headerRemaining =
-  Number(
-    headerRow.remaining_amount
-  ) || 0;
+  totalRemaining;
 
 
 if (
   paymentType === "pelunasan"
 ) {
-
+   
   return (
     `*${batchCode}*\n` +
     `Harga : ${money(headerPrice)}\n` +
@@ -17771,7 +18075,17 @@ return (
     }
   );
 
+paymentTypeRadios.forEach(
+  function(radio) {
 
+    radio.addEventListener(
+      "change",
+      generateBillingMessage
+    );
+
+  }
+);
+   
   /* ==========================================
      PILIH SEMUA
      ========================================== */
