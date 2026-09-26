@@ -8148,7 +8148,8 @@ async function loadCOReport() {
       item_name,
       version,
       quantity,
-      created_at
+      created_at,
+      checkout_note
     `)
         .order(
           "created_at",
