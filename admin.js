@@ -8117,7 +8117,10 @@ if (
       .from(
         "purchase_recap"
       )
-      .update({
+     .update({
+
+  dp_amount:
+    totalDpPaid,
 
   dp_status:
     dpStatus,
@@ -19020,19 +19023,25 @@ if (!hasConfirmedDpAllocation) {
 
   const storedDp =
     Number(
-      recap.dp_amount
+      recapItem.dp_amount
     ) || 0;
 
+
+/*
+ * DP AKTUAL berasal dari dp_amount.
+ *
+ * Jangan menggunakan minimum_dp_amount
+ * sebagai nilai DP aktual.
+ *
+ * minimum_dp_amount hanya menentukan
+ * apakah DP sudah memenuhi target.
+ */
+
   totalDpPaid =
-    minimumDp > 0
-      ? Math.min(
-          storedDp,
-          minimumDp
-        )
-      : Math.min(
-          storedDp,
-          price
-        );
+    Math.min(
+      storedDp,
+      price
+    );
 
 }
 
