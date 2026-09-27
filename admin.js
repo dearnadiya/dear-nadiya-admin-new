@@ -5106,7 +5106,7 @@ async function getConfirmedPaymentSummary(
 
 let totalPelunasanPaid = 0;
 
-confirmedHistoryAllocations.forEach(
+confirmedAllocations.forEach(
     function(history) {
 
       const amount =
