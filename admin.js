@@ -5106,54 +5106,6 @@ async function getConfirmedPaymentSummary(
 
 let totalPelunasanPaid = 0;
 
-
-/* ==========================================
-   PERTAHANKAN DP SEBELUMNYA
-   ==========================================
-
-   Jika riwayat confirmed hanya berisi
-   pelunasan, DP yang sebelumnya sudah
-   tercatat di purchase_recap tetap dihitung.
-
-   Jika sudah ada allocation DP/both yang
-   confirmed, jangan ambil dp_amount lagi
-   agar tidak double count.
-*/
-
-const hasConfirmedDpAllocation =
-  confirmedHistoryAllocations.some(
-    function(history) {
-
-      return (
-        history.payment_part === "dp" ||
-        history.payment_part === "both"
-      );
-
-    }
-  );
-
-
-if (!hasConfirmedDpAllocation) {
-
-  const storedDp =
-    Number(
-      recapItem.dp_amount
-    ) || 0;
-
-  totalDpPaid =
-    minimumDp > 0
-      ? Math.min(
-          storedDp,
-          minimumDp
-        )
-      : Math.min(
-          storedDp,
-          price
-        );
-
-}
-
-
 confirmedHistoryAllocations.forEach(
     function(history) {
 
