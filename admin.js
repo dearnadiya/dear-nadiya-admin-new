@@ -18693,13 +18693,15 @@ async function syncConfirmedPaymentStatuses(
     let recapQuery =
       supabaseClient
         .from("purchase_recap")
-        .select(`
-          id,
-          item_price,
-          minimum_dp_amount,
-          dp_status,
-          payment_status
-        `);
+.select(`
+  id,
+  item_price,
+  minimum_dp_amount,
+  dp_amount,
+  dp_status,
+  remaining_amount,
+  payment_status
+`);
 
 
     if (category) {
@@ -18912,7 +18914,7 @@ let totalPelunasanPaid = 0;
 
 
 /* ==========================================
-   PERTAHANKAN DP SEBELUMNYA
+   PERTAHANKAN DP YANG SUDAH TERSIMPAN
    ========================================== */
 
 const hasConfirmedDpAllocation =
@@ -18927,6 +18929,19 @@ const hasConfirmedDpAllocation =
     }
   );
 
+
+/*
+   Jika pembayaran confirmed yang baru
+   hanya pelunasan, DP sebelumnya tetap
+   dianggap sudah dibayar.
+
+   Contoh L:
+   dp_amount = 480.000
+   pelunasan = 250.000
+
+   Maka:
+   totalDpPaid = 480.000
+*/
 
 if (!hasConfirmedDpAllocation) {
 
@@ -18950,7 +18965,7 @@ if (!hasConfirmedDpAllocation) {
 
 
 recapAllocations.forEach(
-        function(allocation) {
+  function(allocation) {
 
           const amount =
             Number(
