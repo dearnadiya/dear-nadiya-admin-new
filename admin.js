@@ -5104,10 +5104,57 @@ async function getConfirmedPaymentSummary(
 
   let totalDpPaid = 0;
 
-  let totalPelunasanPaid = 0;
+let totalPelunasanPaid = 0;
 
 
-  confirmedAllocations.forEach(
+/* ==========================================
+   PERTAHANKAN DP SEBELUMNYA
+   ==========================================
+
+   Jika riwayat confirmed hanya berisi
+   pelunasan, DP yang sebelumnya sudah
+   tercatat di purchase_recap tetap dihitung.
+
+   Jika sudah ada allocation DP/both yang
+   confirmed, jangan ambil dp_amount lagi
+   agar tidak double count.
+*/
+
+const hasConfirmedDpAllocation =
+  confirmedHistoryAllocations.some(
+    function(history) {
+
+      return (
+        history.payment_part === "dp" ||
+        history.payment_part === "both"
+      );
+
+    }
+  );
+
+
+if (!hasConfirmedDpAllocation) {
+
+  const storedDp =
+    Number(
+      recapItem.dp_amount
+    ) || 0;
+
+  totalDpPaid =
+    minimumDp > 0
+      ? Math.min(
+          storedDp,
+          minimumDp
+        )
+      : Math.min(
+          storedDp,
+          price
+        );
+
+}
+
+
+confirmedHistoryAllocations.forEach(
     function(history) {
 
       const amount =
@@ -18861,10 +18908,48 @@ async function syncConfirmedPaymentStatuses(
 
       let totalDpPaid = 0;
 
-      let totalPelunasanPaid = 0;
+let totalPelunasanPaid = 0;
 
 
-      recapAllocations.forEach(
+/* ==========================================
+   PERTAHANKAN DP SEBELUMNYA
+   ========================================== */
+
+const hasConfirmedDpAllocation =
+  recapAllocations.some(
+    function(allocation) {
+
+      return (
+        allocation.payment_part === "dp" ||
+        allocation.payment_part === "both"
+      );
+
+    }
+  );
+
+
+if (!hasConfirmedDpAllocation) {
+
+  const storedDp =
+    Number(
+      recap.dp_amount
+    ) || 0;
+
+  totalDpPaid =
+    minimumDp > 0
+      ? Math.min(
+          storedDp,
+          minimumDp
+        )
+      : Math.min(
+          storedDp,
+          price
+        );
+
+}
+
+
+recapAllocations.forEach(
         function(allocation) {
 
           const amount =
@@ -23002,6 +23087,42 @@ try {
 ) {
 
   hasConfirmedPayment = true;
+
+     /* ======================================
+   PERTAHANKAN DP SEBELUMNYA
+   JIKA PAYMENT CONFIRMED HANYA PELUNASAN
+   ====================================== */
+
+const hasConfirmedDpAllocation =
+  confirmedRecapAllocations.some(
+    function(allocation) {
+
+      return (
+        allocation.payment_part === "dp" ||
+        allocation.payment_part === "both"
+      );
+
+    }
+  );
+
+
+if (!hasConfirmedDpAllocation) {
+
+  const storedDp =
+    Number(row.dp_amount) || 0;
+
+  totalDpPaid =
+    minimumDp > 0
+      ? Math.min(
+          storedDp,
+          minimumDp
+        )
+      : Math.min(
+          storedDp,
+          price
+        );
+
+}
 
     confirmedRecapAllocations
       .forEach(function (allocation) {
