@@ -28593,11 +28593,22 @@ version:
                 item_price:
           price,
 
-        minimum_dp_amount:
+               minimum_dp_amount:
           dp,
 
+        /*
+         * DP AKTUAL
+         *
+         * REKAP BARU:
+         * belum ada pembayaran → 0
+         *
+         * REKAP LAMA:
+         * tetap mengikuti data lama
+         */
         dp_amount:
-          dp,
+          recapDataType === "lama"
+            ? dp
+            : 0,
 
         dp_status:
           dpStatus,
