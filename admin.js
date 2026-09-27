@@ -7849,98 +7849,171 @@ const confirmedHistoryAllocations =
       recapItem.item_price
     ) || 0;
 
-  let totalDpPaid =
-    0;
+ let totalDpPaid =
+  0;
 
-  let totalPelunasanPaid =
-    0;
+let totalPelunasanPaid =
+  0;
 
 
-  confirmedHistoryAllocations.forEach(
+/* ==========================================
+   PERTAHANKAN DP YANG SUDAH TERSIMPAN
+   ==========================================
+
+   Jika riwayat confirmed hanya berisi
+   pembayaran pelunasan, DP sebelumnya
+   di purchase_recap tetap dipertahankan.
+
+   Jika sudah ada allocation DP / both,
+   jangan mengambil dp_amount lagi agar
+   tidak terjadi double count.
+========================================== */
+
+const hasConfirmedDpAllocation =
+  confirmedHistoryAllocations.some(
     function(history) {
 
-      const amount =
-        Number(
-          history.allocated_amount
-        ) || 0;
-
-      if (
-        amount <= 0
-      ) {
-        return;
-      }
-
-
-      /* ==========================
-         DP
-      ========================== */
-
-      if (
-        history.payment_part ===
-        "dp"
-      ) {
-
-        totalDpPaid +=
-          amount;
-
-        return;
-      }
-
-
-      /* ==========================
-         PELUNASAN
-      ========================== */
-
-      if (
-        history.payment_part ===
-        "pelunasan"
-      ) {
-
-        totalPelunasanPaid +=
-          amount;
-
-        return;
-      }
-
-
-      /* ==========================
-         DP + PELUNASAN
-      ========================== */
-
-      if (
-        history.payment_part ===
-        "both"
-      ) {
-
-        const dpNeeded =
-          Math.max(
-            minimumDp -
-            totalDpPaid,
-            0
-          );
-
-        const dpPortion =
-          Math.min(
-            amount,
-            dpNeeded
-          );
-
-        const pelunasanPortion =
-          Math.max(
-            amount -
-            dpPortion,
-            0
-          );
-
-        totalDpPaid +=
-          dpPortion;
-
-        totalPelunasanPaid +=
-          pelunasanPortion;
-      }
+      return (
+        history.payment_part === "dp" ||
+        history.payment_part === "both"
+      );
 
     }
   );
+
+
+if (!hasConfirmedDpAllocation) {
+
+  const storedDp =
+    Number(
+      recapItem.dp_amount
+    ) || 0;
+
+  totalDpPaid =
+    minimumDp > 0
+      ? Math.min(
+          storedDp,
+          minimumDp
+        )
+      : Math.min(
+          storedDp,
+          price
+        );
+
+}
+
+
+/* ==========================================
+   HITUNG SEMUA PEMBAYARAN CONFIRMED
+========================================== */
+
+confirmedHistoryAllocations.forEach(
+  function(history) {
+
+    const amount =
+      Number(
+        history.allocated_amount
+      ) || 0;
+
+
+    if (
+      amount <= 0
+    ) {
+      return;
+    }
+
+
+    /* ==========================
+       DP
+       ========================== */
+
+    if (
+      history.payment_part ===
+      "dp"
+    ) {
+
+      totalDpPaid +=
+        amount;
+
+      return;
+    }
+
+
+    /* ==========================
+       PELUNASAN
+       ========================== */
+
+    if (
+      history.payment_part ===
+      "pelunasan"
+    ) {
+
+      totalPelunasanPaid +=
+        amount;
+
+      return;
+    }
+
+
+    /* ==========================
+       FULL PAYMENT / BOTH
+       ========================== */
+
+    if (
+      history.payment_part ===
+      "both"
+    ) {
+
+      const dpNeeded =
+        Math.max(
+          minimumDp -
+          totalDpPaid,
+          0
+        );
+
+
+      const dpPortion =
+        Math.min(
+          amount,
+          dpNeeded
+        );
+
+
+      const pelunasanPortion =
+        Math.max(
+          amount -
+          dpPortion,
+          0
+        );
+
+
+      totalDpPaid +=
+        dpPortion;
+
+
+      totalPelunasanPaid +=
+        pelunasanPortion;
+
+    }
+
+  }
+);
+
+
+/* ==========================================
+   JIKA ADA PELUNASAN,
+   DP MINIMUM DIANGGAP SUDAH TERPENUHI
+========================================== */
+
+if (
+  totalPelunasanPaid > 0 &&
+  totalDpPaid < minimumDp
+) {
+
+  totalDpPaid =
+    minimumDp;
+
+}
 
 
   /* ================================
