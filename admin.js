@@ -8513,13 +8513,20 @@ async function loadCOReport() {
       created_at,
       checkout_note
     `)
-        .order(
-          "created_at",
-          {
-            ascending: true
-          }
-        );
-
+    .eq(
+      "customer_status",
+      "Sudah Checkout Shopee"
+    )
+    .neq(
+      "packing_status",
+      "Sudah Dikonfirmasi"
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
 
     if (error) {
 
