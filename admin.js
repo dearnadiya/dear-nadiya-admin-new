@@ -9311,6 +9311,25 @@ return (
 
         }
 
+console.log(
+  "=== DEBUG KONFIRMASI CO ==="
+);
+
+console.log(
+  "Jumlah checkbox:",
+  selectedCheckboxes.length
+);
+
+console.log(
+  "Recap IDs yang dikirim:",
+  recapIds
+);
+
+console.log(
+  "Jumlah recap ID:",
+  recapIds.length
+);
+
 
         /*
           Panggil RPC
@@ -9330,6 +9349,20 @@ return (
                 result
             }
           );
+
+         console.log(
+  "=== HASIL RPC ==="
+);
+
+console.log(
+  "updated_count dari database:",
+  data
+);
+
+console.log(
+  "recapIds yang dikirim:",
+  recapIds
+);
 
 
         if (error) {
