@@ -23994,9 +23994,8 @@ let html = `
     display:grid;
    grid-template-columns:
   100px
-  360px
-  75px
-  95px
+  minmax(260px, 1fr)
+  190px
   75px
   180px
   180px
@@ -24008,64 +24007,34 @@ let html = `
   "
 >
 
-  <div
-  class="recap-batch-table-code"
-  style="
-    grid-column:1;
-    white-space:nowrap;
-  "
->
-  Kode Batch
-</div>
+  <div style="grid-column:1;">Kode Batch</div>
 
-<div
-  class="recap-batch-table-name"
-  style="
-    grid-column:2;
-    white-space:nowrap;
-  "
->
+<div style="grid-column:2;">
   Nama Barang
 </div>
 
 <div
-  class="recap-batch-table-edit"
   style="
     grid-column:3;
     text-align:center;
-    white-space:nowrap;
   "
 >
-  Edit
+  Aksi
 </div>
 
 <div
   style="
     grid-column:4;
     text-align:center;
-    white-space:nowrap;
-  "
->
-  Pembelian
-</div>
-
-<div
-  class="recap-batch-table-delete"
-  style="
-    grid-column:5;
-    text-align:center;
-    white-space:nowrap;
   "
 >
   Hapus
 </div>
 
 <div
-  class="recap-batch-table-member"
   style="
-    grid-column:6;
+    grid-column:5;
     text-align:center;
-    white-space:nowrap;
   "
 >
   Tambah Member / Versi
@@ -24073,20 +24042,17 @@ let html = `
 
 <div
   style="
-    grid-column:7;
+    grid-column:6;
     text-align:center;
-    white-space:nowrap;
   "
 >
   Status
 </div>
 
 <div
-  class="recap-batch-table-arrow"
   style="
-    grid-column:8;
+    grid-column:7;
     text-align:center;
-    white-space:nowrap;
   "
 >
   →
@@ -24136,14 +24102,13 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-      100px
-      360px
-      75px
-      95px
-      75px
-      180px
-      180px
-      45px;
+  100px
+  minmax(260px, 1fr)
+  190px
+  75px
+  180px
+  180px
+  45px;
     align-items:center;
     gap:8px;
     width:100%;
@@ -24174,13 +24139,15 @@ let html = `
   </span>
 </div>
 
-  <!-- EDIT -->
+  <!-- AKSI BATCH -->
 <div
   style="
     grid-column:3;
     display:flex;
     align-items:center;
     justify-content:center;
+    gap:8px;
+    white-space:nowrap;
   "
 >
 
@@ -24198,17 +24165,6 @@ let html = `
     ✏️ Edit
   </button>
 
-</div>
-
-<!-- INFORMASI PEMBELIAN -->
-<div
-  style="
-    grid-column:4;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  "
->
   <button
     type="button"
     class="primary-button purchase-batch-info-button"
@@ -24222,13 +24178,13 @@ let html = `
   >
     🛒 Pembelian
   </button>
-</div>
 
+</div>
 
 <!-- HAPUS -->
 <div
   style="
-    grid-column:5;
+    grid-column:4;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24254,7 +24210,7 @@ let html = `
   <!-- TAMBAH MEMBER -->
 <div
   style="
-  grid-column:6;
+  grid-column:5;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24277,22 +24233,24 @@ let html = `
 
 </div>
 
-<!-- STATUS DP BATCH -->
+<!-- STATUS BATCH -->
 <div
   style="
-    grid-column:7;
+    grid-column:6;
     display:flex;
-    align-items:center;
+    flex-direction:column;
+    align-items:stretch;
     justify-content:center;
-    gap:6px;
-    white-space:nowrap;
+    gap:5px;
   "
 >
+
   <select
     class="batch-header-dp-status"
     data-batch-code="${escapeHTML(batchCode)}"
     data-category="${escapeHTML(category)}"
     style="
+      width:100%;
       padding:5px 7px;
       font-size:11px;
       border:1px solid #ccc;
@@ -24300,35 +24258,17 @@ let html = `
       cursor:pointer;
     "
   >
-    <option value="">
-      Status DP Batch
-    </option>
-    <option value="unpaid">
-      DP Belum Dibayar
-    </option>
-    <option value="paid">
-      DP Sudah Dibayar
-    </option>
+    <option value="">Status DP Batch</option>
+    <option value="unpaid">DP Belum Dibayar</option>
+    <option value="paid">DP Sudah Dibayar</option>
   </select>
-</div>
 
-<!-- STATUS PELUNASAN BATCH -->
-<div
-  style="
-    grid-column:7;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    white-space:nowrap;
-    margin-top:4px;
-  "
->
   <select
     class="batch-header-payment-status"
     data-batch-code="${escapeHTML(batchCode)}"
     data-category="${escapeHTML(category)}"
     style="
+      width:100%;
       padding:5px 7px;
       font-size:11px;
       border:1px solid #ccc;
@@ -24336,22 +24276,17 @@ let html = `
       cursor:pointer;
     "
   >
-    <option value="">
-      Status Pelunasan Batch
-    </option>
-    <option value="unpaid">
-      Belum Lunas
-    </option>
-    <option value="paid">
-      Lunas
-    </option>
+    <option value="">Status Pelunasan Batch</option>
+    <option value="unpaid">Belum Lunas</option>
+    <option value="paid">Lunas</option>
   </select>
+
 </div>
 
   <!-- PANAH -->
   <div
   style="
-    grid-column:8;
+    grid-column:7;
     text-align:center;
     font-size:20px;
     white-space:nowrap;
