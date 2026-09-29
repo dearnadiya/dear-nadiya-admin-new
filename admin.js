@@ -29951,7 +29951,7 @@ async function showPurchaseBatchInfo(
           <div>
             <label>
               <strong>
-                Resi Forwarder
+                Box Pengiriman
               </strong>
             </label>
 
@@ -29961,7 +29961,7 @@ async function showPurchaseBatchInfo(
               value="${escapeHTML(
                 info.forwarder_tracking || ""
               )}"
-              placeholder="Resi forwarder / ekspedisi"
+              placeholder="Contoh: BOX-001 / BOX A-2026"
               style="
                 width:100%;
                 box-sizing:border-box;
