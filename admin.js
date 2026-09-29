@@ -871,13 +871,11 @@ async function renderPurchaseStockList() {
       seller_tracking,
       box_pengiriman,
       item_name,
-      item_variant,
       quantity,
       purchase_note,
       created_at,
       updated_at,
       seller_url,
-      forwarder_tracking,
       warehouse_name
     `)
 
@@ -1120,9 +1118,8 @@ async function renderPurchaseStockList() {
                 .map(function(row) {
 
                   const tracking =
-                    row.forwarder_tracking ||
-                    row.seller_tracking ||
-                    "-";
+  row.seller_tracking ||
+  "-";
 
 
                   return `
@@ -1210,31 +1207,11 @@ async function renderPurchaseStockList() {
                       >
 
                         <strong>
-                          ${escapeHTML(
-                            row.item_name ||
-                            "-"
-                          )}
-                        </strong>
-
-                        ${
-                          row.item_variant
-                            ? `
-                              <div
-                                style="
-                                  color:#777;
-                                  font-size:13px;
-                                  margin-top:3px;
-                                "
-                              >
-                                Variant:
-                                ${escapeHTML(
-                                  row.item_variant
-                                )}
-                              </div>
-                            `
-                            : ""
-                        }
-
+  ${escapeHTML(
+    row.item_name ||
+    "-"
+  )}
+</strong>
                       </td>
 
 
@@ -1683,29 +1660,6 @@ function showPurchaseStockForm(
 
           </label>
 
-
-          <label>
-
-            <div>
-              Tracking Forwarder
-            </div>
-
-            <input
-              type="text"
-              id="purchaseForwarderTrackingInput"
-              value="${
-                escapeHTML(
-                  purchase?.forwarder_tracking ||
-                  ""
-                )
-              }"
-              placeholder="Tracking forwarder"
-              style="width:100%;"
-            >
-
-          </label>
-
-
           <label>
 
             <div>
@@ -1749,29 +1703,6 @@ function showPurchaseStockForm(
             >
 
           </label>
-
-
-          <label>
-
-            <div>
-              Variant
-            </div>
-
-            <input
-              type="text"
-              id="purchaseVariantInput"
-              value="${
-                escapeHTML(
-                  purchase?.item_variant ||
-                  ""
-                )
-              }"
-              placeholder="Contoh: Haruto / A / Random"
-              style="width:100%;"
-            >
-
-          </label>
-
 
           <label>
 
@@ -1964,14 +1895,6 @@ function showPurchaseStockForm(
               .value
               .trim() || null,
 
-          forwarder_tracking:
-            document
-              .getElementById(
-                "purchaseForwarderTrackingInput"
-              )
-              .value
-              .trim() || null,
-
           warehouse_name:
             document
               .getElementById(
@@ -1987,14 +1910,6 @@ function showPurchaseStockForm(
               )
               .value
               .trim(),
-
-          item_variant:
-            document
-              .getElementById(
-                "purchaseVariantInput"
-              )
-              .value
-              .trim() || null,
 
           quantity:
             Number(
@@ -2139,13 +2054,11 @@ async function showPurchaseStockDetail(
       seller_tracking,
       box_pengiriman,
       item_name,
-      item_variant,
       quantity,
       purchase_note,
       created_at,
       updated_at,
       seller_url,
-      forwarder_tracking,
       warehouse_name
     `)
 
