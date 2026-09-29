@@ -23992,13 +23992,14 @@ let html = `
   class="recap-batch-table-header"
   style="
     display:grid;
-    grid-template-columns:
+   grid-template-columns:
   100px
-  350px
-  70px
-  70px
-  150px
-  150px
+  360px
+  75px
+  95px
+  75px
+  180px
+  180px
   45px;
     align-items:center;
     gap:8px;
@@ -24011,14 +24012,13 @@ let html = `
   class="recap-batch-table-code"
   style="
     grid-column:1;
-    text-align:center;
     white-space:nowrap;
   "
 >
   Kode Batch
 </div>
 
-  <div
+<div
   class="recap-batch-table-name"
   style="
     grid-column:2;
@@ -24028,7 +24028,7 @@ let html = `
   Nama Barang
 </div>
 
-  <div
+<div
   class="recap-batch-table-edit"
   style="
     grid-column:3;
@@ -24039,10 +24039,20 @@ let html = `
   Edit
 </div>
 
-  <div
-  class="recap-batch-table-delete"
+<div
   style="
     grid-column:4;
+    text-align:center;
+    white-space:nowrap;
+  "
+>
+  Pembelian
+</div>
+
+<div
+  class="recap-batch-table-delete"
+  style="
+    grid-column:5;
     text-align:center;
     white-space:nowrap;
   "
@@ -24050,10 +24060,10 @@ let html = `
   Hapus
 </div>
 
-  <div
+<div
   class="recap-batch-table-member"
   style="
-    grid-column:5;
+    grid-column:6;
     text-align:center;
     white-space:nowrap;
   "
@@ -24061,17 +24071,26 @@ let html = `
   Tambah Member / Versi
 </div>
 
-  <div
+<div
+  style="
+    grid-column:7;
+    text-align:center;
+    white-space:nowrap;
+  "
+>
+  Status
+</div>
+
+<div
   class="recap-batch-table-arrow"
   style="
-    grid-column:6;
+    grid-column:8;
     text-align:center;
     white-space:nowrap;
   "
 >
   →
 </div>
-
 </div>
 `;
 
@@ -24117,13 +24136,14 @@ let html = `
   style="
     display:grid;
     grid-template-columns:
-  100px
-  400px
-  75px
-  100px
-  75px
-  180px
-  45px;
+      100px
+      360px
+      75px
+      95px
+      75px
+      180px
+      180px
+      45px;
     align-items:center;
     gap:8px;
     width:100%;
@@ -24234,7 +24254,7 @@ let html = `
   <!-- TAMBAH MEMBER -->
 <div
   style="
-  grid-column:4;
+  grid-column:6;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24260,7 +24280,7 @@ let html = `
 <!-- STATUS DP BATCH -->
 <div
   style="
-    grid-column:5;
+    grid-column:7;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24295,7 +24315,7 @@ let html = `
 <!-- STATUS PELUNASAN BATCH -->
 <div
   style="
-    grid-column:5;
+    grid-column:7;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24331,7 +24351,7 @@ let html = `
   <!-- PANAH -->
   <div
   style="
-    grid-column:6;
+    grid-column:8;
     text-align:center;
     font-size:20px;
     white-space:nowrap;
