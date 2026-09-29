@@ -754,16 +754,35 @@ async function loadPurchaseStock() {
   pageContent.innerHTML = `
     <div class="purchase-stock-page">
 
-      <div class="purchase-stock-header">
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:15px;
+          margin-bottom:20px;
+          flex-wrap:wrap;
+        "
+      >
 
         <div>
-          <h2>📦 Pembelian Stok</h2>
 
-          <p>
-            Kelola pembelian barang dari seller,
-            warehouse, tracking, dan stok yang masuk.
-          </p>
+          <h2 style="margin:0 0 6px 0;">
+            📦 Pembelian Stok
+          </h2>
+
+          <div
+            style="
+              color:#777;
+              font-size:14px;
+            "
+          >
+            Catat pembelian barang dari seller
+            dan pantau stok yang masuk.
+          </div>
+
         </div>
+
 
         <button
           type="button"
@@ -777,50 +796,17 @@ async function loadPurchaseStock() {
 
 
       <div
-        id="purchaseStockMessage"
-        style="
-          display:none;
-          margin-bottom:15px;
-          padding:12px 15px;
-          border-radius:10px;
-        "
-      ></div>
-
-
-      <div class="purchase-stock-card">
-
-        <div class="purchase-stock-card-header">
-
-          <div>
-            <strong>Daftar Pembelian</strong>
-          </div>
-
-          <button
-            type="button"
-            id="refreshPurchaseStockButton"
-            class="secondary-button"
-          >
-            🔄 Refresh
-          </button>
-
-        </div>
-
-
+        id="purchaseStockList"
+      >
         <div
-          id="purchaseStockList"
-          class="purchase-stock-list"
+          style="
+            padding:30px;
+            text-align:center;
+            color:#777;
+          "
         >
-          <div
-            style="
-              padding:30px;
-              text-align:center;
-              color:#777;
-            "
-          >
-            Memuat data pembelian...
-          </div>
+          Memuat data pembelian...
         </div>
-
       </div>
 
     </div>
@@ -831,6 +817,7 @@ async function loadPurchaseStock() {
     document.getElementById(
       "addPurchaseStockButton"
     );
+
 
   if (addButton) {
 
@@ -846,32 +833,13 @@ async function loadPurchaseStock() {
   }
 
 
-  const refreshButton =
-    document.getElementById(
-      "refreshPurchaseStockButton"
-    );
-
-  if (refreshButton) {
-
-    refreshButton.addEventListener(
-      "click",
-      function() {
-
-        loadPurchaseStock();
-
-      }
-    );
-
-  }
-
-
   await renderPurchaseStockList();
 
 }
 
 
 /* ============================================
-   RENDER DAFTAR PEMBELIAN STOK
+   DAFTAR PEMBELIAN STOK
    ============================================ */
 
 async function renderPurchaseStockList() {
@@ -880,6 +848,7 @@ async function renderPurchaseStockList() {
     document.getElementById(
       "purchaseStockList"
     );
+
 
   if (!container) {
     return;
@@ -895,26 +864,32 @@ async function renderPurchaseStockList() {
 
     .select(`
       id,
-      purchase_date,
       seller_name,
-      seller_url,
-      warehouse_name,
+      web_seller,
+      purchase_date,
       order_number,
       seller_tracking,
-      forwarder_tracking,
+      box_pengiriman,
+      item_name,
+      item_variant,
+      quantity,
       purchase_note,
       created_at,
-
-      purchase_stock_items (
-        id,
-        item_name,
-        variant_name,
-        quantity
-      )
+      updated_at,
+      seller_url,
+      forwarder_tracking,
+      warehouse_name
     `)
 
     .order(
       "purchase_date",
+      {
+        ascending: false
+      }
+    )
+
+    .order(
+      "id",
       {
         ascending: false
       }
@@ -933,15 +908,27 @@ async function renderPurchaseStockList() {
       <div
         style="
           padding:25px;
-          text-align:center;
+          background:#fff;
+          border-radius:14px;
           color:#b42318;
         "
       >
-        Gagal memuat data Pembelian Stok.
-        <br>
-        <small>
-          ${escapeHTML(error.message || "")}
-        </small>
+
+        <strong>
+          Gagal memuat data Pembelian Stok.
+        </strong>
+
+        <div
+          style="
+            margin-top:8px;
+            font-size:13px;
+          "
+        >
+          ${escapeHTML(
+            error.message || ""
+          )}
+        </div>
+
       </div>
     `;
 
@@ -950,24 +937,25 @@ async function renderPurchaseStockList() {
   }
 
 
-  const purchases =
+  const rows =
     data || [];
 
 
-  if (!purchases.length) {
+  if (!rows.length) {
 
     container.innerHTML = `
       <div
         style="
-          padding:40px 20px;
+          background:#fff;
+          border-radius:16px;
+          padding:45px 20px;
           text-align:center;
-          color:#777;
         "
       >
 
         <div
           style="
-            font-size:42px;
+            font-size:45px;
             margin-bottom:10px;
           "
         >
@@ -980,12 +968,13 @@ async function renderPurchaseStockList() {
 
         <div
           style="
-            margin-top:6px;
+            margin-top:8px;
+            color:#777;
             font-size:14px;
           "
         >
-          Klik "Tambah Pembelian" untuk
-          mencatat pembelian pertama.
+          Klik "Tambah Pembelian"
+          untuk mencatat pembelian.
         </div>
 
       </div>
@@ -996,257 +985,367 @@ async function renderPurchaseStockList() {
   }
 
 
-  container.innerHTML =
-    purchases
-      .map(function(purchase) {
+  container.innerHTML = `
+    <div
+      style="
+        background:#fff;
+        border-radius:16px;
+        overflow:hidden;
+      "
+    >
 
-        const items =
-          Array.isArray(
-            purchase.purchase_stock_items
-          )
-            ? purchase.purchase_stock_items
-            : [];
-
-
-        const totalItems =
-          items.reduce(
-            function(total, item) {
-
-              return (
-                total +
-                (
-                  Number(
-                    item.quantity
-                  ) || 0
-                )
-              );
-
-            },
-            0
-          );
-
-
-        const itemPreview =
-          items
-            .slice(0, 3)
-            .map(function(item) {
-
-              const variant =
-                item.variant_name
-                  ? ` — ${escapeHTML(
-                      item.variant_name
-                    )}`
-                  : "";
-
-              return `
-                <div>
-                  ${escapeHTML(
-                    item.item_name || "-"
-                  )}
-                  ${variant}
-                  × ${Number(
-                    item.quantity || 0
-                  )}
-                </div>
-              `;
-
-            })
-            .join("");
+      <div
+        style="
+          padding:18px 20px;
+          border-bottom:1px solid #eee;
+          font-weight:700;
+        "
+      >
+        Daftar Pembelian
+        <span
+          style="
+            color:#888;
+            font-weight:400;
+            margin-left:5px;
+          "
+        >
+          (${rows.length})
+        </span>
+      </div>
 
 
-        const moreItems =
-          items.length > 3
-            ? `
-              <div
-                style="
-                  color:#777;
-                  margin-top:3px;
-                "
-              >
-                + ${items.length - 3}
-                item lainnya
-              </div>
-            `
-            : "";
+      <div
+        style="
+          overflow-x:auto;
+        "
+      >
 
+        <table
+          style="
+            width:100%;
+            border-collapse:collapse;
+            min-width:1050px;
+          "
+        >
 
-        return `
-          <div
-            class="purchase-stock-row"
-            data-purchase-id="${purchase.id}"
-          >
+          <thead>
 
-            <div class="purchase-stock-row-main">
-
-              <div
-                class="purchase-stock-date"
-              >
-                ${escapeHTML(
-                  purchase.purchase_date || "-"
-                )}
-              </div>
-
-
-              <div
-                class="purchase-stock-seller"
-              >
-
-                <strong>
-                  ${escapeHTML(
-                    purchase.seller_name ||
-                    "Seller belum diisi"
-                  )}
-                </strong>
-
-                ${
-                  purchase.order_number
-                    ? `
-                      <div>
-                        Order:
-                        ${escapeHTML(
-                          purchase.order_number
-                        )}
-                      </div>
-                    `
-                    : ""
-                }
-
-              </div>
-
-
-              <div
-                class="purchase-stock-warehouse"
-              >
-
-                <span>
-                  🏭
-                  ${escapeHTML(
-                    purchase.warehouse_name ||
-                    "-"
-                  )}
-                </span>
-
-              </div>
-
-
-              <div
-                class="purchase-stock-tracking"
-              >
-
-                ${
-                  purchase.seller_tracking
-                    ? `
-                      <div>
-                        Seller:
-                        ${escapeHTML(
-                          purchase.seller_tracking
-                        )}
-                      </div>
-                    `
-                    : ""
-                }
-
-                ${
-                  purchase.forwarder_tracking
-                    ? `
-                      <div>
-                        Forwarder:
-                        ${escapeHTML(
-                          purchase.forwarder_tracking
-                        )}
-                      </div>
-                    `
-                    : ""
-                }
-
-              </div>
-
-
-              <div
-                class="purchase-stock-total"
-              >
-
-                <strong>
-                  ${items.length}
-                  item
-                </strong>
-
-                <div>
-                  ${totalItems} pcs
-                </div>
-
-              </div>
-
-
-              <div
-                class="purchase-stock-actions"
-              >
-
-                <button
-                  type="button"
-                  class="secondary-button purchase-stock-detail-button"
-                  data-id="${purchase.id}"
-                >
-                  Detail
-                </button>
-
-                <button
-                  type="button"
-                  class="danger-button purchase-stock-delete-button"
-                  data-id="${purchase.id}"
-                >
-                  Hapus
-                </button>
-
-              </div>
-
-            </div>
-
-
-            <div
-              class="purchase-stock-items-preview"
+            <tr
+              style="
+                background:#f8f8f8;
+              "
             >
 
-              ${
-                itemPreview ||
-                `
-                  <span
-                    style="
-                      color:#999;
-                    "
-                  >
-                    Belum ada barang
-                  </span>
-                `
-              }
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Tanggal
+              </th>
 
-              ${moreItems}
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Seller
+              </th>
 
-            </div>
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Order
+              </th>
 
-          </div>
-        `;
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Warehouse
+              </th>
 
-      })
-      .join("");
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Barang
+              </th>
+
+              <th
+                style="
+                  padding:12px;
+                  text-align:center;
+                "
+              >
+                Qty
+              </th>
+
+              <th
+                style="
+                  padding:12px;
+                  text-align:left;
+                "
+              >
+                Tracking
+              </th>
+
+              <th
+                style="
+                  padding:12px;
+                  text-align:center;
+                "
+              >
+                Aksi
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${
+              rows
+                .map(function(row) {
+
+                  const tracking =
+                    row.forwarder_tracking ||
+                    row.seller_tracking ||
+                    "-";
+
+
+                  return `
+                    <tr
+                      style="
+                        border-top:1px solid #eee;
+                      "
+                    >
+
+                      <td
+                        style="
+                          padding:12px;
+                          white-space:nowrap;
+                        "
+                      >
+                        ${escapeHTML(
+                          row.purchase_date ||
+                          "-"
+                        )}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                        "
+                      >
+
+                        <strong>
+                          ${escapeHTML(
+                            row.seller_name ||
+                            "-"
+                          )}
+                        </strong>
+
+                        ${
+                          row.web_seller
+                            ? `
+                              <div
+                                style="
+                                  font-size:12px;
+                                  color:#777;
+                                  margin-top:3px;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.web_seller
+                                )}
+                              </div>
+                            `
+                            : ""
+                        }
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                        "
+                      >
+                        ${escapeHTML(
+                          row.order_number ||
+                          "-"
+                        )}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                        "
+                      >
+                        ${escapeHTML(
+                          row.warehouse_name ||
+                          "-"
+                        )}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                        "
+                      >
+
+                        <strong>
+                          ${escapeHTML(
+                            row.item_name ||
+                            "-"
+                          )}
+                        </strong>
+
+                        ${
+                          row.item_variant
+                            ? `
+                              <div
+                                style="
+                                  color:#777;
+                                  font-size:13px;
+                                  margin-top:3px;
+                                "
+                              >
+                                Variant:
+                                ${escapeHTML(
+                                  row.item_variant
+                                )}
+                              </div>
+                            `
+                            : ""
+                        }
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                          text-align:center;
+                          font-weight:700;
+                        "
+                      >
+                        ${Number(
+                          row.quantity || 0
+                        )}
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                        "
+                      >
+
+                        ${escapeHTML(
+                          tracking
+                        )}
+
+                        ${
+                          row.box_pengiriman
+                            ? `
+                              <div
+                                style="
+                                  color:#777;
+                                  font-size:12px;
+                                  margin-top:3px;
+                                "
+                              >
+                                Box:
+                                ${escapeHTML(
+                                  row.box_pengiriman
+                                )}
+                              </div>
+                            `
+                            : ""
+                        }
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:12px;
+                          text-align:center;
+                          white-space:nowrap;
+                        "
+                      >
+
+                        <button
+                          type="button"
+                          class="secondary-button purchase-stock-edit-button"
+                          data-id="${row.id}"
+                        >
+                          Edit
+                        </button>
+
+
+                        <button
+                          type="button"
+                          class="danger-button purchase-stock-delete-button"
+                          data-id="${row.id}"
+                        >
+                          Hapus
+                        </button>
+
+                      </td>
+
+                    </tr>
+                  `;
+
+                })
+                .join("")
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+  `;
 
 
   container
     .querySelectorAll(
-      ".purchase-stock-detail-button"
+      ".purchase-stock-edit-button"
     )
     .forEach(function(button) {
 
       button.addEventListener(
         "click",
-        function() {
+        async function() {
 
           const id =
             Number(
               button.dataset.id
             );
 
-          showPurchaseStockDetail(id);
+
+          await showPurchaseStockDetail(
+            id
+          );
 
         }
       );
@@ -1272,7 +1371,7 @@ async function renderPurchaseStockList() {
 
           const confirmed =
             window.confirm(
-              "Hapus pembelian stok ini?"
+              "Yakin ingin menghapus data pembelian ini?"
             );
 
 
@@ -1302,10 +1401,12 @@ async function renderPurchaseStockList() {
               error
             );
 
+
             alert(
-              "Gagal menghapus pembelian:\n" +
+              "Gagal menghapus data:\n" +
               error.message
             );
+
 
             return;
 
@@ -1323,7 +1424,7 @@ async function renderPurchaseStockList() {
 
 
 /* ============================================
-   FORM TAMBAH PEMBELIAN
+   FORM PEMBELIAN STOK
    ============================================ */
 
 function showPurchaseStockForm(
@@ -1334,6 +1435,7 @@ function showPurchaseStockForm(
     document.getElementById(
       "purchaseStockModal"
     );
+
 
   if (oldModal) {
     oldModal.remove();
@@ -1369,8 +1471,8 @@ function showPurchaseStockForm(
   modal.innerHTML = `
     <div
       style="
-        width:min(720px, 100%);
-        max-height:90vh;
+        width:min(850px,100%);
+        max-height:92vh;
         overflow:auto;
         background:#fff;
         border-radius:18px;
@@ -1384,7 +1486,6 @@ function showPurchaseStockForm(
           display:flex;
           justify-content:space-between;
           align-items:center;
-          gap:15px;
           margin-bottom:20px;
         "
       >
@@ -1392,10 +1493,11 @@ function showPurchaseStockForm(
         <h2 style="margin:0;">
           ${
             isEdit
-              ? "✏️ Edit Pembelian"
-              : "📦 Tambah Pembelian"
+              ? "✏️ Edit Pembelian Stok"
+              : "📦 Tambah Pembelian Stok"
           }
         </h2>
+
 
         <button
           type="button"
@@ -1403,7 +1505,7 @@ function showPurchaseStockForm(
           style="
             border:0;
             background:none;
-            font-size:25px;
+            font-size:26px;
             cursor:pointer;
           "
         >
@@ -1413,18 +1515,24 @@ function showPurchaseStockForm(
       </div>
 
 
-      <form id="purchaseStockForm">
+      <form
+        id="purchaseStockForm"
+      >
 
         <div
           style="
             display:grid;
-            grid-template-columns:repeat(2,minmax(0,1fr));
+            grid-template-columns:
+              repeat(2,minmax(0,1fr));
             gap:15px;
           "
         >
 
           <label>
-            <div>Tanggal Pembelian</div>
+
+            <div>
+              Tanggal Pembelian
+            </div>
 
             <input
               type="date"
@@ -1440,45 +1548,81 @@ function showPurchaseStockForm(
               required
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Seller</div>
+
+            <div>
+              Seller
+            </div>
 
             <input
               type="text"
               id="purchaseSellerInput"
               value="${
                 escapeHTML(
-                  purchase?.seller_name || ""
+                  purchase?.seller_name ||
+                  ""
                 )
               }"
               placeholder="Nama seller"
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Link Seller</div>
+
+            <div>
+              Web Seller
+            </div>
+
+            <input
+              type="text"
+              id="purchaseWebSellerInput"
+              value="${
+                escapeHTML(
+                  purchase?.web_seller ||
+                  ""
+                )
+              }"
+              placeholder="Contoh: Ktown4u"
+              style="width:100%;"
+            >
+
+          </label>
+
+
+          <label>
+
+            <div>
+              Link Seller
+            </div>
 
             <input
               type="url"
               id="purchaseSellerUrlInput"
               value="${
                 escapeHTML(
-                  purchase?.seller_url || ""
+                  purchase?.seller_url ||
+                  ""
                 )
               }"
               placeholder="https://..."
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Warehouse</div>
+
+            <div>
+              Warehouse
+            </div>
 
             <input
               type="text"
@@ -1492,28 +1636,37 @@ function showPurchaseStockForm(
               placeholder="Contoh: Korea Warehouse"
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Nomor Order</div>
+
+            <div>
+              Nomor Order
+            </div>
 
             <input
               type="text"
               id="purchaseOrderInput"
               value="${
                 escapeHTML(
-                  purchase?.order_number || ""
+                  purchase?.order_number ||
+                  ""
                 )
               }"
               placeholder="Nomor order seller"
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Tracking Seller</div>
+
+            <div>
+              Tracking Seller
+            </div>
 
             <input
               type="text"
@@ -1524,14 +1677,18 @@ function showPurchaseStockForm(
                   ""
                 )
               }"
-              placeholder="Nomor tracking seller"
+              placeholder="Tracking dari seller"
               style="width:100%;"
             >
+
           </label>
 
 
           <label>
-            <div>Tracking Forwarder</div>
+
+            <div>
+              Tracking Forwarder
+            </div>
 
             <input
               type="text"
@@ -1542,9 +1699,100 @@ function showPurchaseStockForm(
                   ""
                 )
               }"
-              placeholder="Nomor tracking forwarder"
+              placeholder="Tracking forwarder"
               style="width:100%;"
             >
+
+          </label>
+
+
+          <label>
+
+            <div>
+              Box Pengiriman
+            </div>
+
+            <input
+              type="text"
+              id="purchaseBoxInput"
+              value="${
+                escapeHTML(
+                  purchase?.box_pengiriman ||
+                  ""
+                )
+              }"
+              placeholder="Contoh: Box 1"
+              style="width:100%;"
+            >
+
+          </label>
+
+
+          <label>
+
+            <div>
+              Nama Barang
+            </div>
+
+            <input
+              type="text"
+              id="purchaseItemInput"
+              value="${
+                escapeHTML(
+                  purchase?.item_name ||
+                  ""
+                )
+              }"
+              placeholder="Contoh: Photobook"
+              style="width:100%;"
+              required
+            >
+
+          </label>
+
+
+          <label>
+
+            <div>
+              Variant
+            </div>
+
+            <input
+              type="text"
+              id="purchaseVariantInput"
+              value="${
+                escapeHTML(
+                  purchase?.item_variant ||
+                  ""
+                )
+              }"
+              placeholder="Contoh: Haruto / A / Random"
+              style="width:100%;"
+            >
+
+          </label>
+
+
+          <label>
+
+            <div>
+              Jumlah
+            </div>
+
+            <input
+              type="number"
+              id="purchaseQuantityInput"
+              value="${
+                Number(
+                  purchase?.quantity || 0
+                )
+              }"
+              min="0"
+              step="1"
+              style="width:100%;"
+              required
+            >
+
           </label>
 
         </div>
@@ -1557,7 +1805,9 @@ function showPurchaseStockForm(
           "
         >
 
-          <div>Catatan</div>
+          <div>
+            Catatan
+          </div>
 
           <textarea
             id="purchaseNoteInput"
@@ -1569,7 +1819,8 @@ function showPurchaseStockForm(
             "
           >${
             escapeHTML(
-              purchase?.purchase_note || ""
+              purchase?.purchase_note ||
+              ""
             )
           }</textarea>
 
@@ -1592,6 +1843,7 @@ function showPurchaseStockForm(
           >
             Batal
           </button>
+
 
           <button
             type="submit"
@@ -1657,17 +1909,18 @@ function showPurchaseStockForm(
 
         const payload = {
 
-          purchase_date:
-            document
-              .getElementById(
-                "purchaseDateInput"
-              )
-              .value || null,
-
           seller_name:
             document
               .getElementById(
                 "purchaseSellerInput"
+              )
+              .value
+              .trim() || null,
+
+          web_seller:
+            document
+              .getElementById(
+                "purchaseWebSellerInput"
               )
               .value
               .trim() || null,
@@ -1680,13 +1933,12 @@ function showPurchaseStockForm(
               .value
               .trim() || null,
 
-          warehouse_name:
+          purchase_date:
             document
               .getElementById(
-                "purchaseWarehouseInput"
+                "purchaseDateInput"
               )
-              .value
-              .trim() || null,
+              .value || null,
 
           order_number:
             document
@@ -1704,6 +1956,14 @@ function showPurchaseStockForm(
               .value
               .trim() || null,
 
+          box_pengiriman:
+            document
+              .getElementById(
+                "purchaseBoxInput"
+              )
+              .value
+              .trim() || null,
+
           forwarder_tracking:
             document
               .getElementById(
@@ -1711,6 +1971,39 @@ function showPurchaseStockForm(
               )
               .value
               .trim() || null,
+
+          warehouse_name:
+            document
+              .getElementById(
+                "purchaseWarehouseInput"
+              )
+              .value
+              .trim() || null,
+
+          item_name:
+            document
+              .getElementById(
+                "purchaseItemInput"
+              )
+              .value
+              .trim(),
+
+          item_variant:
+            document
+              .getElementById(
+                "purchaseVariantInput"
+              )
+              .value
+              .trim() || null,
+
+          quantity:
+            Number(
+              document
+                .getElementById(
+                  "purchaseQuantityInput"
+                )
+                .value
+            ) || 0,
 
           purchase_note:
             document
@@ -1730,9 +2023,12 @@ function showPurchaseStockForm(
 
 
         if (submitButton) {
+
           submitButton.disabled = true;
+
           submitButton.textContent =
             "Menyimpan...";
+
         }
 
 
@@ -1746,7 +2042,9 @@ function showPurchaseStockForm(
 
               .from("purchase_stock")
 
-              .update(payload)
+              .update(
+                payload
+              )
 
               .eq(
                 "id",
@@ -1764,7 +2062,9 @@ function showPurchaseStockForm(
 
               .from("purchase_stock")
 
-              .insert(payload)
+              .insert(
+                payload
+              )
 
               .select()
 
@@ -1788,11 +2088,15 @@ function showPurchaseStockForm(
 
 
           if (submitButton) {
-            submitButton.disabled = false;
+
+            submitButton.disabled =
+              false;
+
             submitButton.textContent =
               isEdit
                 ? "Simpan Perubahan"
                 : "Simpan Pembelian";
+
           }
 
           return;
@@ -1805,15 +2109,6 @@ function showPurchaseStockForm(
 
         await renderPurchaseStockList();
 
-
-        if (!isEdit) {
-
-          showPurchaseStockDetail(
-            result.data.id
-          );
-
-        }
-
       }
     );
 
@@ -1821,7 +2116,7 @@ function showPurchaseStockForm(
 
 
 /* ============================================
-   DETAIL PEMBELIAN
+   DETAIL PEMBELIAN STOK
    ============================================ */
 
 async function showPurchaseStockDetail(
@@ -1836,14 +2131,22 @@ async function showPurchaseStockDetail(
     .from("purchase_stock")
 
     .select(`
-      *,
-      purchase_stock_items (
-        id,
-        item_name,
-        variant_name,
-        quantity,
-        created_at
-      )
+      id,
+      seller_name,
+      web_seller,
+      purchase_date,
+      order_number,
+      seller_tracking,
+      box_pengiriman,
+      item_name,
+      item_variant,
+      quantity,
+      purchase_note,
+      created_at,
+      updated_at,
+      seller_url,
+      forwarder_tracking,
+      warehouse_name
     `)
 
     .eq(
@@ -1861,10 +2164,12 @@ async function showPurchaseStockDetail(
       error
     );
 
+
     alert(
       "Gagal mengambil detail pembelian:\n" +
       error.message
     );
+
 
     return;
 
