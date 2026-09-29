@@ -24118,9 +24118,10 @@ let html = `
     display:grid;
     grid-template-columns:
   100px
-  430px
-  80px
-  80px
+  400px
+  75px
+  100px
+  75px
   180px
   45px;
     align-items:center;
@@ -24179,11 +24180,35 @@ let html = `
 
 </div>
 
+<!-- INFORMASI PEMBELIAN -->
+<div
+  style="
+    grid-column:4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  "
+>
+  <button
+    type="button"
+    class="primary-button purchase-batch-info-button"
+    data-batch-code="${escapeHTML(batchCode)}"
+    data-category="${escapeHTML(category)}"
+    style="
+      padding:4px 10px;
+      font-size:12px;
+      white-space:nowrap;
+    "
+  >
+    🛒 Pembelian
+  </button>
+</div>
+
 
 <!-- HAPUS -->
 <div
   style="
-    grid-column:4;
+    grid-column:5;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24209,6 +24234,7 @@ let html = `
   <!-- TAMBAH MEMBER -->
 <div
   style="
+  grid-column:4;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -24780,6 +24806,40 @@ return minimumDp;
 container.innerHTML =
   html;
 
+   /* ==========================================
+   INFORMASI PEMBELIAN BATCH
+   ========================================== */
+
+container
+  .querySelectorAll(
+    ".purchase-batch-info-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        function(event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const batchCode =
+            this.dataset.batchCode;
+
+          const category =
+            this.dataset.category;
+
+          showPurchaseBatchInfo(
+            batchCode,
+            category
+          );
+
+        }
+      );
+
+    }
+  );
 
 /* ==========================================
    KEMBALI KE KATEGORI
@@ -29621,6 +29681,555 @@ if (category === "Tabungan Album") {
 
     }
   );
+
+}
+
+/* ============================================
+   INFORMASI PEMBELIAN BATCH
+   ============================================ */
+
+async function showPurchaseBatchInfo(
+  batchCode,
+  category
+) {
+
+  const existing =
+    document.querySelector(
+      ".purchase-batch-info-inline"
+    );
+
+  if (existing) {
+    existing.remove();
+  }
+
+  const button =
+    Array.from(
+      document.querySelectorAll(
+        ".purchase-batch-info-button"
+      )
+    ).find(function(button) {
+
+      return (
+        button.dataset.batchCode === batchCode &&
+        button.dataset.category === category
+      );
+
+    });
+
+  if (!button) {
+    console.error(
+      "Tombol Informasi Pembelian tidak ditemukan:",
+      batchCode,
+      category
+    );
+    return;
+  }
+
+  const batchCard =
+    button.closest(
+      ".recap-batch-card"
+    );
+
+  if (!batchCard) {
+    return;
+  }
+
+  const infoContainer =
+    document.createElement("div");
+
+  infoContainer.className =
+    "purchase-batch-info-inline";
+
+  infoContainer.style.cssText = `
+    margin:12px 0;
+    padding:16px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    background:#fff;
+  `;
+
+  infoContainer.innerHTML = `
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:14px;
+        gap:10px;
+      "
+    >
+      <div>
+        <h3
+          style="
+            margin:0;
+            font-size:16px;
+          "
+        >
+          🛒 Informasi Pembelian
+        </h3>
+
+        <small
+          style="
+            color:#777;
+          "
+        >
+          Batch:
+          <strong>
+            ${escapeHTML(batchCode)}
+          </strong>
+        </small>
+      </div>
+
+      <button
+        type="button"
+        class="delete-button close-purchase-batch-info"
+        style="
+          padding:4px 10px;
+          font-size:12px;
+        "
+      >
+        ✕ Tutup
+      </button>
+    </div>
+
+    <div
+      class="purchase-batch-info-loading"
+      style="
+        padding:10px 0;
+        color:#777;
+      "
+    >
+      Memuat informasi pembelian...
+    </div>
+  `;
+
+  const header =
+    batchCard.querySelector(
+      ".recap-batch-header"
+    );
+
+  if (header) {
+
+    header.insertAdjacentElement(
+      "afterend",
+      infoContainer
+    );
+
+  } else {
+
+    batchCard.prepend(
+      infoContainer
+    );
+
+  }
+
+  infoContainer
+    .querySelector(
+      ".close-purchase-batch-info"
+    )
+    .addEventListener(
+      "click",
+      function() {
+
+        infoContainer.remove();
+
+      }
+    );
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("purchase_batch_info")
+        .select("*")
+        .eq(
+          "recap_type",
+          getRecapTypeFromCategory(category)
+        )
+        .eq(
+          "category",
+          category
+        )
+        .eq(
+          "batch_code",
+          batchCode
+        )
+        .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const info =
+      data || {};
+
+    infoContainer
+      .querySelector(
+        ".purchase-batch-info-loading"
+      )
+      .outerHTML = `
+
+      <form
+        class="purchase-batch-info-form"
+      >
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                2,
+                minmax(0, 1fr)
+              );
+            gap:12px;
+          "
+        >
+
+          <div>
+            <label>
+              <strong>
+                Seller / Web
+              </strong>
+            </label>
+
+            <input
+              type="text"
+              name="seller_name"
+              value="${escapeHTML(
+                info.seller_name || ""
+              )}"
+              placeholder="Contoh: YG Select"
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+          <div>
+            <label>
+              <strong>
+                Link Seller
+              </strong>
+            </label>
+
+            <input
+              type="url"
+              name="seller_url"
+              value="${escapeHTML(
+                info.seller_url || ""
+              )}"
+              placeholder="https://..."
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+          <div>
+            <label>
+              <strong>
+                Warehouse
+              </strong>
+            </label>
+
+            <input
+              type="text"
+              name="warehouse_name"
+              value="${escapeHTML(
+                info.warehouse_name || ""
+              )}"
+              placeholder="Contoh: KR Warehouse"
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+          <div>
+            <label>
+              <strong>
+                Nomor Order
+              </strong>
+            </label>
+
+            <input
+              type="text"
+              name="order_number"
+              value="${escapeHTML(
+                info.order_number || ""
+              )}"
+              placeholder="Nomor pesanan seller"
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+          <div>
+            <label>
+              <strong>
+                Resi Seller
+              </strong>
+            </label>
+
+            <input
+              type="text"
+              name="seller_tracking"
+              value="${escapeHTML(
+                info.seller_tracking || ""
+              )}"
+              placeholder="Tracking dari seller"
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+          <div>
+            <label>
+              <strong>
+                Resi Forwarder
+              </strong>
+            </label>
+
+            <input
+              type="text"
+              name="forwarder_tracking"
+              value="${escapeHTML(
+                info.forwarder_tracking || ""
+              )}"
+              placeholder="Resi forwarder / ekspedisi"
+              style="
+                width:100%;
+                box-sizing:border-box;
+              "
+            >
+          </div>
+
+        </div>
+
+        <div
+          style="
+            margin-top:12px;
+          "
+        >
+
+          <label>
+            <strong>
+              Catatan Pembelian
+            </strong>
+          </label>
+
+          <textarea
+            name="purchase_note"
+            rows="3"
+            placeholder="Catatan terkait pembelian..."
+            style="
+              width:100%;
+              box-sizing:border-box;
+              resize:vertical;
+            "
+          >${escapeHTML(
+            info.purchase_note || ""
+          )}</textarea>
+
+        </div>
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            margin-top:14px;
+          "
+        >
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            💾 Simpan Informasi Pembelian
+          </button>
+
+        </div>
+
+        <div
+          class="purchase-batch-info-message"
+          style="
+            margin-top:8px;
+            font-size:13px;
+          "
+        ></div>
+
+      </form>
+    `;
+
+    const form =
+      infoContainer.querySelector(
+        ".purchase-batch-info-form"
+      );
+
+    form.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+        const formData =
+          new FormData(form);
+
+        const payload = {
+
+          recap_type:
+            getRecapTypeFromCategory(
+              category
+            ),
+
+          category:
+            category,
+
+          batch_code:
+            batchCode,
+
+          seller_name:
+            String(
+              formData.get(
+                "seller_name"
+              ) || ""
+            ).trim() || null,
+
+          seller_url:
+            String(
+              formData.get(
+                "seller_url"
+              ) || ""
+            ).trim() || null,
+
+          warehouse_name:
+            String(
+              formData.get(
+                "warehouse_name"
+              ) || ""
+            ).trim() || null,
+
+          order_number:
+            String(
+              formData.get(
+                "order_number"
+              ) || ""
+            ).trim() || null,
+
+          seller_tracking:
+            String(
+              formData.get(
+                "seller_tracking"
+              ) || ""
+            ).trim() || null,
+
+          forwarder_tracking:
+            String(
+              formData.get(
+                "forwarder_tracking"
+              ) || ""
+            ).trim() || null,
+
+          purchase_note:
+            String(
+              formData.get(
+                "purchase_note"
+              ) || ""
+            ).trim() || null
+
+        };
+
+        const message =
+          form.querySelector(
+            ".purchase-batch-info-message"
+          );
+
+        message.textContent =
+          "Menyimpan...";
+
+        try {
+
+          const {
+            error
+          } =
+            await supabaseClient
+              .from(
+                "purchase_batch_info"
+              )
+              .upsert(
+                payload,
+                {
+                  onConflict:
+                    "recap_type,category,batch_code"
+                }
+              );
+
+          if (error) {
+            throw error;
+          }
+
+          message.textContent =
+            "✅ Informasi pembelian berhasil disimpan.";
+
+          message.style.color =
+            "green";
+
+        }
+        catch (error) {
+
+          console.error(
+            "Gagal menyimpan informasi pembelian:",
+            error
+          );
+
+          message.textContent =
+            "❌ Gagal menyimpan: " +
+            (
+              error.message ||
+              error
+            );
+
+          message.style.color =
+            "red";
+
+        }
+
+      }
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Gagal mengambil informasi pembelian:",
+      error
+    );
+
+    infoContainer
+      .querySelector(
+        ".purchase-batch-info-loading"
+      )
+      .innerHTML = `
+        <span style="color:red;">
+          Gagal memuat informasi pembelian:
+          ${escapeHTML(
+            error.message ||
+            String(error)
+          )}
+        </span>
+      `;
+
+  }
 
 }
 
