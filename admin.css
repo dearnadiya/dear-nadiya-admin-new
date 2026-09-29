@@ -14052,3 +14052,41 @@ button {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - STATUS DP & PELUNASAN
+   Supaya 2 dropdown status tidak bertumpuk
+   ========================================================= */
+
+@media (min-width: 769px) {
+
+  /* Tinggi header batch mengikuti isi status */
+  #recapListContainer .recap-batch-card .recap-batch-header {
+    height: auto !important;
+    min-height: 82px !important;
+    align-items: center !important;
+  }
+
+  /* Kolom status */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  select {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Jika dua select berada dalam wrapper yang sama */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  select + select {
+    margin-top: 4px !important;
+  }
+
+}
