@@ -38,6 +38,7 @@ const pageContent =
 const googleLoginButton =
   document.getElementById("googleLoginButton");
 
+let purchaseBatchInfoMap = {};
 
 /* ============================================
    SUPABASE
@@ -22951,6 +22952,67 @@ async function restoreTRCH074() {
 }
 
 /* ============================================
+   LOAD STATUS INFORMASI PEMBELIAN
+   ============================================ */
+
+async function loadPurchaseBatchInfoStatus() {
+
+  purchaseBatchInfoMap = {};
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("purchase_batch_info")
+      .select(`
+        recap_type,
+        category,
+        batch_code
+      `);
+
+    if (error) {
+      throw error;
+    }
+
+    (data || []).forEach(
+      function(row) {
+
+        const key =
+          String(
+            row.recap_type || ""
+          ).trim()
+          + "|"
+          + String(
+            row.category || ""
+          ).trim()
+          + "|"
+          + String(
+            row.batch_code || ""
+          ).trim();
+
+        purchaseBatchInfoMap[key] = true;
+
+      }
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Gagal memuat status informasi pembelian:",
+      error
+    );
+
+    purchaseBatchInfoMap = {};
+
+  }
+
+}
+
+
+/* ============================================
    DAFTAR REKAP
    ============================================ */
 
@@ -22967,6 +23029,8 @@ async function loadRecapList(
   if (!container) {
     return;
   }
+
+   await loadPurchaseBatchInfoStatus();
 
 container.innerHTML =
   "<p>Memuat rekap...</p>";
@@ -24176,7 +24240,23 @@ let html = `
       white-space:nowrap;
     "
   >
-    🛒 Pembelian
+    ${
+  purchaseBatchInfoMap[
+    String(
+      getRecapTypeFromCategory(category)
+    ).trim()
+    + "|"
+    + String(
+      category
+    ).trim()
+    + "|"
+    + String(
+      batchCode
+    ).trim()
+  ]
+    ? "🛒 Pembelian ✓"
+    : "🛒 Pembelian"
+}
   </button>
 
 </div>
