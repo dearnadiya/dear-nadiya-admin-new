@@ -1906,23 +1906,22 @@ function showPurchaseStockForm(
             </div>
 
             <input
-              type="text"
-              id="purchaseItemInput"
-              value="${
-                escapeHTML(
-                  addItemMode
-  ? ""
-  : (
-      purchase?.item_name ||
-      ""
+  type="text"
+  id="purchaseItemInput"
+  value="${
+    escapeHTML(
+      addItemMode
+        ? ""
+        : (
+            purchase?.item_name ||
+            ""
+          )
     )
-    )
-              }"
-              placeholder="Contoh: Photobook"
-              style="width:100%;"
-              required
-            >
-
+  }"
+  placeholder="Contoh: Photobook"
+  style="width:100%;"
+  required
+>
           </label>
 
           <label>
@@ -1935,14 +1934,15 @@ function showPurchaseStockForm(
               type="number"
               id="purchaseQuantityInput"
               value="${
-                Number(
-                  addItemMode
-  ? 0
-  : Number(
-      purchase?.quantity ||
-      0
-    )
-              }"
+  Number(
+    addItemMode
+      ? 0
+      : Number(
+          purchase?.quantity ||
+          0
+        )
+  )
+}"
               min="0"
               step="1"
               style="width:100%;"
