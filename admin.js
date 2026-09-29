@@ -1916,6 +1916,7 @@ function showPurchaseStockForm(
       purchase?.item_name ||
       ""
     )
+    )
               }"
               placeholder="Contoh: Photobook"
               style="width:100%;"
