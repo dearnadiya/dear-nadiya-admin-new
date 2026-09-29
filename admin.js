@@ -722,8 +722,1160 @@ function showPage(
   return;
 }
 
+   if (
+  page ===
+  "purchase-stock"
+) {
+
+  loadPurchaseStock();
+
+  return;
+
 }
 
+}
+
+/* ============================================
+   PEMBELIAN STOK
+   ============================================ */
+
+async function loadPurchaseStock() {
+
+  if (pageTitle) {
+    pageTitle.textContent =
+      "📦 Pembelian Stok";
+  }
+
+  if (!pageContent) {
+    return;
+  }
+
+
+  pageContent.innerHTML = `
+    <div class="purchase-stock-page">
+
+      <div class="purchase-stock-header">
+
+        <div>
+          <h2>📦 Pembelian Stok</h2>
+
+          <p>
+            Kelola pembelian barang dari seller,
+            warehouse, tracking, dan stok yang masuk.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="addPurchaseStockButton"
+          class="primary-button"
+        >
+          ＋ Tambah Pembelian
+        </button>
+
+      </div>
+
+
+      <div
+        id="purchaseStockMessage"
+        style="
+          display:none;
+          margin-bottom:15px;
+          padding:12px 15px;
+          border-radius:10px;
+        "
+      ></div>
+
+
+      <div class="purchase-stock-card">
+
+        <div class="purchase-stock-card-header">
+
+          <div>
+            <strong>Daftar Pembelian</strong>
+          </div>
+
+          <button
+            type="button"
+            id="refreshPurchaseStockButton"
+            class="secondary-button"
+          >
+            🔄 Refresh
+          </button>
+
+        </div>
+
+
+        <div
+          id="purchaseStockList"
+          class="purchase-stock-list"
+        >
+          <div
+            style="
+              padding:30px;
+              text-align:center;
+              color:#777;
+            "
+          >
+            Memuat data pembelian...
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+
+  const addButton =
+    document.getElementById(
+      "addPurchaseStockButton"
+    );
+
+  if (addButton) {
+
+    addButton.addEventListener(
+      "click",
+      function() {
+
+        showPurchaseStockForm();
+
+      }
+    );
+
+  }
+
+
+  const refreshButton =
+    document.getElementById(
+      "refreshPurchaseStockButton"
+    );
+
+  if (refreshButton) {
+
+    refreshButton.addEventListener(
+      "click",
+      function() {
+
+        loadPurchaseStock();
+
+      }
+    );
+
+  }
+
+
+  await renderPurchaseStockList();
+
+}
+
+
+/* ============================================
+   RENDER DAFTAR PEMBELIAN STOK
+   ============================================ */
+
+async function renderPurchaseStockList() {
+
+  const container =
+    document.getElementById(
+      "purchaseStockList"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+
+    .from("purchase_stock")
+
+    .select(`
+      id,
+      purchase_date,
+      seller_name,
+      seller_url,
+      warehouse_name,
+      order_number,
+      seller_tracking,
+      forwarder_tracking,
+      purchase_note,
+      created_at,
+
+      purchase_stock_items (
+        id,
+        item_name,
+        variant_name,
+        quantity
+      )
+    `)
+
+    .order(
+      "purchase_date",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      "Gagal memuat Pembelian Stok:",
+      error
+    );
+
+
+    container.innerHTML = `
+      <div
+        style="
+          padding:25px;
+          text-align:center;
+          color:#b42318;
+        "
+      >
+        Gagal memuat data Pembelian Stok.
+        <br>
+        <small>
+          ${escapeHTML(error.message || "")}
+        </small>
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const purchases =
+    data || [];
+
+
+  if (!purchases.length) {
+
+    container.innerHTML = `
+      <div
+        style="
+          padding:40px 20px;
+          text-align:center;
+          color:#777;
+        "
+      >
+
+        <div
+          style="
+            font-size:42px;
+            margin-bottom:10px;
+          "
+        >
+          📦
+        </div>
+
+        <strong>
+          Belum ada pembelian stok
+        </strong>
+
+        <div
+          style="
+            margin-top:6px;
+            font-size:14px;
+          "
+        >
+          Klik "Tambah Pembelian" untuk
+          mencatat pembelian pertama.
+        </div>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    purchases
+      .map(function(purchase) {
+
+        const items =
+          Array.isArray(
+            purchase.purchase_stock_items
+          )
+            ? purchase.purchase_stock_items
+            : [];
+
+
+        const totalItems =
+          items.reduce(
+            function(total, item) {
+
+              return (
+                total +
+                (
+                  Number(
+                    item.quantity
+                  ) || 0
+                )
+              );
+
+            },
+            0
+          );
+
+
+        const itemPreview =
+          items
+            .slice(0, 3)
+            .map(function(item) {
+
+              const variant =
+                item.variant_name
+                  ? ` — ${escapeHTML(
+                      item.variant_name
+                    )}`
+                  : "";
+
+              return `
+                <div>
+                  ${escapeHTML(
+                    item.item_name || "-"
+                  )}
+                  ${variant}
+                  × ${Number(
+                    item.quantity || 0
+                  )}
+                </div>
+              `;
+
+            })
+            .join("");
+
+
+        const moreItems =
+          items.length > 3
+            ? `
+              <div
+                style="
+                  color:#777;
+                  margin-top:3px;
+                "
+              >
+                + ${items.length - 3}
+                item lainnya
+              </div>
+            `
+            : "";
+
+
+        return `
+          <div
+            class="purchase-stock-row"
+            data-purchase-id="${purchase.id}"
+          >
+
+            <div class="purchase-stock-row-main">
+
+              <div
+                class="purchase-stock-date"
+              >
+                ${escapeHTML(
+                  purchase.purchase_date || "-"
+                )}
+              </div>
+
+
+              <div
+                class="purchase-stock-seller"
+              >
+
+                <strong>
+                  ${escapeHTML(
+                    purchase.seller_name ||
+                    "Seller belum diisi"
+                  )}
+                </strong>
+
+                ${
+                  purchase.order_number
+                    ? `
+                      <div>
+                        Order:
+                        ${escapeHTML(
+                          purchase.order_number
+                        )}
+                      </div>
+                    `
+                    : ""
+                }
+
+              </div>
+
+
+              <div
+                class="purchase-stock-warehouse"
+              >
+
+                <span>
+                  🏭
+                  ${escapeHTML(
+                    purchase.warehouse_name ||
+                    "-"
+                  )}
+                </span>
+
+              </div>
+
+
+              <div
+                class="purchase-stock-tracking"
+              >
+
+                ${
+                  purchase.seller_tracking
+                    ? `
+                      <div>
+                        Seller:
+                        ${escapeHTML(
+                          purchase.seller_tracking
+                        )}
+                      </div>
+                    `
+                    : ""
+                }
+
+                ${
+                  purchase.forwarder_tracking
+                    ? `
+                      <div>
+                        Forwarder:
+                        ${escapeHTML(
+                          purchase.forwarder_tracking
+                        )}
+                      </div>
+                    `
+                    : ""
+                }
+
+              </div>
+
+
+              <div
+                class="purchase-stock-total"
+              >
+
+                <strong>
+                  ${items.length}
+                  item
+                </strong>
+
+                <div>
+                  ${totalItems} pcs
+                </div>
+
+              </div>
+
+
+              <div
+                class="purchase-stock-actions"
+              >
+
+                <button
+                  type="button"
+                  class="secondary-button purchase-stock-detail-button"
+                  data-id="${purchase.id}"
+                >
+                  Detail
+                </button>
+
+                <button
+                  type="button"
+                  class="danger-button purchase-stock-delete-button"
+                  data-id="${purchase.id}"
+                >
+                  Hapus
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="purchase-stock-items-preview"
+            >
+
+              ${
+                itemPreview ||
+                `
+                  <span
+                    style="
+                      color:#999;
+                    "
+                  >
+                    Belum ada barang
+                  </span>
+                `
+              }
+
+              ${moreItems}
+
+            </div>
+
+          </div>
+        `;
+
+      })
+      .join("");
+
+
+  container
+    .querySelectorAll(
+      ".purchase-stock-detail-button"
+    )
+    .forEach(function(button) {
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          const id =
+            Number(
+              button.dataset.id
+            );
+
+          showPurchaseStockDetail(id);
+
+        }
+      );
+
+    });
+
+
+  container
+    .querySelectorAll(
+      ".purchase-stock-delete-button"
+    )
+    .forEach(function(button) {
+
+      button.addEventListener(
+        "click",
+        async function() {
+
+          const id =
+            Number(
+              button.dataset.id
+            );
+
+
+          const confirmed =
+            window.confirm(
+              "Hapus pembelian stok ini?"
+            );
+
+
+          if (!confirmed) {
+            return;
+          }
+
+
+          const {
+            error
+          } = await supabaseClient
+
+            .from("purchase_stock")
+
+            .delete()
+
+            .eq(
+              "id",
+              id
+            );
+
+
+          if (error) {
+
+            console.error(
+              "Gagal menghapus pembelian:",
+              error
+            );
+
+            alert(
+              "Gagal menghapus pembelian:\n" +
+              error.message
+            );
+
+            return;
+
+          }
+
+
+          await renderPurchaseStockList();
+
+        }
+      );
+
+    });
+
+}
+
+
+/* ============================================
+   FORM TAMBAH PEMBELIAN
+   ============================================ */
+
+function showPurchaseStockForm(
+  purchase = null
+) {
+
+  const oldModal =
+    document.getElementById(
+      "purchaseStockModal"
+    );
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+
+  const isEdit =
+    !!purchase;
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "purchaseStockModal";
+
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  `;
+
+
+  modal.innerHTML = `
+    <div
+      style="
+        width:min(720px, 100%);
+        max-height:90vh;
+        overflow:auto;
+        background:#fff;
+        border-radius:18px;
+        padding:25px;
+        box-shadow:0 20px 60px rgba(0,0,0,.2);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:15px;
+          margin-bottom:20px;
+        "
+      >
+
+        <h2 style="margin:0;">
+          ${
+            isEdit
+              ? "✏️ Edit Pembelian"
+              : "📦 Tambah Pembelian"
+          }
+        </h2>
+
+        <button
+          type="button"
+          id="closePurchaseStockModal"
+          style="
+            border:0;
+            background:none;
+            font-size:25px;
+            cursor:pointer;
+          "
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form id="purchaseStockForm">
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:15px;
+          "
+        >
+
+          <label>
+            <div>Tanggal Pembelian</div>
+
+            <input
+              type="date"
+              id="purchaseDateInput"
+              value="${
+                escapeHTML(
+                  purchase?.purchase_date ||
+                  new Date()
+                    .toISOString()
+                    .slice(0,10)
+                )
+              }"
+              required
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Seller</div>
+
+            <input
+              type="text"
+              id="purchaseSellerInput"
+              value="${
+                escapeHTML(
+                  purchase?.seller_name || ""
+                )
+              }"
+              placeholder="Nama seller"
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Link Seller</div>
+
+            <input
+              type="url"
+              id="purchaseSellerUrlInput"
+              value="${
+                escapeHTML(
+                  purchase?.seller_url || ""
+                )
+              }"
+              placeholder="https://..."
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Warehouse</div>
+
+            <input
+              type="text"
+              id="purchaseWarehouseInput"
+              value="${
+                escapeHTML(
+                  purchase?.warehouse_name ||
+                  ""
+                )
+              }"
+              placeholder="Contoh: Korea Warehouse"
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Nomor Order</div>
+
+            <input
+              type="text"
+              id="purchaseOrderInput"
+              value="${
+                escapeHTML(
+                  purchase?.order_number || ""
+                )
+              }"
+              placeholder="Nomor order seller"
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Tracking Seller</div>
+
+            <input
+              type="text"
+              id="purchaseSellerTrackingInput"
+              value="${
+                escapeHTML(
+                  purchase?.seller_tracking ||
+                  ""
+                )
+              }"
+              placeholder="Nomor tracking seller"
+              style="width:100%;"
+            >
+          </label>
+
+
+          <label>
+            <div>Tracking Forwarder</div>
+
+            <input
+              type="text"
+              id="purchaseForwarderTrackingInput"
+              value="${
+                escapeHTML(
+                  purchase?.forwarder_tracking ||
+                  ""
+                )
+              }"
+              placeholder="Nomor tracking forwarder"
+              style="width:100%;"
+            >
+          </label>
+
+        </div>
+
+
+        <label
+          style="
+            display:block;
+            margin-top:15px;
+          "
+        >
+
+          <div>Catatan</div>
+
+          <textarea
+            id="purchaseNoteInput"
+            rows="4"
+            placeholder="Catatan pembelian..."
+            style="
+              width:100%;
+              resize:vertical;
+            "
+          >${
+            escapeHTML(
+              purchase?.purchase_note || ""
+            )
+          }</textarea>
+
+        </label>
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:25px;
+          "
+        >
+
+          <button
+            type="button"
+            id="cancelPurchaseStockButton"
+            class="secondary-button"
+          >
+            Batal
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            ${
+              isEdit
+                ? "Simpan Perubahan"
+                : "Simpan Pembelian"
+            }
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  function closeModal() {
+
+    modal.remove();
+
+  }
+
+
+  document
+    .getElementById(
+      "closePurchaseStockModal"
+    )
+    .addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  document
+    .getElementById(
+      "cancelPurchaseStockButton"
+    )
+    .addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  document
+    .getElementById(
+      "purchaseStockForm"
+    )
+    .addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        const payload = {
+
+          purchase_date:
+            document
+              .getElementById(
+                "purchaseDateInput"
+              )
+              .value || null,
+
+          seller_name:
+            document
+              .getElementById(
+                "purchaseSellerInput"
+              )
+              .value
+              .trim() || null,
+
+          seller_url:
+            document
+              .getElementById(
+                "purchaseSellerUrlInput"
+              )
+              .value
+              .trim() || null,
+
+          warehouse_name:
+            document
+              .getElementById(
+                "purchaseWarehouseInput"
+              )
+              .value
+              .trim() || null,
+
+          order_number:
+            document
+              .getElementById(
+                "purchaseOrderInput"
+              )
+              .value
+              .trim() || null,
+
+          seller_tracking:
+            document
+              .getElementById(
+                "purchaseSellerTrackingInput"
+              )
+              .value
+              .trim() || null,
+
+          forwarder_tracking:
+            document
+              .getElementById(
+                "purchaseForwarderTrackingInput"
+              )
+              .value
+              .trim() || null,
+
+          purchase_note:
+            document
+              .getElementById(
+                "purchaseNoteInput"
+              )
+              .value
+              .trim() || null
+
+        };
+
+
+        const submitButton =
+          event.target.querySelector(
+            'button[type="submit"]'
+          );
+
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent =
+            "Menyimpan...";
+        }
+
+
+        let result;
+
+
+        if (isEdit) {
+
+          result =
+            await supabaseClient
+
+              .from("purchase_stock")
+
+              .update(payload)
+
+              .eq(
+                "id",
+                purchase.id
+              )
+
+              .select()
+
+              .single();
+
+        } else {
+
+          result =
+            await supabaseClient
+
+              .from("purchase_stock")
+
+              .insert(payload)
+
+              .select()
+
+              .single();
+
+        }
+
+
+        if (result.error) {
+
+          console.error(
+            "Gagal menyimpan Pembelian Stok:",
+            result.error
+          );
+
+
+          alert(
+            "Gagal menyimpan pembelian:\n" +
+            result.error.message
+          );
+
+
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent =
+              isEdit
+                ? "Simpan Perubahan"
+                : "Simpan Pembelian";
+          }
+
+          return;
+
+        }
+
+
+        closeModal();
+
+
+        await renderPurchaseStockList();
+
+
+        if (!isEdit) {
+
+          showPurchaseStockDetail(
+            result.data.id
+          );
+
+        }
+
+      }
+    );
+
+}
+
+
+/* ============================================
+   DETAIL PEMBELIAN
+   ============================================ */
+
+async function showPurchaseStockDetail(
+  purchaseId
+) {
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+
+    .from("purchase_stock")
+
+    .select(`
+      *,
+      purchase_stock_items (
+        id,
+        item_name,
+        variant_name,
+        quantity,
+        created_at
+      )
+    `)
+
+    .eq(
+      "id",
+      purchaseId
+    )
+
+    .single();
+
+
+  if (error) {
+
+    console.error(
+      "Gagal mengambil detail pembelian:",
+      error
+    );
+
+    alert(
+      "Gagal mengambil detail pembelian:\n" +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  showPurchaseStockForm(
+    data
+  );
+
+}
 
 /* ============================================
    DASHBOARD
