@@ -936,10 +936,74 @@ async function renderPurchaseStockList() {
 
 
   const rows =
-    data || [];
+  data || [];
 
 
-  if (!rows.length) {
+/* ============================================
+   KELOMPOKKAN BERDASARKAN ORDER
+   ============================================ */
+
+const groupedOrders = {};
+
+rows.forEach(function(row) {
+
+  const orderKey =
+    String(
+      row.order_number || ""
+    ).trim() ||
+    `NO_ORDER_${row.id}`;
+
+  if (!groupedOrders[orderKey]) {
+
+    groupedOrders[orderKey] = {
+      order_number:
+        row.order_number || "",
+
+      seller_name:
+        row.seller_name || "",
+
+      web_seller:
+        row.web_seller || "",
+
+      seller_url:
+        row.seller_url || "",
+
+      purchase_date:
+        row.purchase_date || "",
+
+      seller_tracking:
+        row.seller_tracking || "",
+
+      box_pengiriman:
+        row.box_pengiriman || "",
+
+      warehouse_name:
+        row.warehouse_name || "",
+
+      purchase_note:
+        row.purchase_note || "",
+
+      rows: []
+
+    };
+
+  }
+
+
+  groupedOrders[orderKey].rows.push(
+    row
+  );
+
+});
+
+
+const orders =
+  Object.values(
+    groupedOrders
+  );
+
+
+  if (!orders.length) {
 
     container.innerHTML = `
       <div
@@ -1007,7 +1071,7 @@ async function renderPurchaseStockList() {
             margin-left:5px;
           "
         >
-          (${rows.length})
+          (${orders.length} order)
         </span>
       </div>
 
@@ -1114,184 +1178,258 @@ async function renderPurchaseStockList() {
           <tbody>
 
             ${
-              rows
-                .map(function(row) {
+              orders
+  .map(function(order) {
 
-                  const tracking =
-  row.seller_tracking ||
-  "-";
+    const totalQuantity =
+      order.rows.reduce(
+        function(total, row) {
 
+          return (
+            total +
+            (
+              Number(
+                row.quantity || 0
+              )
+            )
+          );
 
-                  return `
-                    <tr
-                      style="
-                        border-top:1px solid #eee;
-                      "
-                    >
-
-                      <td
-                        style="
-                          padding:12px;
-                          white-space:nowrap;
-                        "
-                      >
-                        ${escapeHTML(
-                          row.purchase_date ||
-                          "-"
-                        )}
-                      </td>
+        },
+        0
+      );
 
 
-                      <td
-                        style="
-                          padding:12px;
-                        "
-                      >
+    const itemList =
+      order.rows
+        .map(function(row) {
 
-                        <strong>
-                          ${escapeHTML(
-                            row.seller_name ||
-                            "-"
-                          )}
-                        </strong>
+          return `
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                gap:15px;
+                padding:7px 0;
+                border-bottom:1px dashed #eee;
+              "
+            >
 
-                        ${
-                          row.web_seller
-                            ? `
-                              <div
-                                style="
-                                  font-size:12px;
-                                  color:#777;
-                                  margin-top:3px;
-                                "
-                              >
-                                ${escapeHTML(
-                                  row.web_seller
-                                )}
-                              </div>
-                            `
-                            : ""
-                        }
+              <span>
+                ${escapeHTML(
+                  row.item_name || "-"
+                )}
+              </span>
 
-                      </td>
+              <strong>
+                ${Number(
+                  row.quantity || 0
+                )} pcs
+              </strong>
 
+            </div>
+          `;
 
-                      <td
-                        style="
-                          padding:12px;
-                        "
-                      >
-                        ${escapeHTML(
-                          row.order_number ||
-                          "-"
-                        )}
-                      </td>
+        })
+        .join("");
 
 
-                      <td
-                        style="
-                          padding:12px;
-                        "
-                      >
-                        ${escapeHTML(
-                          row.warehouse_name ||
-                          "-"
-                        )}
-                      </td>
+    return `
+      <tr
+        style="
+          border-top:1px solid #eee;
+        "
+      >
+
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+            white-space:nowrap;
+          "
+        >
+          ${escapeHTML(
+            order.purchase_date || "-"
+          )}
+        </td>
 
 
-                      <td
-                        style="
-                          padding:12px;
-                        "
-                      >
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+          "
+        >
 
-                        <strong>
-  ${escapeHTML(
-    row.item_name ||
-    "-"
-  )}
-</strong>
-                      </td>
+          <strong>
+            ${escapeHTML(
+              order.seller_name || "-"
+            )}
+          </strong>
 
+          ${
+            order.web_seller
+              ? `
+                <div
+                  style="
+                    color:#777;
+                    font-size:12px;
+                    margin-top:3px;
+                  "
+                >
+                  ${escapeHTML(
+                    order.web_seller
+                  )}
+                </div>
+              `
+              : ""
+          }
 
-                      <td
-                        style="
-                          padding:12px;
-                          text-align:center;
-                          font-weight:700;
-                        "
-                      >
-                        ${Number(
-                          row.quantity || 0
-                        )}
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:12px;
-                        "
-                      >
-
-                        ${escapeHTML(
-                          tracking
-                        )}
-
-                        ${
-                          row.box_pengiriman
-                            ? `
-                              <div
-                                style="
-                                  color:#777;
-                                  font-size:12px;
-                                  margin-top:3px;
-                                "
-                              >
-                                Box:
-                                ${escapeHTML(
-                                  row.box_pengiriman
-                                )}
-                              </div>
-                            `
-                            : ""
-                        }
-
-                      </td>
+        </td>
 
 
-                      <td
-                        style="
-                          padding:12px;
-                          text-align:center;
-                          white-space:nowrap;
-                        "
-                      >
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+          "
+        >
 
-                        <button
-                          type="button"
-                          class="secondary-button purchase-stock-edit-button"
-                          data-id="${row.id}"
-                        >
-                          Edit
-                        </button>
+          <strong>
+            ${escapeHTML(
+              order.order_number ||
+              "-"
+            )}
+          </strong>
+
+        </td>
 
 
-                        <button
-                          type="button"
-                          class="danger-button purchase-stock-delete-button"
-                          data-id="${row.id}"
-                        >
-                          Hapus
-                        </button>
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+          "
+        >
 
-                      </td>
+          ${escapeHTML(
+            order.warehouse_name ||
+            "-"
+          )}
 
-                    </tr>
-                  `;
+        </td>
 
-                })
-                .join("")
+
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+            min-width:220px;
+          "
+        >
+
+          ${itemList}
+
+        </td>
+
+
+        <td
+          style="
+            padding:15px;
+            text-align:center;
+            vertical-align:top;
+            font-weight:700;
+            white-space:nowrap;
+          "
+        >
+
+          ${totalQuantity}
+          pcs
+
+        </td>
+
+
+        <td
+          style="
+            padding:15px;
+            vertical-align:top;
+          "
+        >
+
+          ${escapeHTML(
+            order.seller_tracking ||
+            "-"
+          )}
+
+          ${
+            order.box_pengiriman
+              ? `
+                <div
+                  style="
+                    color:#777;
+                    font-size:12px;
+                    margin-top:4px;
+                  "
+                >
+                  Box:
+                  ${escapeHTML(
+                    order.box_pengiriman
+                  )}
+                </div>
+              `
+              : ""
+          }
+
+        </td>
+
+
+        <td
+          style="
+            padding:15px;
+            text-align:center;
+            vertical-align:top;
+            white-space:nowrap;
+          "
+        >
+
+          <button
+            type="button"
+            class="primary-button purchase-stock-add-item-button"
+            data-order-id="${
+              order.rows[0]?.id || ""
+            }"
+          >
+            ＋ Barang
+          </button>
+
+
+          <button
+            type="button"
+            class="secondary-button purchase-stock-edit-button"
+            data-id="${
+              order.rows[0]?.id || ""
+            }"
+          >
+            Edit
+          </button>
+
+
+          <button
+            type="button"
+            class="danger-button purchase-stock-delete-button"
+            data-id="${
+              order.rows[0]?.id || ""
+            }"
+          >
+            Hapus
+          </button>
+
+        </td>
+
+      </tr>
+    `;
+
+  })
+  .join("")
             }
 
           </tbody>
@@ -1303,6 +1441,81 @@ async function renderPurchaseStockList() {
     </div>
   `;
 
+
+    /* ============================================
+     TOMBOL TAMBAH BARANG
+     ============================================ */
+
+  container
+    .querySelectorAll(
+      ".purchase-stock-add-item-button"
+    )
+    .forEach(function(button) {
+
+      button.addEventListener(
+        "click",
+        async function() {
+
+          const id =
+            Number(
+              button.dataset.orderId
+            );
+
+
+          const {
+            data,
+            error
+          } = await supabaseClient
+
+            .from("purchase_stock")
+
+            .select(`
+              id,
+              seller_name,
+              web_seller,
+              seller_url,
+              purchase_date,
+              order_number,
+              seller_tracking,
+              box_pengiriman,
+              warehouse_name,
+              purchase_note
+            `)
+
+            .eq(
+              "id",
+              id
+            )
+
+            .single();
+
+
+          if (error) {
+
+            alert(
+              "Gagal mengambil data order:\n" +
+              error.message
+            );
+
+            return;
+
+          }
+
+
+          showPurchaseStockForm(
+            data,
+            true
+          );
+
+        }
+      );
+
+    });
+
+
+  /* ============================================
+     TOMBOL EDIT
+     ============================================ */
 
   container
     .querySelectorAll(
@@ -1328,7 +1541,6 @@ async function renderPurchaseStockList() {
       );
 
     });
-
 
   container
     .querySelectorAll(
@@ -1405,9 +1617,9 @@ async function renderPurchaseStockList() {
    ============================================ */
 
 function showPurchaseStockForm(
-  purchase = null
+  purchase = null,
+  addItemMode = false
 ) {
-
   const oldModal =
     document.getElementById(
       "purchaseStockModal"
@@ -1420,7 +1632,8 @@ function showPurchaseStockForm(
 
 
   const isEdit =
-    !!purchase;
+  !!purchase &&
+  !addItemMode;
 
 
   const modal =
@@ -1469,10 +1682,14 @@ function showPurchaseStockForm(
 
         <h2 style="margin:0;">
           ${
-            isEdit
-              ? "✏️ Edit Pembelian Stok"
-              : "📦 Tambah Pembelian Stok"
-          }
+  addItemMode
+    ? "＋ Tambah Barang ke Order"
+    : (
+        isEdit
+          ? "✏️ Edit Pembelian Stok"
+          : "📦 Tambah Pembelian Stok"
+      )
+}
         </h2>
 
 
@@ -1693,9 +1910,12 @@ function showPurchaseStockForm(
               id="purchaseItemInput"
               value="${
                 escapeHTML(
-                  purchase?.item_name ||
-                  ""
-                )
+                  addItemMode
+  ? ""
+  : (
+      purchase?.item_name ||
+      ""
+    )
               }"
               placeholder="Contoh: Photobook"
               style="width:100%;"
@@ -1715,8 +1935,12 @@ function showPurchaseStockForm(
               id="purchaseQuantityInput"
               value="${
                 Number(
-                  purchase?.quantity || 0
-                )
+                  addItemMode
+  ? 0
+  : Number(
+      purchase?.quantity ||
+      0
+    )
               }"
               min="0"
               step="1"
@@ -1781,10 +2005,14 @@ function showPurchaseStockForm(
             class="primary-button"
           >
             ${
-              isEdit
-                ? "Simpan Perubahan"
-                : "Simpan Pembelian"
-            }
+  addItemMode
+    ? "Tambah Barang"
+    : (
+        isEdit
+          ? "Simpan Perubahan"
+          : "Simpan Pembelian"
+      )
+}
           </button>
 
         </div>
@@ -1952,42 +2180,42 @@ function showPurchaseStockForm(
 
         if (isEdit) {
 
-          result =
-            await supabaseClient
+  result =
+    await supabaseClient
 
-              .from("purchase_stock")
+      .from("purchase_stock")
 
-              .update(
-                payload
-              )
+      .update(
+        payload
+      )
 
-              .eq(
-                "id",
-                purchase.id
-              )
+      .eq(
+        "id",
+        purchase.id
+      )
 
-              .select()
+      .select()
 
-              .single();
-
-        } else {
-
-          result =
-            await supabaseClient
-
-              .from("purchase_stock")
-
-              .insert(
-                payload
-              )
-
-              .select()
-
-              .single();
-
-        }
+      .single();
 
 
+} else {
+
+  result =
+    await supabaseClient
+
+      .from("purchase_stock")
+
+      .insert(
+        payload
+      )
+
+      .select()
+
+      .single();
+
+}
+              
         if (result.error) {
 
           console.error(
