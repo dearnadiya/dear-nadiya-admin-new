@@ -13927,3 +13927,128 @@ button {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - HEADER BATCH FINAL
+   SINKRON DENGAN admin.js 7 KOLOM
+   ========================================================= */
+
+@media (min-width: 769px) {
+
+  #recapListContainer .recap-batch-table-header,
+  #recapListContainer .recap-batch-card .recap-batch-header {
+
+    display: grid !important;
+
+    grid-template-columns:
+      100px
+      minmax(260px, 1fr)
+      190px
+      75px
+      180px
+      180px
+      45px !important;
+
+    align-items: center !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* Matikan panah tambahan dari CSS lama.
+     Panah sekarang sudah dibuat langsung oleh admin.js */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header::after {
+
+    content: none !important;
+    display: none !important;
+  }
+
+
+  /* Jangan biarkan wrapper lama mengubah
+     struktur grid baru */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header > div:first-child {
+
+    display: block !important;
+  }
+
+
+  /* Kolom Kode Batch */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(1) {
+
+    grid-column: 1 !important;
+  }
+
+
+  /* Kolom Nama Barang */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(2) {
+
+    grid-column: 2 !important;
+  }
+
+
+  /* Kolom Aksi */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(3) {
+
+    grid-column: 3 !important;
+  }
+
+
+  /* Kolom Hapus */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(4) {
+
+    grid-column: 4 !important;
+  }
+
+
+  /* Kolom Tambah Member */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(5) {
+
+    grid-column: 5 !important;
+  }
+
+
+  /* Kolom Status */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(6) {
+
+    grid-column: 6 !important;
+  }
+
+
+  /* Kolom Panah */
+  #recapListContainer
+  .recap-batch-card
+  .recap-batch-header
+  > div:nth-child(7) {
+
+    grid-column: 7 !important;
+  }
+
+}
