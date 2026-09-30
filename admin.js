@@ -1198,7 +1198,7 @@ async function renderPurchaseStockList() {
   style="
     padding:8px 12px;
     text-align:center;
-    width:220px;
+    width:260px;
     font-size:13px;
   "
 >
@@ -1354,35 +1354,41 @@ vertical-align:middle;
                       >
 
                         <div
-                          style="
-                            display:flex;
-                            justify-content:center;
-                            gap:6px;
-                            flex-wrap:wrap;
-                          "
-                        >
+  style="
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:6px;
+    flex-wrap:nowrap;
+    white-space:nowrap;
+  "
+>
 
                           <button
-                            type="button"
-                            class="primary-button purchase-stock-detail-button"
-                            data-purchase-id="${purchaseId}"
-                            style="
-                              padding:7px 12px;
-                              font-size:12px;
-                            "
-                          >
-                            Detail ▼
-                          </button>
-
+  type="button"
+  class="primary-button purchase-stock-detail-button"
+  data-purchase-id="${purchaseId}"
+  style="
+    padding:6px 11px;
+    font-size:12px;
+    width:auto;
+    min-width:82px;
+    white-space:nowrap;
+  "
+>
+  Detail ▲
+</button>
 
                           <button
                             type="button"
                             class="secondary-button purchase-stock-edit-item-button"
                             data-purchase-id="${purchaseId}"
                             style="
-                              padding:7px 12px;
-                              font-size:12px;
-                            "
+  padding:6px 11px;
+  font-size:12px;
+  width:auto;
+  white-space:nowrap;
+"
                           >
                             Edit
                           </button>
@@ -1393,9 +1399,11 @@ vertical-align:middle;
                             class="danger-button purchase-stock-delete-item-button"
                             data-purchase-id="${purchaseId}"
                             style="
-                              padding:7px 12px;
-                              font-size:12px;
-                            "
+  padding:6px 11px;
+  font-size:12px;
+  width:auto;
+  white-space:nowrap;
+"
                           >
                             Hapus
                           </button>
