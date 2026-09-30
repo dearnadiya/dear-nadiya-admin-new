@@ -1403,26 +1403,31 @@ const orders =
 
 
           <button
-            type="button"
-            class="secondary-button purchase-stock-edit-button"
-            data-id="${
-              order.rows[0]?.id || ""
-            }"
-          >
-            Edit
-          </button>
+  type="button"
+  class="secondary-button purchase-stock-edit-button"
+  data-order-number="${escapeHTML(
+    order.order_number || ""
+  )}"
+  data-order-id="${
+    order.rows[0]?.id || ""
+  }"
+>
+  Edit
+</button>
 
 
-          <button
-            type="button"
-            class="danger-button purchase-stock-delete-button"
-            data-id="${
-              order.rows[0]?.id || ""
-            }"
-          >
-            Hapus
-          </button>
-
+<button
+  type="button"
+  class="danger-button purchase-stock-delete-button"
+  data-order-number="${escapeHTML(
+    order.order_number || ""
+  )}"
+  data-order-id="${
+    order.rows[0]?.id || ""
+  }"
+>
+  Hapus
+</button>
         </td>
 
       </tr>
@@ -1518,97 +1523,132 @@ const orders =
      ============================================ */
 
   container
-    .querySelectorAll(
-      ".purchase-stock-edit-button"
-    )
-    .forEach(function(button) {
+  .querySelectorAll(
+    ".purchase-stock-edit-button"
+  )
+  .forEach(function(button) {
 
-      button.addEventListener(
-        "click",
-        async function() {
+    button.addEventListener(
+      "click",
+      async function() {
 
-          const id =
-            Number(
-              button.dataset.id
-            );
+        const orderNumber =
+          String(
+            button.dataset.orderNumber || ""
+          ).trim();
 
-
-          await showPurchaseStockDetail(
-            id
+        const fallbackId =
+          Number(
+            button.dataset.orderId || 0
           );
 
-        }
-      );
 
-    });
+        await showPurchaseStockOrderForm(
+          orderNumber,
+          fallbackId
+        );
 
+      }
+    );
+
+  });
+   
   container
-    .querySelectorAll(
-      ".purchase-stock-delete-button"
-    )
-    .forEach(function(button) {
+  .querySelectorAll(
+    ".purchase-stock-delete-button"
+  )
+  .forEach(function(button) {
 
-      button.addEventListener(
-        "click",
-        async function() {
+    button.addEventListener(
+      "click",
+      async function() {
 
-          const id =
-            Number(
-              button.dataset.id
-            );
+        const orderNumber =
+          String(
+            button.dataset.orderNumber || ""
+          ).trim();
 
-
-          const confirmed =
-            window.confirm(
-              "Yakin ingin menghapus data pembelian ini?"
-            );
-
-
-          if (!confirmed) {
-            return;
-          }
+        const fallbackId =
+          Number(
+            button.dataset.orderId || 0
+          );
 
 
-          const {
-            error
-          } = await supabaseClient
-
+        let query =
+          supabaseClient
             .from("purchase_stock")
+            .delete();
 
-            .delete()
 
-            .eq(
+        if (orderNumber) {
+
+          query =
+            query.eq(
+              "order_number",
+              orderNumber
+            );
+
+        } else {
+
+          query =
+            query.eq(
               "id",
-              id
+              fallbackId
             );
-
-
-          if (error) {
-
-            console.error(
-              "Gagal menghapus pembelian:",
-              error
-            );
-
-
-            alert(
-              "Gagal menghapus data:\n" +
-              error.message
-            );
-
-
-            return;
-
-          }
-
-
-          await renderPurchaseStockList();
 
         }
-      );
 
-    });
 
+        const confirmed =
+          window.confirm(
+            orderNumber
+              ? (
+                  "Yakin ingin menghapus seluruh pembelian " +
+                  "dalam order " +
+                  orderNumber +
+                  "?"
+                )
+              : (
+                  "Yakin ingin menghapus data pembelian ini?"
+                )
+          );
+
+
+        if (!confirmed) {
+          return;
+        }
+
+
+        const {
+          error
+        } = await query;
+
+
+        if (error) {
+
+          console.error(
+            "Gagal menghapus order pembelian:",
+            error
+          );
+
+
+          alert(
+            "Gagal menghapus order:\n" +
+            error.message
+          );
+
+
+          return;
+
+        }
+
+
+        await renderPurchaseStockList();
+
+      }
+    );
+
+  });
 }
 
 
@@ -2258,6 +2298,817 @@ function showPurchaseStockForm(
 
 }
 
+/* ============================================
+   EDIT ORDER PEMBELIAN STOK
+   ============================================ */
+
+async function showPurchaseStockOrderForm(
+  orderNumber,
+  fallbackId
+) {
+
+  let query =
+    supabaseClient
+      .from("purchase_stock")
+      .select(`
+        id,
+        seller_name,
+        web_seller,
+        seller_url,
+        purchase_date,
+        order_number,
+        seller_tracking,
+        box_pengiriman,
+        warehouse_name,
+        item_name,
+        quantity,
+        purchase_note
+      `);
+
+
+  if (orderNumber) {
+
+    query =
+      query.eq(
+        "order_number",
+        orderNumber
+      );
+
+  } else {
+
+    query =
+      query.eq(
+        "id",
+        fallbackId
+      );
+
+  }
+
+
+  const {
+    data,
+    error
+  } = await query
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      "Gagal mengambil order pembelian:",
+      error
+    );
+
+
+    alert(
+      "Gagal mengambil order:\n" +
+      error.message
+    );
+
+
+    return;
+
+  }
+
+
+  const rows =
+    data || [];
+
+
+  if (!rows.length) {
+
+    alert(
+      "Data order tidak ditemukan."
+    );
+
+
+    return;
+
+  }
+
+
+  const first =
+    rows[0];
+
+
+  const oldModal =
+    document.getElementById(
+      "purchaseStockOrderEditModal"
+    );
+
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "purchaseStockOrderEditModal";
+
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  `;
+
+
+  modal.innerHTML = `
+
+    <div
+      style="
+        width:min(900px,100%);
+        max-height:92vh;
+        overflow:auto;
+        background:#fff;
+        border-radius:18px;
+        padding:25px;
+        box-shadow:0 20px 60px rgba(0,0,0,.2);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:20px;
+        "
+      >
+
+        <h2 style="margin:0;">
+          ✏️ Edit Order Pembelian
+        </h2>
+
+
+        <button
+          type="button"
+          id="closePurchaseStockOrderEdit"
+          style="
+            border:0;
+            background:none;
+            font-size:26px;
+            cursor:pointer;
+          "
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          background:#f7f5fa;
+          border-radius:12px;
+          padding:15px;
+          margin-bottom:20px;
+        "
+      >
+
+        <strong>
+          Order:
+          ${escapeHTML(
+            first.order_number || "-"
+          )}
+        </strong>
+
+        <div
+          style="
+            margin-top:5px;
+            color:#777;
+            font-size:13px;
+          "
+        >
+          ${rows.length} barang dalam order ini
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(2,minmax(0,1fr));
+          gap:15px;
+        "
+      >
+
+        <label>
+
+          <div>
+            Tanggal Pembelian
+          </div>
+
+          <input
+            type="date"
+            id="orderEditPurchaseDate"
+            value="${escapeHTML(
+              first.purchase_date || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Seller
+          </div>
+
+          <input
+            type="text"
+            id="orderEditSeller"
+            value="${escapeHTML(
+              first.seller_name || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Web Seller
+          </div>
+
+          <input
+            type="text"
+            id="orderEditWebSeller"
+            value="${escapeHTML(
+              first.web_seller || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Link Seller
+          </div>
+
+          <input
+            type="url"
+            id="orderEditSellerUrl"
+            value="${escapeHTML(
+              first.seller_url || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Nomor Order
+          </div>
+
+          <input
+            type="text"
+            id="orderEditOrderNumber"
+            value="${escapeHTML(
+              first.order_number || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Warehouse
+          </div>
+
+          <input
+            type="text"
+            id="orderEditWarehouse"
+            value="${escapeHTML(
+              first.warehouse_name || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Tracking Seller
+          </div>
+
+          <input
+            type="text"
+            id="orderEditTracking"
+            value="${escapeHTML(
+              first.seller_tracking || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div>
+            Box Pengiriman
+          </div>
+
+          <input
+            type="text"
+            id="orderEditBox"
+            value="${escapeHTML(
+              first.box_pengiriman || ""
+            )}"
+            style="width:100%;"
+          >
+
+        </label>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:25px;
+          margin-bottom:10px;
+          font-weight:700;
+          font-size:16px;
+        "
+      >
+        📦 Daftar Barang
+      </div>
+
+
+      <div
+        id="purchaseOrderItemsContainer"
+      >
+
+        ${
+          rows.map(function(row) {
+
+            return `
+
+              <div
+                class="purchase-order-item-row"
+                data-id="${row.id}"
+                style="
+                  display:grid;
+                  grid-template-columns:
+                    minmax(0,1fr)
+                    130px;
+                  gap:12px;
+                  align-items:end;
+                  padding:12px;
+                  margin-bottom:10px;
+                  background:#fafafa;
+                  border:1px solid #eee;
+                  border-radius:12px;
+                "
+              >
+
+                <label>
+
+                  <div>
+                    Nama Barang
+                  </div>
+
+                  <input
+                    type="text"
+                    class="purchase-order-item-name"
+                    value="${escapeHTML(
+                      row.item_name || ""
+                    )}"
+                    style="width:100%;"
+                    required
+                  >
+
+                </label>
+
+
+                <label>
+
+                  <div>
+                    Qty
+                  </div>
+
+                  <input
+                    type="number"
+                    class="purchase-order-item-quantity"
+                    value="${Number(
+                      row.quantity || 0
+                    )}"
+                    min="0"
+                    step="1"
+                    style="width:100%;"
+                    required
+                  >
+
+                </label>
+
+              </div>
+
+            `;
+
+          }).join("")
+        }
+
+      </div>
+
+
+      <label
+        style="
+          display:block;
+          margin-top:15px;
+        "
+      >
+
+        <div>
+          Catatan
+        </div>
+
+        <textarea
+          id="orderEditNote"
+          rows="3"
+          style="width:100%;resize:vertical;"
+        >${escapeHTML(
+          first.purchase_note || ""
+        )}</textarea>
+
+      </label>
+
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          gap:10px;
+          margin-top:20px;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelPurchaseStockOrderEdit"
+        >
+          Batal
+        </button>
+
+
+        <button
+          type="button"
+          class="primary-button"
+          id="savePurchaseStockOrderEdit"
+        >
+          Simpan Perubahan
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  function closeOrderEditModal() {
+
+    const current =
+      document.getElementById(
+        "purchaseStockOrderEditModal"
+      );
+
+    if (current) {
+      current.remove();
+    }
+
+  }
+
+
+  document
+    .getElementById(
+      "closePurchaseStockOrderEdit"
+    )
+    .addEventListener(
+      "click",
+      closeOrderEditModal
+    );
+
+
+  document
+    .getElementById(
+      "cancelPurchaseStockOrderEdit"
+    )
+    .addEventListener(
+      "click",
+      closeOrderEditModal
+    );
+
+
+  document
+    .getElementById(
+      "savePurchaseStockOrderEdit"
+    )
+    .addEventListener(
+      "click",
+      async function() {
+
+        const saveButton =
+          document.getElementById(
+            "savePurchaseStockOrderEdit"
+          );
+
+
+        const seller =
+          document
+            .getElementById(
+              "orderEditSeller"
+            )
+            .value
+            .trim() || null;
+
+
+        const webSeller =
+          document
+            .getElementById(
+              "orderEditWebSeller"
+            )
+            .value
+            .trim() || null;
+
+
+        const sellerUrl =
+          document
+            .getElementById(
+              "orderEditSellerUrl"
+            )
+            .value
+            .trim() || null;
+
+
+        const purchaseDate =
+          document
+            .getElementById(
+              "orderEditPurchaseDate"
+            )
+            .value || null;
+
+
+        const newOrderNumber =
+          document
+            .getElementById(
+              "orderEditOrderNumber"
+            )
+            .value
+            .trim() || null;
+
+
+        const warehouse =
+          document
+            .getElementById(
+              "orderEditWarehouse"
+            )
+            .value
+            .trim() || null;
+
+
+        const tracking =
+          document
+            .getElementById(
+              "orderEditTracking"
+            )
+            .value
+            .trim() || null;
+
+
+        const box =
+          document
+            .getElementById(
+              "orderEditBox"
+            )
+            .value
+            .trim() || null;
+
+
+        const note =
+          document
+            .getElementById(
+              "orderEditNote"
+            )
+            .value
+            .trim() || null;
+
+
+        const itemRows =
+          Array.from(
+            modal.querySelectorAll(
+              ".purchase-order-item-row"
+            )
+          );
+
+
+        if (!itemRows.length) {
+
+          alert(
+            "Order ini tidak memiliki barang."
+          );
+
+          return;
+
+        }
+
+
+        for (
+          const itemRow of itemRows
+        ) {
+
+          const itemName =
+            itemRow
+              .querySelector(
+                ".purchase-order-item-name"
+              )
+              .value
+              .trim();
+
+          if (!itemName) {
+
+            alert(
+              "Nama barang tidak boleh kosong."
+            );
+
+            return;
+
+          }
+
+        }
+
+
+        saveButton.disabled =
+          true;
+
+        saveButton.textContent =
+          "Menyimpan...";
+
+
+        try {
+
+          /*
+             UPDATE INFORMASI ORDER
+             KE SEMUA BARANG
+          */
+
+          for (
+            const itemRow of itemRows
+          ) {
+
+            const id =
+              Number(
+                itemRow.dataset.id
+              );
+
+
+            const itemName =
+              itemRow
+                .querySelector(
+                  ".purchase-order-item-name"
+                )
+                .value
+                .trim();
+
+
+            const quantity =
+              Number(
+                itemRow
+                  .querySelector(
+                    ".purchase-order-item-quantity"
+                  )
+                  .value
+              ) || 0;
+
+
+            const {
+              error:
+                updateError
+            } =
+              await supabaseClient
+                .from(
+                  "purchase_stock"
+                )
+                .update({
+
+                  seller_name:
+                    seller,
+
+                  web_seller:
+                    webSeller,
+
+                  seller_url:
+                    sellerUrl,
+
+                  purchase_date:
+                    purchaseDate,
+
+                  order_number:
+                    newOrderNumber,
+
+                  seller_tracking:
+                    tracking,
+
+                  box_pengiriman:
+                    box,
+
+                  warehouse_name:
+                    warehouse,
+
+                  item_name:
+                    itemName,
+
+                  quantity:
+                    quantity,
+
+                  purchase_note:
+                    note
+
+                })
+                .eq(
+                  "id",
+                  id
+                );
+
+
+            if (updateError) {
+              throw updateError;
+            }
+
+          }
+
+
+          closeOrderEditModal();
+
+
+          await renderPurchaseStockList();
+
+
+        } catch (error) {
+
+          console.error(
+            "Gagal menyimpan perubahan order:",
+            error
+          );
+
+
+          alert(
+            "Gagal menyimpan perubahan order:\n" +
+            error.message
+          );
+
+
+          saveButton.disabled =
+            false;
+
+          saveButton.textContent =
+            "Simpan Perubahan";
+
+        }
+
+      }
+    );
+
+}
 
 /* ============================================
    DETAIL PEMBELIAN STOK
