@@ -1402,17 +1402,33 @@ async function renderPurchaseStockList() {
                         </div>
 
 
+                                              </td>
+                    </tr>
+
+                    <tr
+                      class="purchase-stock-detail-row"
+                      data-detail-row-id="${purchaseId}"
+                    >
+                      <td
+                        colspan="4"
+                        style="
+                          padding:15px;
+                          background:#fff;
+                        "
+                      >
+
                         <div
                           class="purchase-stock-detail-panel"
                           data-detail-id="${purchaseId}"
                           style="
                             display:none;
-                            margin-top:15px;
+                            width:100%;
+                            box-sizing:border-box;
                             text-align:left;
                             background:#fafafa;
                             border:1px solid #eee;
                             border-radius:12px;
-                            padding:15px;
+                            padding:20px;
                           "
                         >
 
