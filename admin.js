@@ -837,7 +837,6 @@ async function loadPurchaseStock() {
 
 }
 
-
 /* ============================================
    DAFTAR PEMBELIAN STOK
    ============================================ */
@@ -848,7 +847,6 @@ async function renderPurchaseStockList() {
     document.getElementById(
       "purchaseStockList"
     );
-
 
   if (!container) {
     return;
@@ -866,17 +864,22 @@ async function renderPurchaseStockList() {
       id,
       seller_name,
       web_seller,
+      seller_url,
       purchase_date,
       order_number,
       seller_tracking,
       box_pengiriman,
+      warehouse_name,
       item_name,
       quantity,
       purchase_note,
+      seller_currency,
+      seller_price,
+      rate,
+      tax,
+      tracking_status,
       created_at,
-      updated_at,
-      seller_url,
-      warehouse_name
+      updated_at
     `)
 
     .order(
@@ -900,7 +903,6 @@ async function renderPurchaseStockList() {
       "Gagal memuat Pembelian Stok:",
       error
     );
-
 
     container.innerHTML = `
       <div
@@ -931,175 +933,14 @@ async function renderPurchaseStockList() {
     `;
 
     return;
-
   }
 
 
   const rows =
-  data || [];
-
-     /* ============================================
-     DATA PEMBAGIAN STOK
-     ============================================ */
-
-  const purchaseStockIds =
-    rows
-      .map(function(row) {
-        return Number(row.id);
-      })
-      .filter(function(id) {
-        return id > 0;
-      });
+    data || [];
 
 
-  let purchaseStockAllocations = [];
-
-  if (purchaseStockIds.length) {
-
-    const {
-      data: allocationData,
-      error: allocationError
-    } = await supabaseClient
-      .from("purchase_stock_allocation")
-      .select(`
-        id,
-        purchase_stock_id,
-        allocation_name,
-        quantity,
-        allocation_note
-      `)
-      .in(
-        "purchase_stock_id",
-        purchaseStockIds
-      );
-
-    if (allocationError) {
-
-      console.error(
-        "Gagal memuat pembagian stok:",
-        allocationError
-      );
-
-      container.innerHTML = `
-        <div
-          style="
-            padding:25px;
-            background:#fff;
-            border-radius:14px;
-            color:#b42318;
-          "
-        >
-          <strong>
-            Gagal memuat pembagian stok.
-          </strong>
-
-          <div
-            style="
-              margin-top:8px;
-              font-size:13px;
-            "
-          >
-            ${escapeHTML(
-              allocationError.message || ""
-            )}
-          </div>
-        </div>
-      `;
-
-      return;
-    }
-
-    purchaseStockAllocations =
-      allocationData || [];
-  }
-
-
-  const allocationMap = {};
-
-  purchaseStockAllocations.forEach(
-    function(allocation) {
-
-      const purchaseId =
-        Number(
-          allocation.purchase_stock_id
-        );
-
-      if (!allocationMap[purchaseId]) {
-        allocationMap[purchaseId] = [];
-      }
-
-      allocationMap[purchaseId].push(
-        allocation
-      );
-
-    }
-  );
-
-/* ============================================
-   KELOMPOKKAN BERDASARKAN ORDER
-   ============================================ */
-
-const groupedOrders = {};
-
-rows.forEach(function(row) {
-
-  const orderKey =
-    String(
-      row.order_number || ""
-    ).trim() ||
-    `NO_ORDER_${row.id}`;
-
-  if (!groupedOrders[orderKey]) {
-
-    groupedOrders[orderKey] = {
-      order_number:
-        row.order_number || "",
-
-      seller_name:
-        row.seller_name || "",
-
-      web_seller:
-        row.web_seller || "",
-
-      seller_url:
-        row.seller_url || "",
-
-      purchase_date:
-        row.purchase_date || "",
-
-      seller_tracking:
-        row.seller_tracking || "",
-
-      box_pengiriman:
-        row.box_pengiriman || "",
-
-      warehouse_name:
-        row.warehouse_name || "",
-
-      purchase_note:
-        row.purchase_note || "",
-
-      rows: []
-
-    };
-
-  }
-
-
-  groupedOrders[orderKey].rows.push(
-    row
-  );
-
-});
-
-
-const orders =
-  Object.values(
-    groupedOrders
-  );
-
-
-  if (!orders.length) {
+  if (!rows.length) {
 
     container.innerHTML = `
       <div
@@ -1139,9 +980,135 @@ const orders =
     `;
 
     return;
-
   }
 
+
+  /*
+     ============================================
+     AMBIL DATA PEMBAGIAN STOK
+     ============================================
+  */
+
+  const purchaseStockIds =
+    rows
+      .map(function(row) {
+        return Number(row.id);
+      })
+      .filter(function(id) {
+        return id > 0;
+      });
+
+
+  let purchaseStockAllocations = [];
+
+
+  if (purchaseStockIds.length) {
+
+    const {
+      data: allocationData,
+      error: allocationError
+    } = await supabaseClient
+
+      .from(
+        "purchase_stock_allocation"
+      )
+
+      .select(`
+        id,
+        purchase_stock_id,
+        allocation_name,
+        quantity,
+        allocation_note
+      `)
+
+      .in(
+        "purchase_stock_id",
+        purchaseStockIds
+      );
+
+
+    if (allocationError) {
+
+      console.error(
+        "Gagal memuat pembagian stok:",
+        allocationError
+      );
+
+      container.innerHTML = `
+        <div
+          style="
+            padding:25px;
+            background:#fff;
+            border-radius:14px;
+            color:#b42318;
+          "
+        >
+
+          <strong>
+            Gagal memuat pembagian stok.
+          </strong>
+
+          <div
+            style="
+              margin-top:8px;
+              font-size:13px;
+            "
+          >
+            ${escapeHTML(
+              allocationError.message || ""
+            )}
+          </div>
+
+        </div>
+      `;
+
+      return;
+    }
+
+
+    purchaseStockAllocations =
+      allocationData || [];
+  }
+
+
+  /*
+     ============================================
+     MAP PEMBAGIAN STOK
+     ============================================
+  */
+
+  const allocationMap = {};
+
+
+  purchaseStockAllocations.forEach(
+    function(allocation) {
+
+      const purchaseId =
+        Number(
+          allocation.purchase_stock_id
+        );
+
+
+      if (!allocationMap[purchaseId]) {
+
+        allocationMap[purchaseId] = [];
+
+      }
+
+
+      allocationMap[purchaseId].push(
+        allocation
+      );
+
+    }
+  );
+
+
+  /*
+     ============================================
+     TAMPILAN UTAMA
+     ============================================
+  */
 
   container.innerHTML = `
     <div
@@ -1159,7 +1126,9 @@ const orders =
           font-weight:700;
         "
       >
+
         Daftar Pembelian
+
         <span
           style="
             color:#888;
@@ -1167,8 +1136,9 @@ const orders =
             margin-left:5px;
           "
         >
-          (${orders.length} order)
+          (${rows.length} barang)
         </span>
+
       </div>
 
 
@@ -1182,7 +1152,7 @@ const orders =
           style="
             width:100%;
             border-collapse:collapse;
-            min-width:1050px;
+            min-width:700px;
           "
         >
 
@@ -1196,71 +1166,39 @@ const orders =
 
               <th
                 style="
-                  padding:12px;
+                  padding:12px 15px;
                   text-align:left;
                 "
               >
-                Tanggal
+                Nama Barang
               </th>
+
 
               <th
                 style="
-                  padding:12px;
-                  text-align:left;
-                "
-              >
-                Seller
-              </th>
-
-              <th
-                style="
-                  padding:12px;
-                  text-align:left;
-                "
-              >
-                Order
-              </th>
-
-              <th
-                style="
-                  padding:12px;
+                  padding:12px 15px;
                   text-align:left;
                 "
               >
                 Warehouse
               </th>
 
-              <th
-                style="
-                  padding:12px;
-                  text-align:left;
-                "
-              >
-                Barang
-              </th>
 
               <th
                 style="
-                  padding:12px;
-                  text-align:center;
-                "
-              >
-                Qty
-              </th>
-
-              <th
-                style="
-                  padding:12px;
+                  padding:12px 15px;
                   text-align:left;
                 "
               >
                 Tracking
               </th>
 
+
               <th
                 style="
-                  padding:12px;
+                  padding:12px 15px;
                   text-align:center;
+                  width:220px;
                 "
               >
                 Aksi
@@ -1274,405 +1212,655 @@ const orders =
           <tbody>
 
             ${
-              orders
-  .map(function(order) {
+              rows
+                .map(function(row) {
 
-    const totalQuantity =
-      order.rows.reduce(
-        function(total, row) {
-
-          return (
-            total +
-            (
-              Number(
-                row.quantity || 0
-              )
-            )
-          );
-
-        },
-        0
-      );
+                  const purchaseId =
+                    Number(
+                      row.id
+                    );
 
 
-        const itemList =
-      order.rows
-        .map(function(row) {
-
-          const purchaseQuantity =
-            Number(
-              row.quantity || 0
-            );
-
-          const allocations =
-            allocationMap[
-              Number(row.id)
-            ] || [];
-
-          const totalAllocated =
-            allocations.reduce(
-              function(total, allocation) {
-
-                return (
-                  total +
-                  Number(
-                    allocation.quantity || 0
-                  )
-                );
-
-              },
-              0
-            );
-
-          const remainingStock =
-            Math.max(
-              purchaseQuantity -
-              totalAllocated,
-              0
-            );
+                  const allocations =
+                    allocationMap[
+                      purchaseId
+                    ] || [];
 
 
-          return `
-            <div
-              style="
-                padding:9px 0;
-                border-bottom:1px dashed #eee;
-              "
-            >
-
-              <div
-                style="
-                  display:flex;
-                  justify-content:space-between;
-                  gap:15px;
-                  align-items:center;
-                "
-              >
-
-                <span>
-                  ${escapeHTML(
-                    row.item_name || "-"
-                  )}
-                </span>
-
-                <strong>
-                  ${purchaseQuantity} pcs
-                </strong>
-
-              </div>
+                  const purchaseQuantity =
+                    Number(
+                      row.quantity || 0
+                    );
 
 
-              <div
-                style="
-                  margin-top:6px;
-                  font-size:12px;
-                  color:#666;
-                "
-              >
+                  const totalAllocated =
+                    allocations.reduce(
+                      function(
+                        total,
+                        allocation
+                      ) {
 
-                Dialokasi:
-                <strong>
-                  ${totalAllocated} pcs
-                </strong>
+                        return (
+                          total +
+                          Number(
+                            allocation.quantity || 0
+                          )
+                        );
 
-                &nbsp; | &nbsp;
-
-                Sisa:
-                <strong
-                  style="
-                    color:${
-                      remainingStock > 0
-                        ? "#b26a00"
-                        : "#16803c"
-                    };
-                  "
-                >
-                  ${remainingStock} pcs
-                </strong>
-
-              </div>
+                      },
+                      0
+                    );
 
 
-              ${
-                allocations.length
-                  ? `
-                    <div
+                  const remainingStock =
+                    Math.max(
+                      purchaseQuantity -
+                      totalAllocated,
+                      0
+                    );
+
+
+                  return `
+                    <tr
                       style="
-                        margin-top:6px;
-                        font-size:12px;
-                        color:#777;
+                        border-top:1px solid #eee;
                       "
                     >
 
-                      ${allocations
-                        .map(function(
-                          allocation
-                        ) {
+                      <td
+                        style="
+                          padding:15px;
+                          vertical-align:middle;
+                        "
+                      >
 
-                          return `
+                        <strong>
+                          ${escapeHTML(
+                            row.item_name || "-"
+                          )}
+                        </strong>
+
+                        <div
+                          style="
+                            margin-top:4px;
+                            font-size:12px;
+                            color:#777;
+                          "
+                        >
+                          Qty:
+                          ${purchaseQuantity} pcs
+                        </div>
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:15px;
+                          vertical-align:middle;
+                        "
+                      >
+
+                        ${escapeHTML(
+                          row.warehouse_name ||
+                          "-"
+                        )}
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:15px;
+                          vertical-align:middle;
+                        "
+                      >
+
+                        <strong>
+                          ${escapeHTML(
+                            row.seller_tracking ||
+                            "-"
+                          )}
+                        </strong>
+
+                        ${
+                          row.tracking_status
+                            ? `
+                              <div
+                                style="
+                                  margin-top:4px;
+                                  font-size:12px;
+                                  color:#777;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.tracking_status
+                                )}
+                              </div>
+                            `
+                            : ""
+                        }
+
+                      </td>
+
+
+                      <td
+                        style="
+                          padding:15px;
+                          text-align:center;
+                          vertical-align:middle;
+                        "
+                      >
+
+                        <div
+                          style="
+                            display:flex;
+                            justify-content:center;
+                            gap:6px;
+                            flex-wrap:wrap;
+                          "
+                        >
+
+                          <button
+                            type="button"
+                            class="primary-button purchase-stock-detail-button"
+                            data-purchase-id="${purchaseId}"
+                            style="
+                              padding:7px 12px;
+                              font-size:12px;
+                            "
+                          >
+                            Detail ▼
+                          </button>
+
+
+                          <button
+                            type="button"
+                            class="secondary-button purchase-stock-edit-item-button"
+                            data-purchase-id="${purchaseId}"
+                            style="
+                              padding:7px 12px;
+                              font-size:12px;
+                            "
+                          >
+                            Edit
+                          </button>
+
+
+                          <button
+                            type="button"
+                            class="danger-button purchase-stock-delete-item-button"
+                            data-purchase-id="${purchaseId}"
+                            style="
+                              padding:7px 12px;
+                              font-size:12px;
+                            "
+                          >
+                            Hapus
+                          </button>
+
+                        </div>
+
+
+                        <div
+                          class="purchase-stock-detail-panel"
+                          data-detail-id="${purchaseId}"
+                          style="
+                            display:none;
+                            margin-top:15px;
+                            text-align:left;
+                            background:#fafafa;
+                            border:1px solid #eee;
+                            border-radius:12px;
+                            padding:15px;
+                          "
+                        >
+
+                          <div
+                            style="
+                              font-weight:700;
+                              margin-bottom:12px;
+                            "
+                          >
+                            📦 Detail Pembelian
+                          </div>
+
+
+                          <div
+                            style="
+                              display:grid;
+                              grid-template-columns:
+                                repeat(
+                                  2,
+                                  minmax(0,1fr)
+                                );
+                              gap:10px;
+                              font-size:13px;
+                            "
+                          >
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Tanggal Order
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${formatDate(
+                                  row.purchase_date
+                                )}
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Seller
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.seller_name ||
+                                  "-"
+                                )}
+                              </div>
+
+                              ${
+                                row.web_seller
+                                  ? `
+                                    <div
+                                      style="
+                                        color:#777;
+                                        font-size:12px;
+                                        margin-top:2px;
+                                      "
+                                    >
+                                      ${escapeHTML(
+                                        row.web_seller
+                                      )}
+                                    </div>
+                                  `
+                                  : ""
+                              }
+
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                No Order
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.order_number ||
+                                  "-"
+                                )}
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Jumlah
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${purchaseQuantity}
+                                pcs
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Harga Seller
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${
+                                  row.seller_price !== null &&
+                                  row.seller_price !== undefined
+                                    ? Number(
+                                        row.seller_price
+                                      ).toLocaleString(
+                                        "id-ID"
+                                      )
+                                    : "-"
+                                }
+
+                                ${
+                                  row.seller_currency
+                                    ? " " +
+                                      escapeHTML(
+                                        row.seller_currency
+                                      )
+                                    : ""
+                                }
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Rate
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${
+                                  row.rate !== null &&
+                                  row.rate !== undefined
+                                    ? Number(
+                                        row.rate
+                                      ).toLocaleString(
+                                        "id-ID"
+                                      )
+                                    : "-"
+                                }
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Tax
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${
+                                  row.tax !== null &&
+                                  row.tax !== undefined
+                                    ? Number(
+                                        row.tax
+                                      ).toLocaleString(
+                                        "id-ID"
+                                      )
+                                    : "-"
+                                }
+                              </div>
+                            </div>
+
+
+                            <div>
+                              <span
+                                style="
+                                  color:#777;
+                                "
+                              >
+                                Status Tracking
+                              </span>
+
+                              <div
+                                style="
+                                  font-weight:600;
+                                  margin-top:2px;
+                                "
+                              >
+                                ${escapeHTML(
+                                  row.tracking_status ||
+                                  "-"
+                                )}
+                              </div>
+                            </div>
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:18px;
+                              padding-top:15px;
+                              border-top:1px solid #e5e5e5;
+                            "
+                          >
+
                             <div
                               style="
                                 display:flex;
                                 justify-content:space-between;
+                                align-items:center;
                                 gap:10px;
-                                margin-top:3px;
+                                margin-bottom:10px;
+                              "
+                            >
+
+                              <strong>
+                                📦 Alokasi Barang
+                              </strong>
+
+
+                              <button
+                                type="button"
+                                class="secondary-button purchase-stock-allocation-button"
+                                data-purchase-id="${purchaseId}"
+                                style="
+                                  padding:6px 10px;
+                                  font-size:12px;
+                                "
+                              >
+                                Pembagian Stok
+                              </button>
+
+                            </div>
+
+
+                            ${
+                              allocations.length
+                                ? `
+                                  <div
+                                    style="
+                                      font-size:12px;
+                                    "
+                                  >
+
+                                    ${allocations
+                                      .map(
+                                        function(
+                                          allocation
+                                        ) {
+
+                                          return `
+                                            <div
+                                              style="
+                                                display:flex;
+                                                justify-content:space-between;
+                                                gap:10px;
+                                                padding:7px 0;
+                                                border-bottom:1px dashed #ddd;
+                                              "
+                                            >
+
+                                              <span>
+                                                📦
+                                                ${escapeHTML(
+                                                  allocation.allocation_name ||
+                                                  "-"
+                                                )}
+                                              </span>
+
+                                              <strong>
+                                                ${Number(
+                                                  allocation.quantity ||
+                                                  0
+                                                )}
+                                                pcs
+                                              </strong>
+
+                                            </div>
+                                          `;
+
+                                        }
+                                      )
+                                      .join("")}
+
+                                  </div>
+                                `
+                                : `
+                                  <div
+                                    style="
+                                      color:#999;
+                                      font-size:12px;
+                                    "
+                                  >
+                                    Belum ada pembagian stok.
+                                  </div>
+                                `
+                            }
+
+
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:space-between;
+                                margin-top:12px;
+                                font-size:13px;
                               "
                             >
 
                               <span>
-                                📦
-                                ${escapeHTML(
-                                  allocation.allocation_name ||
-                                  "-"
-                                )}
+                                Total Dialokasi
                               </span>
 
                               <strong>
-                                ${Number(
-                                  allocation.quantity || 0
-                                )} pcs
+                                ${totalAllocated} pcs
                               </strong>
 
                             </div>
-                          `;
-
-                        })
-                        .join("")}
-
-                    </div>
-                  `
-                  : ""
-              }
 
 
-              <div
-                style="
-                  margin-top:8px;
-                "
-              >
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:space-between;
+                                margin-top:4px;
+                                font-size:13px;
+                              "
+                            >
 
-                <button
-                  type="button"
-                  class="secondary-button purchase-stock-allocation-button"
-                  data-purchase-id="${row.id}"
-                  style="
-                    font-size:12px;
-                    padding:6px 10px;
-                  "
-                >
-                  📦 Pembagian Stok
-                </button>
+                              <span>
+                                Sisa Stok
+                              </span>
 
-              </div>
+                              <strong
+                                style="
+                                  color:${
+                                    remainingStock > 0
+                                      ? "#b26a00"
+                                      : "#16803c"
+                                  };
+                                "
+                              >
+                                ${remainingStock} pcs
+                              </strong>
 
-            </div>
-          `;
+                            </div>
 
-        })
-        .join("");
-
-    return `
-      <tr
-        style="
-          border-top:1px solid #eee;
-        "
-      >
-
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-            white-space:nowrap;
-          "
-        >
-          ${escapeHTML(
-            order.purchase_date || "-"
-          )}
-        </td>
+                          </div>
 
 
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-          "
-        >
+                          ${
+                            row.purchase_note
+                              ? `
+                                <div
+                                  style="
+                                    margin-top:15px;
+                                    padding-top:12px;
+                                    border-top:1px solid #e5e5e5;
+                                    font-size:13px;
+                                  "
+                                >
 
-          <strong>
-            ${escapeHTML(
-              order.seller_name || "-"
-            )}
-          </strong>
+                                  <div
+                                    style="
+                                      color:#777;
+                                      margin-bottom:3px;
+                                    "
+                                  >
+                                    Catatan
+                                  </div>
 
-          ${
-            order.web_seller
-              ? `
-                <div
-                  style="
-                    color:#777;
-                    font-size:12px;
-                    margin-top:3px;
-                  "
-                >
-                  ${escapeHTML(
-                    order.web_seller
-                  )}
-                </div>
-              `
-              : ""
-          }
+                                  <div>
+                                    ${escapeHTML(
+                                      row.purchase_note
+                                    )}
+                                  </div>
 
-        </td>
+                                </div>
+                              `
+                              : ""
+                          }
 
+                        </div>
 
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-          "
-        >
+                      </td>
 
-          <strong>
-            ${escapeHTML(
-              order.order_number ||
-              "-"
-            )}
-          </strong>
+                    </tr>
+                  `;
 
-        </td>
-
-
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-          "
-        >
-
-          ${escapeHTML(
-            order.warehouse_name ||
-            "-"
-          )}
-
-        </td>
-
-
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-            min-width:220px;
-          "
-        >
-
-          ${itemList}
-
-        </td>
-
-
-        <td
-          style="
-            padding:15px;
-            text-align:center;
-            vertical-align:top;
-            font-weight:700;
-            white-space:nowrap;
-          "
-        >
-
-          ${totalQuantity}
-          pcs
-
-        </td>
-
-
-        <td
-          style="
-            padding:15px;
-            vertical-align:top;
-          "
-        >
-
-          ${escapeHTML(
-            order.seller_tracking ||
-            "-"
-          )}
-
-          ${
-            order.box_pengiriman
-              ? `
-                <div
-                  style="
-                    color:#777;
-                    font-size:12px;
-                    margin-top:4px;
-                  "
-                >
-                  Box:
-                  ${escapeHTML(
-                    order.box_pengiriman
-                  )}
-                </div>
-              `
-              : ""
-          }
-
-        </td>
-
-
-        <td
-          style="
-            padding:15px;
-            text-align:center;
-            vertical-align:top;
-            white-space:nowrap;
-          "
-        >
-
-          <button
-            type="button"
-            class="primary-button purchase-stock-add-item-button"
-            data-order-id="${
-              order.rows[0]?.id || ""
-            }"
-          >
-            ＋ Barang
-          </button>
-
-
-          <button
-  type="button"
-  class="secondary-button purchase-stock-edit-button"
-  data-order-number="${escapeHTML(
-    order.order_number || ""
-  )}"
-  data-order-id="${
-    order.rows[0]?.id || ""
-  }"
->
-  Edit
-</button>
-
-
-<button
-  type="button"
-  class="danger-button purchase-stock-delete-button"
-  data-order-number="${escapeHTML(
-    order.order_number || ""
-  )}"
-  data-order-id="${
-    order.rows[0]?.id || ""
-  }"
->
-  Hapus
-</button>
-        </td>
-
-      </tr>
-    `;
-
-  })
-  .join("")
+                })
+                .join("")
             }
 
           </tbody>
@@ -1685,242 +1873,305 @@ const orders =
   `;
 
 
-    /* ============================================
-     TOMBOL TAMBAH BARANG
-     ============================================ */
+  /*
+     ============================================
+     TOMBOL DETAIL
+     ============================================
+  */
 
   container
     .querySelectorAll(
-      ".purchase-stock-add-item-button"
+      ".purchase-stock-detail-button"
     )
-    .forEach(function(button) {
+    .forEach(
+      function(button) {
 
-      button.addEventListener(
-        "click",
-        async function() {
+        button.addEventListener(
+          "click",
+          function() {
 
-          const id =
-            Number(
-              button.dataset.orderId
-            );
-
-
-          const {
-            data,
-            error
-          } = await supabaseClient
-
-            .from("purchase_stock")
-
-            .select(`
-              id,
-              seller_name,
-              web_seller,
-              seller_url,
-              purchase_date,
-              order_number,
-              seller_tracking,
-              box_pengiriman,
-              warehouse_name,
-              purchase_note
-            `)
-
-            .eq(
-              "id",
-              id
-            )
-
-            .single();
+            const purchaseId =
+              Number(
+                button.dataset.purchaseId
+              );
 
 
-          if (error) {
+            const panel =
+              container.querySelector(
+                `[data-detail-id="${purchaseId}"]`
+              );
 
-            alert(
-              "Gagal mengambil data order:\n" +
-              error.message
-            );
 
-            return;
+            if (!panel) {
+              return;
+            }
+
+
+            const isOpen =
+              panel.style.display !==
+              "none";
+
+
+            panel.style.display =
+              isOpen
+                ? "none"
+                : "block";
+
+
+            button.textContent =
+              isOpen
+                ? "Detail ▼"
+                : "Detail ▲";
 
           }
-
-
-          showPurchaseStockForm(
-            data,
-            true
-          );
-
-        }
-      );
-
-    });
-
-     /* ============================================
-     TOMBOL PEMBAGIAN STOK
-     ============================================ */
-
-  container
-    .querySelectorAll(
-      ".purchase-stock-allocation-button"
-    )
-    .forEach(function(button) {
-
-      button.addEventListener(
-        "click",
-        async function() {
-
-          const purchaseId =
-            Number(
-              button.dataset.purchaseId
-            );
-
-          if (!purchaseId) {
-            alert(
-              "ID pembelian tidak ditemukan."
-            );
-            return;
-          }
-
-          await showPurchaseStockAllocationForm(
-            purchaseId
-          );
-
-        }
-      );
-
-    });
-
-  /* ============================================
-     TOMBOL EDIT
-     ============================================ */
-
-  container
-  .querySelectorAll(
-    ".purchase-stock-edit-button"
-  )
-  .forEach(function(button) {
-
-    button.addEventListener(
-      "click",
-      async function() {
-
-        const orderNumber =
-          String(
-            button.dataset.orderNumber || ""
-          ).trim();
-
-        const fallbackId =
-          Number(
-            button.dataset.orderId || 0
-          );
-
-
-        await showPurchaseStockOrderForm(
-          orderNumber,
-          fallbackId
         );
 
       }
     );
 
-  });
-   
+
+  /*
+     ============================================
+     TOMBOL PEMBAGIAN STOK
+     ============================================
+  */
+
   container
-  .querySelectorAll(
-    ".purchase-stock-delete-button"
-  )
-  .forEach(function(button) {
+    .querySelectorAll(
+      ".purchase-stock-allocation-button"
+    )
+    .forEach(
+      function(button) {
 
-    button.addEventListener(
-      "click",
-      async function() {
+        button.addEventListener(
+          "click",
+          async function() {
 
-        const orderNumber =
-          String(
-            button.dataset.orderNumber || ""
-          ).trim();
-
-        const fallbackId =
-          Number(
-            button.dataset.orderId || 0
-          );
+            const purchaseId =
+              Number(
+                button.dataset.purchaseId
+              );
 
 
-        let query =
-          supabaseClient
-            .from("purchase_stock")
-            .delete();
+            if (!purchaseId) {
+
+              alert(
+                "ID pembelian tidak ditemukan."
+              );
+
+              return;
+            }
 
 
-        if (orderNumber) {
-
-          query =
-            query.eq(
-              "order_number",
-              orderNumber
+            await showPurchaseStockAllocationForm(
+              purchaseId
             );
 
-        } else {
-
-          query =
-            query.eq(
-              "id",
-              fallbackId
-            );
-
-        }
-
-
-        const confirmed =
-          window.confirm(
-            orderNumber
-              ? (
-                  "Yakin ingin menghapus seluruh pembelian " +
-                  "dalam order " +
-                  orderNumber +
-                  "?"
-                )
-              : (
-                  "Yakin ingin menghapus data pembelian ini?"
-                )
-          );
-
-
-        if (!confirmed) {
-          return;
-        }
-
-
-        const {
-          error
-        } = await query;
-
-
-        if (error) {
-
-          console.error(
-            "Gagal menghapus order pembelian:",
-            error
-          );
-
-
-          alert(
-            "Gagal menghapus order:\n" +
-            error.message
-          );
-
-
-          return;
-
-        }
-
-
-        await renderPurchaseStockList();
+          }
+        );
 
       }
     );
 
-  });
+
+  /*
+     ============================================
+     TOMBOL EDIT BARANG
+     ============================================
+  */
+
+  container
+    .querySelectorAll(
+      ".purchase-stock-edit-item-button"
+    )
+    .forEach(
+      function(button) {
+
+        button.addEventListener(
+          "click",
+          async function() {
+
+            const purchaseId =
+              Number(
+                button.dataset.purchaseId
+              );
+
+
+            if (!purchaseId) {
+
+              alert(
+                "ID pembelian tidak ditemukan."
+              );
+
+              return;
+            }
+
+
+            const {
+              data,
+              error
+            } = await supabaseClient
+
+              .from("purchase_stock")
+
+              .select(`
+                id,
+                seller_name,
+                web_seller,
+                seller_url,
+                purchase_date,
+                order_number,
+                seller_tracking,
+                box_pengiriman,
+                warehouse_name,
+                item_name,
+                quantity,
+                purchase_note,
+                seller_currency,
+                seller_price,
+                rate,
+                tax,
+                tracking_status
+              `)
+
+              .eq(
+                "id",
+                purchaseId
+              )
+
+              .single();
+
+
+            if (error) {
+
+              console.error(
+                "Gagal mengambil data pembelian:",
+                error
+              );
+
+              alert(
+                "Gagal mengambil data pembelian:\n" +
+                error.message
+              );
+
+              return;
+            }
+
+
+            showPurchaseStockForm(
+              data,
+              false
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /*
+     ============================================
+     TOMBOL HAPUS BARANG
+     ============================================
+  */
+
+  container
+    .querySelectorAll(
+      ".purchase-stock-delete-item-button"
+    )
+    .forEach(
+      function(button) {
+
+        button.addEventListener(
+          "click",
+          async function() {
+
+            const purchaseId =
+              Number(
+                button.dataset.purchaseId
+              );
+
+
+            if (!purchaseId) {
+
+              alert(
+                "ID pembelian tidak ditemukan."
+              );
+
+              return;
+            }
+
+
+            const row =
+              rows.find(
+                function(item) {
+
+                  return (
+                    Number(item.id) ===
+                    purchaseId
+                  );
+
+                }
+              );
+
+
+            const itemName =
+              row?.item_name ||
+              "barang ini";
+
+
+            const confirmed =
+              window.confirm(
+                "Yakin ingin menghapus pembelian " +
+                itemName +
+                "?"
+              );
+
+
+            if (!confirmed) {
+              return;
+            }
+
+
+            const {
+              error
+            } = await supabaseClient
+
+              .from("purchase_stock")
+
+              .delete()
+
+              .eq(
+                "id",
+                purchaseId
+              );
+
+
+            if (error) {
+
+              console.error(
+                "Gagal menghapus pembelian stok:",
+                error
+              );
+
+              alert(
+                "Gagal menghapus pembelian:\n" +
+                error.message
+              );
+
+              return;
+            }
+
+
+            await renderPurchaseStockList();
+
+          }
+        );
+
+      }
+    );
+
 }
 
 /* ============================================
@@ -3217,118 +3468,287 @@ function showPurchaseStockForm(
     "
   >
 
-    <strong>
-      📦 Daftar Barang
-    </strong>
+    <div
+  style="
+    grid-column:1 / -1;
+    margin-top:5px;
+  "
+>
 
-    ${
-      !isEdit
-        ? `
-          <button
-            type="button"
-            id="addPurchaseItemButton"
-            class="secondary-button"
-          >
-            ＋ Tambah Barang
-          </button>
-        `
-        : ""
-    }
-
-  </div>
-
+  <strong>
+    📦 Barang
+  </strong>
 
   <div
-    id="purchaseItemsContainer"
+    style="
+      display:grid;
+      grid-template-columns:
+        minmax(0,1fr)
+        130px;
+      gap:15px;
+      margin-top:10px;
+    "
   >
 
-    <div
-      class="purchase-item-row"
-      style="
-        display:grid;
-        grid-template-columns:
-          minmax(0,1fr)
-          130px
-          45px;
-        gap:10px;
-        align-items:end;
-        margin-bottom:10px;
-      "
-    >
+    <label>
 
-      <label>
+      <div>
+        Nama Barang
+      </div>
 
-        <div>
-          Nama Barang
-        </div>
-
-        <input
-          type="text"
-          class="purchase-item-name"
-          value="${
-            escapeHTML(
-              addItemMode
-                ? ""
-                : (
-                    purchase?.item_name ||
-                    ""
-                  )
-            )
-          }"
-          placeholder="Contoh: Photobook"
-          style="width:100%;"
-          required
-        >
-
-      </label>
-
-
-      <label>
-
-        <div>
-          Jumlah
-        </div>
-
-        <input
-          type="number"
-          class="purchase-item-quantity"
-          value="${
-            addItemMode
-              ? 0
-              : Number(
-                  purchase?.quantity ||
-                  0
-                )
-          }"
-          min="0"
-          step="1"
-          style="width:100%;"
-          required
-        >
-
-      </label>
-
-
-      <button
-        type="button"
-        class="remove-purchase-item-button"
-        style="
-          height:40px;
-          border:0;
-          border-radius:8px;
-          background:#f3e9ef;
-          color:#a33;
-          cursor:pointer;
-          font-size:18px;
-        "
-        title="Hapus barang"
+      <input
+        type="text"
+        id="purchaseItemNameInput"
+        value="${
+          escapeHTML(
+            purchase?.item_name || ""
+          )
+        }"
+        placeholder="Contoh: PC Knpops"
+        style="width:100%;"
+        required
       >
-        ×
-      </button>
 
-    </div>
+    </label>
+
+
+    <label>
+
+      <div>
+        Jumlah
+      </div>
+
+      <input
+        type="number"
+        id="purchaseQuantityInput"
+        value="${
+          Number(
+            purchase?.quantity || 0
+          )
+        }"
+        min="0"
+        step="1"
+        style="width:100%;"
+        required
+      >
+
+    </label>
 
   </div>
+
+</div>
+
+<div
+  style="
+    grid-column:1 / -1;
+    margin-top:5px;
+  "
+>
+
+  <strong>
+    💰 Harga Pembelian
+  </strong>
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:
+        160px
+        minmax(0,1fr)
+        160px
+        minmax(0,1fr);
+      gap:15px;
+      margin-top:10px;
+    "
+  >
+
+    <label>
+
+      <div>
+        Mata Uang Seller
+      </div>
+
+      <select
+        id="purchaseSellerCurrencyInput"
+        style="width:100%;"
+      >
+
+        <option value="">
+          Pilih
+        </option>
+
+        <option value="KRW"
+          ${
+            purchase?.seller_currency ===
+            "KRW"
+              ? "selected"
+              : ""
+          }
+        >
+          KRW - Won
+        </option>
+
+        <option value="JPY"
+          ${
+            purchase?.seller_currency ===
+            "JPY"
+              ? "selected"
+              : ""
+          }
+        >
+          JPY - Yen
+        </option>
+
+        <option value="CNY"
+          ${
+            purchase?.seller_currency ===
+            "CNY"
+              ? "selected"
+              : ""
+          }
+        >
+          CNY - Yuan
+        </option>
+
+        <option value="THB"
+          ${
+            purchase?.seller_currency ===
+            "THB"
+              ? "selected"
+              : ""
+          }
+        >
+          THB - Baht
+        </option>
+
+        <option value="IDR"
+          ${
+            purchase?.seller_currency ===
+            "IDR"
+              ? "selected"
+              : ""
+          }
+        >
+          IDR - Rupiah
+        </option>
+
+        <option value="USD"
+          ${
+            purchase?.seller_currency ===
+            "USD"
+              ? "selected"
+              : ""
+          }
+        >
+          USD - Dollar
+        </option>
+
+      </select>
+
+    </label>
+
+
+    <label>
+
+      <div>
+        Harga Seller
+      </div>
+
+      <input
+        type="number"
+        id="purchaseSellerPriceInput"
+        value="${
+          purchase?.seller_price !== null &&
+          purchase?.seller_price !== undefined
+            ? purchase.seller_price
+            : ""
+        }"
+        min="0"
+        step="0.01"
+        placeholder="Contoh: 20000"
+        style="width:100%;"
+      >
+
+    </label>
+
+
+    <label>
+
+      <div>
+        Rate
+      </div>
+
+      <input
+        type="number"
+        id="purchaseRateInput"
+        value="${
+          purchase?.rate !== null &&
+          purchase?.rate !== undefined
+            ? purchase.rate
+            : ""
+        }"
+        min="0"
+        step="0.0001"
+        placeholder="Contoh: 11.8"
+        style="width:100%;"
+      >
+
+    </label>
+
+
+    <label>
+
+      <div>
+        Tax
+      </div>
+
+      <input
+        type="number"
+        id="purchaseTaxInput"
+        value="${
+          purchase?.tax !== null &&
+          purchase?.tax !== undefined
+            ? purchase.tax
+            : ""
+        }"
+        min="0"
+        step="0.01"
+        placeholder="Boleh kosong"
+        style="width:100%;"
+      >
+
+    </label>
+
+  </div>
+
+</div>
+
+<div
+  style="
+    grid-column:1 / -1;
+    margin-top:5px;
+  "
+>
+
+  <label>
+
+    <div>
+      Status Tracking
+    </div>
+
+    <input
+      type="text"
+      id="purchaseTrackingStatusInput"
+      value="${
+        escapeHTML(
+          purchase?.tracking_status || ""
+        )
+      }"
+      placeholder="Contoh: Arrived WH Korea"
+      style="width:100%;"
+    >
+
+  </label>
 
 </div>
 
@@ -3406,212 +3826,6 @@ function showPurchaseStockForm(
     modal
   );
 
-   /* ============================================
-   TAMBAH BARANG DINAMIS
-   ============================================ */
-
-const purchaseItemsContainer =
-  document.getElementById(
-    "purchaseItemsContainer"
-  );
-
-
-const addPurchaseItemButton =
-  document.getElementById(
-    "addPurchaseItemButton"
-  );
-
-
-function addPurchaseItemRow(
-  itemName = "",
-  quantity = 0
-) {
-
-  const row =
-    document.createElement(
-      "div"
-    );
-
-
-  row.className =
-    "purchase-item-row";
-
-
-  row.style.cssText = `
-    display:grid;
-    grid-template-columns:
-      minmax(0,1fr)
-      130px
-      45px;
-    gap:10px;
-    align-items:end;
-    margin-bottom:10px;
-  `;
-
-
-  row.innerHTML = `
-
-    <label>
-
-      <div>
-        Nama Barang
-      </div>
-
-      <input
-        type="text"
-        class="purchase-item-name"
-        value="${escapeHTML(
-          itemName
-        )}"
-        placeholder="Contoh: Photobook"
-        style="width:100%;"
-        required
-      >
-
-    </label>
-
-
-    <label>
-
-      <div>
-        Jumlah
-      </div>
-
-      <input
-        type="number"
-        class="purchase-item-quantity"
-        value="${Number(
-          quantity || 0
-        )}"
-        min="0"
-        step="1"
-        style="width:100%;"
-        required
-      >
-
-    </label>
-
-
-    <button
-      type="button"
-      class="remove-purchase-item-button"
-      style="
-        height:40px;
-        border:0;
-        border-radius:8px;
-        background:#f3e9ef;
-        color:#a33;
-        cursor:pointer;
-        font-size:18px;
-      "
-      title="Hapus barang"
-    >
-      ×
-    </button>
-
-  `;
-
-
-  purchaseItemsContainer.appendChild(
-    row
-  );
-
-
-  row
-    .querySelector(
-      ".remove-purchase-item-button"
-    )
-    .addEventListener(
-      "click",
-      function() {
-
-        const rows =
-          purchaseItemsContainer
-            .querySelectorAll(
-              ".purchase-item-row"
-            );
-
-
-        /*
-           Minimal harus tersisa
-           1 barang.
-        */
-
-        if (rows.length <= 1) {
-
-          alert(
-            "Minimal harus ada 1 barang."
-          );
-
-          return;
-
-        }
-
-
-        row.remove();
-
-      }
-    );
-
-}
-
-
-if (addPurchaseItemButton) {
-
-  addPurchaseItemButton.addEventListener(
-    "click",
-    function() {
-
-      addPurchaseItemRow(
-        "",
-        0
-      );
-
-    }
-  );
-
-}
-
-   /* ============================================
-   HAPUS BARANG PERTAMA
-   ============================================ */
-
-const firstPurchaseItemRemoveButton =
-  purchaseItemsContainer?.querySelector(
-    ".remove-purchase-item-button"
-  );
-
-
-if (firstPurchaseItemRemoveButton) {
-
-  firstPurchaseItemRemoveButton.addEventListener(
-    "click",
-    function() {
-
-      const rows =
-        purchaseItemsContainer.querySelectorAll(
-          ".purchase-item-row"
-        );
-
-
-      if (rows.length <= 1) {
-
-        alert(
-          "Minimal harus ada 1 barang."
-        );
-
-        return;
-
-      }
-
-
-      rows[0].remove();
-
-    }
-  );
-
-}
-
   function closeModal() {
 
     modal.remove();
@@ -3649,18 +3863,28 @@ if (firstPurchaseItemRemoveButton) {
 
         event.preventDefault();
 
-         const itemRows =
-  Array.from(
-    document.querySelectorAll(
-      "#purchaseItemsContainer .purchase-item-row"
+         const itemName =
+  document
+    .getElementById(
+      "purchaseItemNameInput"
     )
-  );
+    .value
+    .trim();
+
+const quantity =
+  Number(
+    document
+      .getElementById(
+        "purchaseQuantityInput"
+      )
+      .value
+  ) || 0;
 
 
-if (!itemRows.length) {
+if (!itemName) {
 
   alert(
-    "Minimal harus ada 1 barang."
+    "Nama barang tidak boleh kosong."
   );
 
   return;
@@ -3668,55 +3892,16 @@ if (!itemRows.length) {
 }
 
 
-const items = [];
+if (quantity <= 0) {
 
+  alert(
+    "Jumlah barang harus lebih dari 0."
+  );
 
-for (
-  const itemRow of itemRows
-) {
-
-  const itemName =
-    itemRow
-      .querySelector(
-        ".purchase-item-name"
-      )
-      .value
-      .trim();
-
-
-  const quantity =
-    Number(
-      itemRow
-        .querySelector(
-          ".purchase-item-quantity"
-        )
-        .value
-    ) || 0;
-
-
-  if (!itemName) {
-
-    alert(
-      "Nama barang tidak boleh kosong."
-    );
-
-    return;
-
-  }
-
-
-  items.push({
-
-    item_name:
-      itemName,
-
-    quantity:
-      quantity
-
-  });
+  return;
 
 }
-
+         
         const basePayload = {
 
   seller_name:
@@ -3788,6 +3973,66 @@ for (
         "purchaseNoteInput"
       )
       .value
+      .trim() || null,
+
+       seller_currency:
+    document
+      .getElementById(
+        "purchaseSellerCurrencyInput"
+      )
+      .value || null,
+
+  seller_price:
+    document
+      .getElementById(
+        "purchaseSellerPriceInput"
+      )
+      .value !== ""
+        ? Number(
+            document
+              .getElementById(
+                "purchaseSellerPriceInput"
+              )
+              .value
+          )
+        : null,
+
+  rate:
+    document
+      .getElementById(
+        "purchaseRateInput"
+      )
+      .value !== ""
+        ? Number(
+            document
+              .getElementById(
+                "purchaseRateInput"
+              )
+              .value
+          )
+        : null,
+
+  tax:
+    document
+      .getElementById(
+        "purchaseTaxInput"
+      )
+      .value !== ""
+        ? Number(
+            document
+              .getElementById(
+                "purchaseTaxInput"
+              )
+              .value
+          )
+        : null,
+
+  tracking_status:
+    document
+      .getElementById(
+        "purchaseTrackingStatusInput"
+      )
+      .value
       .trim() || null
 
 };
@@ -3826,11 +4071,10 @@ if (isEdit) {
         ...basePayload,
 
         item_name:
-          items[0].item_name,
+  itemName,
 
-        quantity:
-          items[0].quantity
-
+quantity:
+  quantity
       })
       .eq(
         "id",
@@ -3842,38 +4086,23 @@ if (isEdit) {
 
 } else {
 
-  /*
-     MODE TAMBAH BARU / TAMBAH BARANG
-  */
-
-  const payloads =
-    items.map(function(item) {
-
-      return {
-
-        ...basePayload,
-
-        item_name:
-          item.item_name,
-
-        quantity:
-          item.quantity
-
-      };
-
-    });
-
-
   result =
     await supabaseClient
       .from("purchase_stock")
-      .insert(
-        payloads
-      )
-      .select();
+      .insert({
+        ...basePayload,
+
+        item_name:
+          itemName,
+
+        quantity:
+          quantity
+      })
+      .select()
+      .single();
 
 }
-              
+             
         if (result.error) {
 
           console.error(
