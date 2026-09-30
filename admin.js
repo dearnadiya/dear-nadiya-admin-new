@@ -1165,45 +1165,45 @@ async function renderPurchaseStockList() {
             >
 
               <th
-                style="
-                  padding:12px 15px;
-                  text-align:left;
-                "
-              >
-                Nama Barang
-              </th>
-
-
-              <th
-                style="
-                  padding:12px 15px;
-                  text-align:left;
-                "
-              >
-                Warehouse
-              </th>
-
+  style="
+    padding:8px 12px;
+    text-align:left;
+    font-size:13px;
+  "
+>
+  Nama Barang
+</th>
 
               <th
-                style="
-                  padding:12px 15px;
-                  text-align:left;
-                "
-              >
-                Tracking
-              </th>
-
+  style="
+    padding:8px 12px;
+    text-align:left;
+    font-size:13px;
+  "
+>
+  Warehouse
+</th>
 
               <th
-                style="
-                  padding:12px 15px;
-                  text-align:center;
-                  width:220px;
-                "
-              >
-                Aksi
-              </th>
+  style="
+    padding:8px 12px;
+    text-align:left;
+    font-size:13px;
+  "
+>
+  Tracking
+</th>
 
+              <th
+  style="
+    padding:8px 12px;
+    text-align:center;
+    width:220px;
+    font-size:13px;
+  "
+>
+  Aksi
+</th>
             </tr>
 
           </thead>
@@ -1268,12 +1268,12 @@ async function renderPurchaseStockList() {
                     >
 
                       <td
-                        style="
-                          padding:15px;
-                          vertical-align:middle;
-                        "
-                      >
-
+  style="
+    padding:13px 12px;
+    vertical-align:middle;
+    font-size:13px;
+  "
+>
                         <strong>
                           ${escapeHTML(
                             row.item_name || "-"
@@ -1295,12 +1295,12 @@ async function renderPurchaseStockList() {
 
 
                       <td
-                        style="
-                          padding:15px;
-                          vertical-align:middle;
-                        "
-                      >
-
+  style="
+    padding:13px 12px;
+    vertical-align:middle;
+    font-size:13px;
+  "
+>
                         ${escapeHTML(
                           row.warehouse_name ||
                           "-"
@@ -1310,11 +1310,12 @@ async function renderPurchaseStockList() {
 
 
                       <td
-                        style="
-                          padding:15px;
-                          vertical-align:middle;
-                        "
-                      >
+  style="
+    padding:13px 12px;
+    vertical-align:middle;
+    font-size:13px;
+  "
+>
 
                         <strong>
                           ${escapeHTML(
@@ -1346,9 +1347,9 @@ async function renderPurchaseStockList() {
 
                       <td
                         style="
-                          padding:15px;
-                          text-align:center;
-                          vertical-align:middle;
+                          padding:10px 12px;
+text-align:center;
+vertical-align:middle;
                         "
                       >
 
@@ -1421,35 +1422,35 @@ async function renderPurchaseStockList() {
                           class="purchase-stock-detail-panel"
                           data-detail-id="${purchaseId}"
                           style="
-                            display:none;
-                            width:100%;
-                            box-sizing:border-box;
-                            text-align:left;
-                            background:#fafafa;
-                            border:1px solid #eee;
-                            border-radius:12px;
-                            padding:20px;
-                          "
+  display:none;
+  width:100%;
+  box-sizing:border-box;
+  text-align:left;
+  background:#fafafa;
+  border:1px solid #eee;
+  border-radius:10px;
+  padding:14px 16px;
+"
                         >
 
                           <div
-                            style="
-                              font-weight:700;
-                              margin-bottom:12px;
-                            "
-                          >
-                            📦 Detail Pembelian
-                          </div>
-
+  style="
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:8px;
+  "
+>
+  📦 Detail Pembelian
+</div>
 
                                                     <div
                             style="
                               display:grid;
-                              grid-template-columns:
-                                repeat(4, minmax(0,1fr));
-                              gap:14px 20px;
-                              font-size:13px;
-                              align-items:start;
+grid-template-columns:
+  repeat(4, minmax(0,1fr));
+gap:10px 20px;
+font-size:12px;
+align-items:start;
                             "
                           >
 
@@ -1684,8 +1685,8 @@ async function renderPurchaseStockList() {
 
                           <div
                             style="
-                              margin-top:18px;
-                              padding-top:15px;
+                              margin-top:12px;
+padding-top:10px;
                               border-top:1px solid #e5e5e5;
                             "
                           >
@@ -1696,7 +1697,7 @@ async function renderPurchaseStockList() {
                                 justify-content:space-between;
                                 align-items:center;
                                 gap:10px;
-                                margin-bottom:10px;
+                                margin-bottom:6px;
                               "
                             >
 
