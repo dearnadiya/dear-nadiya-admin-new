@@ -14090,3 +14090,238 @@ button {
   }
 
 }
+
+/* =========================================================
+   FINAL FIX MOBILE REKAP GO
+   MENCEGAH HEADER BATCH BERTUMPUK
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* =========================================
+     HEADER BATCH
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-scroll
+  .recap-batch-header {
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+      105px
+      minmax(0, 1fr) !important;
+
+    grid-template-rows:
+      auto
+      auto !important;
+
+    gap: 8px !important;
+
+    padding: 8px !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+    align-items: center !important;
+
+  }
+
+
+  /* =========================================
+     KODE BATCH
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-code {
+
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    padding: 0 6px !important;
+
+    font-size: 11px !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    box-sizing: border-box !important;
+
+  }
+
+
+  /* =========================================
+     NAMA BARANG
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-name {
+
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    padding: 0 6px !important;
+
+    font-size: 12px !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    box-sizing: border-box !important;
+
+  }
+
+
+  /* =========================================
+     AREA TOMBOL AKSI
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-edit,
+  #recapListContainer
+  .recap-batch-table-delete,
+  #recapListContainer
+  .recap-batch-table-member {
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    transform: none !important;
+
+    box-sizing: border-box !important;
+
+    white-space: nowrap !important;
+
+    justify-self: center !important;
+
+  }
+
+
+  /* =========================================
+     EDIT
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-edit {
+
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+
+  }
+
+
+  /* =========================================
+     TAMBAH MEMBER
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-member {
+
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+
+  }
+
+
+  /* =========================================
+     PANAH
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-table-arrow {
+
+    position: static !important;
+
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+
+    width: 40px !important;
+    min-width: 40px !important;
+
+    height: 32px !important;
+
+    margin-left: auto !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    box-sizing: border-box !important;
+
+    transform: none !important;
+
+  }
+
+
+  /* =========================================
+     PANAH pseudo-element
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-header::after {
+
+    display: none !important;
+    content: none !important;
+
+  }
+
+
+  /* =========================================
+     CARD
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-card {
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    overflow: visible !important;
+
+  }
+
+
+  /* =========================================
+     BATCH SCROLL
+     ========================================= */
+
+  #recapListContainer
+  .recap-batch-scroll {
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+
+    box-sizing: border-box !important;
+
+  }
+
+}
