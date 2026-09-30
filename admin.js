@@ -1442,16 +1442,14 @@ async function renderPurchaseStockList() {
                           </div>
 
 
-                          <div
+                                                    <div
                             style="
                               display:grid;
                               grid-template-columns:
-                                repeat(
-                                  2,
-                                  minmax(0,1fr)
-                                );
-                              gap:10px;
+                                repeat(4, minmax(0,1fr));
+                              gap:14px 20px;
                               font-size:13px;
+                              align-items:start;
                             "
                           >
 
