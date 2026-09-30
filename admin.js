@@ -1939,60 +1939,136 @@ function showPurchaseStockForm(
           </label>
 
 
-          <label>
-
-            <div>
-              Nama Barang
-            </div>
-
-            <input
-  type="text"
-  id="purchaseItemInput"
-  value="${
-    escapeHTML(
-      addItemMode
-        ? ""
-        : (
-            purchase?.item_name ||
-            ""
-          )
-    )
-  }"
-  placeholder="Contoh: Photobook"
-  style="width:100%;"
-  required
+          <div
+  style="
+    grid-column:1 / -1;
+    margin-top:5px;
+  "
 >
-          </label>
 
-          <label>
+  <div
+    style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    "
+  >
 
-            <div>
-              Jumlah
-            </div>
+    <strong>
+      📦 Daftar Barang
+    </strong>
 
-            <input
-              type="number"
-              id="purchaseQuantityInput"
-              value="${
-  Number(
-    addItemMode
-      ? 0
-      : Number(
-          purchase?.quantity ||
-          0
-        )
-  )
-}"
-              min="0"
-              step="1"
-              style="width:100%;"
-              required
-            >
+    ${
+      !isEdit
+        ? `
+          <button
+            type="button"
+            id="addPurchaseItemButton"
+            class="secondary-button"
+          >
+            ＋ Tambah Barang
+          </button>
+        `
+        : ""
+    }
 
-          </label>
+  </div>
 
+
+  <div
+    id="purchaseItemsContainer"
+  >
+
+    <div
+      class="purchase-item-row"
+      style="
+        display:grid;
+        grid-template-columns:
+          minmax(0,1fr)
+          130px
+          45px;
+        gap:10px;
+        align-items:end;
+        margin-bottom:10px;
+      "
+    >
+
+      <label>
+
+        <div>
+          Nama Barang
         </div>
 
+        <input
+          type="text"
+          class="purchase-item-name"
+          value="${
+            escapeHTML(
+              addItemMode
+                ? ""
+                : (
+                    purchase?.item_name ||
+                    ""
+                  )
+            )
+          }"
+          placeholder="Contoh: Photobook"
+          style="width:100%;"
+          required
+        >
+
+      </label>
+
+
+      <label>
+
+        <div>
+          Jumlah
+        </div>
+
+        <input
+          type="number"
+          class="purchase-item-quantity"
+          value="${
+            addItemMode
+              ? 0
+              : Number(
+                  purchase?.quantity ||
+                  0
+                )
+          }"
+          min="0"
+          step="1"
+          style="width:100%;"
+          required
+        >
+
+      </label>
+
+
+      <button
+        type="button"
+        class="remove-purchase-item-button"
+        style="
+          height:40px;
+          border:0;
+          border-radius:8px;
+          background:#f3e9ef;
+          color:#a33;
+          cursor:pointer;
+          font-size:18px;
+        "
+        title="Hapus barang"
+      >
+        ×
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
         <label
           style="
@@ -2068,6 +2144,211 @@ function showPurchaseStockForm(
     modal
   );
 
+   /* ============================================
+   TAMBAH BARANG DINAMIS
+   ============================================ */
+
+const purchaseItemsContainer =
+  document.getElementById(
+    "purchaseItemsContainer"
+  );
+
+
+const addPurchaseItemButton =
+  document.getElementById(
+    "addPurchaseItemButton"
+  );
+
+
+function addPurchaseItemRow(
+  itemName = "",
+  quantity = 0
+) {
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+
+  row.className =
+    "purchase-item-row";
+
+
+  row.style.cssText = `
+    display:grid;
+    grid-template-columns:
+      minmax(0,1fr)
+      130px
+      45px;
+    gap:10px;
+    align-items:end;
+    margin-bottom:10px;
+  `;
+
+
+  row.innerHTML = `
+
+    <label>
+
+      <div>
+        Nama Barang
+      </div>
+
+      <input
+        type="text"
+        class="purchase-item-name"
+        value="${escapeHTML(
+          itemName
+        )}"
+        placeholder="Contoh: Photobook"
+        style="width:100%;"
+        required
+      >
+
+    </label>
+
+
+    <label>
+
+      <div>
+        Jumlah
+      </div>
+
+      <input
+        type="number"
+        class="purchase-item-quantity"
+        value="${Number(
+          quantity || 0
+        )}"
+        min="0"
+        step="1"
+        style="width:100%;"
+        required
+      >
+
+    </label>
+
+
+    <button
+      type="button"
+      class="remove-purchase-item-button"
+      style="
+        height:40px;
+        border:0;
+        border-radius:8px;
+        background:#f3e9ef;
+        color:#a33;
+        cursor:pointer;
+        font-size:18px;
+      "
+      title="Hapus barang"
+    >
+      ×
+    </button>
+
+  `;
+
+
+  purchaseItemsContainer.appendChild(
+    row
+  );
+
+
+  row
+    .querySelector(
+      ".remove-purchase-item-button"
+    )
+    .addEventListener(
+      "click",
+      function() {
+
+        const rows =
+          purchaseItemsContainer
+            .querySelectorAll(
+              ".purchase-item-row"
+            );
+
+
+        /*
+           Minimal harus tersisa
+           1 barang.
+        */
+
+        if (rows.length <= 1) {
+
+          alert(
+            "Minimal harus ada 1 barang."
+          );
+
+          return;
+
+        }
+
+
+        row.remove();
+
+      }
+    );
+
+}
+
+
+if (addPurchaseItemButton) {
+
+  addPurchaseItemButton.addEventListener(
+    "click",
+    function() {
+
+      addPurchaseItemRow(
+        "",
+        0
+      );
+
+    }
+  );
+
+}
+
+   /* ============================================
+   HAPUS BARANG PERTAMA
+   ============================================ */
+
+const firstPurchaseItemRemoveButton =
+  purchaseItemsContainer?.querySelector(
+    ".remove-purchase-item-button"
+  );
+
+
+if (firstPurchaseItemRemoveButton) {
+
+  firstPurchaseItemRemoveButton.addEventListener(
+    "click",
+    function() {
+
+      const rows =
+        purchaseItemsContainer.querySelectorAll(
+          ".purchase-item-row"
+        );
+
+
+      if (rows.length <= 1) {
+
+        alert(
+          "Minimal harus ada 1 barang."
+        );
+
+        return;
+
+      }
+
+
+      rows[0].remove();
+
+    }
+  );
+
+}
 
   function closeModal() {
 
@@ -2106,99 +2387,148 @@ function showPurchaseStockForm(
 
         event.preventDefault();
 
+         const itemRows =
+  Array.from(
+    document.querySelectorAll(
+      "#purchaseItemsContainer .purchase-item-row"
+    )
+  );
 
-        const payload = {
 
-          seller_name:
-            document
-              .getElementById(
-                "purchaseSellerInput"
-              )
-              .value
-              .trim() || null,
+if (!itemRows.length) {
 
-          web_seller:
-            document
-              .getElementById(
-                "purchaseWebSellerInput"
-              )
-              .value
-              .trim() || null,
+  alert(
+    "Minimal harus ada 1 barang."
+  );
 
-          seller_url:
-            document
-              .getElementById(
-                "purchaseSellerUrlInput"
-              )
-              .value
-              .trim() || null,
+  return;
 
-          purchase_date:
-            document
-              .getElementById(
-                "purchaseDateInput"
-              )
-              .value || null,
+}
 
-          order_number:
-            document
-              .getElementById(
-                "purchaseOrderInput"
-              )
-              .value
-              .trim() || null,
 
-          seller_tracking:
-            document
-              .getElementById(
-                "purchaseSellerTrackingInput"
-              )
-              .value
-              .trim() || null,
+const items = [];
 
-          box_pengiriman:
-            document
-              .getElementById(
-                "purchaseBoxInput"
-              )
-              .value
-              .trim() || null,
 
-          warehouse_name:
-            document
-              .getElementById(
-                "purchaseWarehouseInput"
-              )
-              .value
-              .trim() || null,
+for (
+  const itemRow of itemRows
+) {
 
-          item_name:
-            document
-              .getElementById(
-                "purchaseItemInput"
-              )
-              .value
-              .trim(),
+  const itemName =
+    itemRow
+      .querySelector(
+        ".purchase-item-name"
+      )
+      .value
+      .trim();
 
-          quantity:
-            Number(
-              document
-                .getElementById(
-                  "purchaseQuantityInput"
-                )
-                .value
-            ) || 0,
 
-          purchase_note:
-            document
-              .getElementById(
-                "purchaseNoteInput"
-              )
-              .value
-              .trim() || null
+  const quantity =
+    Number(
+      itemRow
+        .querySelector(
+          ".purchase-item-quantity"
+        )
+        .value
+    ) || 0;
 
-        };
 
+  if (!itemName) {
+
+    alert(
+      "Nama barang tidak boleh kosong."
+    );
+
+    return;
+
+  }
+
+
+  items.push({
+
+    item_name:
+      itemName,
+
+    quantity:
+      quantity
+
+  });
+
+}
+
+        const basePayload = {
+
+  seller_name:
+    document
+      .getElementById(
+        "purchaseSellerInput"
+      )
+      .value
+      .trim() || null,
+
+  web_seller:
+    document
+      .getElementById(
+        "purchaseWebSellerInput"
+      )
+      .value
+      .trim() || null,
+
+  seller_url:
+    document
+      .getElementById(
+        "purchaseSellerUrlInput"
+      )
+      .value
+      .trim() || null,
+
+  purchase_date:
+    document
+      .getElementById(
+        "purchaseDateInput"
+      )
+      .value || null,
+
+  order_number:
+    document
+      .getElementById(
+        "purchaseOrderInput"
+      )
+      .value
+      .trim() || null,
+
+  seller_tracking:
+    document
+      .getElementById(
+        "purchaseSellerTrackingInput"
+      )
+      .value
+      .trim() || null,
+
+  box_pengiriman:
+    document
+      .getElementById(
+        "purchaseBoxInput"
+      )
+      .value
+      .trim() || null,
+
+  warehouse_name:
+    document
+      .getElementById(
+        "purchaseWarehouseInput"
+      )
+      .value
+      .trim() || null,
+
+  purchase_note:
+    document
+      .getElementById(
+        "purchaseNoteInput"
+      )
+      .value
+      .trim() || null
+
+};
 
         const submitButton =
           event.target.querySelector(
@@ -2219,41 +2549,66 @@ function showPurchaseStockForm(
         let result;
 
 
-        if (isEdit) {
+if (isEdit) {
+
+  /*
+     MODE EDIT SATU DATA
+     Dipertahankan untuk kompatibilitas.
+  */
 
   result =
     await supabaseClient
-
       .from("purchase_stock")
+      .update({
 
-      .update(
-        payload
-      )
+        ...basePayload,
 
+        item_name:
+          items[0].item_name,
+
+        quantity:
+          items[0].quantity
+
+      })
       .eq(
         "id",
         purchase.id
       )
-
       .select()
-
       .single();
 
 
 } else {
 
+  /*
+     MODE TAMBAH BARU / TAMBAH BARANG
+  */
+
+  const payloads =
+    items.map(function(item) {
+
+      return {
+
+        ...basePayload,
+
+        item_name:
+          item.item_name,
+
+        quantity:
+          item.quantity
+
+      };
+
+    });
+
+
   result =
     await supabaseClient
-
       .from("purchase_stock")
-
       .insert(
-        payload
+        payloads
       )
-
-      .select()
-
-      .single();
+      .select();
 
 }
               
