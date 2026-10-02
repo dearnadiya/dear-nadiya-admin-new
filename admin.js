@@ -10618,11 +10618,11 @@ data-remaining="${remaining}"
                   </label>
 
                   <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value="0"
-                    class="payment-allocation-input"
+  type="text"
+  inputmode="numeric"
+  autocomplete="off"
+  value="0"
+  class="payment-allocation-input"
                     data-recap-id="${item.id}"
                     data-price="${price}"
                     data-dp="${dpPaid}"
@@ -11511,7 +11511,19 @@ else if (
      HITUNG TOTAL ALOKASI
      ================================ */
 
-  function updateAllocationTotal() {
+  function parseNominalInput(
+  value
+) {
+
+  return Number(
+    String(value || "")
+      .replace(/\./g, "")
+      .replace(/[^\d]/g, "")
+  ) || 0;
+
+}
+   
+   function updateAllocationTotal() {
   let total = 0;
 
   modal
@@ -11521,9 +11533,9 @@ else if (
     .forEach(
       function(input) {
         total +=
-          Number(
-            input.value
-          ) || 0;
+  parseNominalInput(
+    input.value
+  );
       }
     );
 
@@ -11871,7 +11883,9 @@ if (
 ) {
 
   target =
-    availableAmount;
+    Number(
+      payment.amount
+    ) || 0;
 
 } else if (
   partSelect.value ===
@@ -12019,17 +12033,29 @@ if (
     function(input) {
 
       input.addEventListener(
-        "input",
-        function() {
+  "input",
+  function() {
 
-          updateItemAllocationStatus(
-            this.dataset.recapId
-          );
-
-          updateAllocationTotal();
-
-        }
+    const numericValue =
+      parseNominalInput(
+        this.value
       );
+
+    this.value =
+      numericValue > 0
+        ? numericValue.toLocaleString(
+            "id-ID"
+          )
+        : "";
+
+    updateItemAllocationStatus(
+      this.dataset.recapId
+    );
+
+    updateAllocationTotal();
+
+  }
+);
 
     }
   );
@@ -12110,9 +12136,9 @@ const paymentAmount =
         function(input) {
 
           const amount =
-            Number(
-              input.value
-            ) || 0;
+  parseNominalInput(
+    input.value
+  );
 
           if (amount <= 0) {
             return;
