@@ -5347,7 +5347,7 @@ if (
 
 
       /* ==========================
-         DP + PELUNASAN
+         Full Payment
          ========================== */
 
       if (
@@ -9422,6 +9422,27 @@ confirmedAllocations.forEach(
         return;
       }
 
+       /* ==========================
+   TABUNGAN MANUAL
+   ========================== */
+
+if (
+  history.payment_part ===
+  "manual"
+) {
+
+  /*
+    Tabungan tidak dihitung
+    sebagai DP atau pelunasan.
+
+    Nominal tabungan dicatat
+    melalui allocation manual.
+  */
+
+  return;
+
+}
+
 
       /* ==========================
          DP
@@ -10160,40 +10181,51 @@ const total =
                   "
                 >
 
-                  Harga:
-                  <strong>
-                    ${formatRupiah(
-                      price
-                    )}
-                  </strong>
+                  ${
+  isTabunganPayment
+    ? `
+      Harga Album:
+      <strong>
+        ${formatRupiah(price)}
+      </strong>
 
-                  <br>
+      <br>
 
-                  DP:
-<strong>
-  ${formatRupiah(
-    minimumDp
-  )}
-</strong>
+      Total Tabungan Sebelumnya:
+      <strong>
+        ${formatRupiah(
+          dpPaid
+        )}
+      </strong>
 
-<br>
+      <br>
 
-DP Terbayar:
-<strong>
-  ${formatRupiah(
-    dpPaid
-  )}
-</strong>
+      Nominal Tabungan Saat Ini:
+      <strong>
+        bebas diisi admin
+      </strong>
+    `
+    : `
+      DP:
+      <strong>
+        ${formatRupiah(minimumDp)}
+      </strong>
 
-                  <br>
+      <br>
 
-                 Sisa Pelunasan:
-<strong>
-  ${formatRupiah(
-    remaining
-  )}
-</strong>
+      DP Terbayar:
+      <strong>
+        ${formatRupiah(dpPaid)}
+      </strong>
 
+      <br>
+
+      Sisa Pelunasan:
+      <strong>
+        ${formatRupiah(remaining)}
+      </strong>
+    `
+}
                 </div>
 
 
@@ -10238,27 +10270,34 @@ data-remaining="${remaining}"
                                     >
 
                     ${
-                      item.dp_status === "paid"
-                        ? `
-                          <option value="pelunasan">
-                            Pelunasan
-                          </option>
-                        `
-                        : `
-                          <option value="dp">
-                            DP
-                          </option>
+  isTabunganPayment
+    ? `
+      <option value="manual">
+        Tabungan
+      </option>
+    `
+    : (
+      item.dp_status === "paid"
+        ? `
+          <option value="pelunasan">
+            Pelunasan
+          </option>
+        `
+        : `
+          <option value="dp">
+            DP
+          </option>
 
-                          <option value="pelunasan">
-                            Pelunasan
-                          </option>
+          <option value="pelunasan">
+            Pelunasan
+          </option>
 
-                          <option value="both">
-                            DP + Pelunasan
-                          </option>
-                        `
-                    }
-
+          <option value="both">
+            Full Payment
+          </option>
+        `
+    )
+}
                   </select>
 
                 </div>
@@ -10995,6 +11034,7 @@ function updateItemAllocationStatus(
     input.dataset.minimumDp ||
     input.dataset.dp
   ) || 0;
+   
   const amount =
     Number(
       input.value
@@ -11034,7 +11074,7 @@ function updateItemAllocationStatus(
 
 
   /* ================================
-     DP + PELUNASAN
+     Full Payment
      ================================ */
 
   else if (
@@ -11046,6 +11086,20 @@ function updateItemAllocationStatus(
       price;
 
   }
+
+   /* ================================
+   TABUNGAN
+   ================================ */
+
+else if (
+  select.value ===
+  "manual"
+) {
+
+  target =
+    amount;
+
+}
 
 
   /* ================================
@@ -11394,28 +11448,37 @@ function autoAllocatePayment() {
 
     let target = 0;
 
+/* ================================
+   TENTUKAN TARGET
+   ================================ */
 
-    /* ================================
-       TENTUKAN TARGET
-       ================================ */
+if (
+  partSelect.value ===
+  "manual"
+) {
 
-    if (
-      partSelect.value ===
-      "dp"
-    ) {
+  target =
+    Number(
+      payment.amount
+    ) || 0;
 
-      target =
-        minimumDp;
+} else if (
+  partSelect.value ===
+  "dp"
+) {
 
-    } else if (
-      partSelect.value ===
-      "pelunasan"
-    ) {
+  target =
+    minimumDp;
 
-      target =
-        remaining;
+} else if (
+  partSelect.value ===
+  "pelunasan"
+) {
 
-    } else if (
+  target =
+    remaining;
+
+} else if (
   partSelect.value ===
   "both"
 ) {
@@ -11426,13 +11489,12 @@ function autoAllocatePayment() {
 }
 
 
-    target =
-      Math.max(
-        Number(target) || 0,
-        0
-      );
-
-
+target =
+  Math.max(
+    Number(target) || 0,
+    0
+  );
+     
     if (target <= 0) {
 
       updateItemAllocationStatus(
@@ -11565,40 +11627,43 @@ modal
 
             let target = 0;
 
-            /* ==========================
-               TENTUKAN TARGET
-               ========================== */
+            /* ================================
+   TENTUKAN TARGET
+   ================================ */
 
-            if (part === "dp") {
-
-              target =
-                Math.max(
-                  minimumDp - dpPaid,
-                  0
-                );
-
-            } else if (
-              part === "pelunasan"
-            ) {
-
-              target =
-                Math.max(
-                  remaining,
-                  0
-                );
-
-            } else if (
-  part === "both"
+if (
+  partSelect.value ===
+  "manual"
 ) {
 
   target =
-    Math.max(
-      price,
-      0
-    );
+    availableAmount;
+
+} else if (
+  partSelect.value ===
+  "dp"
+) {
+
+  target =
+    minimumDp;
+
+} else if (
+  partSelect.value ===
+  "pelunasan"
+) {
+
+  target =
+    remaining;
+
+} else if (
+  partSelect.value ===
+  "both"
+) {
+
+  target =
+    price;
 
 }
-
 
             /* ==========================
                BELUM DIBAYAR
@@ -11642,14 +11707,27 @@ modal
                ========================== */
 
             else if (
-              this.value ===
-              "sudah_dibayar"
-            ) {
+  this.value ===
+  "sudah_dibayar"
+) {
 
-              input.value =
-                target;
+  if (
+    isTabunganPayment
+  ) {
 
-            }
+    input.value =
+      Number(
+        payment.amount
+      ) || 0;
+
+  } else {
+
+    input.value =
+      target;
+
+  }
+
+}
 
 
             /* ==========================
@@ -11831,29 +11909,35 @@ const paymentAmount =
 
           let target = 0;
 
-          if (
-            part === "dp"
-          ) {
+if (
+  part === "manual"
+) {
 
-            target =
-              dp;
+  target =
+    amount;
 
-          } else if (
-            part === "pelunasan"
-          ) {
+} else if (
+  part === "dp"
+) {
 
-            target =
-              price - dp;
+  target =
+    dp;
 
-          } else if (
-            part === "both"
-          ) {
+} else if (
+  part === "pelunasan"
+) {
 
-            target =
-              price;
+  target =
+    price - dp;
 
-          }
+} else if (
+  part === "both"
+) {
 
+  target =
+    price;
+
+}
           const allocationStatus =
             amount >= target &&
             target > 0
@@ -23610,7 +23694,7 @@ recapAllocations.forEach(
 
 
           /* ==============================
-             DP + PELUNASAN
+             Full Payment
              ============================== */
 
           if (
@@ -27844,7 +27928,7 @@ if (!hasConfirmedDpAllocation) {
 
 
         /* ==========================
-           DP + PELUNASAN
+           Full Payment
            ========================== */
 
         if (
