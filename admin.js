@@ -716,14 +716,6 @@ function showPage(
 
    if (
   page ===
-  "co-archive"
-) {
-  loadCOArchive();
-  return;
-}
-
-   if (
-  page ===
   "purchase-stock"
 ) {
 
@@ -12796,18 +12788,50 @@ async function loadCOReport() {
 
       </div>
 
+<div
+  id="coReportContainer"
+  class="welcome-card"
+>
 
-      <div
-        id="coReportContainer"
-        class="welcome-card"
-      >
+  <p>
+    Memuat data...
+  </p>
 
-        <p>
-          Memuat data...
-        </p>
+</div>
 
-      </div>
 
+<div
+  class="welcome-card"
+  style="margin-top:20px;"
+>
+
+  <div class="panel-header">
+
+    <div>
+
+      <h3>
+        📦 Riwayat CO
+      </h3>
+
+      <p>
+        Riwayat barang yang pernah CO
+        tetapi tidak dikonfirmasi packing.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div id="coArchiveContainer">
+
+    <p>
+      Memuat arsip...
+    </p>
+
+  </div>
+
+</div>
     </div>
 
   `;
@@ -13908,10 +13932,28 @@ if (
 
 
     /*
-      TAMPILKAN DAFTAR CUSTOMER
-    */
+  TAMPILKAN DAFTAR CUSTOMER
+*/
 
-    renderCustomerList();
+renderCustomerList();
+
+
+/*
+  TAMPILKAN ARSIP CO
+*/
+
+const archiveContainer =
+  document.getElementById(
+    "coArchiveContainer"
+  );
+
+if (archiveContainer) {
+
+  await loadCOArchive(
+    archiveContainer
+  );
+
+}
 
 
   } catch (err) {
@@ -13929,49 +13971,60 @@ if (
    ARSIP CO TIDAK DIKONFIRMASI
    ============================================ */
 
-async function loadCOArchive() {
+async function loadCOArchive(
+  targetContainer = null
+) {
 
-  pageTitle.textContent =
-    "Arsip CO";
+  if (!targetContainer) {
+
+    pageTitle.textContent =
+      "Arsip CO";
 
 
-  pageContent.innerHTML = `
+    pageContent.innerHTML = `
 
-    <div class="panel">
+      <div class="panel">
 
-      <div class="panel-header">
+        <div class="panel-header">
 
-        <div>
+          <div>
 
-          <h2>
-            📦 Arsip CO Tidak Dikonfirmasi
-          </h2>
+            <h2>
+              📦 Arsip CO Tidak Dikonfirmasi
+            </h2>
+
+            <p>
+              Riwayat barang yang pernah CO
+              tetapi tidak dikonfirmasi packing.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="coArchiveContainer"
+          class="welcome-card"
+        >
 
           <p>
-            Riwayat barang yang pernah CO
-            tetapi tidak dikonfirmasi packing.
+            Memuat arsip...
           </p>
 
         </div>
 
       </div>
 
+    `;
 
-      <div
-        id="coArchiveContainer"
-        class="welcome-card"
-      >
+    }
 
-        <p>
-          Memuat arsip...
-        </p>
-
-      </div>
-
-    </div>
-
-  `;
-
+  const container =
+    targetContainer ||
+    document.getElementById(
+      "coArchiveContainer"
+    );
 
   try {
 
@@ -14012,32 +14065,24 @@ async function loadCOArchive() {
         historyError
       );
 
-      document.getElementById(
-        "coArchiveContainer"
-      ).innerHTML = `
-        <p>
-          Gagal memuat arsip CO.
-        </p>
-      `;
-
+      container.innerHTML = `
+  <p>
+    Gagal memuat arsip CO.
+  </p>
+`;
+       
       return;
 
     }
 
 
     const historyRows =
-      historyData || [];
+  historyData || [];
 
 
-    const container =
-      document.getElementById(
-        "coArchiveContainer"
-      );
-
-
-    /*
-      TIDAK ADA ARSIP
-    */
+/*
+  TIDAK ADA ARSIP
+*/
 
     if (
       historyRows.length === 0
