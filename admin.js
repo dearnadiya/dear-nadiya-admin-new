@@ -9710,11 +9710,6 @@ const normalizedProductVersions =
       .toLowerCase();
   });
 
-
-  /* ================================
-     AMBIL REKAP CUSTOMER
-     ================================ */
-
   /* ================================
    AMBIL REKAP BARANG PEMBAYARAN
    ================================ */
@@ -10081,7 +10076,225 @@ if (isTabunganPayment) {
     box-sizing: border-box;
   `;
 
+   /* ==========================================
+   HITUNG TOTAL TABUNGAN SEBELUMNYA
+   PEMBAYARAN TERKONFIRMASI + MANUAL
+   ========================================== */
 
+const confirmedTabunganByRecap = {};
+const manualTabunganByRecap = {};
+
+if (
+  isTabunganPayment &&
+  selectedItems.length > 0
+) {
+
+  const selectedRecapIds =
+    selectedItems
+      .map(function(item) {
+        return Number(item.id);
+      })
+      .filter(function(id) {
+        return Number.isFinite(id);
+      });
+
+
+  /* ================================
+     PEMBAYARAN YANG SUDAH DIKONFIRMASI
+     ================================ */
+
+  const {
+    data: confirmedAllocations,
+    error: confirmedAllocationError
+  } = await supabaseClient
+    .from("dn_payment_allocations")
+    .select(`
+      payment_submission_id,
+      recap_id,
+      allocated_amount
+    `)
+    .in(
+      "recap_id",
+      selectedRecapIds
+    );
+
+
+  if (confirmedAllocationError) {
+
+    console.error(
+      "ERROR LOAD KONFIRMASI TABUNGAN:",
+      confirmedAllocationError
+    );
+
+  } else {
+
+    const paymentIds =
+      [
+        ...new Set(
+          (confirmedAllocations || [])
+            .map(function(row) {
+              return Number(
+                row.payment_submission_id
+              );
+            })
+            .filter(function(id) {
+              return Number.isFinite(id);
+            })
+        )
+      ];
+
+
+    let confirmedPaymentIds =
+      new Set();
+
+
+    if (paymentIds.length > 0) {
+
+      const {
+        data: confirmedPayments,
+        error: confirmedPaymentError
+      } = await supabaseClient
+        .from(
+          "dn_payment_submissions"
+        )
+        .select("id")
+        .in(
+          "id",
+          paymentIds
+        )
+        .eq(
+          "status",
+          "confirmed"
+        );
+
+
+      if (confirmedPaymentError) {
+
+        console.error(
+          "ERROR LOAD STATUS PAYMENT:",
+          confirmedPaymentError
+        );
+
+      } else {
+
+        confirmedPaymentIds =
+          new Set(
+            (confirmedPayments || [])
+              .map(function(payment) {
+                return Number(
+                  payment.id
+                );
+              })
+          );
+
+      }
+
+    }
+
+
+    (confirmedAllocations || [])
+      .filter(function(allocation) {
+
+        return confirmedPaymentIds.has(
+          Number(
+            allocation.payment_submission_id
+          )
+        );
+
+      })
+      .forEach(function(allocation) {
+
+        const recapId =
+          String(
+            allocation.recap_id
+          );
+
+        if (
+          !confirmedTabunganByRecap[
+            recapId
+          ]
+        ) {
+
+          confirmedTabunganByRecap[
+            recapId
+          ] = 0;
+
+        }
+
+        confirmedTabunganByRecap[
+          recapId
+        ] +=
+          Number(
+            allocation.allocated_amount
+          ) || 0;
+
+      });
+
+  }
+
+
+  /* ================================
+     TABUNGAN MANUAL
+     ================================ */
+
+  const {
+    data: manualTabunganRows,
+    error: manualTabunganError
+  } = await supabaseClient
+    .from(
+      "dn_manual_tabungan"
+    )
+    .select(`
+      recap_id,
+      amount
+    `)
+    .in(
+      "recap_id",
+      selectedRecapIds
+    );
+
+
+  if (manualTabunganError) {
+
+    console.error(
+      "ERROR LOAD TABUNGAN MANUAL:",
+      manualTabunganError
+    );
+
+  } else {
+
+    (manualTabunganRows || [])
+      .forEach(function(row) {
+
+        const recapId =
+          String(
+            row.recap_id
+          );
+
+        if (
+          !manualTabunganByRecap[
+            recapId
+          ]
+        ) {
+
+          manualTabunganByRecap[
+            recapId
+          ] = 0;
+
+        }
+
+        manualTabunganByRecap[
+          recapId
+        ] +=
+          Number(
+            row.amount
+          ) || 0;
+
+      });
+
+  }
+
+}
   const itemsHTML =
   selectedItems.length
     ? selectedItems
@@ -10105,6 +10318,27 @@ const dpPaid =
   Number(
     item.dp_amount ||
     0
+  );
+
+             const confirmedTabunganPaid =
+  Number(
+    confirmedTabunganByRecap[
+      String(item.id)
+    ] || 0
+  );
+
+const manualTabunganPaid =
+  Number(
+    manualTabunganByRecap[
+      String(item.id)
+    ] || 0
+  );
+
+const totalTabunganSebelumnya =
+  Math.min(
+    confirmedTabunganPaid +
+    manualTabunganPaid,
+    price
   );
 
 const remaining =
@@ -10192,17 +10426,17 @@ const total =
       <br>
 
       Total Tabungan Sebelumnya:
-      <strong>
-        ${formatRupiah(
-          dpPaid
-        )}
-      </strong>
+<strong>
+  ${formatRupiah(
+    totalTabunganSebelumnya
+  )}
+</strong>
 
       <br>
 
       Nominal Tabungan Saat Ini:
       <strong>
-        bebas diisi admin
+        Sesuai Pembayaran Customer
       </strong>
     `
     : `
