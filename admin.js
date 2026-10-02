@@ -8356,11 +8356,7 @@ const {
             <th>
               Tanggal Transfer
             </th>
-
-            <th>
-              Bukti
-            </th>
-
+            
             <th>
               Status
             </th>
@@ -8441,12 +8437,6 @@ const {
                         : "—"
                     }
                   </td>
-
-
-                 <td>
-  —
-</td>
-
 
                   <td>
 
@@ -9684,6 +9674,21 @@ async function openPaymentAllocation(
       })
       .filter(Boolean);
 
+   const normalizedProductCodes =
+  productCodes.map(function(value) {
+    return String(value)
+      .trim()
+      .toLowerCase();
+  });
+
+
+const normalizedProductVersions =
+  productVersions.map(function(value) {
+    return String(value)
+      .trim()
+      .toLowerCase();
+  });
+
 
   /* ================================
      AMBIL REKAP CUSTOMER
@@ -9693,20 +9698,94 @@ async function openPaymentAllocation(
    AMBIL REKAP BARANG PEMBAYARAN
    ================================ */
 
-const {
-  data: recapData,
-  error: recapError
-} =
-  await supabaseClient
-    .from(
-      "purchase_recap"
-    )
-    .select("*")
-    .in(
-      "batch_code",
-      productCodes
+const isTabunganPayment =
+  String(
+    payment.payment_type || ""
+  )
+    .trim()
+    .toLowerCase() ===
+  "tabungan";
+
+
+let recapData = [];
+let recapError = null;
+
+
+if (isTabunganPayment) {
+
+  /*
+    KHUSUS PEMBAYARAN TABUNGAN
+
+    Cari berdasarkan customer_id
+    dan recap_type = Tabungan.
+  */
+
+  let query =
+    supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .eq(
+        "recap_type",
+        "Tabungan"
+      );
+
+
+  if (
+    payment.customer_id !==
+    null &&
+    payment.customer_id !==
+    undefined
+  ) {
+
+    query = query.eq(
+      "customer_id",
+      payment.customer_id
     );
 
+  } else {
+
+    query = query.ilike(
+      "customer_name",
+      `${payment.customer_name}%`
+    );
+
+  }
+
+
+  const result =
+    await query;
+
+  recapData =
+    result.data || [];
+
+  recapError =
+    result.error || null;
+
+} else {
+
+  /*
+    PEMBAYARAN NORMAL
+    Tetap menggunakan batch_code.
+  */
+
+  const result =
+    await supabaseClient
+      .from(
+        "purchase_recap"
+      )
+      .select("*")
+      .in(
+        "batch_code",
+        productCodes
+      );
+
+  recapData =
+    result.data || [];
+
+  recapError =
+    result.error || null;
+
+}
   if (recapError) {
 
     console.error(
@@ -9731,143 +9810,219 @@ const {
 const selectedItems = [];
 
 
-/*
-  Jika hanya ada 1 kode produk tetapi
-  memiliki banyak versi, maka semua versi
-  menggunakan kode produk yang sama.
-*/
-
-   /* ==========================================
-   CARI SEMUA BARANG BERDASARKAN
-   BATCH + VERSI / MEMBER
-   ========================================== */
-
-const normalizedProductCodes =
-  productCodes.map(function(value) {
-    return String(value || "")
-      .trim()
-      .toLowerCase();
-  });
-
-const normalizedProductVersions =
-  productVersions.map(function(value) {
-    return String(value || "")
-      .trim()
-      .toLowerCase();
-  });
-
-
 /* ==========================================
-   CARI SEMUA BARANG YANG SESUAI
+   KHUSUS TABUNGAN
    ========================================== */
 
-(recapData || []).forEach(
-  function(row) {
+if (isTabunganPayment) {
 
-    const rowCode =
-      String(
-        row.batch_code ||
-        row.product_code ||
-        ""
-      )
-        .trim()
-        .toLowerCase();
+  (recapData || []).forEach(
+    function(row) {
 
+      const rowCustomerId =
+        String(
+          row.customer_id ?? ""
+        )
+          .trim();
 
-    const rowVersion =
-      String(
-        row.version ||
-        row.product_version ||
-        ""
-      )
-        .trim()
-        .toLowerCase();
+      const paymentCustomerId =
+        String(
+          payment.customer_id ?? ""
+        )
+          .trim();
 
 
-    const rowCustomerId =
-      String(
-        row.customer_id ?? ""
-      )
-        .trim();
+      /*
+        Jika customer_id tersedia,
+        harus sama.
+      */
+
+      if (
+        paymentCustomerId &&
+        rowCustomerId &&
+        rowCustomerId !==
+          paymentCustomerId
+      ) {
+
+        return;
+
+      }
 
 
-    const paymentCustomerId =
-      String(
-        payment.customer_id ?? ""
-      )
-        .trim();
+      /*
+        Jangan masukkan data yang
+        bukan Tabungan.
+      */
+
+      const rowRecapType =
+        String(
+          row.recap_type || ""
+        )
+          .trim()
+          .toLowerCase();
 
 
-    /* ======================================
-       CUSTOMER HARUS SAMA
-       ====================================== */
+      if (
+        rowRecapType !==
+        "tabungan"
+      ) {
 
-    if (
-      paymentCustomerId &&
-      rowCustomerId &&
-      rowCustomerId !==
-        paymentCustomerId
-    ) {
-      return;
+        return;
+
+      }
+
+
+      /*
+        Jangan duplikat.
+      */
+
+      if (
+        selectedItems.some(
+          function(existing) {
+
+            return (
+              String(existing.id) ===
+              String(row.id)
+            );
+
+          }
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      selectedItems.push(
+        row
+      );
+
     }
+  );
 
 
-    /* ======================================
-       BATCH HARUS TERMASUK DALAM PAYMENT
-       ====================================== */
+} else {
 
-    if (
-      !normalizedProductCodes.includes(
-        rowCode
-      )
-    ) {
-      return;
+  /* ==========================================
+     PEMBAYARAN NORMAL
+     ========================================== */
+
+  (recapData || []).forEach(
+    function(row) {
+
+      const rowCode =
+        String(
+          row.batch_code ||
+          row.product_code ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      const rowVersion =
+        String(
+          row.version ||
+          row.product_version ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      const rowCustomerId =
+        String(
+          row.customer_id ?? ""
+        )
+          .trim();
+
+
+      const paymentCustomerId =
+        String(
+          payment.customer_id ?? ""
+        )
+          .trim();
+
+
+      /*
+        CUSTOMER HARUS SAMA
+      */
+
+      if (
+        paymentCustomerId &&
+        rowCustomerId &&
+        rowCustomerId !==
+          paymentCustomerId
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+        BATCH HARUS SESUAI
+      */
+
+      if (
+        !normalizedProductCodes.includes(
+          rowCode
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+        VERSI HARUS SESUAI
+      */
+
+      if (
+        normalizedProductVersions.length > 0 &&
+        !normalizedProductVersions.includes(
+          rowVersion
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      /*
+        JANGAN DUPLIKAT
+      */
+
+      if (
+        selectedItems.some(
+          function(existing) {
+
+            return (
+              String(existing.id) ===
+              String(row.id)
+            );
+
+          }
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      selectedItems.push(
+        row
+      );
+
     }
+  );
 
-
-    /* ======================================
-       VERSI HARUS TERMASUK DALAM PAYMENT
-       ====================================== */
-
-    if (
-      normalizedProductVersions.length > 0 &&
-      !normalizedProductVersions.includes(
-        rowVersion
-      )
-    ) {
-      return;
-    }
-
-
-    /* ======================================
-       JANGAN DUPLIKAT
-       ====================================== */
-
-    if (
-      selectedItems.some(
-        function(existing) {
-
-          return (
-            String(existing.id) ===
-            String(row.id)
-          );
-
-        }
-      )
-    ) {
-      return;
-    }
-
-
-    /* ======================================
-       MASUKKAN BARANG
-       ====================================== */
-
-    selectedItems.push(row);
-
-  }
-);
-
+}
+   
   /* ================================
      MODAL
      ================================ */
@@ -11261,16 +11416,14 @@ function autoAllocatePayment() {
         remaining;
 
     } else if (
-      partSelect.value ===
-      "both"
-    ) {
+  partSelect.value ===
+  "both"
+) {
 
-      target =
-        remaining > 0
-          ? remaining
-          : price;
+  target =
+    price;
 
-    }
+}
 
 
     target =
@@ -11435,16 +11588,16 @@ modal
                 );
 
             } else if (
-              part === "both"
-            ) {
+  part === "both"
+) {
 
-              target =
-                Math.max(
-                  price - dpPaid,
-                  0
-                );
+  target =
+    Math.max(
+      price,
+      0
+    );
 
-            }
+}
 
 
             /* ==========================
