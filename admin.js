@@ -31436,80 +31436,168 @@ container
       }
 
       header.addEventListener(
-        "click",
-        function(event) {
+  "click",
+  function(event) {
 
-          /*
-           * Jangan buka/tutup batch
-           * ketika klik tombol atau select.
-           */
+    /* ==========================================
+       JANGAN TOGGLE JIKA KLIK BUTTON / SELECT
+       ========================================== */
+
+    if (
+      event.target.closest(
+        "select, button"
+      )
+    ) {
+      return;
+    }
+
+
+    /* ==========================================
+       BATCH YANG DIKLIK
+       ========================================== */
+
+    const isCurrentlyCollapsed =
+      card.classList.contains(
+        "recap-batch-collapsed"
+      );
+
+    const batchCode =
+      card.dataset.batchCode;
+
+
+    /* ==========================================
+       TUTUP SEMUA BATCH LAIN
+       ========================================== */
+
+    container
+      .querySelectorAll(
+        ".recap-batch-card"
+      )
+      .forEach(
+        function(otherCard) {
+
           if (
-            event.target.closest(
-              "select, button"
-            )
+            otherCard === card
           ) {
             return;
           }
 
-          const isCollapsed =
-  card.classList.toggle(
-    "recap-batch-collapsed"
-  );
 
-const batchCode =
-  card.dataset.batchCode;
+          otherCard.classList.add(
+            "recap-batch-collapsed"
+          );
 
-if (isCollapsed) {
 
-  /* Batch ditutup */
-  if (
-    batchCode &&
-    getOpenBatch() === batchCode
-  ) {
-    clearOpenBatch();
-  }
+          const otherTracking =
+            otherCard.querySelector(
+              ".batch-tracking"
+            );
 
-} else {
 
-  /* Batch dibuka */
-  saveOpenBatch(
-    batchCode
-  );
+          const otherTable =
+            otherCard.querySelector(
+              ".product-table-wrapper"
+            );
 
-}
 
-          if (isCollapsed) {
+          if (otherTracking) {
+            otherTracking.style.display =
+              "none";
+          }
 
-            if (tracking) {
-              tracking.style.display =
-                "none";
-            }
 
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "none";
-            }
-
-          } else {
-
-            if (tracking) {
-              tracking.style.display =
-                "";
-            }
-
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "";
-            }
-
+          if (otherTable) {
+            otherTable.style.display =
+              "none";
           }
 
         }
       );
 
-    }
-  );
 
+    /* ==========================================
+       BUKA / TUTUP BATCH YANG DIKLIK
+       ========================================== */
+
+    if (
+      isCurrentlyCollapsed
+    ) {
+
+      card.classList.remove(
+        "recap-batch-collapsed"
+      );
+
+
+      const tracking =
+        card.querySelector(
+          ".batch-tracking"
+        );
+
+
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
+
+      if (tracking) {
+        tracking.style.display =
+          "";
+      }
+
+
+      if (tableWrapper) {
+        tableWrapper.style.display =
+          "";
+      }
+
+
+      /* Simpan batch yang sedang terbuka */
+
+      saveOpenBatch(
+        batchCode
+      );
+
+
+    } else {
+
+      /* Batch yang sama diklik lagi → tutup */
+
+      card.classList.add(
+        "recap-batch-collapsed"
+      );
+
+
+      const tracking =
+        card.querySelector(
+          ".batch-tracking"
+        );
+
+
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
+
+      if (tracking) {
+        tracking.style.display =
+          "none";
+      }
+
+
+      if (tableWrapper) {
+        tableWrapper.style.display =
+          "none";
+      }
+
+
+      clearOpenBatch();
+
+    }
+
+  }
+);
    /* ==========================================
    KEMBALI MEMBUKA BATCH TERAKHIR
    ========================================== */
