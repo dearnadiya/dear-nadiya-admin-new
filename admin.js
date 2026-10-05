@@ -2279,21 +2279,21 @@ async function showPurchaseStockAllocationForm(
      ========================================== */
 
   const {
-    data: recapRows,
-    error: recapError
-  } = await supabaseClient
-    .from("purchase_recap")
-    .select(`
-      recap_type,
-      category,
-      batch_code
-    `)
-    .not(
-      "batch_code",
-      "is",
-      null
-    );
-
+  data: recapRows,
+  error: recapError
+} = await supabaseClient
+  .from("purchase_recap")
+  .select(`
+    recap_type,
+    category,
+    batch_code,
+    item_name
+  `)
+  .not(
+    "batch_code",
+    "is",
+    null
+  );
 
   if (recapError) {
 
@@ -2460,63 +2460,73 @@ async function showPurchaseStockAllocationForm(
 
   const batchesByTypeCategory = {};
 
+recapData.forEach(
+  function(row) {
 
-  recapData.forEach(
-    function(row) {
+    const type =
+      String(
+        row.recap_type || ""
+      ).trim();
 
-      const type =
-        String(
-          row.recap_type || ""
-        ).trim();
+    const category =
+      String(
+        row.category || ""
+      ).trim();
 
-      const category =
-        String(
-          row.category || ""
-        ).trim();
+    const batch =
+      String(
+        row.batch_code || ""
+      ).trim();
 
-      const batch =
-        String(
-          row.batch_code || ""
-        ).trim();
+    const itemName =
+      String(
+        row.item_name || ""
+      ).trim();
 
-      if (
-        !type ||
-        !category ||
-        !batch
-      ) {
-        return;
-      }
+    if (
+      !type ||
+      !category ||
+      !batch
+    ) {
+      return;
+    }
 
+    const key =
+      type +
+      "||" +
+      category;
 
-      const key =
-        type +
-        "||" +
-        category;
+    if (
+      !batchesByTypeCategory[key]
+    ) {
 
-
-      if (
-        !batchesByTypeCategory[key]
-      ) {
-
-        batchesByTypeCategory[key] =
-          [];
-
-      }
-
-
-      if (
-        !batchesByTypeCategory[key]
-          .includes(batch)
-      ) {
-
-        batchesByTypeCategory[key]
-          .push(batch);
-
-      }
+      batchesByTypeCategory[key] = [];
 
     }
-  );
 
+    const alreadyExists =
+      batchesByTypeCategory[key]
+        .some(function(item) {
+
+          return (
+            item.batch_code ===
+            batch
+          );
+
+        });
+
+    if (!alreadyExists) {
+
+      batchesByTypeCategory[key]
+        .push({
+          batch_code: batch,
+          item_name: itemName
+        });
+
+    }
+
+  }
+);
 
   /* ==========================================
      7. MODAL
@@ -3076,22 +3086,32 @@ async function showPurchaseStockAllocationForm(
 
 
       batches.forEach(
-        function(batch) {
+  function(batch) {
 
-          batchSelect.insertAdjacentHTML(
-            "beforeend",
-            optionHTML(
-              batch,
-              batch,
-              String(
-                allocation.batch_code || ""
-              ).trim() === batch
-            )
-          );
-
-        }
+    const label =
+      batch.batch_code +
+      (
+        batch.item_name
+          ? " (" +
+            batch.item_name +
+            ")"
+          : ""
       );
 
+    batchSelect.insertAdjacentHTML(
+      "beforeend",
+      optionHTML(
+        batch.batch_code,
+        label,
+        String(
+          allocation.batch_code || ""
+        ).trim() ===
+          batch.batch_code
+      )
+    );
+
+  }
+);
 
       if (
         allocation.batch_code
@@ -35158,6 +35178,7 @@ if (category === "Tabungan Album") {
 
 /* ============================================
    INFORMASI PEMBELIAN BATCH
+   DATA DARI PEMBELIAN STOK
    ============================================ */
 
 async function showPurchaseBatchInfo(
@@ -35174,6 +35195,7 @@ async function showPurchaseBatchInfo(
     existing.remove();
   }
 
+
   const button =
     Array.from(
       document.querySelectorAll(
@@ -35182,35 +35204,48 @@ async function showPurchaseBatchInfo(
     ).find(function(button) {
 
       return (
-        button.dataset.batchCode === batchCode &&
-        button.dataset.category === category
+        button.dataset.batchCode ===
+          batchCode &&
+        button.dataset.category ===
+          category
       );
 
     });
 
+
   if (!button) {
+
     console.error(
       "Tombol Informasi Pembelian tidak ditemukan:",
       batchCode,
       category
     );
+
     return;
+
   }
+
 
   const batchCard =
     button.closest(
       ".recap-batch-card"
     );
 
+
   if (!batchCard) {
     return;
   }
 
+
   const infoContainer =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
+
 
   infoContainer.className =
     "purchase-batch-info-inline";
+
 
   infoContainer.style.cssText = `
     margin:12px 0;
@@ -35220,7 +35255,9 @@ async function showPurchaseBatchInfo(
     background:#fff;
   `;
 
+
   infoContainer.innerHTML = `
+
     <div
       style="
         display:flex;
@@ -35230,7 +35267,9 @@ async function showPurchaseBatchInfo(
         gap:10px;
       "
     >
+
       <div>
+
         <h3
           style="
             margin:0;
@@ -35250,7 +35289,9 @@ async function showPurchaseBatchInfo(
             ${escapeHTML(batchCode)}
           </strong>
         </small>
+
       </div>
+
 
       <button
         type="button"
@@ -35262,7 +35303,9 @@ async function showPurchaseBatchInfo(
       >
         ✕ Tutup
       </button>
+
     </div>
+
 
     <div
       class="purchase-batch-info-loading"
@@ -35273,12 +35316,15 @@ async function showPurchaseBatchInfo(
     >
       Memuat informasi pembelian...
     </div>
+
   `;
+
 
   const header =
     batchCard.querySelector(
       ".recap-batch-header"
     );
+
 
   if (header) {
 
@@ -35295,6 +35341,7 @@ async function showPurchaseBatchInfo(
 
   }
 
+
   infoContainer
     .querySelector(
       ".close-purchase-batch-info"
@@ -35308,35 +35355,241 @@ async function showPurchaseBatchInfo(
       }
     );
 
+
   try {
 
+    /*
+       ========================================
+       1. CARI PEMBELIAN STOK YANG
+          DIALOKASIKAN KE BATCH INI
+       ========================================
+    */
+
     const {
-      data,
-      error
+      data: allocationRows,
+      error: allocationError
     } =
       await supabaseClient
-        .from("purchase_batch_info")
-        .select("*")
-        .eq(
-          "recap_type",
-          getRecapTypeFromCategory(category)
+        .from(
+          "purchase_stock_allocation"
         )
-        .eq(
-          "category",
-          category
-        )
+        .select(`
+          purchase_stock_id,
+          batch_code,
+          category,
+          recap_type
+        `)
         .eq(
           "batch_code",
           batchCode
         )
-        .maybeSingle();
+        .eq(
+          "category",
+          category
+        );
 
-    if (error) {
-      throw error;
+
+    if (allocationError) {
+      throw allocationError;
     }
 
-    const info =
-      data || {};
+
+    /*
+       ========================================
+       JIKA BELUM ADA ALOKASI
+       ========================================
+    */
+
+    if (
+      !allocationRows ||
+      allocationRows.length === 0
+    ) {
+
+      infoContainer
+        .querySelector(
+          ".purchase-batch-info-loading"
+        )
+        .innerHTML = `
+          <div
+            style="
+              padding:10px 0;
+              color:#777;
+            "
+          >
+            Belum ada Pembelian Stok
+            yang dialokasikan ke batch ini.
+          </div>
+        `;
+
+      return;
+
+    }
+
+
+    /*
+       ========================================
+       2. AMBIL ID PEMBELIAN STOK
+       ========================================
+    */
+
+    const purchaseStockIds =
+      Array.from(
+        new Set(
+          allocationRows
+            .map(function(row) {
+
+              return Number(
+                row.purchase_stock_id
+              );
+
+            })
+            .filter(function(id) {
+
+              return id > 0;
+
+            })
+        )
+      );
+
+
+    if (
+      purchaseStockIds.length === 0
+    ) {
+
+      infoContainer
+        .querySelector(
+          ".purchase-batch-info-loading"
+        )
+        .innerHTML = `
+          <div
+            style="
+              padding:10px 0;
+              color:#777;
+            "
+          >
+            Belum ada Pembelian Stok
+            yang terhubung ke batch ini.
+          </div>
+        `;
+
+      return;
+
+    }
+
+
+    /*
+       ========================================
+       3. AMBIL DATA PEMBELIAN STOK
+       ========================================
+    */
+
+    const {
+      data: purchaseRows,
+      error: purchaseError
+    } =
+      await supabaseClient
+        .from(
+          "purchase_stock"
+        )
+        .select(`
+          id,
+          seller_name,
+          warehouse_name
+        `)
+        .in(
+          "id",
+          purchaseStockIds
+        );
+
+
+    if (purchaseError) {
+      throw purchaseError;
+    }
+
+
+    /*
+       ========================================
+       4. TAMPILKAN HANYA:
+          SELLER
+          WH
+       ========================================
+    */
+
+    if (
+      !purchaseRows ||
+      purchaseRows.length === 0
+    ) {
+
+      infoContainer
+        .querySelector(
+          ".purchase-batch-info-loading"
+        )
+        .innerHTML = `
+          <div
+            style="
+              padding:10px 0;
+              color:#777;
+            "
+          >
+            Data Pembelian Stok
+            tidak ditemukan.
+          </div>
+        `;
+
+      return;
+
+    }
+
+
+    let html = "";
+
+
+    purchaseRows.forEach(
+      function(purchase) {
+
+        html += `
+
+          <div
+            style="
+              display:grid;
+              grid-template-columns:
+                120px minmax(0,1fr);
+              gap:8px 14px;
+              padding:12px 0;
+              border-bottom:1px dashed #ddd;
+            "
+          >
+
+            <strong>
+              Seller
+            </strong>
+
+            <div>
+              ${escapeHTML(
+                purchase.seller_name ||
+                "-"
+              )}
+            </div>
+
+
+            <strong>
+              WH
+            </strong>
+
+            <div>
+              ${escapeHTML(
+                purchase.warehouse_name ||
+                "-"
+              )}
+            </div>
+
+          </div>
+
+        `;
+
+      }
+    );
+
 
     infoContainer
       .querySelector(
@@ -35344,340 +35597,14 @@ async function showPurchaseBatchInfo(
       )
       .outerHTML = `
 
-      <form
-        class="purchase-batch-info-form"
-      >
+        <div>
 
-        <div
-          style="
-            display:grid;
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-            gap:12px;
-          "
-        >
-
-          <div>
-            <label>
-              <strong>
-                Seller / Web
-              </strong>
-            </label>
-
-            <input
-              type="text"
-              name="seller_name"
-              value="${escapeHTML(
-                info.seller_name || ""
-              )}"
-              placeholder="Contoh: YG Select"
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
-
-          <div>
-            <label>
-              <strong>
-                Link Seller
-              </strong>
-            </label>
-
-            <input
-              type="url"
-              name="seller_url"
-              value="${escapeHTML(
-                info.seller_url || ""
-              )}"
-              placeholder="https://..."
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
-
-          <div>
-            <label>
-              <strong>
-                Warehouse
-              </strong>
-            </label>
-
-            <input
-              type="text"
-              name="warehouse_name"
-              value="${escapeHTML(
-                info.warehouse_name || ""
-              )}"
-              placeholder="Contoh: KR Warehouse"
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
-
-          <div>
-            <label>
-              <strong>
-                Nomor Order
-              </strong>
-            </label>
-
-            <input
-              type="text"
-              name="order_number"
-              value="${escapeHTML(
-                info.order_number || ""
-              )}"
-              placeholder="Nomor pesanan seller"
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
-
-          <div>
-            <label>
-              <strong>
-                Resi Seller
-              </strong>
-            </label>
-
-            <input
-              type="text"
-              name="seller_tracking"
-              value="${escapeHTML(
-                info.seller_tracking || ""
-              )}"
-              placeholder="Tracking dari seller"
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
-
-          <div>
-            <label>
-              <strong>
-                Box Pengiriman
-              </strong>
-            </label>
-
-            <input
-              type="text"
-              name="forwarder_tracking"
-              value="${escapeHTML(
-                info.forwarder_tracking || ""
-              )}"
-              placeholder="Contoh: BOX-001 / BOX A-2026"
-              style="
-                width:100%;
-                box-sizing:border-box;
-              "
-            >
-          </div>
+          ${html}
 
         </div>
 
-        <div
-          style="
-            margin-top:12px;
-          "
-        >
+      `;
 
-          <label>
-            <strong>
-              Catatan Pembelian
-            </strong>
-          </label>
-
-          <textarea
-            name="purchase_note"
-            rows="3"
-            placeholder="Catatan terkait pembelian..."
-            style="
-              width:100%;
-              box-sizing:border-box;
-              resize:vertical;
-            "
-          >${escapeHTML(
-            info.purchase_note || ""
-          )}</textarea>
-
-        </div>
-
-        <div
-          style="
-            display:flex;
-            justify-content:flex-end;
-            margin-top:14px;
-          "
-        >
-
-          <button
-            type="submit"
-            class="primary-button"
-          >
-            💾 Simpan Informasi Pembelian
-          </button>
-
-        </div>
-
-        <div
-          class="purchase-batch-info-message"
-          style="
-            margin-top:8px;
-            font-size:13px;
-          "
-        ></div>
-
-      </form>
-    `;
-
-    const form =
-      infoContainer.querySelector(
-        ".purchase-batch-info-form"
-      );
-
-    form.addEventListener(
-      "submit",
-      async function(event) {
-
-        event.preventDefault();
-
-        const formData =
-          new FormData(form);
-
-        const payload = {
-
-          recap_type:
-            getRecapTypeFromCategory(
-              category
-            ),
-
-          category:
-            category,
-
-          batch_code:
-            batchCode,
-
-          seller_name:
-            String(
-              formData.get(
-                "seller_name"
-              ) || ""
-            ).trim() || null,
-
-          seller_url:
-            String(
-              formData.get(
-                "seller_url"
-              ) || ""
-            ).trim() || null,
-
-          warehouse_name:
-            String(
-              formData.get(
-                "warehouse_name"
-              ) || ""
-            ).trim() || null,
-
-          order_number:
-            String(
-              formData.get(
-                "order_number"
-              ) || ""
-            ).trim() || null,
-
-          seller_tracking:
-            String(
-              formData.get(
-                "seller_tracking"
-              ) || ""
-            ).trim() || null,
-
-          forwarder_tracking:
-            String(
-              formData.get(
-                "forwarder_tracking"
-              ) || ""
-            ).trim() || null,
-
-          purchase_note:
-            String(
-              formData.get(
-                "purchase_note"
-              ) || ""
-            ).trim() || null
-
-        };
-
-        const message =
-          form.querySelector(
-            ".purchase-batch-info-message"
-          );
-
-        message.textContent =
-          "Menyimpan...";
-
-        try {
-
-          const {
-            error
-          } =
-            await supabaseClient
-              .from(
-                "purchase_batch_info"
-              )
-              .upsert(
-                payload,
-                {
-                  onConflict:
-                    "recap_type,category,batch_code"
-                }
-              );
-
-          if (error) {
-            throw error;
-          }
-
-          message.textContent =
-            "✅ Informasi pembelian berhasil disimpan.";
-
-          message.style.color =
-            "green";
-
-        }
-        catch (error) {
-
-          console.error(
-            "Gagal menyimpan informasi pembelian:",
-            error
-          );
-
-          message.textContent =
-            "❌ Gagal menyimpan: " +
-            (
-              error.message ||
-              error
-            );
-
-          message.style.color =
-            "red";
-
-        }
-
-      }
-    );
 
   }
   catch (error) {
@@ -35687,12 +35614,21 @@ async function showPurchaseBatchInfo(
       error
     );
 
-    infoContainer
-      .querySelector(
+
+    const loading =
+      infoContainer.querySelector(
         ".purchase-batch-info-loading"
-      )
-      .innerHTML = `
-        <span style="color:red;">
+      );
+
+
+    if (loading) {
+
+      loading.innerHTML = `
+        <span
+          style="
+            color:red;
+          "
+        >
           Gagal memuat informasi pembelian:
           ${escapeHTML(
             error.message ||
@@ -35700,6 +35636,8 @@ async function showPurchaseBatchInfo(
           )}
         </span>
       `;
+
+    }
 
   }
 
