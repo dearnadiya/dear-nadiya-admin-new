@@ -18357,10 +18357,8 @@ const batchArrivedAdminAt =
   type="text"
   class="batch-dp currency-input"
   value="${Number(
-    batch.minimum_dp_amount ||
-    batch.dp_amount ||
-    0
-  )}"
+  batch.minimum_dp_amount || 0
+)}"
 >
 
       </div>
@@ -19317,17 +19315,27 @@ version:
 quantity:
   quantity,
 
-              item_price:
-                price,
+             item_price:
+  price,
 
-              dp_amount:
-                dp,
+minimum_dp_amount:
+  dp,
 
-              dp_status:
-                dpStatus,
+/*
+ * MEMBER BARU BELUM MEMILIKI
+ * PEMBAYARAN AKTUAL.
+ */
+dp_amount:
+  0,
 
-              remaining_amount:
-                remaining,
+dp_status:
+  "unpaid",
+
+remaining_amount:
+  price,
+
+payment_status:
+  "unpaid",
 
             payment_status:
                   paymentStatus,
