@@ -4081,23 +4081,6 @@ function showPurchaseStockForm(
     "
   >
 
-  <div
-    style="
-      display:grid;
-      grid-template-columns:
-        minmax(0,1fr)
-        130px;
-      gap:15px;
-      margin-top:10px;
-    "
-  >
-
-    <label>
-
-      <div>
-        Nama Barang
-      </div>
-
       <input
         type="text"
         id="purchaseItemNameInput"
