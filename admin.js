@@ -22114,20 +22114,24 @@ data.forEach(
 
 
     billingAllocationRows[
-      recapId
-    ] = {
+  recapId
+] = {
+  totalDpPaid:
+    totalDpPaid,
 
-      totalPaid:
-        totalPaid,
+  totalPelunasanPaid:
+    totalPelunasanPaid,
 
-      remaining:
-        Math.max(
-          price -
-          totalPaid,
-          0
-        )
+  totalPaid:
+    totalPaid,
 
-    };
+  remaining:
+    Math.max(
+      price -
+      totalPaid,
+      0
+    )
+};
 
   }
 );
@@ -22743,7 +22747,7 @@ const selectedRows =
 
 const batchDeadlines = {};
 
-data.forEach(
+selectedRows.forEach(
   function(row) {
 
     const batchCode =
@@ -22769,7 +22773,6 @@ data.forEach(
 
   }
 );
-
 
 const deadlineEntries =
   selectedBatches
@@ -23038,15 +23041,15 @@ const remaining =
     row.minimum_dp_amount
   ) || 0;
 
-const dpPaid =
-  Number(
-    row.dp_amount
-  ) || 0;
-
-                  const billingSummary =
+const billingSummary =
   billingAllocationRows[
     String(row.id)
   ] || {};
+
+const dpPaid =
+  Number(
+    billingSummary.totalDpPaid
+  ) || 0;
 
 const remaining =
   Number(
