@@ -14325,3 +14325,299 @@ button {
   }
 
 }
+
+/* =========================================================
+   REKAP GO - GRID INFO BATCH BARU
+   Desktop : 4 x 2
+   Tablet  : 2 x 4
+   Mobile  : 1 x 8
+   ========================================================= */
+
+/* =========================
+   DESKTOP
+   ========================= */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.recap-batch-deadlines {
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr)) !important;
+
+  gap: 10px !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+
+  margin-top: 10px !important;
+
+  overflow: visible !important;
+}
+
+
+/* Semua kotak informasi batch */
+
+#recapListContainer
+.recap-batch-deadlines > div {
+
+  min-width: 0 !important;
+
+  width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  overflow: hidden;
+}
+
+
+/* Tracking tetap menjadi 1 kotak grid */
+
+#recapListContainer
+.recap-batch-deadlines
+.batch-tracking {
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: stretch !important;
+
+  gap: 5px !important;
+
+  margin: 0 !important;
+}
+
+
+/* Label Tracking */
+
+#recapListContainer
+.recap-batch-deadlines
+.batch-tracking strong {
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+/* Dropdown Tracking */
+
+#recapListContainer
+.recap-batch-deadlines
+.batch-tracking
+.batch-tracking-select {
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  height: 32px !important;
+
+  min-height: 32px !important;
+
+  font-size: 11px !important;
+}
+
+
+/* Tombol Simpan */
+
+#recapListContainer
+.recap-batch-deadlines
+.batch-tracking
+.save-batch-tracking-button {
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  height: 32px !important;
+
+  min-height: 32px !important;
+
+  box-sizing: border-box !important;
+
+  margin: 0 !important;
+
+  padding: 5px 8px !important;
+
+  font-size: 11px !important;
+}
+
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 900px) {
+
+  #recapListContainer
+  .recap-batch-card:not(.recap-batch-collapsed)
+  .recap-batch-deadlines {
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    overflow: visible !important;
+  }
+
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 600px) {
+
+  #recapListContainer
+  .recap-batch-card:not(.recap-batch-collapsed)
+  .recap-batch-deadlines {
+
+    display: grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+
+    gap: 8px !important;
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    overflow: visible !important;
+
+    margin-top: 8px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines > div {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines
+  .batch-tracking {
+
+    display: flex !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+
+    flex-direction: column !important;
+
+    align-items: stretch !important;
+
+    gap: 6px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines
+  .batch-tracking-select {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+
+    height: 40px !important;
+
+    min-height: 40px !important;
+
+    font-size: 13px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines
+  .save-batch-tracking-button {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: 100% !important;
+
+    height: 40px !important;
+
+    min-height: 40px !important;
+
+    font-size: 13px !important;
+  }
+
+}
+
+
+/* =========================
+   SANGAT KECIL
+   ========================= */
+
+@media (max-width: 380px) {
+
+  #recapListContainer
+  .recap-batch-deadlines {
+
+    gap: 6px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines > div {
+
+    padding: 7px 8px !important;
+  }
+
+
+  #recapListContainer
+  .recap-batch-deadlines strong {
+
+    font-size: 11px !important;
+  }
+
+}
