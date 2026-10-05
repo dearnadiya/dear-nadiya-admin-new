@@ -3985,13 +3985,79 @@ function showPurchaseStockForm(
   <div
     style="
       display:flex;
-      justify-content:space-between;
       align-items:center;
       margin-bottom:10px;
     "
   >
 
-    <div
+    <strong>
+      📦 Barang
+    </strong>
+
+  </div>
+
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:
+        minmax(0,1fr)
+        130px;
+      gap:15px;
+      margin-top:10px;
+    "
+  >
+
+    <label>
+
+      <div>
+        Nama Barang
+      </div>
+
+      <input
+        type="text"
+        id="purchaseItemNameInput"
+        value="${
+          escapeHTML(
+            purchase?.item_name || ""
+          )
+        }"
+        placeholder="Contoh: PC Knpops"
+        style="width:100%;"
+        required
+      >
+
+    </label>
+
+
+    <label>
+
+      <div>
+        Jumlah
+      </div>
+
+      <input
+        type="number"
+        id="purchaseQuantityInput"
+        value="${
+          Number(
+            purchase?.quantity || 0
+          )
+        }"
+        min="0"
+        step="1"
+        style="width:100%;"
+        required
+      >
+
+    </label>
+
+  </div>
+
+</div>
+
+
+<div
   style="
     grid-column:1 / -1;
     margin-top:5px;
@@ -3999,8 +4065,21 @@ function showPurchaseStockForm(
 >
 
   <strong>
-    📦 Barang
+    💰 Harga Pembelian
   </strong>
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:
+        160px
+        minmax(0,1fr)
+        160px
+        minmax(0,1fr);
+      gap:15px;
+      margin-top:10px;
+    "
+  >
 
   <div
     style="
