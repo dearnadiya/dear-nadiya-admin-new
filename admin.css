@@ -6730,20 +6730,6 @@ a {
     white-space: nowrap !important;
   }
 
-
-  /* =====================================================
-     PENTING:
-     CSS LAMA MENYEMBUNYIKAN TRACKING SAAT COLLAPSED.
-     KITA TAMPILKAN KEMBALI.
-  ===================================================== */
-
-  .recap-batch-card.recap-batch-collapsed
-  .batch-tracking {
-
-    display: flex !important;
-  }
-
-
   /* =========================
      DEADLINE TETAP TERSEMBUNYI
      ========================= */
