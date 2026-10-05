@@ -3714,7 +3714,7 @@ recapData.forEach(
           }
 
 
-          closeModal();
+                  closeModal();
 
           await renderPurchaseStockList();
 
@@ -4678,7 +4678,7 @@ quantity:
 
 }
              
-        if (result.error) {
+               if (result.error) {
 
           console.error(
             "Gagal menyimpan Pembelian Stok:",
@@ -4709,13 +4709,171 @@ quantity:
         }
 
 
+        /* =================================================
+           SINKRON TRACKING PEMBELIAN STOK → REKAP GO
+           ================================================= */
+
+        await syncPurchaseStockTrackingToRecap(
+          result.data?.id,
+          basePayload.tracking_status
+        );
+
+
         closeModal();
 
 
         await renderPurchaseStockList();
-
       }
     );
+
+}
+
+/* =========================================================
+   SYNC TRACKING PEMBELIAN STOK → REKAP GO
+   ========================================================= */
+
+async function syncPurchaseStockTrackingToRecap(
+  purchaseStockId,
+  trackingStatus
+) {
+
+  if (!purchaseStockId) {
+    return;
+  }
+
+  try {
+
+    /*
+       Cari allocation yang terhubung
+       dengan Pembelian Stok ini.
+    */
+
+    const {
+      data: allocations,
+      error: allocationError
+    } = await supabaseClient
+
+      .from(
+        "purchase_stock_allocation"
+      )
+
+      .select(`
+        purchase_stock_id,
+        recap_type,
+        category,
+        batch_code
+      `)
+
+      .eq(
+        "purchase_stock_id",
+        purchaseStockId
+      );
+
+
+    if (allocationError) {
+      throw allocationError;
+    }
+
+
+    if (
+      !allocations ||
+      !allocations.length
+    ) {
+
+      console.log(
+        "Tidak ada allocation untuk purchase stock:",
+        purchaseStockId
+      );
+
+      return;
+
+    }
+
+
+    /*
+       Update hanya batch yang
+       terhubung dengan purchase tersebut.
+    */
+
+    for (
+      const allocation
+      of allocations
+    ) {
+
+      const category =
+        String(
+          allocation.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+
+      if (
+        !category ||
+        !batchCode
+      ) {
+        continue;
+      }
+
+
+      const {
+        error: updateError
+      } = await supabaseClient
+
+        .from(
+          "purchase_recap"
+        )
+
+        .update({
+          batch_tracking_status:
+            trackingStatus || null
+        })
+
+        .eq(
+          "category",
+          category
+        )
+
+        .eq(
+          "batch_code",
+          batchCode
+        );
+
+
+      if (updateError) {
+        throw updateError;
+      }
+
+
+      console.log(
+        "TRACKING REKAP GO UPDATED:",
+        {
+          purchaseStockId,
+          category,
+          batchCode,
+          trackingStatus
+        }
+      );
+
+    }
+
+  }
+  catch (error) {
+
+    console.error(
+      "Gagal sinkronisasi tracking Pembelian Stok → Rekap GO:",
+      error
+    );
+
+    /*
+       Jangan menggagalkan penyimpanan
+       Pembelian Stok hanya karena sinkronisasi gagal.
+    */
+
+  }
 
 }
 
@@ -30110,7 +30268,7 @@ let html = `
   </div>
 
 
-  <!-- =========================
+    <!-- =========================
        TRACKING BATCH
        ========================= -->
   <div
@@ -30122,6 +30280,7 @@ let html = `
       display:flex;
       flex-direction:column;
       gap:5px;
+      box-sizing:border-box;
     "
   >
 
@@ -30129,92 +30288,40 @@ let html = `
       Tracking Batch:
     </strong>
 
-    <select
-      class="batch-tracking-select"
-      data-batch-code="${escapeHTML(
-        batchCode
-      )}"
+    <div
       style="
-        width:100%;
+        min-height:32px;
+        display:flex;
+        align-items:center;
         box-sizing:border-box;
-        padding:5px 7px;
         font-size:11px;
-        border:1px solid #ccc;
-        border-radius:6px;
-        cursor:pointer;
+        font-weight:600;
       "
     >
-
-      ${categoryTrackingOptions.map(
-        function(option) {
-
-          const currentTracking =
+      ${
+        escapeHTML(
+          (
             rows.find(
               function(row) {
 
                 return (
-                  row.batch_tracking_status
+                  row.batch_tracking_status !== null &&
+                  row.batch_tracking_status !== undefined &&
+                  String(
+                    row.batch_tracking_status
+                  ).trim() !== ""
                 );
 
               }
-            )?.batch_tracking_status ||
-
-            rows.find(
-              function(row) {
-
-                return (
-                  row.tracking_status
-                );
-
-              }
-            )?.tracking_status ||
-
-            "";
-
-          return `
-            <option
-              value="${escapeHTML(
-                option
-              )}"
-              ${
-                currentTracking ===
-                option
-                  ? "selected"
-                  : ""
-              }
-            >
-              ${escapeHTML(
-                option
-              )}
-            </option>
-          `;
-
-        }
-      ).join("")}
-
-    </select>
-
-
-    <button
-      type="button"
-      class="primary-button save-batch-tracking-button"
-      data-batch-code="${escapeHTML(
-        batchCode
-      )}"
-      style="
-        width:100%;
-        padding:5px 8px;
-        font-size:11px;
-      "
-    >
-      💾 Simpan
-    </button>
+            )?.batch_tracking_status || ""
+          )
+        ) || "—"
+      }
+    </div>
 
   </div>
 
-</div>
-
-          <div
+  <div
   class="product-table-wrapper"
   style="display:none;"
 >
@@ -32378,120 +32485,6 @@ recapStatusSelects.forEach(
 
       }
 
-    );
-
-  }
-);
-
-   /* ==========================================
-   SIMPAN TRACKING BATCH
-   ========================================== */
-
-const batchTrackingButtons =
-  container.querySelectorAll(
-    ".save-batch-tracking-button"
-  );
-
-
-batchTrackingButtons.forEach(
-  function (button) {
-
-    button.addEventListener(
-      "click",
-      async function () {
-
-        const batchCode =
-          this.dataset.batchCode;
-
-
-        const select =
-          container.querySelector(
-            `.batch-tracking-select[data-batch-code="${CSS.escape(
-              batchCode
-            )}"]`
-          );
-
-
-        if (!select) {
-          return;
-        }
-
-
-        const trackingStatus =
-          select.value;
-
-
-        this.disabled =
-          true;
-
-        this.textContent =
-          "Menyimpan...";
-
-
-        const {
-          error
-        } =
-          await supabaseClient
-            .from(
-              "purchase_recap"
-            )
-            .update({
-              batch_tracking_status:
-                trackingStatus
-            })
-            .eq(
-              "category",
-              category
-            )
-            .eq(
-              "batch_code",
-              batchCode
-            );
-
-
-        if (error) {
-
-          console.error(
-            "ERROR UPDATE BATCH TRACKING:",
-            error
-          );
-
-
-          alert(
-            "Gagal menyimpan tracking batch: " +
-            error.message
-          );
-
-
-          this.disabled =
-            false;
-
-          this.textContent =
-            "💾 Simpan";
-
-          return;
-
-        }
-
-
-        alert(
-  "Tracking batch berhasil diperbarui."
-);
-
-
-await loadRecapList(
-  category
-);
-
-
-if (
-  typeof loadOldRecapClaimList ===
-  "function"
-) {
-  await loadOldRecapClaimList();
-}
-
-      }
     );
 
   }
