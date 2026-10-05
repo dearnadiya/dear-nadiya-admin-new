@@ -29833,150 +29833,372 @@ let html = `
   </div>
   
 </div>
-<div class="recap-batch-deadlines">
-
-  <div>
-    <strong>Harga:</strong>
-    ${
-      (() => {
-        const prices =
-          rows
-            .map(row =>
-              Number(
-                row.item_price
-              ) || 0
-            )
-            .filter(
-              value => value > 0
-            );
-
-        if (!prices.length) {
-          return "—";
-        }
-
-        const minPrice =
-          Math.min(...prices);
-
-        const maxPrice =
-          Math.max(...prices);
-
-        return minPrice === maxPrice
-          ? formatNominalInput(
-              minPrice
-            )
-          : formatNominalInput(
-              minPrice
-            ) +
-            " - " +
-            formatNominalInput(
-              maxPrice
-            );
-      })()
-    }
-  </div>
-
-  <div>
-    <strong>DP:</strong>
-    ${
-      (() => {
-        const dps =
-  rows
-    .map(row => {
-     const minimumDp =
-  Number(
-    row.minimum_dp_amount
-  ) || 0;
-
-return minimumDp;
-    })
-    .filter(
-      value => value > 0
-    );
-        if (!dps.length) {
-          return "—";
-        }
-
-        const minDp =
-          Math.min(...dps);
-
-        const maxDp =
-          Math.max(...dps);
-
-        return minDp === maxDp
-          ? formatNominalInput(
-              minDp
-            )
-          : formatNominalInput(
-              minDp
-            ) +
-            " - " +
-            formatNominalInput(
-              maxDp
-            );
-      })()
-    }
-  </div>
-
-  <div>
-    <strong>Deadline DP:</strong>
-    ${
-      rows[0]?.dp_deadline
-        ? String(rows[0].dp_deadline).substring(0, 10)
-        : "—"
-    }
-  </div>
-
-  <div>
-    <strong>Deadline Pelunasan:</strong>
-    ${
-      rows[0]?.payment_deadline
-        ? String(rows[0].payment_deadline).substring(0, 10)
-        : "—"
-    }
-  </div>
-
-  <div>
-    <strong>Deadline CO:</strong>
-    ${
-      rows[0]?.co_deadline
-        ? String(rows[0].co_deadline).substring(0, 10)
-        : "—"
-    }
-  </div>
-
-</div>
 
 <div
-  class="batch-tracking"
-  style="display:none;"
+  class="recap-batch-deadlines"
+  style="
+    display:grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap:10px;
+    width:100%;
+    box-sizing:border-box;
+    margin-top:10px;
+  "
 >
 
-  <small>
-    TRACKING BATCH
-  </small>
+  <!-- =========================
+       HARGA
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>Harga:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        (() => {
+
+          const prices =
+            rows
+              .map(row =>
+                Number(
+                  row.item_price
+                ) || 0
+              )
+              .filter(
+                value => value > 0
+              );
+
+          if (!prices.length) {
+            return "—";
+          }
+
+          const minPrice =
+            Math.min(...prices);
+
+          const maxPrice =
+            Math.max(...prices);
+
+          return minPrice === maxPrice
+            ? formatNominalInput(
+                minPrice
+              )
+            : formatNominalInput(
+                minPrice
+              ) +
+              " - " +
+              formatNominalInput(
+                maxPrice
+              );
+
+        })()
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       DP
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>DP:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        (() => {
+
+          const dps =
+            rows
+              .map(row =>
+                Number(
+                  row.minimum_dp_amount
+                ) || 0
+              )
+              .filter(
+                value => value > 0
+              );
+
+          if (!dps.length) {
+            return "—";
+          }
+
+          const minDp =
+            Math.min(...dps);
+
+          const maxDp =
+            Math.max(...dps);
+
+          return minDp === maxDp
+            ? formatNominalInput(
+                minDp
+              )
+            : formatNominalInput(
+                minDp
+              ) +
+              " - " +
+              formatNominalInput(
+                maxDp
+              );
+
+        })()
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       SELLER
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>Seller:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        (() => {
+
+          const key =
+            String(
+              getRecapTypeFromCategory(
+                category
+              )
+            ).trim()
+            + "|"
+            + String(
+              category
+            ).trim()
+            + "|"
+            + String(
+              batchCode
+            ).trim();
+
+          const info =
+            purchaseBatchInfoMap[key];
+
+          if (
+            !info ||
+            !info.sellers ||
+            !info.sellers.length
+          ) {
+            return "—";
+          }
+
+          return escapeHTML(
+            info.sellers.join(", ")
+          );
+
+        })()
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       WH
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>WH:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        (() => {
+
+          const key =
+            String(
+              getRecapTypeFromCategory(
+                category
+              )
+            ).trim()
+            + "|"
+            + String(
+              category
+            ).trim()
+            + "|"
+            + String(
+              batchCode
+            ).trim();
+
+          const info =
+            purchaseBatchInfoMap[key];
+
+          if (
+            !info ||
+            !info.warehouses ||
+            !info.warehouses.length
+          ) {
+            return "—";
+          }
+
+          return escapeHTML(
+            info.warehouses.join(", ")
+          );
+
+        })()
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       DEADLINE DP
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>Deadline DP:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        rows[0]?.dp_deadline
+          ? String(
+              rows[0].dp_deadline
+            ).substring(0, 10)
+          : "—"
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       DEADLINE PELUNASAN
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>Deadline Pelunasan:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        rows[0]?.payment_deadline
+          ? String(
+              rows[0].payment_deadline
+            ).substring(0, 10)
+          : "—"
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       DEADLINE CO
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+    "
+  >
+    <strong>Deadline CO:</strong>
+
+    <div style="margin-top:3px;">
+      ${
+        rows[0]?.co_deadline
+          ? String(
+              rows[0].co_deadline
+            ).substring(0, 10)
+          : "—"
+      }
+    </div>
+  </div>
+
+
+  <!-- =========================
+       TRACKING BATCH
+       ========================= -->
+  <div
+    style="
+      min-width:0;
+      padding:8px 10px;
+      border:1px solid #eee;
+      border-radius:7px;
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+    "
+  >
+
+    <strong>
+      Tracking Batch:
+    </strong>
+
     <select
       class="batch-tracking-select"
       data-batch-code="${escapeHTML(
         batchCode
       )}"
+      style="
+        width:100%;
+        box-sizing:border-box;
+        padding:5px 7px;
+        font-size:11px;
+        border:1px solid #ccc;
+        border-radius:6px;
+        cursor:pointer;
+      "
     >
 
       ${categoryTrackingOptions.map(
-        function (option) {
+        function(option) {
 
           const currentTracking =
             rows.find(
-              function (row) {
+              function(row) {
+
                 return (
                   row.batch_tracking_status
                 );
+
               }
             )?.batch_tracking_status ||
+
             rows.find(
-              function (row) {
-                return row.tracking_status;
+              function(row) {
+
+                return (
+                  row.tracking_status
+                );
+
               }
             )?.tracking_status ||
+
             "";
 
           return `
@@ -30009,11 +30231,18 @@ return minimumDp;
       data-batch-code="${escapeHTML(
         batchCode
       )}"
+      style="
+        width:100%;
+        padding:5px 8px;
+        font-size:11px;
+      "
     >
       💾 Simpan
     </button>
 
   </div>
+
+</div>
 
           <div
   class="product-table-wrapper"
