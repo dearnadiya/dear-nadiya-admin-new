@@ -4056,18 +4056,6 @@ function showPurchaseStockForm(
 
 </div>
 
-
-<div
-  style="
-    grid-column:1 / -1;
-    margin-top:5px;
-  "
->
-
-  <strong>
-    💰 Harga Pembelian
-  </strong>
-
   <div
     style="
       display:grid;
