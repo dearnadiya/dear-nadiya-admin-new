@@ -21600,14 +21600,6 @@ async function showWhatsAppBillingBuilder(
 ) {
 
 /* ==========================================
-   REPAIR DP MINIMUM BATCH LAMA
-   ========================================== */
-
-await repairOldMinimumDP(
-  category
-);
-
-/* ==========================================
    AMBIL INFO KATEGORI
    ========================================== */
 
