@@ -1005,14 +1005,16 @@ async function renderPurchaseStockList() {
         "purchase_stock_allocation"
       )
 
-      .select(`
-        id,
-        purchase_stock_id,
-        allocation_name,
-        quantity,
-        allocation_note
-      `)
-
+     .select(`
+  id,
+  purchase_stock_id,
+  allocation_name,
+  recap_type,
+  category,
+  batch_code,
+  quantity,
+  allocation_note
+`)
       .in(
         "purchase_stock_id",
         purchaseStockIds
@@ -1738,33 +1740,68 @@ padding-top:10px;
                                         ) {
 
                                           return `
+                                          
                                             <div
-                                              style="
-                                                display:flex;
-                                                justify-content:space-between;
-                                                gap:10px;
-                                                padding:7px 0;
-                                                border-bottom:1px dashed #ddd;
-                                              "
-                                            >
+  style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    padding:8px 0;
+    border-bottom:1px dashed #ddd;
+  "
+>
 
-                                              <span>
-                                                📦
-                                                ${escapeHTML(
-                                                  allocation.allocation_name ||
-                                                  "-"
-                                                )}
-                                              </span>
+  <div>
 
-                                              <strong>
-                                                ${Number(
-                                                  allocation.quantity ||
-                                                  0
-                                                )}
-                                                pcs
-                                              </strong>
+    <div
+      style="
+        font-weight:600;
+      "
+    >
+      📦 ${
+        escapeHTML(
+          allocation.batch_code ||
+          allocation.allocation_name ||
+          "-"
+        )
+      }
+    </div>
 
-                                            </div>
+    <div
+      style="
+        margin-top:3px;
+        font-size:12px;
+        color:#777;
+      "
+    >
+      ${escapeHTML(
+        allocation.recap_type ||
+        "-"
+      )}
+      •
+      ${escapeHTML(
+        allocation.category ||
+        "-"
+      )}
+    </div>
+
+  </div>
+
+
+  <strong
+    style="
+      white-space:nowrap;
+    "
+  >
+    ${Number(
+      allocation.quantity ||
+      0
+    )}
+    pcs
+  </strong>
+
+</div>
                                           `;
 
                                         }
