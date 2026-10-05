@@ -29686,36 +29686,6 @@ let html = `
     ✏️ Edit
   </button>
 
-  <button
-    type="button"
-    class="primary-button purchase-batch-info-button"
-    data-batch-code="${escapeHTML(batchCode)}"
-    data-category="${escapeHTML(category)}"
-    style="
-      padding:4px 10px;
-      font-size:12px;
-      white-space:nowrap;
-    "
-  >
-    ${
-  purchaseBatchInfoMap[
-    String(
-      getRecapTypeFromCategory(category)
-    ).trim()
-    + "|"
-    + String(
-      category
-    ).trim()
-    + "|"
-    + String(
-      batchCode
-    ).trim()
-  ]
-    ? "🛒 Pembelian ✓"
-    : "🛒 Pembelian"
-}
-  </button>
-
 </div>
 
 <!-- HAPUS -->
