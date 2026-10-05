@@ -21435,19 +21435,7 @@ async function repairOldMinimumDP(
 
       }
 
-
-      const po =
-        poRows.find(
-          function(item) {
-
-            const recapBatch =
-              String(
-                item.recap_batch_code || ""
-              )
-                .trim()
-                .toLowerCase();
-
-            const po =
+const po =
   poRows.find(
     function(item) {
 
@@ -21465,18 +21453,6 @@ async function repairOldMinimumDP(
 
     }
   );
-
-
-            return (
-              recapBatch ===
-                batchCode ||
-              poBatch ===
-                batchCode
-            );
-
-          }
-        );
-
 
       if (!po) {
 
@@ -22055,67 +22031,112 @@ let totalPaid = 0;
 
     else {
 
-      const storedDp =
+  const storedDp =
+    Number(
+      row.dp_amount
+    ) || 0;
+
+
+  /*
+     TIDAK ADA PAYMENT CONFIRMED
+     Gunakan data rekap yang tersimpan.
+  */
+
+  if (
+    String(
+      row.payment_status || ""
+    ).trim().toLowerCase() ===
+    "paid"
+  ) {
+
+    totalDpPaid =
+      minimumDp > 0
+        ? Math.min(
+            minimumDp,
+            price
+          )
+        : Math.min(
+            storedDp,
+            price
+          );
+
+    totalPaid =
+      price;
+
+    totalPelunasanPaid =
+      Math.max(
+        totalPaid -
+        totalDpPaid,
+        0
+      );
+
+  }
+
+
+  else if (
+    String(
+      row.dp_status || ""
+    ).trim().toLowerCase() ===
+    "paid"
+  ) {
+
+    totalDpPaid =
+      storedDp > 0
+        ? Math.min(
+            storedDp,
+            minimumDp > 0
+              ? minimumDp
+              : price
+          )
+        : Math.min(
+            minimumDp,
+            price
+          );
+
+    totalPaid =
+      totalDpPaid;
+
+  }
+
+
+  else {
+
+    const storedRemaining =
+      Math.max(
         Number(
-          row.dp_amount
-        ) || 0;
+          row.remaining_amount
+        ) || 0,
+        0
+      );
 
+    totalPaid =
+      Math.max(
+        price -
+        storedRemaining,
+        0
+      );
 
-      if (
-        String(
-          row.payment_status || ""
-        ).trim().toLowerCase() ===
-        "paid"
-      ) {
+    /*
+       Jika pembayaran yang tersimpan
+       masih berupa DP, pisahkan sebagai DP.
+    */
+    totalDpPaid =
+      Math.min(
+        storedDp,
+        minimumDp,
+        totalPaid
+      );
 
-        totalPaid =
-          price;
+    totalPelunasanPaid =
+      Math.max(
+        totalPaid -
+        totalDpPaid,
+        0
+      );
 
-      }
+  }
 
-
-      else if (
-        String(
-          row.dp_status || ""
-        ).trim().toLowerCase() ===
-        "paid"
-      ) {
-
-        totalPaid =
-          storedDp > 0
-            ? Math.min(
-                storedDp,
-                price
-              )
-            : Math.min(
-                minimumDp,
-                price
-              );
-
-      }
-
-
-      else {
-
-        const storedRemaining =
-          Math.max(
-            Number(
-              row.remaining_amount
-            ) || 0,
-            0
-          );
-
-        totalPaid =
-          Math.max(
-            price -
-            storedRemaining,
-            0
-          );
-
-      }
-
-    }
-
+}
 
     totalPaid =
       Math.min(
