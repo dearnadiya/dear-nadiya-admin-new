@@ -2198,6 +2198,10 @@ async function showPurchaseStockAllocationForm(
   purchaseId
 ) {
 
+  /* ==========================================
+     1. DATA PEMBELIAN STOK
+     ========================================== */
+
   const {
     data: purchase,
     error: purchaseError
@@ -2233,6 +2237,51 @@ async function showPurchaseStockAllocationForm(
   }
 
 
+  /* ==========================================
+     2. DATA REKAP GO
+     ========================================== */
+
+  const {
+    data: recapRows,
+    error: recapError
+  } = await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      recap_type,
+      category,
+      batch_code
+    `)
+    .not(
+      "batch_code",
+      "is",
+      null
+    );
+
+
+  if (recapError) {
+
+    console.error(
+      "Gagal mengambil data Rekap GO:",
+      recapError
+    );
+
+    alert(
+      "Gagal mengambil data Rekap GO:\n" +
+      recapError.message
+    );
+
+    return;
+  }
+
+
+  const recapData =
+    recapRows || [];
+
+
+  /* ==========================================
+     3. DATA ALOKASI LAMA
+     ========================================== */
+
   const {
     data: allocations,
     error: allocationError
@@ -2242,6 +2291,9 @@ async function showPurchaseStockAllocationForm(
       id,
       purchase_stock_id,
       allocation_name,
+      recap_type,
+      category,
+      batch_code,
       quantity,
       allocation_note
     `)
@@ -2273,6 +2325,14 @@ async function showPurchaseStockAllocationForm(
   }
 
 
+  const existingAllocations =
+    allocations || [];
+
+
+  /* ==========================================
+     4. HAPUS MODAL LAMA
+     ========================================== */
+
   const oldModal =
     document.getElementById(
       "purchaseStockAllocationModal"
@@ -2283,6 +2343,147 @@ async function showPurchaseStockAllocationForm(
     oldModal.remove();
   }
 
+
+  /* ==========================================
+     5. HELPER ESCAPE
+     ========================================== */
+
+  function optionHTML(
+    value,
+    label,
+    selected
+  ) {
+
+    return `
+      <option
+        value="${escapeHTML(String(value || ""))}"
+        ${selected ? "selected" : ""}
+      >
+        ${escapeHTML(label || value || "-")}
+      </option>
+    `;
+
+  }
+
+
+  /* ==========================================
+     6. DATA UNIQUE
+     ========================================== */
+
+  const recapTypes = [
+    ...new Set(
+      recapData
+        .map(function(row) {
+          return String(
+            row.recap_type || ""
+          ).trim();
+        })
+        .filter(Boolean)
+    )
+  ];
+
+
+  const categoriesByType = {};
+
+
+  recapData.forEach(
+    function(row) {
+
+      const type =
+        String(
+          row.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          row.category || ""
+        ).trim();
+
+      if (!type || !category) {
+        return;
+      }
+
+      if (!categoriesByType[type]) {
+        categoriesByType[type] = [];
+      }
+
+      if (
+        !categoriesByType[type]
+          .includes(category)
+      ) {
+
+        categoriesByType[type]
+          .push(category);
+
+      }
+
+    }
+  );
+
+
+  const batchesByTypeCategory = {};
+
+
+  recapData.forEach(
+    function(row) {
+
+      const type =
+        String(
+          row.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          row.category || ""
+        ).trim();
+
+      const batch =
+        String(
+          row.batch_code || ""
+        ).trim();
+
+      if (
+        !type ||
+        !category ||
+        !batch
+      ) {
+        return;
+      }
+
+
+      const key =
+        type +
+        "||" +
+        category;
+
+
+      if (
+        !batchesByTypeCategory[key]
+      ) {
+
+        batchesByTypeCategory[key] =
+          [];
+
+      }
+
+
+      if (
+        !batchesByTypeCategory[key]
+          .includes(batch)
+      ) {
+
+        batchesByTypeCategory[key]
+          .push(batch);
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================
+     7. MODAL
+     ========================================== */
 
   const modal =
     document.createElement("div");
@@ -2310,15 +2511,11 @@ async function showPurchaseStockAllocationForm(
     );
 
 
-  const existingAllocations =
-    allocations || [];
-
-
   modal.innerHTML = `
 
     <div
       style="
-        width:min(700px,100%);
+        width:min(900px,100%);
         max-height:92vh;
         overflow:auto;
         background:#fff;
@@ -2338,7 +2535,7 @@ async function showPurchaseStockAllocationForm(
       >
 
         <h2 style="margin:0;">
-          📦 Pembagian Stok
+          📦 Alokasi Barang
         </h2>
 
         <button
@@ -2357,12 +2554,14 @@ async function showPurchaseStockAllocationForm(
       </div>
 
 
+      <!-- INFORMASI PEMBELIAN -->
+
       <div
         style="
           background:#f7f5fa;
           border-radius:12px;
           padding:15px;
-          margin-bottom:18px;
+          margin-bottom:20px;
         "
       >
 
@@ -2393,7 +2592,7 @@ async function showPurchaseStockAllocationForm(
             font-size:14px;
           "
         >
-          Dibeli:
+          Stok dibeli:
           <strong>
             ${purchaseQuantity} pcs
           </strong>
@@ -2402,177 +2601,24 @@ async function showPurchaseStockAllocationForm(
       </div>
 
 
+      <!-- DAFTAR ALOKASI -->
+
       <div
         id="purchaseAllocationItemsContainer"
-      >
-
-        ${
-          existingAllocations.length
-            ? existingAllocations
-                .map(function(
-                  allocation
-                ) {
-
-                  return `
-                    <div
-                      class="purchase-allocation-row"
-                      data-id="${allocation.id}"
-                      style="
-                        display:grid;
-                        grid-template-columns:
-                          minmax(0,1fr)
-                          110px
-                          42px;
-                        gap:10px;
-                        align-items:end;
-                        margin-bottom:10px;
-                      "
-                    >
-
-                      <label>
-
-                        <div>
-                          Tujuan
-                        </div>
-
-                        <input
-                          type="text"
-                          class="purchase-allocation-name"
-                          value="${escapeHTML(
-                            allocation.allocation_name || ""
-                          )}"
-                          placeholder="Contoh: Sharing GO"
-                          style="width:100%;"
-                        >
-
-                      </label>
-
-
-                      <label>
-
-                        <div>
-                          Jumlah
-                        </div>
-
-                        <input
-                          type="number"
-                          class="purchase-allocation-quantity"
-                          value="${Number(
-                            allocation.quantity || 0
-                          )}"
-                          min="0"
-                          step="1"
-                          style="width:100%;"
-                        >
-
-                      </label>
-
-
-                      <button
-                        type="button"
-                        class="remove-purchase-allocation-button"
-                        style="
-                          height:40px;
-                          border:0;
-                          border-radius:8px;
-                          background:#f3e9ef;
-                          color:#a33;
-                          cursor:pointer;
-                          font-size:18px;
-                        "
-                      >
-                        ×
-                      </button>
-
-                    </div>
-                  `;
-
-                })
-                .join("")
-            : `
-              <div
-                class="purchase-allocation-row"
-                data-id=""
-                style="
-                  display:grid;
-                  grid-template-columns:
-                    minmax(0,1fr)
-                    110px
-                    42px;
-                  gap:10px;
-                  align-items:end;
-                  margin-bottom:10px;
-                "
-              >
-
-                <label>
-
-                  <div>
-                    Tujuan
-                  </div>
-
-                  <input
-                    type="text"
-                    class="purchase-allocation-name"
-                    placeholder="Contoh: Sharing GO"
-                    style="width:100%;"
-                  >
-
-                </label>
-
-
-                <label>
-
-                  <div>
-                    Jumlah
-                  </div>
-
-                  <input
-                    type="number"
-                    class="purchase-allocation-quantity"
-                    value="0"
-                    min="0"
-                    step="1"
-                    style="width:100%;"
-                  >
-
-                </label>
-
-
-                <button
-                  type="button"
-                  class="remove-purchase-allocation-button"
-                  style="
-                    height:40px;
-                    border:0;
-                    border-radius:8px;
-                    background:#f3e9ef;
-                    color:#a33;
-                    cursor:pointer;
-                    font-size:18px;
-                  "
-                >
-                  ×
-                </button>
-
-              </div>
-            `
-        }
-
-      </div>
+      ></div>
 
 
       <button
         type="button"
         id="addPurchaseAllocationButton"
         class="secondary-button"
-        style="
-          margin-top:5px;
-        "
+        style="margin-top:5px;"
       >
-        ＋ Tambah Pembagian
+        ＋ Tambah Alokasi
       </button>
 
+
+      <!-- RINGKASAN -->
 
       <div
         style="
@@ -2590,6 +2636,7 @@ async function showPurchaseStockAllocationForm(
             margin-bottom:6px;
           "
         >
+
           <span>
             Total Dialokasi
           </span>
@@ -2597,6 +2644,7 @@ async function showPurchaseStockAllocationForm(
           <strong id="purchaseAllocationTotal">
             0 pcs
           </strong>
+
         </div>
 
 
@@ -2606,6 +2654,7 @@ async function showPurchaseStockAllocationForm(
             justify-content:space-between;
           "
         >
+
           <span>
             Sisa Stok
           </span>
@@ -2613,10 +2662,13 @@ async function showPurchaseStockAllocationForm(
           <strong id="purchaseAllocationRemaining">
             ${purchaseQuantity} pcs
           </strong>
+
         </div>
 
       </div>
 
+
+      <!-- BUTTON -->
 
       <div
         style="
@@ -2641,12 +2693,13 @@ async function showPurchaseStockAllocationForm(
           id="savePurchaseStockAllocationButton"
           class="primary-button"
         >
-          Simpan Pembagian
+          Simpan Alokasi
         </button>
 
       </div>
 
     </div>
+
   `;
 
 
@@ -2661,6 +2714,468 @@ async function showPurchaseStockAllocationForm(
     );
 
 
+  /* ==========================================
+     8. BUAT 1 BARIS ALOKASI
+     ========================================== */
+
+  function createAllocationRow(
+    allocation = {}
+  ) {
+
+    const row =
+      document.createElement("div");
+
+
+    row.className =
+      "purchase-allocation-row";
+
+
+    row.dataset.id =
+      allocation.id || "";
+
+
+    row.style.cssText = `
+      border:1px solid #e5e5e5;
+      border-radius:12px;
+      padding:15px;
+      margin-bottom:12px;
+      background:#fff;
+    `;
+
+
+    row.innerHTML = `
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:
+            1fr
+            1fr
+            1fr
+            120px
+            42px;
+          gap:10px;
+          align-items:end;
+        "
+      >
+
+        <!-- TYPE REKAP -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Type Rekap
+          </div>
+
+          <select
+            class="purchase-allocation-type"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Type Rekap
+            </option>
+
+            ${recapTypes
+              .map(function(type) {
+
+                return optionHTML(
+                  type,
+                  type,
+                  String(
+                    allocation.recap_type || ""
+                  ).trim() === type
+                );
+
+              })
+              .join("")}
+
+          </select>
+
+        </label>
+
+
+        <!-- KATEGORI -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Kategori
+          </div>
+
+          <select
+            class="purchase-allocation-category"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Kategori
+            </option>
+
+          </select>
+
+        </label>
+
+
+        <!-- BATCH -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Batch
+          </div>
+
+          <select
+            class="purchase-allocation-batch"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Batch
+            </option>
+
+          </select>
+
+        </label>
+
+
+        <!-- JUMLAH -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Alokasi
+          </div>
+
+          <input
+            type="number"
+            class="purchase-allocation-quantity"
+            value="${Number(
+              allocation.quantity || 0
+            )}"
+            min="0"
+            step="1"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <!-- HAPUS -->
+
+        <button
+          type="button"
+          class="remove-purchase-allocation-button"
+          style="
+            height:40px;
+            border:0;
+            border-radius:8px;
+            background:#f3e9ef;
+            color:#a33;
+            cursor:pointer;
+            font-size:18px;
+          "
+        >
+          ×
+        </button>
+
+      </div>
+
+    `;
+
+
+    container.appendChild(
+      row
+    );
+
+
+    const typeSelect =
+      row.querySelector(
+        ".purchase-allocation-type"
+      );
+
+
+    const categorySelect =
+      row.querySelector(
+        ".purchase-allocation-category"
+      );
+
+
+    const batchSelect =
+      row.querySelector(
+        ".purchase-allocation-batch"
+      );
+
+
+    /* ========================================
+       UPDATE KATEGORI
+       ======================================== */
+
+    function updateCategories() {
+
+      const type =
+        typeSelect.value;
+
+
+      categorySelect.innerHTML = `
+        <option value="">
+          Pilih Kategori
+        </option>
+      `;
+
+
+      batchSelect.innerHTML = `
+        <option value="">
+          Pilih Batch
+        </option>
+      `;
+
+
+      if (!type) {
+        return;
+      }
+
+
+      const categories =
+        categoriesByType[type] || [];
+
+
+      categories.forEach(
+        function(category) {
+
+          categorySelect.insertAdjacentHTML(
+            "beforeend",
+            optionHTML(
+              category,
+              category,
+              String(
+                allocation.category || ""
+              ).trim() === category
+            )
+          );
+
+        }
+      );
+
+
+      if (
+        allocation.category
+      ) {
+
+        categorySelect.value =
+          String(
+            allocation.category
+          ).trim();
+
+      }
+
+
+      updateBatches();
+
+    }
+
+
+    /* ========================================
+       UPDATE BATCH
+       ======================================== */
+
+    function updateBatches() {
+
+      const type =
+        typeSelect.value;
+
+      const category =
+        categorySelect.value;
+
+
+      batchSelect.innerHTML = `
+        <option value="">
+          Pilih Batch
+        </option>
+      `;
+
+
+      if (
+        !type ||
+        !category
+      ) {
+        return;
+      }
+
+
+      const key =
+        type +
+        "||" +
+        category;
+
+
+      const batches =
+        batchesByTypeCategory[key] ||
+        [];
+
+
+      batches.forEach(
+        function(batch) {
+
+          batchSelect.insertAdjacentHTML(
+            "beforeend",
+            optionHTML(
+              batch,
+              batch,
+              String(
+                allocation.batch_code || ""
+              ).trim() === batch
+            )
+          );
+
+        }
+      );
+
+
+      if (
+        allocation.batch_code
+      ) {
+
+        batchSelect.value =
+          String(
+            allocation.batch_code
+          ).trim();
+
+      }
+
+    }
+
+
+    typeSelect.addEventListener(
+      "change",
+      function() {
+
+        allocation.category =
+          "";
+
+        allocation.batch_code =
+          "";
+
+        updateCategories();
+
+      }
+    );
+
+
+    categorySelect.addEventListener(
+      "change",
+      function() {
+
+        allocation.batch_code =
+          "";
+
+        updateBatches();
+
+      }
+    );
+
+
+    const removeButton =
+      row.querySelector(
+        ".remove-purchase-allocation-button"
+      );
+
+
+    removeButton.addEventListener(
+      "click",
+      function() {
+
+        const rows =
+          container.querySelectorAll(
+            ".purchase-allocation-row"
+          );
+
+
+        if (
+          rows.length <= 1
+        ) {
+
+          typeSelect.value =
+            "";
+
+          categorySelect.innerHTML = `
+            <option value="">
+              Pilih Kategori
+            </option>
+          `;
+
+          batchSelect.innerHTML = `
+            <option value="">
+              Pilih Batch
+            </option>
+          `;
+
+          row
+            .querySelector(
+              ".purchase-allocation-quantity"
+            )
+            .value = 0;
+
+          updateAllocationSummary();
+
+          return;
+
+        }
+
+
+        row.remove();
+
+        updateAllocationSummary();
+
+      }
+    );
+
+
+    const quantityInput =
+      row.querySelector(
+        ".purchase-allocation-quantity"
+      );
+
+
+    quantityInput.addEventListener(
+      "input",
+      updateAllocationSummary
+    );
+
+
+    updateCategories();
+
+  }
+
+
+  /* ==========================================
+     9. RINGKASAN STOK
+     ========================================== */
+
   function updateAllocationSummary() {
 
     const quantityInputs =
@@ -2670,6 +3185,7 @@ async function showPurchaseStockAllocationForm(
 
 
     let total = 0;
+
 
     quantityInputs.forEach(
       function(input) {
@@ -2684,7 +3200,8 @@ async function showPurchaseStockAllocationForm(
 
 
     const remaining =
-      purchaseQuantity - total;
+      purchaseQuantity -
+      total;
 
 
     const totalElement =
@@ -2702,7 +3219,8 @@ async function showPurchaseStockAllocationForm(
     if (totalElement) {
 
       totalElement.textContent =
-        total + " pcs";
+        total +
+        " pcs";
 
     }
 
@@ -2713,7 +3231,9 @@ async function showPurchaseStockAllocationForm(
         Math.max(
           remaining,
           0
-        ) + " pcs";
+        ) +
+        " pcs";
+
 
       remainingElement.style.color =
         remaining < 0
@@ -2729,84 +3249,34 @@ async function showPurchaseStockAllocationForm(
   }
 
 
-  function attachAllocationRowEvents(
-    row
+  /* ==========================================
+     10. ALOKASI LAMA
+     ========================================== */
+
+  if (
+    existingAllocations.length
   ) {
 
-    const removeButton =
-      row.querySelector(
-        ".remove-purchase-allocation-button"
-      );
+    existingAllocations.forEach(
+      function(allocation) {
 
+        createAllocationRow(
+          allocation
+        );
 
-    if (removeButton) {
+      }
+    );
 
-      removeButton.addEventListener(
-        "click",
-        function() {
+  } else {
 
-          const rows =
-            container.querySelectorAll(
-              ".purchase-allocation-row"
-            );
-
-
-          if (rows.length <= 1) {
-
-            row
-              .querySelector(
-                ".purchase-allocation-name"
-              )
-              .value = "";
-
-            row
-              .querySelector(
-                ".purchase-allocation-quantity"
-              )
-              .value = 0;
-
-            updateAllocationSummary();
-
-            return;
-          }
-
-
-          row.remove();
-
-          updateAllocationSummary();
-
-        }
-      );
-
-    }
-
-
-    const quantityInput =
-      row.querySelector(
-        ".purchase-allocation-quantity"
-      );
-
-
-    if (quantityInput) {
-
-      quantityInput.addEventListener(
-        "input",
-        updateAllocationSummary
-      );
-
-    }
+    createAllocationRow();
 
   }
 
 
-  container
-    .querySelectorAll(
-      ".purchase-allocation-row"
-    )
-    .forEach(
-      attachAllocationRowEvents
-    );
-
+  /* ==========================================
+     11. TAMBAH ALOKASI
+     ========================================== */
 
   document
     .getElementById(
@@ -2816,87 +3286,7 @@ async function showPurchaseStockAllocationForm(
       "click",
       function() {
 
-        const row =
-          document.createElement("div");
-
-        row.className =
-          "purchase-allocation-row";
-
-        row.dataset.id = "";
-
-        row.style.cssText = `
-          display:grid;
-          grid-template-columns:
-            minmax(0,1fr)
-            110px
-            42px;
-          gap:10px;
-          align-items:end;
-          margin-bottom:10px;
-        `;
-
-        row.innerHTML = `
-          <label>
-
-            <div>
-              Tujuan
-            </div>
-
-            <input
-              type="text"
-              class="purchase-allocation-name"
-              placeholder="Contoh: Reseller A"
-              style="width:100%;"
-            >
-
-          </label>
-
-
-          <label>
-
-            <div>
-              Jumlah
-            </div>
-
-            <input
-              type="number"
-              class="purchase-allocation-quantity"
-              value="0"
-              min="0"
-              step="1"
-              style="width:100%;"
-            >
-
-          </label>
-
-
-          <button
-            type="button"
-            class="remove-purchase-allocation-button"
-            style="
-              height:40px;
-              border:0;
-              border-radius:8px;
-              background:#f3e9ef;
-              color:#a33;
-              cursor:pointer;
-              font-size:18px;
-            "
-          >
-            ×
-          </button>
-        `;
-
-
-        container.appendChild(
-          row
-        );
-
-
-        attachAllocationRowEvents(
-          row
-        );
-
+        createAllocationRow();
 
         updateAllocationSummary();
 
@@ -2906,6 +3296,10 @@ async function showPurchaseStockAllocationForm(
 
   updateAllocationSummary();
 
+
+  /* ==========================================
+     12. TUTUP MODAL
+     ========================================== */
 
   function closeModal() {
 
@@ -2934,6 +3328,10 @@ async function showPurchaseStockAllocationForm(
     );
 
 
+  /* ==========================================
+     13. SIMPAN
+     ========================================== */
+
   document
     .getElementById(
       "savePurchaseStockAllocationButton"
@@ -2957,10 +3355,28 @@ async function showPurchaseStockAllocationForm(
           const row of rows
         ) {
 
-          const name =
+          const recapType =
             row
               .querySelector(
-                ".purchase-allocation-name"
+                ".purchase-allocation-type"
+              )
+              .value
+              .trim();
+
+
+          const category =
+            row
+              .querySelector(
+                ".purchase-allocation-category"
+              )
+              .value
+              .trim();
+
+
+          const batchCode =
+            row
+              .querySelector(
+                ".purchase-allocation-batch"
               )
               .value
               .trim();
@@ -2976,15 +3392,44 @@ async function showPurchaseStockAllocationForm(
             ) || 0;
 
 
-          if (!name && quantity === 0) {
+          if (
+            !recapType &&
+            !category &&
+            !batchCode &&
+            quantity === 0
+          ) {
+
             continue;
+
           }
 
 
-          if (!name) {
+          if (!recapType) {
 
             alert(
-              "Nama tujuan pembagian tidak boleh kosong."
+              "Silakan pilih Type Rekap."
+            );
+
+            return;
+
+          }
+
+
+          if (!category) {
+
+            alert(
+              "Silakan pilih Kategori."
+            );
+
+            return;
+
+          }
+
+
+          if (!batchCode) {
+
+            alert(
+              "Silakan pilih Batch."
             );
 
             return;
@@ -2996,11 +3441,11 @@ async function showPurchaseStockAllocationForm(
             !Number.isInteger(
               quantity
             ) ||
-            quantity < 0
+            quantity <= 0
           ) {
 
             alert(
-              "Jumlah pembagian harus berupa angka bulat 0 atau lebih."
+              "Jumlah alokasi harus berupa angka bulat lebih dari 0."
             );
 
             return;
@@ -3017,8 +3462,14 @@ async function showPurchaseStockAllocationForm(
                   )
                 : null,
 
-            allocation_name:
-              name,
+            recap_type:
+              recapType,
+
+            category:
+              category,
+
+            batch_code:
+              batchCode,
 
             quantity:
               quantity,
@@ -3030,6 +3481,50 @@ async function showPurchaseStockAllocationForm(
 
         }
 
+
+        /* ====================================
+           CEK DUPLIKASI BATCH
+           ==================================== */
+
+        const duplicateCheck =
+          new Set();
+
+
+        for (
+          const item of allocationItems
+        ) {
+
+          const key =
+            item.recap_type +
+            "||" +
+            item.category +
+            "||" +
+            item.batch_code;
+
+
+          if (
+            duplicateCheck.has(key)
+          ) {
+
+            alert(
+              "Batch yang sama tidak boleh dialokasikan dua kali dalam satu pembelian."
+            );
+
+            return;
+
+          }
+
+
+          duplicateCheck.add(
+            key
+          );
+
+        }
+
+
+        /* ====================================
+           TOTAL ALOKASI
+           ==================================== */
 
         const totalAllocated =
           allocationItems.reduce(
@@ -3053,7 +3548,7 @@ async function showPurchaseStockAllocationForm(
         ) {
 
           alert(
-            "Total pembagian stok (" +
+            "Total alokasi (" +
             totalAllocated +
             " pcs) melebihi stok yang dibeli (" +
             purchaseQuantity +
@@ -3074,20 +3569,19 @@ async function showPurchaseStockAllocationForm(
         saveButton.disabled =
           true;
 
+
         saveButton.textContent =
           "Menyimpan...";
 
 
         try {
 
-          /*
-             Hapus pembagian lama,
-             kemudian simpan pembagian terbaru.
-          */
+          /* ==================================
+             HAPUS ALOKASI LAMA
+             ================================== */
 
           const {
-            error:
-              deleteError
+            error: deleteError
           } = await supabaseClient
             .from(
               "purchase_stock_allocation"
@@ -3104,7 +3598,13 @@ async function showPurchaseStockAllocationForm(
           }
 
 
-          if (allocationItems.length) {
+          /* ==================================
+             SIMPAN ALOKASI BARU
+             ================================== */
+
+          if (
+            allocationItems.length
+          ) {
 
             const payload =
               allocationItems.map(
@@ -3115,8 +3615,17 @@ async function showPurchaseStockAllocationForm(
                     purchase_stock_id:
                       purchaseId,
 
+                    recap_type:
+                      item.recap_type,
+
+                    category:
+                      item.category,
+
+                    batch_code:
+                      item.batch_code,
+
                     allocation_name:
-                      item.allocation_name,
+                      item.batch_code,
 
                     quantity:
                       item.quantity,
@@ -3131,8 +3640,7 @@ async function showPurchaseStockAllocationForm(
 
 
             const {
-              error:
-                insertError
+              error: insertError
             } = await supabaseClient
               .from(
                 "purchase_stock_allocation"
@@ -3157,13 +3665,13 @@ async function showPurchaseStockAllocationForm(
         } catch (error) {
 
           console.error(
-            "Gagal menyimpan pembagian stok:",
+            "Gagal menyimpan alokasi stok:",
             error
           );
 
 
           alert(
-            "Gagal menyimpan pembagian stok:\n" +
+            "Gagal menyimpan alokasi stok:\n" +
             error.message
           );
 
@@ -3172,7 +3680,7 @@ async function showPurchaseStockAllocationForm(
             false;
 
           saveButton.textContent =
-            "Simpan Pembagian";
+            "Simpan Alokasi";
 
         }
 
@@ -3180,7 +3688,6 @@ async function showPurchaseStockAllocationForm(
     );
 
 }
-
 /* ============================================
    FORM PEMBELIAN STOK
    ============================================ */
