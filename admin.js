@@ -21384,8 +21384,8 @@ async function repairOldMinimumDP(
       await supabaseClient
         .from("po_posts")
         .select(
-          "id, batch_code, recap_batch_code, recap_category, dp_text"
-        );
+  "id, recap_batch_code, recap_category, dp_text"
+);
 
 
     if (poError) {
@@ -21447,12 +21447,24 @@ async function repairOldMinimumDP(
                 .trim()
                 .toLowerCase();
 
-            const poBatch =
-              String(
-                item.batch_code || ""
-              )
-                .trim()
-                .toLowerCase();
+            const po =
+  poRows.find(
+    function(item) {
+
+      const recapBatch =
+        String(
+          item.recap_batch_code || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      return (
+        recapBatch ===
+        batchCode
+      );
+
+    }
+  );
 
 
             return (
@@ -21919,6 +21931,10 @@ data.forEach(
     const minimumDp =
       Number(row.minimum_dp_amount) || 0;
 
+     let totalDpPaid = 0;
+let totalPelunasanPaid = 0;
+let totalPaid = 0;
+
     const allocations =
       (billingAllocations || [])
         .filter(
@@ -21949,9 +21965,6 @@ data.forEach(
     if (
       allocations.length > 0
     ) {
-
-      let totalDpPaid = 0;
-      let totalPelunasanPaid = 0;
 
       allocations.forEach(
         function(allocation) {
@@ -22116,6 +22129,7 @@ data.forEach(
     billingAllocationRows[
   recapId
 ] = {
+
   totalDpPaid:
     totalDpPaid,
 
@@ -22131,8 +22145,8 @@ data.forEach(
       totalPaid,
       0
     )
-};
 
+};
   }
 );
 
