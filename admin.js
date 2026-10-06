@@ -2623,6 +2623,32 @@ recapData.forEach(
   }
 );
 
+/* URUTKAN BATCH BERDASARKAN NOMOR */
+Object.keys(
+  batchesByTypeCategory
+).forEach(function(key) {
+
+  batchesByTypeCategory[key].sort(
+    function(a, b) {
+
+      return String(
+        a.batch_code || ""
+      ).localeCompare(
+        String(
+          b.batch_code || ""
+        ),
+        undefined,
+        {
+          numeric: true,
+          sensitivity: "base"
+        }
+      );
+
+    }
+  );
+
+});
+
   /* ==========================================
      7. MODAL
      ========================================== */
