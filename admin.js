@@ -1266,9 +1266,9 @@ async function renderPurchaseStockList() {
 
                       <td
   style="
-    padding:13px 12px;
-    vertical-align:middle;
-    font-size:13px;
+    padding:8px 10px;
+vertical-align:middle;
+font-size:13px;
   "
 >
                         <strong>
@@ -1279,9 +1279,9 @@ async function renderPurchaseStockList() {
 
                         <div
                           style="
-                            margin-top:4px;
-                            font-size:12px;
-                            color:#777;
+                            margin-top:2px;
+font-size:11px;
+color:#777;
                           "
                         >
                           Qty:
@@ -1366,8 +1366,8 @@ vertical-align:middle;
   class="primary-button purchase-stock-detail-button"
   data-purchase-id="${purchaseId}"
   style="
-    padding:6px 11px;
-    font-size:12px;
+    padding:5px 9px;
+font-size:11px;
     width:auto;
     min-width:82px;
     white-space:nowrap;
@@ -1418,8 +1418,8 @@ vertical-align:middle;
                       <td
                         colspan="4"
                         style="
-                          padding:15px;
-                          background:#fff;
+                          padding:6px;
+background:#fff;
                         "
                       >
 
