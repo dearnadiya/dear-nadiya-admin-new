@@ -33355,35 +33355,45 @@ container
 
       }
 
-     /*
- * CUSTOMER DEFAULT
- * Semua customer ditampilkan.
+     const start =
+  (
+    currentPage - 1
+  ) *
+  CUSTOMER_PER_PAGE;
+
+const pageRows =
+  visibleRows.slice(
+    start,
+    start + CUSTOMER_PER_PAGE
+  );
+
+
+/*
+ * Tampilkan hanya customer
+ * pada halaman aktif.
  *
- * Collapse batch ditangani oleh
- * .product-table-wrapper,
- * bukan oleh display masing-masing row.
+ * Maksimal 10 customer
+ * setiap halaman.
  */
 
 rows.forEach(
   function(row) {
 
-    row.style.display = "";
+    row.style.display =
+      "none";
 
   }
 );
 
-      const start =
-        (
-          currentPage - 1
-        ) *
-        CUSTOMER_PER_PAGE;
 
-      const pageRows =
-        visibleRows.slice(
-          start,
-          start + CUSTOMER_PER_PAGE
-        );
+pageRows.forEach(
+  function(row) {
 
+    row.style.display =
+      "";
+
+  }
+);
      
       /*
        * Pagination.
