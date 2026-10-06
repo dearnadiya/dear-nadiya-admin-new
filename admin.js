@@ -2968,12 +2968,7 @@ function createAllocationRow(
       style="
         display:grid;
         grid-template-columns:
-          minmax(150px, 1fr)
-          minmax(150px, 1fr)
-          minmax(150px, 1fr)
-          minmax(150px, 1fr)
-          minmax(100px, 1fr)
-          42px;
+  repeat(4, minmax(0, 1fr));
         gap:10px;
         align-items:end;
       "
@@ -3178,14 +3173,7 @@ function createAllocationRow(
     dynamicContainer.innerHTML = "";
 
     allocationGrid.style.gridTemplateColumns =
-      `
-      minmax(150px, 1fr)
-      minmax(150px, 1fr)
-      minmax(150px, 1fr)
-      minmax(150px, 1fr)
-      minmax(100px, 1fr)
-      42px
-      `;
+  "repeat(4, minmax(0, 1fr))";
 
 
     /* --------------------------------------
@@ -3208,13 +3196,7 @@ function createAllocationRow(
     ) {
 
       allocationGrid.style.gridTemplateColumns =
-        `
-        minmax(150px, 1fr)
-        minmax(150px, 1fr)
-        minmax(150px, 1fr)
-        minmax(100px, 1fr)
-        42px
-        `;
+  "repeat(4, minmax(0, 1fr))";
 
 
       dynamicContainer.innerHTML = `
@@ -3291,14 +3273,7 @@ function createAllocationRow(
     ) {
 
       allocationGrid.style.gridTemplateColumns =
-        `
-        minmax(150px, 1fr)
-        minmax(150px, 1fr)
-        minmax(150px, 1fr)
-        minmax(150px, 1fr)
-        minmax(100px, 1fr)
-        42px
-        `;
+  "repeat(4, minmax(0, 1fr))";
 
 
       dynamicContainer.innerHTML = `
