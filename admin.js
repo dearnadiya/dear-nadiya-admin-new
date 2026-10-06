@@ -1743,14 +1743,18 @@ padding-top:10px;
     ) {
 
       const allocationType =
-        String(
-          allocation.allocation_type ||
-          (
+  String(
+    allocation.allocation_type ||
+    (
+      allocation.reseller_name
+        ? "Reseller"
+        : (
             allocation.batch_code
               ? "Rekap GO"
-              : "Reseller"
+              : ""
           )
-        ).trim();
+    )
+  ).trim();
 
 
       if (
@@ -2903,6 +2907,7 @@ recapData.forEach(
       minmax(120px, 1fr)
       minmax(120px, 1fr)
       minmax(120px, 1fr)
+      minmax(120px, 1fr)
       42px;
     gap:10px;
     align-items:end;
@@ -2964,10 +2969,7 @@ recapData.forEach(
       <div
   class="purchase-allocation-dynamic"
   style="
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    grid-column:span 2;
+    display:contents;
   "
 ></div>
 
@@ -3054,8 +3056,28 @@ recapData.forEach(
     const type =
       kindSelect.value;
 
+       /* RESET LAYOUT */
+  allocationGrid.classList.remove(
+    "allocation-rekap-go"
+  );
+
+  allocationGrid.style.gridTemplateColumns =
+  "minmax(180px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "42px";
+
 
     if (type === "Reseller") {
+
+       allocationGrid.style.gridTemplateColumns =
+  "minmax(180px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "minmax(120px, 1fr) " +
+  "42px";
 
       dynamicContainer.innerHTML = `
 
@@ -3121,7 +3143,19 @@ recapData.forEach(
 
     if (type === "Rekap GO") {
 
-      dynamicContainer.innerHTML = `
+  allocationGrid.classList.add(
+    "allocation-rekap-go"
+  );
+
+  allocationGrid.style.gridTemplateColumns =
+    "minmax(180px, 1fr) " +
+    "minmax(120px, 1fr) " +
+    "minmax(120px, 1fr) " +
+    "minmax(120px, 1fr) " +
+    "minmax(120px, 1fr) " +
+    "42px";
+
+  dynamicContainer.innerHTML = `
 
         <label>
 
@@ -3422,27 +3456,6 @@ recapData.forEach(
     allocation.reseller_name = "";
     allocation.selling_price = null;
 
-    if (
-      kindSelect.value === "Rekap GO"
-    ) {
-
-      allocationGrid.style.gridTemplateColumns =
-        "minmax(180px, 1fr) " +
-        "minmax(120px, 1fr) " +
-        "minmax(120px, 1fr) " +
-        "minmax(120px, 1fr) " +
-        "42px";
-
-    } else {
-
-      allocationGrid.style.gridTemplateColumns =
-        "minmax(180px, 1fr) " +
-        "minmax(120px, 1fr) " +
-        "minmax(120px, 1fr) " +
-        "120px 42px";
-
-    }
-
     renderDynamicFields();
 
   }
@@ -3453,7 +3466,6 @@ recapData.forEach(
     row.querySelector(
       ".remove-purchase-allocation-button"
     );
-
 
   removeButton.addEventListener(
     "click",
