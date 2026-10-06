@@ -31147,6 +31147,21 @@ let html = `
     const isMultiSeller =
       sellerCount > 1;
 
+     const batchTrackingStatus =
+  (
+    rows.find(
+      function(row) {
+        return (
+          row.batch_tracking_status !== null &&
+          row.batch_tracking_status !== undefined &&
+          String(
+            row.batch_tracking_status
+          ).trim() !== ""
+        );
+      }
+    )?.batch_tracking_status || ""
+  );
+
 
     html += `
 
@@ -31802,12 +31817,7 @@ let html = `
   Sisa
 </th>
 
-<th
-  class="recap-customer-tracking-column"
-  style="
-    display:${isMultiSeller ? "table-cell" : "none"};
-  "
->
+<th class="recap-customer-tracking-column">
   Tracking
 </th>
 
@@ -31837,7 +31847,7 @@ let html = `
 
 
               <tbody>
-
+              
                 ${rows.map(
                   function (row) {
 
@@ -31922,20 +31932,6 @@ let html = `
   )}
 </td>
 
-<td
-  class="recap-customer-tracking-cell"
-  style="
-    display:${isMultiSeller ? "table-cell" : "none"};
-  "
->
-  ${
-    escapeHTML(
-      row.batch_tracking_status ||
-      "—"
-    )
-  }
-</td>
-
                         <td>
   <select
     class="recap-status-select recap-payment-status"
@@ -31955,6 +31951,22 @@ let html = `
   🟢 ✓ Lunas
 </option>  
 </select>
+</td>
+
+<td class="recap-customer-tracking-cell">
+  ${
+    escapeHTML(
+      isMultiSeller
+        ? (
+            row.batch_tracking_status ||
+            "—"
+          )
+        : (
+            batchTrackingStatus ||
+            "—"
+          )
+    )
+  }
 </td>
 
                        <td>
