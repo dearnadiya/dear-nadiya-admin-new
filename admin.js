@@ -1011,12 +1011,13 @@ async function renderPurchaseStockList() {
   allocation_type,
   reseller_name,
   selling_price,
-  allocation_name,
-  recap_type,
-  category,
-  batch_code,
-  quantity,
-  allocation_note
+ allocation_name,
+purchase_recap_id,
+recap_type,
+category,
+batch_code,
+quantity,
+allocation_note
 `)
       .in(
         "purchase_stock_id",
@@ -2387,11 +2388,14 @@ while (true) {
   } = await supabaseClient
     .from("purchase_recap")
     .select(`
-      recap_type,
-      category,
-      batch_code,
-      item_name
-    `)
+  id,
+  recap_type,
+  category,
+  batch_code,
+  item_name,
+  customer_name,
+  version
+`)
     .not(
       "batch_code",
       "is",
@@ -2974,6 +2978,37 @@ Object.keys(
   "
 >
 
+<!-- SUMBER SELLER -->
+
+<label>
+
+  <div
+    style="
+      margin-bottom:5px;
+      font-size:13px;
+      font-weight:600;
+    "
+  >
+    Sumber Seller
+  </div>
+
+  <select
+    class="purchase-allocation-seller-mode"
+    style="width:100%;"
+  >
+
+    <option value="1">
+      1 Seller
+    </option>
+
+    <option value="many">
+      &gt;1 Seller
+    </option>
+
+  </select>
+
+</label>
+
       <!-- JENIS ALOKASI -->
 
       <label>
@@ -3116,6 +3151,18 @@ Object.keys(
     const type =
       kindSelect.value;
 
+     const sellerMode =
+  row
+    .querySelector(
+      ".purchase-allocation-seller-mode"
+    )
+    ?.value || "1";
+
+const customerWrapper =
+  row.querySelector(
+    ".purchase-allocation-customer-wrapper"
+  );
+
        /* RESET LAYOUT */
   allocationGrid.classList.remove(
     "allocation-rekap-go"
@@ -3215,292 +3262,555 @@ Object.keys(
     "minmax(120px, 1fr) " +
     "42px";
 
+
   dynamicContainer.innerHTML = `
 
-        <label>
+    <label>
 
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Type Rekap
-          </div>
+      <div
+        style="
+          margin-bottom:5px;
+          font-size:13px;
+          font-weight:600;
+        "
+      >
+        Type Rekap
+      </div>
 
-          <select
-            class="purchase-allocation-type"
-            style="width:100%;"
-          >
+      <select
+        class="purchase-allocation-type"
+        style="width:100%;"
+      >
 
-            <option value="">
-              Pilih Type Rekap
-            </option>
+        <option value="">
+          Pilih Type Rekap
+        </option>
 
-            ${recapTypes
-              .map(function(type) {
+        ${recapTypes
+          .map(function(type) {
 
-                return optionHTML(
-                  type,
-                  type,
-                  String(
-                    allocation.recap_type || ""
-                  ).trim() === type
-                );
-
-              })
-              .join("")}
-
-          </select>
-
-        </label>
-
-
-        <label>
-
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Kategori
-          </div>
-
-          <select
-            class="purchase-allocation-category"
-            style="width:100%;"
-          >
-
-            <option value="">
-              Pilih Kategori
-            </option>
-
-          </select>
-
-        </label>
-
-
-        <label>
-
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Batch
-          </div>
-
-          <select
-            class="purchase-allocation-batch"
-            style="width:100%;"
-          >
-
-            <option value="">
-              Pilih Batch
-            </option>
-
-          </select>
-
-        </label>
-
-      `;
-
-
-      const typeSelect =
-        dynamicContainer.querySelector(
-          ".purchase-allocation-type"
-        );
-
-      const categorySelect =
-        dynamicContainer.querySelector(
-          ".purchase-allocation-category"
-        );
-
-      const batchSelect =
-        dynamicContainer.querySelector(
-          ".purchase-allocation-batch"
-        );
-
-
-      function updateCategories() {
-
-        const selectedType =
-          typeSelect.value;
-
-
-        categorySelect.innerHTML = `
-          <option value="">
-            Pilih Kategori
-          </option>
-        `;
-
-        batchSelect.innerHTML = `
-          <option value="">
-            Pilih Batch
-          </option>
-        `;
-
-
-        if (!selectedType) {
-          return;
-        }
-
-
-        const categories =
-          categoriesByType[
-            selectedType
-          ] || [];
-
-
-        categories.forEach(
-          function(category) {
-
-            categorySelect.insertAdjacentHTML(
-              "beforeend",
-              optionHTML(
-                category,
-                category,
-                String(
-                  allocation.category || ""
-                ).trim() === category
-              )
+            return optionHTML(
+              type,
+              type,
+              String(
+                allocation.recap_type || ""
+              ).trim() === type
             );
 
-          }
+          })
+          .join("")}
+
+      </select>
+
+    </label>
+
+
+    <label>
+
+      <div
+        style="
+          margin-bottom:5px;
+          font-size:13px;
+          font-weight:600;
+        "
+      >
+        Kategori
+      </div>
+
+      <select
+        class="purchase-allocation-category"
+        style="width:100%;"
+      >
+
+        <option value="">
+          Pilih Kategori
+        </option>
+
+      </select>
+
+    </label>
+
+
+    <label>
+
+      <div
+        style="
+          margin-bottom:5px;
+          font-size:13px;
+          font-weight:600;
+        "
+      >
+        Batch
+      </div>
+
+      <select
+        class="purchase-allocation-batch"
+        style="width:100%;"
+      >
+
+        <option value="">
+          Pilih Batch
+        </option>
+
+      </select>
+
+    </label>
+
+
+    <!-- CUSTOMER / VERSI -->
+
+    <label
+      class="purchase-allocation-customer-wrapper"
+      style="display:none;"
+    >
+
+      <div
+        style="
+          margin-bottom:5px;
+          font-size:13px;
+          font-weight:600;
+        "
+      >
+        Customer / Versi
+      </div>
+
+      <select
+        class="purchase-allocation-customer"
+        style="width:100%;"
+      >
+
+        <option value="">
+          Pilih Customer / Versi
+        </option>
+
+      </select>
+
+    </label>
+
+  `;
+
+
+  const typeSelect =
+    dynamicContainer.querySelector(
+      ".purchase-allocation-type"
+    );
+
+  const categorySelect =
+    dynamicContainer.querySelector(
+      ".purchase-allocation-category"
+    );
+
+  const batchSelect =
+    dynamicContainer.querySelector(
+      ".purchase-allocation-batch"
+    );
+
+  const customerWrapper =
+    dynamicContainer.querySelector(
+      ".purchase-allocation-customer-wrapper"
+    );
+
+  const customerSelect =
+    dynamicContainer.querySelector(
+      ".purchase-allocation-customer"
+    );
+
+
+  function updateCustomers() {
+
+    customerSelect.innerHTML = `
+      <option value="">
+        Pilih Customer / Versi
+      </option>
+    `;
+
+
+    const sellerMode =
+      row
+        .querySelector(
+          ".purchase-allocation-seller-mode"
+        )
+        ?.value || "1";
+
+
+    if (
+      sellerMode !== "many" ||
+      !batchSelect.value
+    ) {
+
+      customerWrapper.style.display =
+        "none";
+
+      allocation.purchase_recap_id =
+        null;
+
+      return;
+
+    }
+
+
+    customerWrapper.style.display =
+      "block";
+
+
+    const selectedType =
+      typeSelect.value;
+
+    const selectedCategory =
+      categorySelect.value;
+
+    const selectedBatch =
+      batchSelect.value;
+
+
+    const customers =
+      (recapData || [])
+        .filter(function(item) {
+
+          return (
+            String(
+              item.recap_type || ""
+            ).trim() ===
+              selectedType &&
+
+            String(
+              item.category || ""
+            ).trim() ===
+              selectedCategory &&
+
+            String(
+              item.batch_code || ""
+            ).trim() ===
+              selectedBatch
+          );
+
+        });
+
+
+    const duplicateCounter = {};
+
+
+    customers.forEach(
+      function(customer) {
+
+        const customerName =
+          String(
+            customer.customer_name || ""
+          ).trim();
+
+        const version =
+          String(
+            customer.version || ""
+          ).trim();
+
+
+        const baseLabel =
+          customerName +
+          (
+            version
+              ? " - " + version
+              : ""
+          );
+
+
+        duplicateCounter[baseLabel] =
+          (
+            duplicateCounter[baseLabel] ||
+            0
+          ) + 1;
+
+
+        const number =
+          duplicateCounter[baseLabel];
+
+
+        const label =
+          baseLabel +
+          (
+            number > 1
+              ? " [#" + number + "]"
+              : ""
+          );
+
+
+        customerSelect.insertAdjacentHTML(
+          "beforeend",
+          optionHTML(
+            String(customer.id),
+            label,
+            String(
+              allocation.purchase_recap_id ||
+              ""
+            ) ===
+              String(customer.id)
+          )
         );
 
+      }
+    );
 
-        if (
+  }
+
+
+  function updateCategories() {
+
+    const selectedType =
+      typeSelect.value;
+
+
+    categorySelect.innerHTML = `
+      <option value="">
+        Pilih Kategori
+      </option>
+    `;
+
+
+    batchSelect.innerHTML = `
+      <option value="">
+        Pilih Batch
+      </option>
+    `;
+
+
+    customerSelect.innerHTML = `
+      <option value="">
+        Pilih Customer / Versi
+      </option>
+    `;
+
+
+    customerWrapper.style.display =
+      "none";
+
+
+    if (!selectedType) {
+
+      return;
+
+    }
+
+
+    const categories =
+      categoriesByType[
+        selectedType
+      ] || [];
+
+
+    categories.forEach(
+      function(category) {
+
+        categorySelect.insertAdjacentHTML(
+          "beforeend",
+          optionHTML(
+            category,
+            category,
+            String(
+              allocation.category || ""
+            ).trim() === category
+          )
+        );
+
+      }
+    );
+
+
+    if (allocation.category) {
+
+      categorySelect.value =
+        String(
           allocation.category
-        ) {
+        ).trim();
 
-          categorySelect.value =
+    }
+
+
+    updateBatches();
+
+  }
+
+
+  function updateBatches() {
+
+    const selectedType =
+      typeSelect.value;
+
+    const selectedCategory =
+      categorySelect.value;
+
+
+    batchSelect.innerHTML = `
+      <option value="">
+        Pilih Batch
+      </option>
+    `;
+
+
+    customerSelect.innerHTML = `
+      <option value="">
+        Pilih Customer / Versi
+      </option>
+    `;
+
+
+    customerWrapper.style.display =
+      "none";
+
+
+    if (
+      !selectedType ||
+      !selectedCategory
+    ) {
+
+      return;
+
+    }
+
+
+    const key =
+      selectedType +
+      "||" +
+      selectedCategory;
+
+
+    const batches =
+      batchesByTypeCategory[key] ||
+      [];
+
+
+    batches.forEach(
+      function(batch) {
+
+        const label =
+          batch.batch_code +
+          (
+            batch.item_name
+              ? " (" +
+                batch.item_name +
+                ")"
+              : ""
+          );
+
+
+        batchSelect.insertAdjacentHTML(
+          "beforeend",
+          optionHTML(
+            batch.batch_code,
+            label,
             String(
-              allocation.category
-            ).trim();
-
-        }
-
-
-        updateBatches();
-
-      }
-
-
-      function updateBatches() {
-
-        const selectedType =
-          typeSelect.value;
-
-        const selectedCategory =
-          categorySelect.value;
-
-
-        batchSelect.innerHTML = `
-          <option value="">
-            Pilih Batch
-          </option>
-        `;
-
-
-        if (
-          !selectedType ||
-          !selectedCategory
-        ) {
-          return;
-        }
-
-
-        const key =
-          selectedType +
-          "||" +
-          selectedCategory;
-
-
-        const batches =
-          batchesByTypeCategory[key] ||
-          [];
-
-
-        batches.forEach(
-          function(batch) {
-
-            const label =
-              batch.batch_code +
-              (
-                batch.item_name
-                  ? " (" +
-                    batch.item_name +
-                    ")"
-                  : ""
-              );
-
-
-            batchSelect.insertAdjacentHTML(
-              "beforeend",
-              optionHTML(
-                batch.batch_code,
-                label,
-                String(
-                  allocation.batch_code || ""
-                ).trim() ===
-                  batch.batch_code
-              )
-            );
-
-          }
+              allocation.batch_code || ""
+            ).trim() ===
+              batch.batch_code
+          )
         );
 
-
-        if (
-          allocation.batch_code
-        ) {
-
-          batchSelect.value =
-            String(
-              allocation.batch_code
-            ).trim();
-
-        }
-
       }
+    );
 
 
-      typeSelect.addEventListener(
-        "change",
-        function() {
+    if (allocation.batch_code) {
 
-          allocation.category = "";
-          allocation.batch_code = "";
+      batchSelect.value =
+        String(
+          allocation.batch_code
+        ).trim();
 
-          updateCategories();
-
-        }
-      );
+    }
 
 
-      categorySelect.addEventListener(
-        "change",
-        function() {
+    updateCustomers();
 
-          allocation.batch_code = "";
+  }
 
-          updateBatches();
 
-        }
-      );
+  typeSelect.addEventListener(
+    "change",
+    function() {
 
+      allocation.recap_type =
+        typeSelect.value;
+
+      allocation.category = "";
+      allocation.batch_code = "";
+      allocation.purchase_recap_id =
+        null;
 
       updateCategories();
 
     }
+  );
+
+
+  categorySelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.category =
+        categorySelect.value;
+
+      allocation.batch_code = "";
+      allocation.purchase_recap_id =
+        null;
+
+      updateBatches();
+
+    }
+  );
+
+
+  batchSelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.batch_code =
+        batchSelect.value;
+
+      allocation.purchase_recap_id =
+        null;
+
+      updateCustomers();
+
+    }
+  );
+
+
+  const sellerModeSelect =
+    row.querySelector(
+      ".purchase-allocation-seller-mode"
+    );
+
+
+  if (sellerModeSelect) {
+
+    sellerModeSelect.addEventListener(
+      "change",
+      function() {
+
+        allocation.seller_mode =
+          sellerModeSelect.value;
+
+
+        if (
+          sellerModeSelect.value !==
+          "many"
+        ) {
+
+          allocation.purchase_recap_id =
+            null;
+
+        }
+
+
+        renderDynamicFields();
+
+      }
+    );
 
   }
+
+
+  updateCategories();
+
+}
 
 
   kindSelect.addEventListener(
@@ -3582,6 +3892,11 @@ Object.keys(
       container.querySelectorAll(
         ".purchase-allocation-quantity"
       );
+
+     const sellerModeSelect =
+  row.querySelector(
+    ".purchase-allocation-seller-mode"
+  );
 
 
     let total = 0;
@@ -3934,6 +4249,29 @@ for (
         ?.value
         .trim() || "";
 
+     const sellerMode =
+  row
+    .querySelector(
+      ".purchase-allocation-seller-mode"
+    )
+    ?.value || "1";
+
+const customerSelect =
+  row.querySelector(
+    ".purchase-allocation-customer"
+  );
+
+const purchaseRecapId =
+  sellerMode === "many"
+    ? (
+        customerSelect?.value
+          ? Number(
+              customerSelect.value
+            )
+          : null
+      )
+    : null;
+
 
     if (!recapType) {
 
@@ -3967,6 +4305,19 @@ for (
 
     }
 
+     if (
+  sellerMode === "many" &&
+  !purchaseRecapId
+) {
+
+  alert(
+    "Silakan pilih Customer / Versi."
+  );
+
+  return;
+
+}
+
 
     allocationItems.push({
 
@@ -3979,6 +4330,9 @@ for (
 
       allocation_type:
         "Rekap GO",
+
+       seller_mode:
+  sellerMode,
 
       reseller_name:
         null,
@@ -3993,10 +4347,13 @@ for (
         category,
 
       batch_code:
-        batchCode,
+  batchCode,
 
-      quantity:
-        quantity,
+purchase_recap_id:
+  purchaseRecapId,
+
+quantity:
+  quantity,
 
       allocation_note:
         null
@@ -4027,12 +4384,22 @@ for (
   }
 
 
-  const key =
-    item.recap_type +
+  let key =
+  item.recap_type +
+  "||" +
+  item.category +
+  "||" +
+  item.batch_code;
+
+if (
+  item.seller_mode === "many"
+) {
+  key +=
     "||" +
-    item.category +
-    "||" +
-    item.batch_code;
+    String(
+      item.purchase_recap_id || ""
+    );
+}
 
 
   if (
@@ -4175,7 +4542,10 @@ for (
     item.quantity,
 
   allocation_note:
-    item.allocation_note
+  item.allocation_note,
+
+purchase_recap_id:
+  item.purchase_recap_id || null
 
 };
                 }
@@ -5345,32 +5715,37 @@ async function syncPurchaseStockTrackingToRecap(
     /*
        Cari allocation yang terhubung
        dengan Pembelian Stok ini.
-    */
 
+       purchase_recap_id:
+       - NULL  = 1 Seller / batch-level
+       - ADA    = >1 Seller / customer-level
+    */
     const {
       data: allocations,
       error: allocationError
     } = await supabaseClient
 
-      .from(
-        "purchase_stock_allocation"
-      )
+      .from("purchase_stock_allocation")
 
       .select(`
-  purchase_stock_id,
-  allocation_type,
-  recap_type,
-  category,
-  batch_code
-`)
-.eq(
-  "purchase_stock_id",
-  purchaseStockId
-)
-.eq(
-  "allocation_type",
-  "Rekap GO"
-)
+        purchase_stock_id,
+        allocation_type,
+        recap_type,
+        category,
+        batch_code,
+        purchase_recap_id
+      `)
+
+      .eq(
+        "purchase_stock_id",
+        purchaseStockId
+      )
+
+      .eq(
+        "allocation_type",
+        "Rekap GO"
+      );
+
 
     if (allocationError) {
       throw allocationError;
@@ -5383,20 +5758,17 @@ async function syncPurchaseStockTrackingToRecap(
     ) {
 
       console.log(
-        "Tidak ada allocation untuk purchase stock:",
+        "Tidak ada allocation Rekap GO untuk purchase stock:",
         purchaseStockId
       );
 
       return;
-
     }
 
 
     /*
-       Update hanya batch yang
-       terhubung dengan purchase tersebut.
+       PROSES SETIAP ALOKASI
     */
-
     for (
       const allocation
       of allocations
@@ -5412,7 +5784,17 @@ async function syncPurchaseStockTrackingToRecap(
           allocation.batch_code || ""
         ).trim();
 
+      const purchaseRecapId =
+        allocation.purchase_recap_id
+          ? Number(
+              allocation.purchase_recap_id
+            )
+          : null;
 
+
+      /*
+         Data dasar wajib ada
+      */
       if (
         !category ||
         !batchCode
@@ -5421,13 +5803,73 @@ async function syncPurchaseStockTrackingToRecap(
       }
 
 
+      /*
+       =====================================================
+       >1 SELLER
+       =====================================================
+
+       Jika purchase_recap_id ADA,
+       tracking hanya diberikan kepada
+       customer/version tersebut.
+      */
+      if (
+        purchaseRecapId
+      ) {
+
+        const {
+          error: updateCustomerError
+        } = await supabaseClient
+
+          .from("purchase_recap")
+
+          .update({
+            batch_tracking_status:
+              trackingStatus || null
+          })
+
+          .eq(
+            "id",
+            purchaseRecapId
+          );
+
+
+        if (
+          updateCustomerError
+        ) {
+          throw updateCustomerError;
+        }
+
+
+        console.log(
+          "TRACKING CUSTOMER UPDATED:",
+          {
+            purchaseStockId,
+            purchaseRecapId,
+            category,
+            batchCode,
+            trackingStatus
+          }
+        );
+
+
+        continue;
+      }
+
+
+      /*
+       =====================================================
+       1 SELLER
+       =====================================================
+
+       Jika purchase_recap_id NULL,
+       gunakan sistem lama:
+       tracking berlaku untuk seluruh batch.
+      */
       const {
-        error: updateError
+        error: updateBatchError
       } = await supabaseClient
 
-        .from(
-          "purchase_recap"
-        )
+        .from("purchase_recap")
 
         .update({
           batch_tracking_status:
@@ -5445,13 +5887,15 @@ async function syncPurchaseStockTrackingToRecap(
         );
 
 
-      if (updateError) {
-        throw updateError;
+      if (
+        updateBatchError
+      ) {
+        throw updateBatchError;
       }
 
 
       console.log(
-        "TRACKING REKAP GO UPDATED:",
+        "TRACKING BATCH UPDATED:",
         {
           purchaseStockId,
           category,
@@ -5472,13 +5916,13 @@ async function syncPurchaseStockTrackingToRecap(
 
     /*
        Jangan menggagalkan penyimpanan
-       Pembelian Stok hanya karena sinkronisasi gagal.
+       Pembelian Stok hanya karena
+       sinkronisasi tracking gagal.
     */
 
   }
 
 }
-
 /* ============================================
    EDIT ORDER PEMBELIAN STOK
    ============================================ */
@@ -18607,19 +19051,37 @@ async function showAddTabunganMemberForm(
      AMBIL DATA BATCH
      ========================================== */
 
-  const {
-    data: batchRows,
-    error: batchError
-  } =
-    await supabaseClient
-      .from("purchase_recap")
-      .select("*")
-      .eq("category", category)
-      .eq("batch_code", batchCode)
-      .order("id", {
-        ascending: true
-      });
+  if (allocation.purchase_recap_id) {
 
+  await supabaseClient
+    .from("purchase_recap")
+    .update({
+      batch_tracking_status:
+        trackingStatus || null
+    })
+    .eq(
+      "id",
+      allocation.purchase_recap_id
+    );
+
+} else {
+
+  await supabaseClient
+    .from("purchase_recap")
+    .update({
+      batch_tracking_status:
+        trackingStatus || null
+    })
+    .eq(
+      "category",
+      category
+    )
+    .eq(
+      "batch_code",
+      batchCode
+    );
+
+}
 
   if (batchError) {
 
