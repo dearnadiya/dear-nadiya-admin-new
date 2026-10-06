@@ -33118,17 +33118,21 @@ container
         return;
       }
 
+
       const rows =
         Array.from(
           tbody.querySelectorAll("tr")
         );
 
-      if (
-        rows.length <=
-        CUSTOMER_PER_PAGE
-      ) {
-        return;
-      }
+
+      /*
+       * Pagination selalu dibuat untuk
+       * setiap batch.
+       *
+       * Jika customer <= 10,
+       * pagination tetap ada tetapi
+       * hanya menampilkan informasi jumlah.
+       */
 
       const pagination =
         document.createElement("div");
@@ -33136,197 +33140,332 @@ container
       pagination.className =
         "recap-pagination";
 
+      pagination.style.cssText = `
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:6px;
+        flex-wrap:wrap;
+        margin-top:14px;
+        padding:8px 0;
+      `;
+
+
       card.appendChild(
         pagination
       );
 
+
+      /*
+       * Halaman disimpan TERPISAH
+       * untuk masing-masing batch.
+       */
+
       let currentPage = 1;
+
 
       function renderPagination() {
 
+        /*
+         * Hanya row yang tidak difilter
+         * yang dihitung.
+         */
+
         const visibleRows =
-  rows.filter(
-    function(row) {
+          rows.filter(
+            function(row) {
 
-      return (
-        row.dataset.filterVisible !==
-        "false"
-      );
-
-    }
-  );
-
-const totalPages =
-  Math.ceil(
-    visibleRows.length /
-      CUSTOMER_PER_PAGE
-  );
-
-if (
-  totalPages > 0 &&
-  currentPage > totalPages
-) {
-  currentPage = totalPages;
-}
-
-rows.forEach(
-  function(row) {
-
-    row.style.display =
-      "none";
-
-  }
-);
-
-const start =
-  (currentPage - 1) *
-  CUSTOMER_PER_PAGE;
-
-const pageRows =
-  visibleRows.slice(
-    start,
-    start +
-      CUSTOMER_PER_PAGE
-  );
-
-pageRows.forEach(
-  function(row) {
-
-    row.style.display =
-      "";
-
-  }
-);
-         
-        pagination.innerHTML =
-          "";
-
-        if (
-          totalPages <= 1
-        ) {
-          return;
-        }
-
-        const previousButton =
-          document.createElement(
-            "button"
-          );
-
-        previousButton.type =
-          "button";
-
-        previousButton.textContent =
-          "‹";
-
-        previousButton.disabled =
-          currentPage === 1;
-
-        previousButton.addEventListener(
-          "click",
-          function() {
-
-            if (
-              currentPage > 1
-            ) {
-
-              currentPage--;
-
-              renderPagination();
+              return (
+                row.dataset.filterVisible !==
+                "false"
+              );
 
             }
+          );
+
+
+        const totalPages =
+          Math.max(
+            1,
+            Math.ceil(
+              visibleRows.length /
+                CUSTOMER_PER_PAGE
+            )
+          );
+
+
+        /*
+         * Jika halaman aktif melebihi
+         * halaman yang tersedia,
+         * kembali ke halaman terakhir.
+         */
+
+        if (
+          currentPage >
+          totalPages
+        ) {
+
+          currentPage =
+            totalPages;
+
+        }
+
+
+        /*
+         * Sembunyikan seluruh customer
+         * batch ini.
+         */
+
+        rows.forEach(
+          function(row) {
+
+            row.style.display =
+              "none";
 
           }
         );
 
-        pagination.appendChild(
-          previousButton
+
+        /*
+         * Ambil customer untuk
+         * halaman aktif.
+         */
+
+        const start =
+          (
+            currentPage - 1
+          ) *
+          CUSTOMER_PER_PAGE;
+
+
+        const pageRows =
+          visibleRows.slice(
+            start,
+            start +
+              CUSTOMER_PER_PAGE
+          );
+
+
+        pageRows.forEach(
+          function(row) {
+
+            row.style.display =
+              "";
+
+          }
         );
 
 
-        for (
-          let page = 1;
-          page <= totalPages;
-          page++
+        /*
+         * Bangun ulang pagination.
+         */
+
+        pagination.innerHTML =
+          "";
+
+
+        /*
+         * Jika tidak ada customer.
+         */
+
+        if (
+          visibleRows.length ===
+          0
         ) {
 
-          const pageButton =
+          const emptyInfo =
+            document.createElement(
+              "span"
+            );
+
+          emptyInfo.className =
+            "recap-pagination-info";
+
+          emptyInfo.textContent =
+            "Tidak ada customer";
+
+          pagination.appendChild(
+            emptyInfo
+          );
+
+          return;
+
+        }
+
+
+        /*
+         * TOMBOL SEBELUMNYA
+         */
+
+        if (
+          totalPages > 1
+        ) {
+
+          const previousButton =
             document.createElement(
               "button"
             );
 
-          pageButton.type =
+          previousButton.type =
             "button";
 
-          pageButton.textContent =
-            page;
+          previousButton.textContent =
+            "‹";
 
-          if (
-            page ===
-            currentPage
-          ) {
+          previousButton.disabled =
+            currentPage === 1;
 
-            pageButton.classList.add(
-              "active"
-            );
 
-          }
-
-          pageButton.addEventListener(
+          previousButton.addEventListener(
             "click",
-            function() {
+            function(event) {
 
-              currentPage =
-                page;
+              event.preventDefault();
+              event.stopPropagation();
 
-              renderPagination();
+
+              if (
+                currentPage > 1
+              ) {
+
+                currentPage--;
+
+                renderPagination();
+
+              }
 
             }
           );
 
+
           pagination.appendChild(
-            pageButton
+            previousButton
           );
 
         }
 
 
-        const nextButton =
-          document.createElement(
-            "button"
-          );
+        /*
+         * NOMOR HALAMAN
+         */
 
-        nextButton.type =
-          "button";
+        if (
+          totalPages > 1
+        ) {
 
-        nextButton.textContent =
-          "›";
+          for (
+            let page = 1;
+            page <= totalPages;
+            page++
+          ) {
 
-        nextButton.disabled =
-          currentPage ===
-          totalPages;
+            const pageButton =
+              document.createElement(
+                "button"
+              );
 
-        nextButton.addEventListener(
-          "click",
-          function() {
+            pageButton.type =
+              "button";
+
+            pageButton.textContent =
+              page;
+
 
             if (
-              currentPage <
-              totalPages
+              page ===
+              currentPage
             ) {
 
-              currentPage++;
-
-              renderPagination();
+              pageButton.classList.add(
+                "active"
+              );
 
             }
 
+
+            pageButton.addEventListener(
+              "click",
+              function(event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+
+                currentPage =
+                  page;
+
+                renderPagination();
+
+              }
+            );
+
+
+            pagination.appendChild(
+              pageButton
+            );
+
           }
-        );
 
-        pagination.appendChild(
-          nextButton
-        );
+        }
 
+
+        /*
+         * TOMBOL SESUDAHNYA
+         */
+
+        if (
+          totalPages > 1
+        ) {
+
+          const nextButton =
+            document.createElement(
+              "button"
+            );
+
+          nextButton.type =
+            "button";
+
+          nextButton.textContent =
+            "›";
+
+          nextButton.disabled =
+            currentPage ===
+            totalPages;
+
+
+          nextButton.addEventListener(
+            "click",
+            function(event) {
+
+              event.preventDefault();
+              event.stopPropagation();
+
+
+              if (
+                currentPage <
+                totalPages
+              ) {
+
+                currentPage++;
+
+                renderPagination();
+
+              }
+
+            }
+          );
+
+
+          pagination.appendChild(
+            nextButton
+          );
+
+        }
+
+
+        /*
+         * INFORMASI CUSTOMER
+         */
 
         const info =
           document.createElement(
@@ -33336,14 +33475,28 @@ pageRows.forEach(
         info.className =
           "recap-pagination-info";
 
+        info.style.cssText = `
+          margin-left:8px;
+          color:#777;
+          font-size:13px;
+        `;
+
+
         info.textContent =
-          `${rows.length} customer`;
+          `${visibleRows.length} customer`;
+
 
         pagination.appendChild(
           info
         );
 
       }
+
+
+      /*
+       * Render halaman pertama
+       * untuk BATCH INI.
+       */
 
       renderPagination();
 
