@@ -2898,11 +2898,9 @@ recapData.forEach(
       style="
         display:grid;
         grid-template-columns:
-          1fr
-          1fr
-          1fr
-          120px
-          42px;
+  minmax(180px, 1fr)
+  minmax(120px, 180px)
+  42px;
         gap:10px;
         align-items:end;
       "
@@ -2961,11 +2959,14 @@ recapData.forEach(
       <!-- AREA DINAMIS -->
 
       <div
-        class="purchase-allocation-dynamic"
-        style="
-          display:contents;
-        "
-      ></div>
+  class="purchase-allocation-dynamic"
+  style="
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    grid-column:span 2;
+  "
+></div>
 
 
       <!-- JUMLAH -->
