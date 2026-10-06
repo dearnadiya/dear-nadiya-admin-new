@@ -4744,8 +4744,6 @@ await renderPurchaseStockList();
 
       }
     );
-     
-   }
 }
 
 
