@@ -29759,19 +29759,26 @@ async function loadPurchaseBatchInfoStatus() {
        ========================================== */
 
     const {
-      data: allocationRows,
-      error: allocationError
-    } = await supabaseClient
-      .from("purchase_stock_allocation")
-      .select(`
-        purchase_stock_id,
-        recap_type,
-        category,
-        batch_code,
-        allocation_type
-      `)
-      .not("batch_code", "is", null);
-
+  data: allocationRows,
+  error: allocationError
+} = await supabaseClient
+  .from("purchase_stock_allocation")
+  .select(`
+    purchase_stock_id,
+    recap_type,
+    category,
+    batch_code,
+    allocation_type
+  `)
+  .eq(
+    "allocation_type",
+    "Rekap GO"
+  )
+  .not(
+    "batch_code",
+    "is",
+    null
+  );
     if (allocationError) {
       throw allocationError;
     }
@@ -31098,15 +31105,50 @@ let html = `
 `;
 
   Object.keys(
-    batches
-  ).forEach(
-    function (batchCode) {
+  batches
+).forEach(
+  function (batchCode) {
 
-      const rows =
-        batches[batchCode];
+    const rows =
+      batches[batchCode];
+
+    /* ==========================================
+       TENTUKAN JUMLAH SELLER PER BATCH
+       ========================================== */
+
+    const trackingKey =
+      String(
+        getRecapTypeFromCategory(
+          category
+        )
+      ).trim()
+      + "|"
+      + String(
+        category
+      ).trim()
+      + "|"
+      + String(
+        batchCode
+      ).trim();
+
+    const trackingInfo =
+      purchaseBatchInfoMap[
+        trackingKey
+      ];
+
+    const sellerCount =
+      trackingInfo &&
+      Array.isArray(
+        trackingInfo.sellers
+      )
+        ? trackingInfo.sellers.length
+        : 0;
+
+    const isMultiSeller =
+      sellerCount > 1;
 
 
-      html += `
+    html += `
 
         <div
   class="recap-batch-card recap-batch-collapsed"
@@ -31640,44 +31682,11 @@ let html = `
     box-sizing:border-box;
   "
 >
-  ${
-    (() => {
+  ${(() => {
 
-      const key =
-        String(
-          getRecapTypeFromCategory(
-            category
-          )
-        ).trim()
-        + "|"
-        + String(
-          category
-        ).trim()
-        + "|"
-        + String(
-          batchCode
-        ).trim();
-
-      const info =
-        purchaseBatchInfoMap[key];
-
-      const sellerCount =
-        info &&
-        Array.isArray(info.sellers)
-          ? info.sellers.length
-          : 0;
-
-       const isMultiSeller =
-  sellerCount > 1;
-
-
-      /*
-       * >1 SELLER
-       * Tracking berlaku per customer.
-       */
-      if (
-        sellerCount > 1
-      ) {
+  if (
+    isMultiSeller
+  ) {
 
         return `
           <strong>
