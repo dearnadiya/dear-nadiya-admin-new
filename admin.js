@@ -2921,24 +2921,21 @@ Object.keys(
 
 
   /* ==========================================
-     8. BUAT 1 BARIS ALOKASI
-     ========================================== */
+   8. BUAT 1 BARIS ALOKASI
+   ========================================== */
 
-  function createAllocationRow(
+function createAllocationRow(
   allocation = {}
 ) {
 
   const row =
     document.createElement("div");
 
-
   row.className =
     "purchase-allocation-row";
 
-
   row.dataset.id =
     allocation.id || "";
-
 
   row.style.cssText = `
     border:1px solid #e5e5e5;
@@ -2951,63 +2948,74 @@ Object.keys(
 
   const allocationType =
     String(
-      allocation.allocation_type ||
-      (
-        allocation.reseller_name
-          ? "Reseller"
-          : "Rekap GO"
-      )
+      allocation.allocation_type || ""
     ).trim();
 
+  const sellerMode =
+    String(
+      allocation.seller_mode || "1"
+    ).trim();
+
+
+  /* ========================================
+     HTML DASAR
+     ======================================== */
 
   row.innerHTML = `
 
     <div
-  class="purchase-allocation-grid"
-  style="
-    display:grid;
-    grid-template-columns:
-      minmax(180px, 1fr)
-      minmax(120px, 1fr)
-      minmax(120px, 1fr)
-      minmax(120px, 1fr)
-      minmax(120px, 1fr)
-      42px;
-    gap:10px;
-    align-items:end;
-  "
->
+      class="purchase-allocation-grid"
+      style="
+        display:grid;
+        grid-template-columns:
+          minmax(150px, 1fr)
+          minmax(150px, 1fr)
+          minmax(150px, 1fr)
+          minmax(150px, 1fr)
+          minmax(100px, 1fr)
+          42px;
+        gap:10px;
+        align-items:end;
+      "
+    >
 
-<!-- SUMBER SELLER -->
+      <!-- SUMBER SELLER -->
 
-<label>
+      <label>
 
-  <div
-    style="
-      margin-bottom:5px;
-      font-size:13px;
-      font-weight:600;
-    "
-  >
-    Sumber Seller
-  </div>
+        <div
+          style="
+            margin-bottom:5px;
+            font-size:13px;
+            font-weight:600;
+          "
+        >
+          Sumber Seller
+        </div>
 
-  <select
-    class="purchase-allocation-seller-mode"
-    style="width:100%;"
-  >
+        <select
+          class="purchase-allocation-seller-mode"
+          style="width:100%;"
+        >
 
-    <option value="1">
-      1 Seller
-    </option>
+          <option
+            value="1"
+            ${sellerMode === "1" ? "selected" : ""}
+          >
+            1 Seller
+          </option>
 
-    <option value="many">
-      &gt;1 Seller
-    </option>
+          <option
+            value="many"
+            ${sellerMode === "many" ? "selected" : ""}
+          >
+            &gt;1 Seller
+          </option>
 
-  </select>
+        </select>
 
-</label>
+      </label>
+
 
       <!-- JENIS ALOKASI -->
 
@@ -3062,11 +3070,11 @@ Object.keys(
       <!-- AREA DINAMIS -->
 
       <div
-  class="purchase-allocation-dynamic"
-  style="
-    display:contents;
-  "
-></div>
+        class="purchase-allocation-dynamic"
+        style="
+          display:contents;
+        "
+      ></div>
 
 
       <!-- JUMLAH -->
@@ -3123,22 +3131,29 @@ Object.keys(
   container.appendChild(row);
 
 
+  /* ========================================
+     ELEMENT
+     ======================================== */
+
   const kindSelect =
     row.querySelector(
       ".purchase-allocation-kind"
     );
 
-     const allocationGrid =
-  row.querySelector(
-    ".purchase-allocation-grid"
-  );
+  const sellerModeSelect =
+    row.querySelector(
+      ".purchase-allocation-seller-mode"
+    );
 
+  const allocationGrid =
+    row.querySelector(
+      ".purchase-allocation-grid"
+    );
 
   const dynamicContainer =
     row.querySelector(
       ".purchase-allocation-dynamic"
     );
-
 
   const quantityInput =
     row.querySelector(
@@ -3146,45 +3161,61 @@ Object.keys(
     );
 
 
+  /* ========================================
+     RENDER FIELD DINAMIS
+     ======================================== */
+
   function renderDynamicFields() {
 
     const type =
       kindSelect.value;
 
-     const sellerMode =
-  row
-    .querySelector(
-      ".purchase-allocation-seller-mode"
-    )
-    ?.value || "1";
 
-const customerWrapper =
-  row.querySelector(
-    ".purchase-allocation-customer-wrapper"
-  );
+    /* --------------------------------------
+       RESET
+       -------------------------------------- */
 
-       /* RESET LAYOUT */
-  allocationGrid.classList.remove(
-    "allocation-rekap-go"
-  );
+    dynamicContainer.innerHTML = "";
 
-  allocationGrid.style.gridTemplateColumns =
-  "minmax(180px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "42px";
+    allocationGrid.style.gridTemplateColumns =
+      `
+      minmax(150px, 1fr)
+      minmax(150px, 1fr)
+      minmax(150px, 1fr)
+      minmax(150px, 1fr)
+      minmax(100px, 1fr)
+      42px
+      `;
 
 
-    if (type === "Reseller") {
+    /* --------------------------------------
+       BELUM PILIH JENIS
+       -------------------------------------- */
 
-       allocationGrid.style.gridTemplateColumns =
-  "minmax(180px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "minmax(120px, 1fr) " +
-  "42px";
+    if (!type) {
+
+      return;
+
+    }
+
+
+    /* ======================================
+       RESELLER
+       ====================================== */
+
+    if (
+      type === "Reseller"
+    ) {
+
+      allocationGrid.style.gridTemplateColumns =
+        `
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(100px, 1fr)
+        42px
+        `;
+
 
       dynamicContainer.innerHTML = `
 
@@ -3227,7 +3258,10 @@ const customerWrapper =
 
           <input
             type="text"
-            class="purchase-allocation-selling-price currency-input"
+            class="
+              purchase-allocation-selling-price
+              currency-input
+            "
             value="${
               allocation.selling_price !== null &&
               allocation.selling_price !== undefined
@@ -3248,594 +3282,675 @@ const customerWrapper =
     }
 
 
-    if (type === "Rekap GO") {
-
-  allocationGrid.classList.add(
-    "allocation-rekap-go"
-  );
-
-  allocationGrid.style.gridTemplateColumns =
-    "minmax(180px, 1fr) " +
-    "minmax(120px, 1fr) " +
-    "minmax(120px, 1fr) " +
-    "minmax(120px, 1fr) " +
-    "minmax(120px, 1fr) " +
-    "42px";
-
-
-  dynamicContainer.innerHTML = `
-
-    <label>
-
-      <div
-        style="
-          margin-bottom:5px;
-          font-size:13px;
-          font-weight:600;
-        "
-      >
-        Type Rekap
-      </div>
-
-      <select
-        class="purchase-allocation-type"
-        style="width:100%;"
-      >
-
-        <option value="">
-          Pilih Type Rekap
-        </option>
-
-        ${recapTypes
-          .map(function(type) {
-
-            return optionHTML(
-              type,
-              type,
-              String(
-                allocation.recap_type || ""
-              ).trim() === type
-            );
-
-          })
-          .join("")}
-
-      </select>
-
-    </label>
-
-
-    <label>
-
-      <div
-        style="
-          margin-bottom:5px;
-          font-size:13px;
-          font-weight:600;
-        "
-      >
-        Kategori
-      </div>
-
-      <select
-        class="purchase-allocation-category"
-        style="width:100%;"
-      >
-
-        <option value="">
-          Pilih Kategori
-        </option>
-
-      </select>
-
-    </label>
-
-
-    <label>
-
-      <div
-        style="
-          margin-bottom:5px;
-          font-size:13px;
-          font-weight:600;
-        "
-      >
-        Batch
-      </div>
-
-      <select
-        class="purchase-allocation-batch"
-        style="width:100%;"
-      >
-
-        <option value="">
-          Pilih Batch
-        </option>
-
-      </select>
-
-    </label>
-
-
-    <!-- CUSTOMER / VERSI -->
-
-    <label
-      class="purchase-allocation-customer-wrapper"
-      style="display:none;"
-    >
-
-      <div
-        style="
-          margin-bottom:5px;
-          font-size:13px;
-          font-weight:600;
-        "
-      >
-        Customer / Versi
-      </div>
-
-      <select
-        class="purchase-allocation-customer"
-        style="width:100%;"
-      >
-
-        <option value="">
-          Pilih Customer / Versi
-        </option>
-
-      </select>
-
-    </label>
-
-  `;
-
-
-  const typeSelect =
-    dynamicContainer.querySelector(
-      ".purchase-allocation-type"
-    );
-
-  const categorySelect =
-    dynamicContainer.querySelector(
-      ".purchase-allocation-category"
-    );
-
-  const batchSelect =
-    dynamicContainer.querySelector(
-      ".purchase-allocation-batch"
-    );
-
-  const customerWrapper =
-    dynamicContainer.querySelector(
-      ".purchase-allocation-customer-wrapper"
-    );
-
-  const customerSelect =
-    dynamicContainer.querySelector(
-      ".purchase-allocation-customer"
-    );
-
-
-  function updateCustomers() {
-
-    customerSelect.innerHTML = `
-      <option value="">
-        Pilih Customer / Versi
-      </option>
-    `;
-
-
-    const sellerMode =
-      row
-        .querySelector(
-          ".purchase-allocation-seller-mode"
-        )
-        ?.value || "1";
-
+    /* ======================================
+       REKAP GO
+       ====================================== */
 
     if (
-      sellerMode !== "many" ||
-      !batchSelect.value
+      type === "Rekap GO"
     ) {
 
-      customerWrapper.style.display =
-        "none";
-
-      allocation.purchase_recap_id =
-        null;
-
-      return;
-
-    }
-
-
-    customerWrapper.style.display =
-      "block";
+      allocationGrid.style.gridTemplateColumns =
+        `
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(100px, 1fr)
+        42px
+        `;
 
 
-    const selectedType =
-      typeSelect.value;
+      dynamicContainer.innerHTML = `
 
-    const selectedCategory =
-      categorySelect.value;
+        <!-- TYPE REKAP -->
 
-    const selectedBatch =
-      batchSelect.value;
+        <label>
 
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Type Rekap
+          </div>
 
-    const customers =
-      (recapData || [])
-        .filter(function(item) {
+          <select
+            class="purchase-allocation-type"
+            style="width:100%;"
+          >
 
-          return (
-            String(
-              item.recap_type || ""
-            ).trim() ===
-              selectedType &&
+            <option value="">
+              Pilih Type Rekap
+            </option>
 
-            String(
-              item.category || ""
-            ).trim() ===
-              selectedCategory &&
+            ${
+              recapTypes
+                .map(
+                  function(type) {
 
-            String(
-              item.batch_code || ""
-            ).trim() ===
-              selectedBatch
-          );
+                    return optionHTML(
+                      type,
+                      type,
+                      String(
+                        allocation.recap_type || ""
+                      ).trim() ===
+                        type
+                    );
 
-        });
+                  }
+                )
+                .join("")
+            }
 
+          </select>
 
-    const duplicateCounter = {};
-
-
-    customers.forEach(
-      function(customer) {
-
-        const customerName =
-          String(
-            customer.customer_name || ""
-          ).trim();
-
-        const version =
-          String(
-            customer.version || ""
-          ).trim();
+        </label>
 
 
-        const baseLabel =
-          customerName +
-          (
-            version
-              ? " - " + version
-              : ""
-          );
+        <!-- KATEGORI -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Kategori
+          </div>
+
+          <select
+            class="purchase-allocation-category"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Kategori
+            </option>
+
+          </select>
+
+        </label>
 
 
-        duplicateCounter[baseLabel] =
-          (
-            duplicateCounter[baseLabel] ||
-            0
-          ) + 1;
+        <!-- BATCH -->
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Batch
+          </div>
+
+          <select
+            class="purchase-allocation-batch"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Batch
+            </option>
+
+          </select>
+
+        </label>
 
 
-        const number =
-          duplicateCounter[baseLabel];
+        <!-- CUSTOMER / VERSI -->
+
+        <label
+          class="
+            purchase-allocation-customer-wrapper
+          "
+          style="
+            display:none;
+          "
+        >
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Customer / Versi
+          </div>
+
+          <select
+            class="purchase-allocation-customer"
+            style="width:100%;"
+          >
+
+            <option value="">
+              Pilih Customer / Versi
+            </option>
+
+          </select>
+
+        </label>
+
+      `;
 
 
-        const label =
-          baseLabel +
-          (
-            number > 1
-              ? " [#" + number + "]"
-              : ""
-          );
+      /* ====================================
+         ELEMENT REKAP
+         ==================================== */
 
-
-        customerSelect.insertAdjacentHTML(
-          "beforeend",
-          optionHTML(
-            String(customer.id),
-            label,
-            String(
-              allocation.purchase_recap_id ||
-              ""
-            ) ===
-              String(customer.id)
-          )
+      const typeSelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-type"
         );
 
-      }
-    );
-
-  }
-
-
-  function updateCategories() {
-
-    const selectedType =
-      typeSelect.value;
-
-
-    categorySelect.innerHTML = `
-      <option value="">
-        Pilih Kategori
-      </option>
-    `;
-
-
-    batchSelect.innerHTML = `
-      <option value="">
-        Pilih Batch
-      </option>
-    `;
-
-
-    customerSelect.innerHTML = `
-      <option value="">
-        Pilih Customer / Versi
-      </option>
-    `;
-
-
-    customerWrapper.style.display =
-      "none";
-
-
-    if (!selectedType) {
-
-      return;
-
-    }
-
-
-    const categories =
-      categoriesByType[
-        selectedType
-      ] || [];
-
-
-    categories.forEach(
-      function(category) {
-
-        categorySelect.insertAdjacentHTML(
-          "beforeend",
-          optionHTML(
-            category,
-            category,
-            String(
-              allocation.category || ""
-            ).trim() === category
-          )
+      const categorySelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-category"
         );
 
-      }
-    );
-
-
-    if (allocation.category) {
-
-      categorySelect.value =
-        String(
-          allocation.category
-        ).trim();
-
-    }
-
-
-    updateBatches();
-
-  }
-
-
-  function updateBatches() {
-
-    const selectedType =
-      typeSelect.value;
-
-    const selectedCategory =
-      categorySelect.value;
-
-
-    batchSelect.innerHTML = `
-      <option value="">
-        Pilih Batch
-      </option>
-    `;
-
-
-    customerSelect.innerHTML = `
-      <option value="">
-        Pilih Customer / Versi
-      </option>
-    `;
-
-
-    customerWrapper.style.display =
-      "none";
-
-
-    if (
-      !selectedType ||
-      !selectedCategory
-    ) {
-
-      return;
-
-    }
-
-
-    const key =
-      selectedType +
-      "||" +
-      selectedCategory;
-
-
-    const batches =
-      batchesByTypeCategory[key] ||
-      [];
-
-
-    batches.forEach(
-      function(batch) {
-
-        const label =
-          batch.batch_code +
-          (
-            batch.item_name
-              ? " (" +
-                batch.item_name +
-                ")"
-              : ""
-          );
-
-
-        batchSelect.insertAdjacentHTML(
-          "beforeend",
-          optionHTML(
-            batch.batch_code,
-            label,
-            String(
-              allocation.batch_code || ""
-            ).trim() ===
-              batch.batch_code
-          )
+      const batchSelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-batch"
         );
 
-      }
-    );
+      const customerWrapper =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-customer-wrapper"
+        );
+
+      const customerSelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-customer"
+        );
 
 
-    if (allocation.batch_code) {
+      /* ====================================
+         CUSTOMER
+         ==================================== */
 
-      batchSelect.value =
-        String(
-          allocation.batch_code
-        ).trim();
+      function updateCustomers() {
 
-    }
-
-
-    updateCustomers();
-
-  }
-
-
-  typeSelect.addEventListener(
-    "change",
-    function() {
-
-      allocation.recap_type =
-        typeSelect.value;
-
-      allocation.category = "";
-      allocation.batch_code = "";
-      allocation.purchase_recap_id =
-        null;
-
-      updateCategories();
-
-    }
-  );
-
-
-  categorySelect.addEventListener(
-    "change",
-    function() {
-
-      allocation.category =
-        categorySelect.value;
-
-      allocation.batch_code = "";
-      allocation.purchase_recap_id =
-        null;
-
-      updateBatches();
-
-    }
-  );
-
-
-  batchSelect.addEventListener(
-    "change",
-    function() {
-
-      allocation.batch_code =
-        batchSelect.value;
-
-      allocation.purchase_recap_id =
-        null;
-
-      updateCustomers();
-
-    }
-  );
-
-
-  const sellerModeSelect =
-    row.querySelector(
-      ".purchase-allocation-seller-mode"
-    );
-
-
-  if (sellerModeSelect) {
-
-    sellerModeSelect.addEventListener(
-      "change",
-      function() {
-
-        allocation.seller_mode =
-          sellerModeSelect.value;
+        customerSelect.innerHTML = `
+          <option value="">
+            Pilih Customer / Versi
+          </option>
+        `;
 
 
         if (
-          sellerModeSelect.value !==
-          "many"
+          sellerModeSelect.value !== "many" ||
+          !batchSelect.value
         ) {
+
+          customerWrapper.style.display =
+            "none";
 
           allocation.purchase_recap_id =
             null;
 
+          return;
+
         }
 
+
+        customerWrapper.style.display =
+          "block";
+
+
+        const selectedType =
+          typeSelect.value;
+
+        const selectedCategory =
+          categorySelect.value;
+
+        const selectedBatch =
+          batchSelect.value;
+
+
+        const customers =
+          (recapData || [])
+            .filter(
+              function(item) {
+
+                return (
+                  String(
+                    item.recap_type || ""
+                  ).trim() ===
+                    selectedType &&
+
+                  String(
+                    item.category || ""
+                  ).trim() ===
+                    selectedCategory &&
+
+                  String(
+                    item.batch_code || ""
+                  ).trim() ===
+                    selectedBatch
+                );
+
+              }
+            );
+
+
+        const duplicateCounter = {};
+
+
+        customers.forEach(
+          function(customer) {
+
+            const customerName =
+              String(
+                customer.customer_name || ""
+              ).trim();
+
+            const version =
+              String(
+                customer.version || ""
+              ).trim();
+
+
+            const baseLabel =
+              customerName +
+              (
+                version
+                  ? " - " + version
+                  : ""
+              );
+
+
+            duplicateCounter[baseLabel] =
+              (
+                duplicateCounter[baseLabel] ||
+                0
+              ) + 1;
+
+
+            const number =
+              duplicateCounter[baseLabel];
+
+
+            const label =
+              baseLabel +
+              (
+                number > 1
+                  ? " [#" + number + "]"
+                  : ""
+              );
+
+
+            customerSelect.insertAdjacentHTML(
+              "beforeend",
+              optionHTML(
+                String(customer.id),
+                label,
+                String(
+                  allocation.purchase_recap_id ||
+                  ""
+                ) ===
+                  String(customer.id)
+              )
+            );
+
+          }
+        );
+
+      }
+
+
+      /* ====================================
+         KATEGORI
+         ==================================== */
+
+      function updateCategories() {
+
+        const selectedType =
+          typeSelect.value;
+
+
+        categorySelect.innerHTML = `
+          <option value="">
+            Pilih Kategori
+          </option>
+        `;
+
+        batchSelect.innerHTML = `
+          <option value="">
+            Pilih Batch
+          </option>
+        `;
+
+        customerSelect.innerHTML = `
+          <option value="">
+            Pilih Customer / Versi
+          </option>
+        `;
+
+        customerWrapper.style.display =
+          "none";
+
+
+        if (!selectedType) {
+
+          return;
+
+        }
+
+
+        const categories =
+          categoriesByType[
+            selectedType
+          ] || [];
+
+
+        categories.forEach(
+          function(category) {
+
+            categorySelect.insertAdjacentHTML(
+              "beforeend",
+              optionHTML(
+                category,
+                category,
+                String(
+                  allocation.category || ""
+                ).trim() ===
+                  category
+              )
+            );
+
+          }
+        );
+
+
+        if (
+          allocation.category
+        ) {
+
+          categorySelect.value =
+            String(
+              allocation.category
+            ).trim();
+
+        }
+
+
+        updateBatches();
+
+      }
+
+
+      /* ====================================
+         BATCH
+         ==================================== */
+
+      function updateBatches() {
+
+        const selectedType =
+          typeSelect.value;
+
+        const selectedCategory =
+          categorySelect.value;
+
+
+        batchSelect.innerHTML = `
+          <option value="">
+            Pilih Batch
+          </option>
+        `;
+
+        customerSelect.innerHTML = `
+          <option value="">
+            Pilih Customer / Versi
+          </option>
+        `;
+
+        customerWrapper.style.display =
+          "none";
+
+
+        if (
+          !selectedType ||
+          !selectedCategory
+        ) {
+
+          return;
+
+        }
+
+
+        const key =
+          selectedType +
+          "||" +
+          selectedCategory;
+
+
+        const batches =
+          batchesByTypeCategory[key] ||
+          [];
+
+
+        batches.forEach(
+          function(batch) {
+
+            const label =
+              batch.batch_code +
+              (
+                batch.item_name
+                  ? " (" +
+                    batch.item_name +
+                    ")"
+                  : ""
+              );
+
+
+            batchSelect.insertAdjacentHTML(
+              "beforeend",
+              optionHTML(
+                batch.batch_code,
+                label,
+                String(
+                  allocation.batch_code || ""
+                ).trim() ===
+                  batch.batch_code
+              )
+            );
+
+          }
+        );
+
+
+        if (
+          allocation.batch_code
+        ) {
+
+          batchSelect.value =
+            String(
+              allocation.batch_code
+            ).trim();
+
+        }
+
+
+        updateCustomers();
+
+      }
+
+
+      /* ====================================
+         EVENT TYPE REKAP
+         ==================================== */
+
+      typeSelect.addEventListener(
+        "change",
+        function() {
+
+          allocation.recap_type =
+            typeSelect.value;
+
+          allocation.category =
+            "";
+
+          allocation.batch_code =
+            "";
+
+          allocation.purchase_recap_id =
+            null;
+
+          updateCategories();
+
+        }
+      );
+
+
+      /* ====================================
+         EVENT KATEGORI
+         ==================================== */
+
+      categorySelect.addEventListener(
+        "change",
+        function() {
+
+          allocation.category =
+            categorySelect.value;
+
+          allocation.batch_code =
+            "";
+
+          allocation.purchase_recap_id =
+            null;
+
+          updateBatches();
+
+        }
+      );
+
+
+      /* ====================================
+         EVENT BATCH
+         ==================================== */
+
+      batchSelect.addEventListener(
+        "change",
+        function() {
+
+          allocation.batch_code =
+            batchSelect.value;
+
+          allocation.purchase_recap_id =
+            null;
+
+          updateCustomers();
+
+        }
+      );
+
+
+      /* ====================================
+         INITIAL
+         ==================================== */
+
+      updateCategories();
+
+    }
+
+  }
+
+
+  /* ========================================
+     EVENT JENIS ALOKASI
+     ======================================== */
+
+  kindSelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.allocation_type =
+        kindSelect.value;
+
+      allocation.recap_type =
+        "";
+
+      allocation.category =
+        "";
+
+      allocation.batch_code =
+        "";
+
+      allocation.reseller_name =
+        "";
+
+      allocation.selling_price =
+        null;
+
+      allocation.purchase_recap_id =
+        null;
+
+      renderDynamicFields();
+
+    }
+  );
+
+
+  /* ========================================
+     EVENT SUMBER SELLER
+     ======================================== */
+
+  sellerModeSelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.seller_mode =
+        sellerModeSelect.value;
+
+
+      if (
+        sellerModeSelect.value !==
+        "many"
+      ) {
+
+        allocation.purchase_recap_id =
+          null;
+
+      }
+
+
+      /*
+       * Jika sudah memilih Rekap GO,
+       * render ulang agar Customer / Versi
+       * muncul atau hilang sesuai mode seller.
+       */
+
+      if (
+        kindSelect.value ===
+        "Rekap GO"
+      ) {
 
         renderDynamicFields();
 
       }
-    );
 
-  }
-
-
-  updateCategories();
-
-}
+    }
+  );
 
 
-  kindSelect.addEventListener(
-  "change",
-  function() {
-
-    allocation.allocation_type =
-      kindSelect.value;
-
-    allocation.recap_type = "";
-    allocation.category = "";
-    allocation.batch_code = "";
-    allocation.reseller_name = "";
-    allocation.selling_price = null;
-
-    renderDynamicFields();
-
-  }
-);
-
+  /* ========================================
+     EVENT HAPUS
+     ======================================== */
 
   const removeButton =
     row.querySelector(
       ".remove-purchase-allocation-button"
     );
+
 
   removeButton.addEventListener(
     "click",
@@ -3851,11 +3966,17 @@ const customerWrapper =
         rows.length <= 1
       ) {
 
-        kindSelect.value = "";
+        kindSelect.value =
+          "";
 
-        dynamicContainer.innerHTML = "";
+        dynamicContainer.innerHTML =
+          "";
 
-        quantityInput.value = 0;
+        quantityInput.value =
+          0;
+
+        allocation.allocation_type =
+          "";
 
         updateAllocationSummary();
 
@@ -3872,16 +3993,24 @@ const customerWrapper =
   );
 
 
+  /* ========================================
+     JUMLAH
+     ======================================== */
+
   quantityInput.addEventListener(
     "input",
     updateAllocationSummary
   );
 
 
+  /* ========================================
+     RENDER AWAL
+     ======================================== */
+
   renderDynamicFields();
 
 }
-
+   
   /* ==========================================
      9. RINGKASAN STOK
      ========================================== */
