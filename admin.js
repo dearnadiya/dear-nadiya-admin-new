@@ -2060,37 +2060,59 @@ return `
   if (archivedRows.length) {
 
     const archiveHTML = `
-      <div
-        style="
-          margin-top:20px;
-          background:#fff;
-          border-radius:16px;
-          overflow:hidden;
-        "
-      >
+  <details
+    style="
+      margin-top:20px;
+      background:#fff;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid #eee;
+    "
+  >
 
-        <div
+    <summary
+      style="
+        padding:18px 20px;
+        font-weight:700;
+        cursor:pointer;
+        list-style:none;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        user-select:none;
+      "
+    >
+
+      <span>
+        📁 Arsip Pembelian
+
+        <span
           style="
-            padding:18px 20px;
-            border-bottom:1px solid #eee;
-            font-weight:700;
+            color:#888;
+            font-weight:400;
+            margin-left:5px;
           "
         >
+          (${archivedRows.length} barang)
+        </span>
+      </span>
 
-          📁 Arsip Pembelian
+      <span
+        style="
+          color:#888;
+          font-size:12px;
+        "
+      >
+        ▼
+      </span>
 
-          <span
-            style="
-              color:#888;
-              font-weight:400;
-              margin-left:5px;
-            "
-          >
-            (${archivedRows.length} barang)
-          </span>
+    </summary>
 
-        </div>
-
+    <div
+      style="
+        border-top:1px solid #eee;
+      "
+    >
 
         <div
           style="
@@ -2366,7 +2388,7 @@ return `
 
         </div>
 
-      </div>
+      </details>
     `;
 
 
