@@ -1010,10 +1010,11 @@ const archivedRows =
       });
 
 
-  let purchaseStockAllocations = [];
+ let purchaseStockAllocations = [];
+let purchaseRecapMap = {};
 
 
-  if (purchaseStockIds.length) {
+if (purchaseStockIds.length) {
 
     const {
       data: allocationData,
@@ -1099,10 +1100,6 @@ allocation_note
       })
   )
 ];
-
-
-let purchaseRecapMap = {};
-
 
 if (purchaseRecapIds.length) {
 
@@ -2055,6 +2052,330 @@ return `
 
     </div>
   `;
+
+   /* ============================================
+     ARSIP PEMBELIAN
+     ============================================ */
+
+  if (archivedRows.length) {
+
+    const archiveHTML = `
+      <div
+        style="
+          margin-top:20px;
+          background:#fff;
+          border-radius:16px;
+          overflow:hidden;
+        "
+      >
+
+        <div
+          style="
+            padding:18px 20px;
+            border-bottom:1px solid #eee;
+            font-weight:700;
+          "
+        >
+
+          📁 Arsip Pembelian
+
+          <span
+            style="
+              color:#888;
+              font-weight:400;
+              margin-left:5px;
+            "
+          >
+            (${archivedRows.length} barang)
+          </span>
+
+        </div>
+
+
+        <div
+          style="
+            padding:10px 15px;
+            background:#fafafa;
+            color:#777;
+            font-size:12px;
+          "
+        >
+          Pembelian dengan status
+          <strong>Arrived Admin</strong>
+          dipindahkan ke arsip.
+        </div>
+
+
+        <div
+          style="
+            overflow-x:auto;
+          "
+        >
+
+          <table
+            style="
+              width:100%;
+              border-collapse:collapse;
+              min-width:850px;
+            "
+          >
+
+            <thead>
+
+              <tr
+                style="
+                  background:#f8f8f8;
+                "
+              >
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Nama Barang
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Seller
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  No Order
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Warehouse
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Tracking
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:center;
+                    width:180px;
+                    font-size:13px;
+                  "
+                >
+                  Aksi
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                archivedRows
+                  .map(
+                    function(row) {
+
+                      const purchaseId =
+                        Number(
+                          row.id
+                        );
+
+                      const purchaseQuantity =
+                        Number(
+                          row.quantity || 0
+                        );
+
+                      return `
+                        <tr
+                          style="
+                            border-top:1px solid #eee;
+                          "
+                        >
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+
+                            <strong>
+                              ${escapeHTML(
+                                row.item_name || "-"
+                              )}
+                            </strong>
+
+                            <div
+                              style="
+                                margin-top:3px;
+                                color:#777;
+                                font-size:11px;
+                              "
+                            >
+                              Qty:
+                              ${purchaseQuantity} pcs
+                            </div>
+
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.seller_name || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.order_number || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.warehouse_name || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+
+                            <strong>
+                              ${escapeHTML(
+                                row.seller_tracking || "-"
+                              )}
+                            </strong>
+
+                            <div
+                              style="
+                                margin-top:3px;
+                                font-size:11px;
+                                color:#777;
+                              "
+                            >
+                              Arrived Admin
+                            </div>
+
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              text-align:center;
+                            "
+                          >
+
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:center;
+                                gap:6px;
+                                flex-wrap:nowrap;
+                              "
+                            >
+
+                              <button
+                                type="button"
+                                class="primary-button purchase-stock-detail-button"
+                                data-purchase-id="${purchaseId}"
+                                style="
+                                  padding:5px 9px;
+                                  font-size:11px;
+                                "
+                              >
+                                Detail ▲
+                              </button>
+
+
+                              <button
+                                type="button"
+                                class="secondary-button purchase-stock-edit-item-button"
+                                data-purchase-id="${purchaseId}"
+                                style="
+                                  padding:6px 10px;
+                                  font-size:11px;
+                                "
+                              >
+                                Edit
+                              </button>
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+                      `;
+
+                    }
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+    `;
+
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      archiveHTML
+    );
+
+  }
 
 
   /*
@@ -55249,330 +55570,6 @@ async function deletePO(id) {
   await loadPOList();
 
 }
-
-                         /* ============================================
-     ARSIP PEMBELIAN
-     ============================================ */
-
-  if (archivedRows.length) {
-
-    const archiveHTML = `
-      <div
-        style="
-          margin-top:20px;
-          background:#fff;
-          border-radius:16px;
-          overflow:hidden;
-        "
-      >
-
-        <div
-          style="
-            padding:18px 20px;
-            border-bottom:1px solid #eee;
-            font-weight:700;
-          "
-        >
-
-          📁 Arsip Pembelian
-
-          <span
-            style="
-              color:#888;
-              font-weight:400;
-              margin-left:5px;
-            "
-          >
-            (${archivedRows.length} barang)
-          </span>
-
-        </div>
-
-
-        <div
-          style="
-            padding:10px 15px;
-            background:#fafafa;
-            color:#777;
-            font-size:12px;
-          "
-        >
-          Pembelian dengan status
-          <strong>Arrived Admin</strong>
-          dipindahkan ke arsip.
-        </div>
-
-
-        <div
-          style="
-            overflow-x:auto;
-          "
-        >
-
-          <table
-            style="
-              width:100%;
-              border-collapse:collapse;
-              min-width:850px;
-            "
-          >
-
-            <thead>
-
-              <tr
-                style="
-                  background:#f8f8f8;
-                "
-              >
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:left;
-                    font-size:13px;
-                  "
-                >
-                  Nama Barang
-                </th>
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:left;
-                    font-size:13px;
-                  "
-                >
-                  Seller
-                </th>
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:left;
-                    font-size:13px;
-                  "
-                >
-                  No Order
-                </th>
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:left;
-                    font-size:13px;
-                  "
-                >
-                  Warehouse
-                </th>
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:left;
-                    font-size:13px;
-                  "
-                >
-                  Tracking
-                </th>
-
-                <th
-                  style="
-                    padding:10px 12px;
-                    text-align:center;
-                    width:180px;
-                    font-size:13px;
-                  "
-                >
-                  Aksi
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              ${
-                archivedRows
-                  .map(
-                    function(row) {
-
-                      const purchaseId =
-                        Number(
-                          row.id
-                        );
-
-                      const purchaseQuantity =
-                        Number(
-                          row.quantity || 0
-                        );
-
-                      return `
-                        <tr
-                          style="
-                            border-top:1px solid #eee;
-                          "
-                        >
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              font-size:13px;
-                            "
-                          >
-
-                            <strong>
-                              ${escapeHTML(
-                                row.item_name || "-"
-                              )}
-                            </strong>
-
-                            <div
-                              style="
-                                margin-top:3px;
-                                color:#777;
-                                font-size:11px;
-                              "
-                            >
-                              Qty:
-                              ${purchaseQuantity} pcs
-                            </div>
-
-                          </td>
-
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              font-size:13px;
-                            "
-                          >
-                            ${escapeHTML(
-                              row.seller_name || "-"
-                            )}
-                          </td>
-
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              font-size:13px;
-                            "
-                          >
-                            ${escapeHTML(
-                              row.order_number || "-"
-                            )}
-                          </td>
-
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              font-size:13px;
-                            "
-                          >
-                            ${escapeHTML(
-                              row.warehouse_name || "-"
-                            )}
-                          </td>
-
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              font-size:13px;
-                            "
-                          >
-
-                            <strong>
-                              ${escapeHTML(
-                                row.seller_tracking || "-"
-                              )}
-                            </strong>
-
-                            <div
-                              style="
-                                margin-top:3px;
-                                font-size:11px;
-                                color:#777;
-                              "
-                            >
-                              Arrived Admin
-                            </div>
-
-                          </td>
-
-
-                          <td
-                            style="
-                              padding:10px 12px;
-                              text-align:center;
-                            "
-                          >
-
-                            <div
-                              style="
-                                display:flex;
-                                justify-content:center;
-                                gap:6px;
-                                flex-wrap:nowrap;
-                              "
-                            >
-
-                              <button
-                                type="button"
-                                class="primary-button purchase-stock-detail-button"
-                                data-purchase-id="${purchaseId}"
-                                style="
-                                  padding:5px 9px;
-                                  font-size:11px;
-                                "
-                              >
-                                Detail ▲
-                              </button>
-
-
-                              <button
-                                type="button"
-                                class="secondary-button purchase-stock-edit-item-button"
-                                data-purchase-id="${purchaseId}"
-                                style="
-                                  padding:6px 10px;
-                                  font-size:11px;
-                                "
-                              >
-                                Edit
-                              </button>
-
-                            </div>
-
-                          </td>
-
-                        </tr>
-                      `;
-
-                    }
-                  )
-                  .join("")
-              }
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-    `;
-
-
-    container.insertAdjacentHTML(
-      "beforeend",
-      archiveHTML
-    );
-
-  }
 
 /* ============================================
    AKHIR ADMIN.JS
