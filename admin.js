@@ -33351,6 +33351,8 @@ container
         row.style.display =
           "none";
 
+      }
+
       });
 
       const start =
@@ -33372,6 +33374,8 @@ container
       pageRows.forEach(function(row) {
 
         row.style.display = "";
+
+      }
 
       });
 
