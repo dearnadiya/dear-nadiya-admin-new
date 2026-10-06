@@ -931,6 +931,25 @@ async function renderPurchaseStockList() {
   const rows =
     data || [];
 
+   const activeRows =
+  rows.filter(
+    function(row) {
+      return String(
+        row.tracking_status || ""
+      ).trim() !== "Arrived Admin";
+    }
+  );
+
+
+const archivedRows =
+  rows.filter(
+    function(row) {
+      return String(
+        row.tracking_status || ""
+      ).trim() === "Arrived Admin";
+    }
+  );
+
 
   if (!rows.length) {
 
@@ -6311,40 +6330,8 @@ async function showPurchaseStockOrderForm(
 
   }
 
-
-    /*
-     ============================================
-     PEMISAHAN PEMBELIAN AKTIF & ARSIP
-     ============================================
-  */
-
   const rows =
     data || [];
-
-
-  const activeRows =
-    rows.filter(
-      function(row) {
-
-        return String(
-          row.tracking_status || ""
-        ).trim() !== "Arrived Admin";
-
-      }
-    );
-
-
-  const archivedRows =
-    rows.filter(
-      function(row) {
-
-        return String(
-          row.tracking_status || ""
-        ).trim() === "Arrived Admin";
-
-      }
-    );
-
 
   if (!rows.length) {
 
