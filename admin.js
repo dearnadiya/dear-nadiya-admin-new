@@ -2772,7 +2772,8 @@ while (true) {
   batch_code,
   item_name,
   customer_name,
-  version
+  version,
+  batch_tracking_status
 `)
     .not(
       "batch_code",
@@ -3134,6 +3135,18 @@ recapData.forEach(
     ) {
       return;
     }
+
+     const batchTrackingStatus =
+  String(
+    row.batch_tracking_status || ""
+  ).trim().toLowerCase();
+
+if (
+  batchTrackingStatus ===
+  "arrived admin"
+) {
+  return;
+}
 
     const key =
       type +
@@ -5900,6 +5913,62 @@ function showPurchaseStockForm(
   <label>
 
     <div>
+      Status Pembayaran Seller
+    </div>
+
+    <select
+      id="purchaseSellerPaymentStatusInput"
+      style="
+        width:100%;
+        padding:9px 10px;
+        box-sizing:border-box;
+      "
+    >
+
+      <option
+        value="order"
+        ${
+          String(
+            purchase?.seller_payment_status ||
+            "order"
+          ).toLowerCase() === "order"
+            ? "selected"
+            : ""
+        }
+      >
+        Order
+      </option>
+
+      <option
+        value="paid"
+        ${
+          String(
+            purchase?.seller_payment_status ||
+            "order"
+          ).toLowerCase() === "paid"
+            ? "selected"
+            : ""
+        }
+      >
+        Terbayar
+      </option>
+
+    </select>
+
+  </label>
+
+</div>
+
+<div
+  style="
+    grid-column:1 / -1;
+    margin-top:5px;
+  "
+>
+
+  <label>
+
+    <div>
   Status Tracking
 </div>
 
@@ -6114,14 +6183,21 @@ if (quantity <= 0) {
         const basePayload = {
 
   seller_name:
-    document
-      .getElementById(
-        "purchaseSellerInput"
-      )
-      .value
-      .trim() || null,
+  document
+    .getElementById(
+      "purchaseSellerInput"
+    )
+    .value
+    .trim() || null,
 
-  web_seller:
+seller_payment_status:
+  document
+    .getElementById(
+      "purchaseSellerPaymentStatusInput"
+    )
+    .value || "order",
+
+web_seller:
     document
       .getElementById(
         "purchaseWebSellerInput"
@@ -6610,7 +6686,8 @@ async function showPurchaseStockOrderForm(
       .select(`
         id,
         seller_name,
-        web_seller,
+seller_payment_status,
+web_seller,
         seller_url,
         purchase_date,
         order_number,
