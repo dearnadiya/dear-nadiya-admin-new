@@ -31754,7 +31754,6 @@ let html = `
 </div>
 
 </div>
-</div>
 
 <div
   class="product-table-wrapper"
