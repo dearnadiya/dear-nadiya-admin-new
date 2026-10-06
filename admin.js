@@ -3330,13 +3330,7 @@ function createAllocationRow(
 dynamicContainer.innerHTML = "";
 
 allocationGrid.style.gridTemplateColumns =
-  "minmax(130px, 1fr) " +
-  "minmax(130px, 1fr) " +
-  "minmax(130px, 1fr) " +
-  "minmax(130px, 1fr) " +
-  "minmax(130px, 1fr) " +
-  "90px " +
-  "42px";
+  "repeat(4, minmax(0, 1fr))";
 
     /* --------------------------------------
        BELUM PILIH JENIS
@@ -3357,12 +3351,8 @@ allocationGrid.style.gridTemplateColumns =
   type === "Reseller"
 ) {
 
-  allocationGrid.style.gridTemplateColumns =
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "90px " +
-    "42px";
+ allocationGrid.style.gridTemplateColumns =
+  "repeat(4, minmax(0, 1fr))";
 
 
       dynamicContainer.innerHTML = `
@@ -3439,13 +3429,7 @@ allocationGrid.style.gridTemplateColumns =
 ) {
 
   allocationGrid.style.gridTemplateColumns =
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "minmax(130px, 1fr) " +
-    "90px " +
-    "42px";
+  "repeat(4, minmax(0, 1fr))";
 
 
       dynamicContainer.innerHTML = `
