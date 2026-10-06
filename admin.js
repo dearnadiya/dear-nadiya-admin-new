@@ -29984,13 +29984,29 @@ async function loadRecapList(
 
 
   if (!container) {
-    return;
-  }
-
-   await loadPurchaseBatchInfoStatus();
+  return;
+}
 
 container.innerHTML =
   "<p>Memuat rekap...</p>";
+
+try {
+
+  await loadPurchaseBatchInfoStatus();
+
+}
+catch (error) {
+
+  console.error(
+    "ERROR LOAD PURCHASE BATCH INFO:",
+    error
+  );
+
+  // Jangan hentikan proses Rekap hanya karena
+  // informasi Seller / Warehouse gagal dimuat.
+  purchaseBatchInfoMap = {};
+
+}
 
   const {
     data,
