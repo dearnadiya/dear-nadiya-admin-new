@@ -1134,7 +1134,7 @@ allocation_note
             margin-left:5px;
           "
         >
-          (${rows.length} barang)
+          (${activeRows.length} barang)
         </span>
 
       </div>
@@ -1210,8 +1210,8 @@ allocation_note
           <tbody>
 
             ${
-              rows
-                .map(function(row) {
+              activeRows
+  .map(function(row) {
 
                   const purchaseId =
                     Number(
@@ -2465,7 +2465,8 @@ const recapData =
   category,
   batch_code,
   quantity,
-  allocation_note
+  allocation_note,
+  purchase_recap_id
 `)
     .eq(
       "purchase_stock_id",
@@ -2497,6 +2498,138 @@ const recapData =
 
   const existingAllocations =
     allocations || [];
+
+     /* ==========================================
+     3B. DATA ALOKASI REKAP GO DARI PEMBELIAN LAIN
+     ========================================== */
+
+  const {
+    data: allRekapAllocations,
+    error: allRekapAllocationError
+  } = await supabaseClient
+    .from("purchase_stock_allocation")
+    .select(`
+      purchase_stock_id,
+      allocation_type,
+      recap_type,
+      category,
+      batch_code,
+      purchase_recap_id
+    `)
+    .eq("allocation_type", "Rekap GO")
+    .neq("purchase_stock_id", purchaseId);
+
+
+  if (allRekapAllocationError) {
+
+    console.error(
+      "Gagal mengambil data alokasi pembelian lain:",
+      allRekapAllocationError
+    );
+
+    alert(
+      "Gagal mengambil data alokasi pembelian lain:\n" +
+      allRekapAllocationError.message
+    );
+
+    return;
+
+  }
+
+
+  /* ==========================================
+     BATCH YANG SUDAH DIBELI 1 SELLER
+     ========================================== */
+
+  const purchasedBatchKeys =
+    new Set();
+
+
+  /* ==========================================
+     CUSTOMER / VERSI YANG SUDAH DIBELI >1 SELLER
+     ========================================== */
+
+  const purchasedCustomerKeys =
+    new Set();
+
+
+  (allRekapAllocations || []).forEach(
+    function(allocation) {
+
+      const recapType =
+        String(
+          allocation.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          allocation.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+      const purchaseRecapId =
+        allocation.purchase_recap_id
+          ? Number(
+              allocation.purchase_recap_id
+            )
+          : null;
+
+
+      if (
+        !recapType ||
+        !category ||
+        !batchCode
+      ) {
+        return;
+      }
+
+
+      const batchKey =
+        recapType +
+        "||" +
+        category +
+        "||" +
+        batchCode;
+
+
+      /*
+       * purchase_recap_id NULL
+       * = pembelian 1 Seller
+       *
+       * Maka seluruh batch dianggap sudah dibeli.
+       */
+
+      if (!purchaseRecapId) {
+
+        purchasedBatchKeys.add(
+          batchKey
+        );
+
+        return;
+
+      }
+
+
+      /*
+       * purchase_recap_id ADA
+       * = pembelian >1 Seller
+       *
+       * Maka hanya customer/version tersebut
+       * yang dianggap sudah dibeli.
+       */
+
+      purchasedCustomerKeys.add(
+        batchKey +
+        "||" +
+        String(purchaseRecapId)
+      );
+
+    }
+  );
 
 
   /* ==========================================
@@ -3511,30 +3644,59 @@ allocationGrid.style.gridTemplateColumns =
           batchSelect.value;
 
 
-        const customers =
-          (recapData || [])
-            .filter(
-              function(item) {
+        const batchKey =
+  selectedType +
+  "||" +
+  selectedCategory +
+  "||" +
+  selectedBatch;
 
-                return (
-                  String(
-                    item.recap_type || ""
-                  ).trim() ===
-                    selectedType &&
 
-                  String(
-                    item.category || ""
-                  ).trim() ===
-                    selectedCategory &&
+const customers =
+  (recapData || [])
+    .filter(
+      function(item) {
 
-                  String(
-                    item.batch_code || ""
-                  ).trim() ===
-                    selectedBatch
-                );
+        return (
+          String(
+            item.recap_type || ""
+          ).trim() ===
+            selectedType &&
 
-              }
-            );
+          String(
+            item.category || ""
+          ).trim() ===
+            selectedCategory &&
+
+          String(
+            item.batch_code || ""
+          ).trim() ===
+            selectedBatch
+        );
+
+      }
+    )
+    .filter(
+      function(customer) {
+
+        const customerKey =
+          batchKey +
+          "||" +
+          String(
+            customer.id
+          );
+
+        /*
+         * Jika customer sudah pernah dibeli
+         * oleh pembelian lain, sembunyikan.
+         */
+
+        return !purchasedCustomerKeys.has(
+          customerKey
+        );
+
+      }
+    );
 
 
         const duplicateCounter = {};
@@ -3729,8 +3891,38 @@ allocationGrid.style.gridTemplateColumns =
 
 
         const batches =
-          batchesByTypeCategory[key] ||
-          [];
+  (
+    batchesByTypeCategory[key] ||
+    []
+  ).filter(
+    function(batch) {
+
+      const batchKey =
+        selectedType +
+        "||" +
+        selectedCategory +
+        "||" +
+        String(
+          batch.batch_code || ""
+        ).trim();
+
+
+      /*
+       * Jika batch sudah dibeli
+       * secara 1 Seller,
+       * sembunyikan seluruh batch.
+       *
+       * Jika baru ada pembelian >1 Seller,
+       * batch tetap ditampilkan agar
+       * customer/version lain bisa dipilih.
+       */
+
+      return !purchasedBatchKeys.has(
+        batchKey
+      );
+
+    }
+  );
 
 
         batches.forEach(
@@ -6120,8 +6312,38 @@ async function showPurchaseStockOrderForm(
   }
 
 
+    /*
+     ============================================
+     PEMISAHAN PEMBELIAN AKTIF & ARSIP
+     ============================================
+  */
+
   const rows =
     data || [];
+
+
+  const activeRows =
+    rows.filter(
+      function(row) {
+
+        return String(
+          row.tracking_status || ""
+        ).trim() !== "Arrived Admin";
+
+      }
+    );
+
+
+  const archivedRows =
+    rows.filter(
+      function(row) {
+
+        return String(
+          row.tracking_status || ""
+        ).trim() === "Arrived Admin";
+
+      }
+    );
 
 
   if (!rows.length) {
@@ -55040,6 +55262,330 @@ async function deletePO(id) {
   await loadPOList();
 
 }
+
+                         /* ============================================
+     ARSIP PEMBELIAN
+     ============================================ */
+
+  if (archivedRows.length) {
+
+    const archiveHTML = `
+      <div
+        style="
+          margin-top:20px;
+          background:#fff;
+          border-radius:16px;
+          overflow:hidden;
+        "
+      >
+
+        <div
+          style="
+            padding:18px 20px;
+            border-bottom:1px solid #eee;
+            font-weight:700;
+          "
+        >
+
+          📁 Arsip Pembelian
+
+          <span
+            style="
+              color:#888;
+              font-weight:400;
+              margin-left:5px;
+            "
+          >
+            (${archivedRows.length} barang)
+          </span>
+
+        </div>
+
+
+        <div
+          style="
+            padding:10px 15px;
+            background:#fafafa;
+            color:#777;
+            font-size:12px;
+          "
+        >
+          Pembelian dengan status
+          <strong>Arrived Admin</strong>
+          dipindahkan ke arsip.
+        </div>
+
+
+        <div
+          style="
+            overflow-x:auto;
+          "
+        >
+
+          <table
+            style="
+              width:100%;
+              border-collapse:collapse;
+              min-width:850px;
+            "
+          >
+
+            <thead>
+
+              <tr
+                style="
+                  background:#f8f8f8;
+                "
+              >
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Nama Barang
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Seller
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  No Order
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Warehouse
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:left;
+                    font-size:13px;
+                  "
+                >
+                  Tracking
+                </th>
+
+                <th
+                  style="
+                    padding:10px 12px;
+                    text-align:center;
+                    width:180px;
+                    font-size:13px;
+                  "
+                >
+                  Aksi
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                archivedRows
+                  .map(
+                    function(row) {
+
+                      const purchaseId =
+                        Number(
+                          row.id
+                        );
+
+                      const purchaseQuantity =
+                        Number(
+                          row.quantity || 0
+                        );
+
+                      return `
+                        <tr
+                          style="
+                            border-top:1px solid #eee;
+                          "
+                        >
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+
+                            <strong>
+                              ${escapeHTML(
+                                row.item_name || "-"
+                              )}
+                            </strong>
+
+                            <div
+                              style="
+                                margin-top:3px;
+                                color:#777;
+                                font-size:11px;
+                              "
+                            >
+                              Qty:
+                              ${purchaseQuantity} pcs
+                            </div>
+
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.seller_name || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.order_number || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+                            ${escapeHTML(
+                              row.warehouse_name || "-"
+                            )}
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              font-size:13px;
+                            "
+                          >
+
+                            <strong>
+                              ${escapeHTML(
+                                row.seller_tracking || "-"
+                              )}
+                            </strong>
+
+                            <div
+                              style="
+                                margin-top:3px;
+                                font-size:11px;
+                                color:#777;
+                              "
+                            >
+                              Arrived Admin
+                            </div>
+
+                          </td>
+
+
+                          <td
+                            style="
+                              padding:10px 12px;
+                              text-align:center;
+                            "
+                          >
+
+                            <div
+                              style="
+                                display:flex;
+                                justify-content:center;
+                                gap:6px;
+                                flex-wrap:nowrap;
+                              "
+                            >
+
+                              <button
+                                type="button"
+                                class="primary-button purchase-stock-detail-button"
+                                data-purchase-id="${purchaseId}"
+                                style="
+                                  padding:5px 9px;
+                                  font-size:11px;
+                                "
+                              >
+                                Detail ▲
+                              </button>
+
+
+                              <button
+                                type="button"
+                                class="secondary-button purchase-stock-edit-item-button"
+                                data-purchase-id="${purchaseId}"
+                                style="
+                                  padding:6px 10px;
+                                  font-size:11px;
+                                "
+                              >
+                                Edit
+                              </button>
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+                      `;
+
+                    }
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+    `;
+
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      archiveHTML
+    );
+
+  }
 
 /* ============================================
    AKHIR ADMIN.JS
