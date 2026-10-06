@@ -33017,9 +33017,9 @@ function closeAllRecapBatches(
         }
 
         setRecapBatchOpen(
-          card,
-          false
-        );
+  card,
+  true
+);
 
       }
     );
