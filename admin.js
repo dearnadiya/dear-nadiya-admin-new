@@ -1085,6 +1085,64 @@ allocation_note
 
     purchaseStockAllocations =
       allocationData || [];
+
+     const purchaseRecapIds = [
+  ...new Set(
+    purchaseStockAllocations
+      .map(function(allocation) {
+        return Number(
+          allocation.purchase_recap_id || 0
+        );
+      })
+      .filter(function(id) {
+        return id > 0;
+      })
+  )
+];
+
+
+let purchaseRecapMap = {};
+
+
+if (purchaseRecapIds.length) {
+
+  const {
+    data: purchaseRecapRows,
+    error: purchaseRecapError
+  } = await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      id,
+      customer_name,
+      version
+    `)
+    .in(
+      "id",
+      purchaseRecapIds
+    );
+
+
+  if (purchaseRecapError) {
+
+    console.error(
+      "Gagal mengambil data customer alokasi:",
+      purchaseRecapError
+    );
+
+  } else {
+
+    (purchaseRecapRows || [])
+      .forEach(function(row) {
+
+        purchaseRecapMap[
+          Number(row.id)
+        ] = row;
+
+      });
+
+  }
+
+}
   }
 
 
@@ -1780,146 +1838,104 @@ padding-top:10px;
   ).trim();
 
 
-      if (
-        allocationType ===
-        "Reseller"
-      ) {
-
-        return `
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              align-items:center;
-              gap:15px;
-              padding:8px 0;
-              border-bottom:1px dashed #ddd;
-            "
-          >
-
-            <div>
-
-              <div
-                style="
-                  font-weight:600;
-                "
-              >
-                👤 ${
-                  escapeHTML(
-                    allocation.reseller_name ||
-                    allocation.allocation_name ||
-                    "-"
-                  )
-                }
-              </div>
-
-              <div
-                style="
-                  margin-top:3px;
-                  font-size:12px;
-                  color:#777;
-                "
-              >
-                Reseller
-                • Harga Jual Rp${
-                  Number(
-                    allocation.selling_price || 0
-                  ).toLocaleString("id-ID")
-                }
-              </div>
-
-            </div>
+const recapCustomer =
+  allocation.purchase_recap_id
+    ? purchaseRecapMap[
+        Number(
+          allocation.purchase_recap_id
+        )
+      ]
+    : null;
 
 
-            <strong
-              style="
-                white-space:nowrap;
-              "
-            >
-              ${Number(
-                allocation.quantity || 0
-              )}
-              pcs
-            </strong>
+const displayHeader =
+  allocationType === "Reseller"
+    ? "Reseller"
+    : (
+        allocation.batch_code ||
+        allocation.allocation_name ||
+        "-"
+      );
 
-          </div>
 
-        `;
+const displayName =
+  allocationType === "Reseller"
+    ? (
+        allocation.reseller_name ||
+        allocation.allocation_name ||
+        "-"
+      )
+    : (
+        recapCustomer?.customer_name ||
+        allocation.batch_code ||
+        allocation.allocation_name ||
+        "-"
+      );
+
+
+const displayVersion =
+  allocationType === "Rekap GO" &&
+  recapCustomer?.version
+    ? " (" +
+      recapCustomer.version +
+      ")"
+    : "";
+
+
+return `
+  <div
+    style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      padding:8px 0;
+      border-bottom:1px dashed #ddd;
+    "
+  >
+
+    <div>
+
+      <div
+        style="
+          font-weight:600;
+        "
+      >
+        ${escapeHTML(displayHeader)}
+      </div>
+
+      <div
+        style="
+          margin-top:3px;
+          font-size:12px;
+          color:#777;
+        "
+      >
+        ${escapeHTML(allocationType)}
+        •
+        ${escapeHTML(displayName)}
+        ${escapeHTML(displayVersion)}
+      </div>
+
+    </div>
+
+
+    <strong
+      style="
+        white-space:nowrap;
+      "
+    >
+      ${Number(
+        allocation.quantity || 0
+      )}
+      pcs
+    </strong>
+
+  </div>
+`;
 
       }
-
-
-      return `
-
-        <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:15px;
-            padding:8px 0;
-            border-bottom:1px dashed #ddd;
-          "
-        >
-
-          <div>
-
-            <div
-              style="
-                font-weight:600;
-              "
-            >
-              📦 ${
-                escapeHTML(
-                  allocation.batch_code ||
-                  allocation.allocation_name ||
-                  "-"
-                )
-              }
-            </div>
-
-            <div
-              style="
-                margin-top:3px;
-                font-size:12px;
-                color:#777;
-              "
-            >
-              Rekap GO
-              • ${
-                escapeHTML(
-                  allocation.recap_type ||
-                  "-"
-                )
-              }
-              • ${
-                escapeHTML(
-                  allocation.category ||
-                  "-"
-                )
-              }
-            </div>
-
-          </div>
-
-
-          <strong
-            style="
-              white-space:nowrap;
-            "
-          >
-            ${Number(
-              allocation.quantity || 0
-            )}
-            pcs
-          </strong>
-
-        </div>
-
-      `;
-
-    }
+     
   )
   .join("")}
 
