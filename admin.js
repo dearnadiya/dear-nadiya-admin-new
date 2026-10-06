@@ -31405,6 +31405,12 @@ container
         return;
       }
 
+
+      const deadlines =
+        card.querySelector(
+          ".recap-batch-deadlines"
+        );
+
       const tracking =
         card.querySelector(
           ".batch-tracking"
@@ -31415,9 +31421,10 @@ container
           ".product-table-wrapper"
         );
 
+
       /* ==========================================
-         KONDISI AWAL:
-         BATCH TERTUTUP
+         KONDISI AWAL
+         BATCH COLLAPSED = SEMBUNYIKAN SEMUA DETAIL
          ========================================== */
 
       if (
@@ -31425,6 +31432,11 @@ container
           "recap-batch-collapsed"
         )
       ) {
+
+        if (deadlines) {
+          deadlines.style.display =
+            "none";
+        }
 
         if (tracking) {
           tracking.style.display =
@@ -31439,13 +31451,16 @@ container
       }
 
 
+      /* ==========================================
+         KLIK HEADER
+         HANYA BATCH INI YANG BERUBAH
+         ========================================== */
+
       header.addEventListener(
         "click",
         function(event) {
 
-          /* ==========================================
-             JANGAN TOGGLE JIKA KLIK BUTTON / SELECT
-             ========================================== */
+          /* Jangan toggle ketika klik tombol/select */
 
           if (
             event.target.closest(
@@ -31456,12 +31471,8 @@ container
           }
 
 
-          /* ==========================================
-             HANYA BATCH YANG DIKLIK
-             ========================================== */
-
-          const isCollapsed =
-            card.classList.toggle(
+          const isCurrentlyCollapsed =
+            card.classList.contains(
               "recap-batch-collapsed"
             );
 
@@ -31471,12 +31482,71 @@ container
 
 
           /* ==========================================
-             SIMPAN BATCH YANG SEDANG TERBUKA
+             BUKA BATCH
              ========================================== */
 
-          if (isCollapsed) {
+          if (
+            isCurrentlyCollapsed
+          ) {
 
-            /* Batch ditutup */
+            card.classList.remove(
+              "recap-batch-collapsed"
+            );
+
+
+            if (deadlines) {
+              deadlines.style.display =
+                "grid";
+            }
+
+
+            if (tracking) {
+              tracking.style.display =
+                "";
+            }
+
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "";
+            }
+
+
+            saveOpenBatch(
+              batchCode
+            );
+
+
+          }
+
+          /* ==========================================
+             TUTUP BATCH
+             ========================================== */
+
+          else {
+
+            card.classList.add(
+              "recap-batch-collapsed"
+            );
+
+
+            if (deadlines) {
+              deadlines.style.display =
+                "none";
+            }
+
+
+            if (tracking) {
+              tracking.style.display =
+                "none";
+            }
+
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "none";
+            }
+
 
             if (
               batchCode &&
@@ -31486,46 +31556,6 @@ container
 
               clearOpenBatch();
 
-            }
-
-          } else {
-
-            /* Batch dibuka */
-
-            saveOpenBatch(
-              batchCode
-            );
-
-          }
-
-
-          /* ==========================================
-             TAMPILKAN / SEMBUNYIKAN DETAIL
-             HANYA UNTUK CARD INI
-             ========================================== */
-
-          if (isCollapsed) {
-
-            if (tracking) {
-              tracking.style.display =
-                "none";
-            }
-
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "none";
-            }
-
-          } else {
-
-            if (tracking) {
-              tracking.style.display =
-                "";
-            }
-
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "";
             }
 
           }
@@ -31554,34 +31584,50 @@ if (savedOpenBatch) {
 
   if (targetCard) {
 
-    targetCard.classList.remove(
-      "recap-batch-collapsed"
+  targetCard.classList.remove(
+    "recap-batch-collapsed"
+  );
+
+
+  const deadlines =
+    targetCard.querySelector(
+      ".recap-batch-deadlines"
     );
 
-    const tracking =
-      targetCard.querySelector(
-        ".batch-tracking"
-      );
+  const tracking =
+    targetCard.querySelector(
+      ".batch-tracking"
+    );
 
-    const tableWrapper =
-      targetCard.querySelector(
-        ".product-table-wrapper"
-      );
+  const tableWrapper =
+    targetCard.querySelector(
+      ".product-table-wrapper"
+    );
 
-    if (tracking) {
-      tracking.style.display = "";
-    }
 
-    if (tableWrapper) {
-      tableWrapper.style.display = "";
-    }
-
-  } else {
-
-    /* Batch sudah tidak ada */
-    clearOpenBatch();
-
+  if (deadlines) {
+    deadlines.style.display =
+      "grid";
   }
+
+
+  if (tracking) {
+    tracking.style.display =
+      "";
+  }
+
+
+  if (tableWrapper) {
+    tableWrapper.style.display =
+      "";
+  }
+
+} else {
+
+  /* Batch sudah tidak ada */
+  clearOpenBatch();
+
+}
 
 }
 
