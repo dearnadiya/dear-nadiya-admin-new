@@ -2952,9 +2952,14 @@ function createAllocationRow(
     ).trim();
 
   const sellerMode =
-    String(
-      allocation.seller_mode || "1"
-    ).trim();
+  String(
+    allocation.seller_mode ||
+    (
+      allocation.purchase_recap_id
+        ? "many"
+        : "1"
+    )
+  ).trim();
 
 
   /* ========================================
