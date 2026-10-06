@@ -10197,7 +10197,7 @@ const {
     <div
       class="product-table-wrapper"
     >
-
+ 
       <table
         class="product-table"
       >
