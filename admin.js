@@ -1362,7 +1362,7 @@ color:#777;
                           Qty:
 ${purchaseQuantity}
 ${escapeHTML(
-  row.quantity_unit || "Belum diatur"
+  row.quantity_unit || "Pcs"
 )}
                         </div>
 
