@@ -33342,18 +33342,22 @@ container
 
       }
 
-      /*
-       * Sembunyikan customer
-       * yang bukan halaman aktif.
-       */
-      rows.forEach(function(row) {
+     /*
+ * CUSTOMER DEFAULT
+ * Semua customer ditampilkan.
+ *
+ * Collapse batch ditangani oleh
+ * .product-table-wrapper,
+ * bukan oleh display masing-masing row.
+ */
 
-        row.style.display =
-          "none";
+rows.forEach(
+  function(row) {
 
-      }
+    row.style.display = "";
 
-      });
+  }
+);
 
       const start =
         (
@@ -33367,18 +33371,7 @@ container
           start + CUSTOMER_PER_PAGE
         );
 
-      /*
-       * Tampilkan customer
-       * halaman aktif.
-       */
-      pageRows.forEach(function(row) {
-
-        row.style.display = "";
-
-      }
-
-      });
-
+     
       /*
        * Pagination.
        */
