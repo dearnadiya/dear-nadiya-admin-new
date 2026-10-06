@@ -30265,8 +30265,7 @@ let html = `
           : "—"
       }
     </div>
-  </div>
-
+    </div>
 
     <!-- =========================
        TRACKING BATCH
@@ -30290,12 +30289,13 @@ let html = `
 
     <div
       style="
-        min-height:32px;
+        min-height:0;
         display:flex;
         align-items:center;
         box-sizing:border-box;
-        font-size:11px;
+        font-size:13px;
         font-weight:600;
+        white-space:nowrap;
       "
     >
       ${
@@ -30321,11 +30321,13 @@ let html = `
 
   </div>
 
-  <div
+</div>
+
+<div
   class="product-table-wrapper"
   style="display:none;"
 >
-            <table
+<table
               class="product-table"
             >
 
@@ -30589,8 +30591,6 @@ let html = `
             </table>
 
           </div>
-
-        </div>
 
       `;
 
