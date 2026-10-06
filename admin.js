@@ -5433,7 +5433,7 @@ function showPurchaseStockForm(
           <label>
 
             <div>
-              Seller
+               CO / Ambil Melalui
             </div>
 
             <input
@@ -5445,7 +5445,7 @@ function showPurchaseStockForm(
                   ""
                 )
               }"
-              placeholder="Nama seller"
+              placeholder="Contoh: Kak Nana / Jastip / Proxy"
               style="width:100%;"
             >
 
@@ -5455,7 +5455,7 @@ function showPurchaseStockForm(
           <label>
 
             <div>
-              Web Seller
+              Web/Seller
             </div>
 
             <input
@@ -5467,7 +5467,7 @@ function showPurchaseStockForm(
                   ""
                 )
               }"
-              placeholder="Contoh: Ktown4u"
+              placeholder="Contoh: Ktown4u / Makestar / Yes24"
               style="width:100%;"
             >
 
@@ -6828,7 +6828,7 @@ async function showPurchaseStockOrderForm(
         <label>
 
           <div>
-            Seller
+            CO / Ambil Melalui
           </div>
 
           <input
@@ -6846,7 +6846,7 @@ async function showPurchaseStockOrderForm(
         <label>
 
           <div>
-            Web Seller
+            Web/Seller
           </div>
 
           <input
