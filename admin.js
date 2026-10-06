@@ -2370,22 +2370,34 @@ async function showPurchaseStockAllocationForm(
      2. DATA REKAP GO
      ========================================== */
 
+  let recapRows = [];
+
+let recapFrom = 0;
+
+const recapPageSize = 1000;
+
+while (true) {
+
   const {
-  data: recapRows,
-  error: recapError
-} = await supabaseClient
-  .from("purchase_recap")
-  .select(`
-    recap_type,
-    category,
-    batch_code,
-    item_name
-  `)
-  .not(
-    "batch_code",
-    "is",
-    null
-  );
+    data: recapPage,
+    error: recapError
+  } = await supabaseClient
+    .from("purchase_recap")
+    .select(`
+      recap_type,
+      category,
+      batch_code,
+      item_name
+    `)
+    .not(
+      "batch_code",
+      "is",
+      null
+    )
+    .range(
+      recapFrom,
+      recapFrom + recapPageSize - 1
+    );
 
   if (recapError) {
 
@@ -2402,10 +2414,29 @@ async function showPurchaseStockAllocationForm(
     return;
   }
 
+  recapRows =
+    recapRows.concat(
+      recapPage || []
+    );
 
-  const recapData =
-    recapRows || [];
+  /*
+     Jika jumlah data kurang dari
+     1000, berarti sudah sampai data terakhir.
+  */
+  if (
+    !recapPage ||
+    recapPage.length < recapPageSize
+  ) {
+    break;
+  }
 
+  recapFrom += recapPageSize;
+
+}
+
+
+const recapData =
+  recapRows;
 
   /* ==========================================
      3. DATA ALOKASI LAMA
