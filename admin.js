@@ -31758,7 +31758,6 @@ let html = `
 
 <div
   class="product-table-wrapper"
-  style="display:none;"
 >
 <table
               class="product-table"
@@ -32921,15 +32920,30 @@ function setRecapBatchOpen(
     }
 
 
-    if (tableWrapper) {
+   if (tableWrapper) {
 
-      tableWrapper.style.setProperty(
-        "display",
-        "block",
-        "important"
-      );
+  tableWrapper.style.setProperty(
+    "display",
+    "block",
+    "important"
+  );
 
-    }
+  const customerTable =
+    tableWrapper.querySelector(
+      ".product-table"
+    );
+
+  if (customerTable) {
+
+    customerTable.style.setProperty(
+      "display",
+      "table",
+      "important"
+    );
+
+  }
+
+}
 
 
     if (pagination) {
