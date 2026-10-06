@@ -3167,14 +3167,19 @@ function createAllocationRow(
 
 
     /* --------------------------------------
-       RESET
-       -------------------------------------- */
+   RESET
+   -------------------------------------- */
 
-    dynamicContainer.innerHTML = "";
+dynamicContainer.innerHTML = "";
 
-    allocationGrid.style.gridTemplateColumns =
-  "repeat(4, minmax(0, 1fr))";
-
+allocationGrid.style.gridTemplateColumns =
+  "minmax(130px, 1fr) " +
+  "minmax(130px, 1fr) " +
+  "minmax(130px, 1fr) " +
+  "minmax(130px, 1fr) " +
+  "minmax(130px, 1fr) " +
+  "90px " +
+  "42px";
 
     /* --------------------------------------
        BELUM PILIH JENIS
@@ -3192,11 +3197,15 @@ function createAllocationRow(
        ====================================== */
 
     if (
-      type === "Reseller"
-    ) {
+  type === "Reseller"
+) {
 
-      allocationGrid.style.gridTemplateColumns =
-  "repeat(4, minmax(0, 1fr))";
+  allocationGrid.style.gridTemplateColumns =
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "90px " +
+    "42px";
 
 
       dynamicContainer.innerHTML = `
@@ -3268,12 +3277,18 @@ function createAllocationRow(
        REKAP GO
        ====================================== */
 
-    if (
-      type === "Rekap GO"
-    ) {
+   if (
+  type === "Rekap GO"
+) {
 
-      allocationGrid.style.gridTemplateColumns =
-  "repeat(4, minmax(0, 1fr))";
+  allocationGrid.style.gridTemplateColumns =
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "minmax(130px, 1fr) " +
+    "90px " +
+    "42px";
 
 
       dynamicContainer.innerHTML = `
@@ -31595,59 +31610,125 @@ let html = `
     </div>
 
     <!-- =========================
-       TRACKING BATCH
-       ========================= -->
-  <div
-    style="
-      min-width:0;
-      padding:8px 10px;
-      border:1px solid #eee;
-      border-radius:7px;
-      display:flex;
-      flex-direction:column;
-      gap:5px;
-      box-sizing:border-box;
-    "
-  >
+     TRACKING
+     ========================= -->
+<div
+  style="
+    min-width:0;
+    padding:8px 10px;
+    border:1px solid #eee;
+    border-radius:7px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    box-sizing:border-box;
+  "
+>
+  ${
+    (() => {
 
-    <strong>
-      Tracking Batch:
-    </strong>
-
-    <div
-      style="
-        min-height:0;
-        display:flex;
-        align-items:center;
-        box-sizing:border-box;
-        font-size:13px;
-        font-weight:600;
-        white-space:nowrap;
-      "
-    >
-      ${
-        escapeHTML(
-          (
-            rows.find(
-              function(row) {
-
-                return (
-                  row.batch_tracking_status !== null &&
-                  row.batch_tracking_status !== undefined &&
-                  String(
-                    row.batch_tracking_status
-                  ).trim() !== ""
-                );
-
-              }
-            )?.batch_tracking_status || ""
+      const key =
+        String(
+          getRecapTypeFromCategory(
+            category
           )
-        ) || "—"
+        ).trim()
+        + "|"
+        + String(
+          category
+        ).trim()
+        + "|"
+        + String(
+          batchCode
+        ).trim();
+
+      const info =
+        purchaseBatchInfoMap[key];
+
+      const sellerCount =
+        info &&
+        Array.isArray(info.sellers)
+          ? info.sellers.length
+          : 0;
+
+       const isMultiSeller =
+  sellerCount > 1;
+
+
+      /*
+       * >1 SELLER
+       * Tracking berlaku per customer.
+       */
+      if (
+        sellerCount > 1
+      ) {
+
+        return `
+          <strong>
+            Tracking:
+          </strong>
+
+          <div
+            style="
+              font-size:13px;
+              font-weight:600;
+              white-space:nowrap;
+            "
+          >
+            👥 Per Customer
+          </div>
+        `;
+
       }
-    </div>
 
-  </div>
 
+      /*
+       * 1 SELLER
+       * Tracking berlaku untuk seluruh batch.
+       */
+      const batchTracking =
+        (
+          rows.find(
+            function(row) {
+
+              return (
+                row.batch_tracking_status !== null &&
+                row.batch_tracking_status !== undefined &&
+                String(
+                  row.batch_tracking_status
+                ).trim() !== ""
+              );
+
+            }
+          )?.batch_tracking_status || ""
+        );
+
+
+      return `
+        <strong>
+          Tracking Batch:
+        </strong>
+
+        <div
+          style="
+            font-size:13px;
+            font-weight:600;
+            white-space:nowrap;
+          "
+        >
+          ${
+            escapeHTML(
+              batchTracking
+            ) || "—"
+          }
+        </div>
+      `;
+
+    })()
+  }
+</div>
+
+</div>
 </div>
 
 <div
@@ -31696,6 +31777,15 @@ let html = `
 
 <th>
   Sisa
+</th>
+
+<th
+  class="recap-customer-tracking-column"
+  style="
+    display:${isMultiSeller ? "table-cell" : "none"};
+  "
+>
+  Tracking
 </th>
 
                   <th>
@@ -31808,6 +31898,21 @@ let html = `
     row.remaining_amount
   )}
 </td>
+
+<td
+  class="recap-customer-tracking-cell"
+  style="
+    display:${isMultiSeller ? "table-cell" : "none"};
+  "
+>
+  ${
+    escapeHTML(
+      row.batch_tracking_status ||
+      "—"
+    )
+  }
+</td>
+
                         <td>
   <select
     class="recap-status-select recap-payment-status"
