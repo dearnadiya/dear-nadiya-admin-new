@@ -1285,7 +1285,10 @@ color:#777;
                           "
                         >
                           Qty:
-                          ${purchaseQuantity} pcs
+${purchaseQuantity}
+${escapeHTML(
+  row.quantity_unit || "Belum diatur"
+)}
                         </div>
 
                       </td>
@@ -4564,8 +4567,8 @@ function showPurchaseStockForm(
     style="
       display:grid;
       grid-template-columns:
-        minmax(0,1fr)
-        130px;
+  minmax(0,1fr)
+  180px;
       gap:15px;
       margin-top:10px;
     "
@@ -4595,26 +4598,67 @@ function showPurchaseStockForm(
 
     <label>
 
-      <div>
-        Jumlah
-      </div>
+  <div>
+    Jumlah
+  </div>
 
-      <input
-        type="number"
-        id="purchaseQuantityInput"
-        value="${
-          Number(
-            purchase?.quantity || 0
-          )
-        }"
-        min="0"
-        step="1"
-        style="width:100%;"
-        required
+  <div
+    style="
+      display:grid;
+      grid-template-columns:1fr 90px;
+      gap:6px;
+    "
+  >
+
+    <input
+      type="number"
+      id="purchaseQuantityInput"
+      value="${ 
+        Number(
+          purchase?.quantity || 0
+        )
+      }"
+      min="0"
+      step="1"
+      style="width:100%;"
+      required
+    >
+
+    <select
+      id="purchaseQuantityUnitInput"
+      style="width:100%;"
+    >
+
+      <option
+        value="Pcs"
+        ${
+          (
+            purchase?.quantity_unit ||
+            "Pcs"
+          ) === "Pcs"
+            ? "selected"
+            : ""
+        }
       >
+        Pcs
+      </option>
 
-    </label>
+      <option
+        value="Set"
+        ${
+          purchase?.quantity_unit === "Set"
+            ? "selected"
+            : ""
+        }
+      >
+        Set
+      </option>
 
+    </select>
+
+  </div>
+
+</label>
   </div>
 
 </div>
@@ -4996,6 +5040,13 @@ const quantity =
       .value
   ) || 0;
 
+         const quantityUnit =
+  document
+    .getElementById(
+      "purchaseQuantityUnitInput"
+    )
+    .value || "Pcs";
+
 
 if (!itemName) {
 
@@ -5184,14 +5235,18 @@ if (isEdit) {
       .from("purchase_stock")
       .update({
 
-        ...basePayload,
+  ...basePayload,
 
-        item_name:
-  itemName,
+  item_name:
+    itemName,
 
-quantity:
-  quantity
-      })
+  quantity:
+    quantity,
+
+  quantity_unit:
+    quantityUnit
+
+})
       .eq(
         "id",
         purchase.id
@@ -5206,14 +5261,17 @@ quantity:
     await supabaseClient
       .from("purchase_stock")
       .insert({
-        ...basePayload,
+  ...basePayload,
 
-        item_name:
-          itemName,
+  item_name:
+    itemName,
 
-        quantity:
-          quantity
-      })
+  quantity:
+    quantity,
+
+  quantity_unit:
+    quantityUnit
+})
       .select()
       .single();
 
@@ -5445,6 +5503,7 @@ async function showPurchaseStockOrderForm(
         warehouse_name,
         item_name,
         quantity,
+        quantity_unit,
         purchase_note
       `);
 
