@@ -3708,15 +3708,37 @@ recapData.forEach(
 
 
             if (insertError) {
-              throw insertError;
-            }
+  throw insertError;
+}
 
-          }
+}
 
+/* ==================================
+   SINKRON TRACKING TERKINI
+   KE BATCH YANG BARU DIALOKASIKAN
+   ================================== */
 
-                  closeModal();
+const {
+  data: currentPurchase,
+  error: currentPurchaseError
+} = await supabaseClient
+  .from("purchase_stock")
+  .select("tracking_status")
+  .eq("id", purchaseId)
+  .single();
 
-          await renderPurchaseStockList();
+if (currentPurchaseError) {
+  throw currentPurchaseError;
+}
+
+await syncPurchaseStockTrackingToRecap(
+  purchaseId,
+  currentPurchase?.tracking_status || null
+);
+
+closeModal();
+
+await renderPurchaseStockList();
 
 
         } catch (error) {
@@ -3745,6 +3767,7 @@ recapData.forEach(
     );
 
 }
+
 /* ============================================
    FORM PEMBELIAN STOK
    ============================================ */
@@ -4308,20 +4331,55 @@ function showPurchaseStockForm(
   <label>
 
     <div>
-      Status Tracking
-    </div>
+  Status Tracking
+</div>
 
-    <input
-      type="text"
-      id="purchaseTrackingStatusInput"
-      value="${
-        escapeHTML(
-          purchase?.tracking_status || ""
-        )
-      }"
-      placeholder="Contoh: Arrived WH Korea"
-      style="width:100%;"
-    >
+<select
+  id="purchaseTrackingStatusInput"
+  style="
+    width:100%;
+    padding:9px 10px;
+    box-sizing:border-box;
+  "
+>
+
+  <option value="">
+    Pilih Status Tracking
+  </option>
+
+  ${[
+    "Co Seller",
+    "Co Web / Seller",
+    "Arrived WH KR",
+    "Arrived WH JP",
+    "Arrived WH CH",
+    "Arrived WH Thai",
+    "Shipping INA",
+    "Arrived WH INA",
+    "Arrived Admin",
+    "Goods Arrive at Customer"
+  ]
+    .map(function(option) {
+
+      return `
+        <option
+          value="${escapeHTML(option)}"
+          ${
+            purchase?.tracking_status ===
+            option
+              ? "selected"
+              : ""
+          }
+        >
+          ${escapeHTML(option)}
+        </option>
+      `;
+
+    })
+    .join("")
+  }
+
+</select>
 
   </label>
 
@@ -4680,49 +4738,49 @@ quantity:
              
                if (result.error) {
 
-          console.error(
-            "Gagal menyimpan Pembelian Stok:",
-            result.error
-          );
+  console.error(
+    "Gagal menyimpan Pembelian Stok:",
+    result.error
+  );
 
 
-          alert(
-            "Gagal menyimpan pembelian:\n" +
-            result.error.message
-          );
+  alert(
+    "Gagal menyimpan pembelian:\n" +
+    result.error.message
+  );
 
 
-          if (submitButton) {
+  if (submitButton) {
 
-            submitButton.disabled =
-              false;
+    submitButton.disabled =
+      false;
 
-            submitButton.textContent =
-              isEdit
-                ? "Simpan Perubahan"
-                : "Simpan Pembelian";
+    submitButton.textContent =
+      isEdit
+        ? "Simpan Perubahan"
+        : "Simpan Pembelian";
 
-          }
+  }
 
-          return;
+  return;
 
-        }
-
-
-        /* =================================================
-           SINKRON TRACKING PEMBELIAN STOK → REKAP GO
-           ================================================= */
-
-        await syncPurchaseStockTrackingToRecap(
-          result.data?.id,
-          basePayload.tracking_status
-        );
+}
 
 
-        closeModal();
+/* =================================================
+   SINKRON TRACKING PEMBELIAN STOK → REKAP GO
+   ================================================= */
+
+await syncPurchaseStockTrackingToRecap(
+  result.data?.id,
+  basePayload.tracking_status
+);
 
 
-        await renderPurchaseStockList();
+closeModal();
+
+
+await renderPurchaseStockList();
       }
     );
 
