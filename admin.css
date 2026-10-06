@@ -14713,3 +14713,120 @@ button {
   text-overflow: ellipsis !important;
 
 }
+
+/* =========================================================
+   REKAP GO - CUSTOMER TABLE BENAR-BENAR FULL WIDTH
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table-wrapper {
+
+  display: block !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  box-sizing: border-box !important;
+
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+
+  margin-top: 18px !important;
+}
+
+
+/* TABEL CUSTOMER */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table-wrapper
+.product-table {
+
+  display: table !important;
+
+  width: 100% !important;
+
+  min-width: 1100px !important;
+  max-width: none !important;
+
+  table-layout: fixed !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* Lebar kolom customer */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+th:nth-child(1),
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+td:nth-child(1) {
+
+  width: 14% !important;
+}
+
+
+/* Customer */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+th:nth-child(2),
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+td:nth-child(2) {
+
+  width: 16% !important;
+}
+
+
+/* Versi / Member */
+
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+th:nth-child(3),
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.product-table
+td:nth-child(3) {
+
+  width: 14% !important;
+}
+
+/* =========================================================
+   REKAP GO - BATCH CARD FULL WIDTH
+   ========================================================= */
+
+#recapListContainer
+.recap-batch-card {
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+}
+
+
+#recapListContainer
+.recap-batch-card
+.product-table-wrapper {
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+}
