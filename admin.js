@@ -1008,6 +1008,9 @@ async function renderPurchaseStockList() {
      .select(`
   id,
   purchase_stock_id,
+  allocation_type,
+  reseller_name,
+  selling_price,
   allocation_name,
   recap_type,
   category,
@@ -1733,80 +1736,165 @@ padding-top:10px;
                                     "
                                   >
 
-                                    ${allocations
-                                      .map(
-                                        function(
-                                          allocation
-                                        ) {
+                                   ${allocations
+  .map(
+    function(
+      allocation
+    ) {
 
-                                          return `
-                                          
-                                            <div
-  style="
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:15px;
-    padding:8px 0;
-    border-bottom:1px dashed #ddd;
-  "
->
+      const allocationType =
+        String(
+          allocation.allocation_type ||
+          (
+            allocation.batch_code
+              ? "Rekap GO"
+              : "Reseller"
+          )
+        ).trim();
 
-  <div>
 
-    <div
-      style="
-        font-weight:600;
-      "
-    >
-      📦 ${
-        escapeHTML(
-          allocation.batch_code ||
-          allocation.allocation_name ||
-          "-"
-        )
+      if (
+        allocationType ===
+        "Reseller"
+      ) {
+
+        return `
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              padding:8px 0;
+              border-bottom:1px dashed #ddd;
+            "
+          >
+
+            <div>
+
+              <div
+                style="
+                  font-weight:600;
+                "
+              >
+                👤 ${
+                  escapeHTML(
+                    allocation.reseller_name ||
+                    allocation.allocation_name ||
+                    "-"
+                  )
+                }
+              </div>
+
+              <div
+                style="
+                  margin-top:3px;
+                  font-size:12px;
+                  color:#777;
+                "
+              >
+                Reseller
+                • Harga Jual Rp${
+                  Number(
+                    allocation.selling_price || 0
+                  ).toLocaleString("id-ID")
+                }
+              </div>
+
+            </div>
+
+
+            <strong
+              style="
+                white-space:nowrap;
+              "
+            >
+              ${Number(
+                allocation.quantity || 0
+              )}
+              pcs
+            </strong>
+
+          </div>
+
+        `;
+
       }
-    </div>
-
-    <div
-      style="
-        margin-top:3px;
-        font-size:12px;
-        color:#777;
-      "
-    >
-      ${escapeHTML(
-        allocation.recap_type ||
-        "-"
-      )}
-      •
-      ${escapeHTML(
-        allocation.category ||
-        "-"
-      )}
-    </div>
-
-  </div>
 
 
-  <strong
-    style="
-      white-space:nowrap;
-    "
-  >
-    ${Number(
-      allocation.quantity ||
-      0
-    )}
-    pcs
-  </strong>
+      return `
 
-</div>
-                                          `;
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:15px;
+            padding:8px 0;
+            border-bottom:1px dashed #ddd;
+          "
+        >
 
-                                        }
-                                      )
-                                      .join("")}
+          <div>
+
+            <div
+              style="
+                font-weight:600;
+              "
+            >
+              📦 ${
+                escapeHTML(
+                  allocation.batch_code ||
+                  allocation.allocation_name ||
+                  "-"
+                )
+              }
+            </div>
+
+            <div
+              style="
+                margin-top:3px;
+                font-size:12px;
+                color:#777;
+              "
+            >
+              Rekap GO
+              • ${
+                escapeHTML(
+                  allocation.recap_type ||
+                  "-"
+                )
+              }
+              • ${
+                escapeHTML(
+                  allocation.category ||
+                  "-"
+                )
+              }
+            </div>
+
+          </div>
+
+
+          <strong
+            style="
+              white-space:nowrap;
+            "
+          >
+            ${Number(
+              allocation.quantity || 0
+            )}
+            pcs
+          </strong>
+
+        </div>
+
+      `;
+
+    }
+  )
+  .join("")}
 
                                   </div>
                                 `
@@ -2325,15 +2413,18 @@ async function showPurchaseStockAllocationForm(
   } = await supabaseClient
     .from("purchase_stock_allocation")
     .select(`
-      id,
-      purchase_stock_id,
-      allocation_name,
-      recap_type,
-      category,
-      batch_code,
-      quantity,
-      allocation_note
-    `)
+  id,
+  purchase_stock_id,
+  allocation_type,
+  reseller_name,
+  selling_price,
+  allocation_name,
+  recap_type,
+  category,
+  batch_code,
+  quantity,
+  allocation_note
+`)
     .eq(
       "purchase_stock_id",
       purchaseId
@@ -2766,47 +2857,262 @@ recapData.forEach(
      ========================================== */
 
   function createAllocationRow(
-    allocation = {}
-  ) {
+  allocation = {}
+) {
 
-    const row =
-      document.createElement("div");
-
-
-    row.className =
-      "purchase-allocation-row";
+  const row =
+    document.createElement("div");
 
 
-    row.dataset.id =
-      allocation.id || "";
+  row.className =
+    "purchase-allocation-row";
 
 
-    row.style.cssText = `
-      border:1px solid #e5e5e5;
-      border-radius:12px;
-      padding:15px;
-      margin-bottom:12px;
-      background:#fff;
-    `;
+  row.dataset.id =
+    allocation.id || "";
 
 
-    row.innerHTML = `
+  row.style.cssText = `
+    border:1px solid #e5e5e5;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:12px;
+    background:#fff;
+  `;
+
+
+  const allocationType =
+    String(
+      allocation.allocation_type ||
+      (
+        allocation.reseller_name
+          ? "Reseller"
+          : "Rekap GO"
+      )
+    ).trim();
+
+
+  row.innerHTML = `
+
+    <div
+      style="
+        display:grid;
+        grid-template-columns:
+          1fr
+          1fr
+          1fr
+          120px
+          42px;
+        gap:10px;
+        align-items:end;
+      "
+    >
+
+      <!-- JENIS ALOKASI -->
+
+      <label>
+
+        <div
+          style="
+            margin-bottom:5px;
+            font-size:13px;
+            font-weight:600;
+          "
+        >
+          Jenis Alokasi
+        </div>
+
+        <select
+          class="purchase-allocation-kind"
+          style="width:100%;"
+        >
+
+          <option value="">
+            Pilih Jenis Alokasi
+          </option>
+
+          <option
+            value="Reseller"
+            ${
+              allocationType === "Reseller"
+                ? "selected"
+                : ""
+            }
+          >
+            Reseller
+          </option>
+
+          <option
+            value="Rekap GO"
+            ${
+              allocationType === "Rekap GO"
+                ? "selected"
+                : ""
+            }
+          >
+            Rekap GO
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <!-- AREA DINAMIS -->
 
       <div
+        class="purchase-allocation-dynamic"
         style="
-          display:grid;
-          grid-template-columns:
-            1fr
-            1fr
-            1fr
-            120px
-            42px;
-          gap:10px;
-          align-items:end;
+          display:contents;
+        "
+      ></div>
+
+
+      <!-- JUMLAH -->
+
+      <label>
+
+        <div
+          style="
+            margin-bottom:5px;
+            font-size:13px;
+            font-weight:600;
+          "
+        >
+          Jumlah
+        </div>
+
+        <input
+          type="number"
+          class="purchase-allocation-quantity"
+          value="${Number(
+            allocation.quantity || 0
+          )}"
+          min="0"
+          step="1"
+          style="width:100%;"
+        >
+
+      </label>
+
+
+      <!-- HAPUS -->
+
+      <button
+        type="button"
+        class="remove-purchase-allocation-button"
+        style="
+          height:40px;
+          border:0;
+          border-radius:8px;
+          background:#f3e9ef;
+          color:#a33;
+          cursor:pointer;
+          font-size:18px;
         "
       >
+        ×
+      </button>
 
-        <!-- TYPE REKAP -->
+    </div>
+
+  `;
+
+
+  container.appendChild(row);
+
+
+  const kindSelect =
+    row.querySelector(
+      ".purchase-allocation-kind"
+    );
+
+
+  const dynamicContainer =
+    row.querySelector(
+      ".purchase-allocation-dynamic"
+    );
+
+
+  const quantityInput =
+    row.querySelector(
+      ".purchase-allocation-quantity"
+    );
+
+
+  function renderDynamicFields() {
+
+    const type =
+      kindSelect.value;
+
+
+    if (type === "Reseller") {
+
+      dynamicContainer.innerHTML = `
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Nama Reseller
+          </div>
+
+          <input
+            type="text"
+            class="purchase-allocation-reseller-name"
+            value="${escapeHTML(
+              allocation.reseller_name || ""
+            )}"
+            placeholder="Nama reseller"
+            style="width:100%;"
+          >
+
+        </label>
+
+
+        <label>
+
+          <div
+            style="
+              margin-bottom:5px;
+              font-size:13px;
+              font-weight:600;
+            "
+          >
+            Harga Jual
+          </div>
+
+          <input
+            type="text"
+            class="purchase-allocation-selling-price currency-input"
+            value="${
+              allocation.selling_price !== null &&
+              allocation.selling_price !== undefined
+                ? formatNominalInput(
+                    allocation.selling_price
+                  )
+                : ""
+            }"
+            placeholder="Harga jual"
+            style="width:100%;"
+          >
+
+        </label>
+
+      `;
+
+      return;
+    }
+
+
+    if (type === "Rekap GO") {
+
+      dynamicContainer.innerHTML = `
 
         <label>
 
@@ -2848,8 +3154,6 @@ recapData.forEach(
         </label>
 
 
-        <!-- KATEGORI -->
-
         <label>
 
           <div
@@ -2876,8 +3180,6 @@ recapData.forEach(
         </label>
 
 
-        <!-- BATCH -->
-
         <label>
 
           <div
@@ -2903,331 +3205,270 @@ recapData.forEach(
 
         </label>
 
-
-        <!-- JUMLAH -->
-
-        <label>
-
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Alokasi
-          </div>
-
-          <input
-            type="number"
-            class="purchase-allocation-quantity"
-            value="${Number(
-              allocation.quantity || 0
-            )}"
-            min="0"
-            step="1"
-            style="width:100%;"
-          >
-
-        </label>
-
-
-        <!-- HAPUS -->
-
-        <button
-          type="button"
-          class="remove-purchase-allocation-button"
-          style="
-            height:40px;
-            border:0;
-            border-radius:8px;
-            background:#f3e9ef;
-            color:#a33;
-            cursor:pointer;
-            font-size:18px;
-          "
-        >
-          ×
-        </button>
-
-      </div>
-
-    `;
-
-
-    container.appendChild(
-      row
-    );
-
-
-    const typeSelect =
-      row.querySelector(
-        ".purchase-allocation-type"
-      );
-
-
-    const categorySelect =
-      row.querySelector(
-        ".purchase-allocation-category"
-      );
-
-
-    const batchSelect =
-      row.querySelector(
-        ".purchase-allocation-batch"
-      );
-
-
-    /* ========================================
-       UPDATE KATEGORI
-       ======================================== */
-
-    function updateCategories() {
-
-      const type =
-        typeSelect.value;
-
-
-      categorySelect.innerHTML = `
-        <option value="">
-          Pilih Kategori
-        </option>
       `;
 
 
-      batchSelect.innerHTML = `
-        <option value="">
-          Pilih Batch
-        </option>
-      `;
+      const typeSelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-type"
+        );
+
+      const categorySelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-category"
+        );
+
+      const batchSelect =
+        dynamicContainer.querySelector(
+          ".purchase-allocation-batch"
+        );
 
 
-      if (!type) {
-        return;
-      }
+      function updateCategories() {
+
+        const selectedType =
+          typeSelect.value;
 
 
-      const categories =
-        categoriesByType[type] || [];
+        categorySelect.innerHTML = `
+          <option value="">
+            Pilih Kategori
+          </option>
+        `;
+
+        batchSelect.innerHTML = `
+          <option value="">
+            Pilih Batch
+          </option>
+        `;
 
 
-      categories.forEach(
-        function(category) {
+        if (!selectedType) {
+          return;
+        }
 
-          categorySelect.insertAdjacentHTML(
-            "beforeend",
-            optionHTML(
-              category,
-              category,
-              String(
-                allocation.category || ""
-              ).trim() === category
-            )
-          );
+
+        const categories =
+          categoriesByType[
+            selectedType
+          ] || [];
+
+
+        categories.forEach(
+          function(category) {
+
+            categorySelect.insertAdjacentHTML(
+              "beforeend",
+              optionHTML(
+                category,
+                category,
+                String(
+                  allocation.category || ""
+                ).trim() === category
+              )
+            );
+
+          }
+        );
+
+
+        if (
+          allocation.category
+        ) {
+
+          categorySelect.value =
+            String(
+              allocation.category
+            ).trim();
 
         }
-      );
 
-
-      if (
-        allocation.category
-      ) {
-
-        categorySelect.value =
-          String(
-            allocation.category
-          ).trim();
-
-      }
-
-
-      updateBatches();
-
-    }
-
-
-    /* ========================================
-       UPDATE BATCH
-       ======================================== */
-
-    function updateBatches() {
-
-      const type =
-        typeSelect.value;
-
-      const category =
-        categorySelect.value;
-
-
-      batchSelect.innerHTML = `
-        <option value="">
-          Pilih Batch
-        </option>
-      `;
-
-
-      if (
-        !type ||
-        !category
-      ) {
-        return;
-      }
-
-
-      const key =
-        type +
-        "||" +
-        category;
-
-
-      const batches =
-        batchesByTypeCategory[key] ||
-        [];
-
-
-      batches.forEach(
-  function(batch) {
-
-    const label =
-      batch.batch_code +
-      (
-        batch.item_name
-          ? " (" +
-            batch.item_name +
-            ")"
-          : ""
-      );
-
-    batchSelect.insertAdjacentHTML(
-      "beforeend",
-      optionHTML(
-        batch.batch_code,
-        label,
-        String(
-          allocation.batch_code || ""
-        ).trim() ===
-          batch.batch_code
-      )
-    );
-
-  }
-);
-
-      if (
-        allocation.batch_code
-      ) {
-
-        batchSelect.value =
-          String(
-            allocation.batch_code
-          ).trim();
-
-      }
-
-    }
-
-
-    typeSelect.addEventListener(
-      "change",
-      function() {
-
-        allocation.category =
-          "";
-
-        allocation.batch_code =
-          "";
-
-        updateCategories();
-
-      }
-    );
-
-
-    categorySelect.addEventListener(
-      "change",
-      function() {
-
-        allocation.batch_code =
-          "";
 
         updateBatches();
 
       }
-    );
 
 
-    const removeButton =
-      row.querySelector(
-        ".remove-purchase-allocation-button"
-      );
+      function updateBatches() {
+
+        const selectedType =
+          typeSelect.value;
+
+        const selectedCategory =
+          categorySelect.value;
 
 
-    removeButton.addEventListener(
-      "click",
-      function() {
-
-        const rows =
-          container.querySelectorAll(
-            ".purchase-allocation-row"
-          );
+        batchSelect.innerHTML = `
+          <option value="">
+            Pilih Batch
+          </option>
+        `;
 
 
         if (
-          rows.length <= 1
+          !selectedType ||
+          !selectedCategory
         ) {
-
-          typeSelect.value =
-            "";
-
-          categorySelect.innerHTML = `
-            <option value="">
-              Pilih Kategori
-            </option>
-          `;
-
-          batchSelect.innerHTML = `
-            <option value="">
-              Pilih Batch
-            </option>
-          `;
-
-          row
-            .querySelector(
-              ".purchase-allocation-quantity"
-            )
-            .value = 0;
-
-          updateAllocationSummary();
-
           return;
-
         }
 
 
-        row.remove();
+        const key =
+          selectedType +
+          "||" +
+          selectedCategory;
 
-        updateAllocationSummary();
+
+        const batches =
+          batchesByTypeCategory[key] ||
+          [];
+
+
+        batches.forEach(
+          function(batch) {
+
+            const label =
+              batch.batch_code +
+              (
+                batch.item_name
+                  ? " (" +
+                    batch.item_name +
+                    ")"
+                  : ""
+              );
+
+
+            batchSelect.insertAdjacentHTML(
+              "beforeend",
+              optionHTML(
+                batch.batch_code,
+                label,
+                String(
+                  allocation.batch_code || ""
+                ).trim() ===
+                  batch.batch_code
+              )
+            );
+
+          }
+        );
+
+
+        if (
+          allocation.batch_code
+        ) {
+
+          batchSelect.value =
+            String(
+              allocation.batch_code
+            ).trim();
+
+        }
 
       }
-    );
 
 
-    const quantityInput =
-      row.querySelector(
-        ".purchase-allocation-quantity"
+      typeSelect.addEventListener(
+        "change",
+        function() {
+
+          allocation.category = "";
+          allocation.batch_code = "";
+
+          updateCategories();
+
+        }
       );
 
 
-    quantityInput.addEventListener(
-      "input",
-      updateAllocationSummary
-    );
+      categorySelect.addEventListener(
+        "change",
+        function() {
+
+          allocation.batch_code = "";
+
+          updateBatches();
+
+        }
+      );
 
 
-    updateCategories();
+      updateCategories();
+
+    }
 
   }
 
+
+  kindSelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.allocation_type =
+        kindSelect.value;
+
+      allocation.recap_type = "";
+      allocation.category = "";
+      allocation.batch_code = "";
+      allocation.reseller_name = "";
+      allocation.selling_price = null;
+
+      renderDynamicFields();
+
+    }
+  );
+
+
+  const removeButton =
+    row.querySelector(
+      ".remove-purchase-allocation-button"
+    );
+
+
+  removeButton.addEventListener(
+    "click",
+    function() {
+
+      const rows =
+        container.querySelectorAll(
+          ".purchase-allocation-row"
+        );
+
+
+      if (
+        rows.length <= 1
+      ) {
+
+        kindSelect.value = "";
+
+        dynamicContainer.innerHTML = "";
+
+        quantityInput.value = 0;
+
+        updateAllocationSummary();
+
+        return;
+
+      }
+
+
+      row.remove();
+
+      updateAllocationSummary();
+
+    }
+  );
+
+
+  quantityInput.addEventListener(
+    "input",
+    updateAllocationSummary
+  );
+
+
+  renderDynamicFields();
+
+}
 
   /* ==========================================
      9. RINGKASAN STOK
@@ -3407,136 +3648,262 @@ recapData.forEach(
 
         const allocationItems = [];
 
+for (
+  const row of rows
+) {
 
-        for (
-          const row of rows
-        ) {
-
-          const recapType =
-            row
-              .querySelector(
-                ".purchase-allocation-type"
-              )
-              .value
-              .trim();
-
-
-          const category =
-            row
-              .querySelector(
-                ".purchase-allocation-category"
-              )
-              .value
-              .trim();
+  const allocationType =
+    row
+      .querySelector(
+        ".purchase-allocation-kind"
+      )
+      .value
+      .trim();
 
 
-          const batchCode =
-            row
-              .querySelector(
-                ".purchase-allocation-batch"
-              )
-              .value
-              .trim();
+  const quantity =
+    Number(
+      row
+        .querySelector(
+          ".purchase-allocation-quantity"
+        )
+        .value
+    ) || 0;
 
 
-          const quantity =
-            Number(
-              row
-                .querySelector(
-                  ".purchase-allocation-quantity"
-                )
-                .value
-            ) || 0;
+  if (
+    !allocationType &&
+    quantity === 0
+  ) {
+    continue;
+  }
 
 
-          if (
-            !recapType &&
-            !category &&
-            !batchCode &&
-            quantity === 0
-          ) {
+  if (!allocationType) {
 
-            continue;
+    alert(
+      "Silakan pilih Jenis Alokasi."
+    );
 
-          }
+    return;
 
-
-          if (!recapType) {
-
-            alert(
-              "Silakan pilih Type Rekap."
-            );
-
-            return;
-
-          }
+  }
 
 
-          if (!category) {
+  if (
+    !Number.isInteger(quantity) ||
+    quantity <= 0
+  ) {
 
-            alert(
-              "Silakan pilih Kategori."
-            );
+    alert(
+      "Jumlah alokasi harus berupa angka bulat lebih dari 0."
+    );
 
-            return;
+    return;
 
-          }
-
-
-          if (!batchCode) {
-
-            alert(
-              "Silakan pilih Batch."
-            );
-
-            return;
-
-          }
+  }
 
 
-          if (
-            !Number.isInteger(
-              quantity
-            ) ||
-            quantity <= 0
-          ) {
+  /* ====================================
+     RESELLER
+     ==================================== */
 
-            alert(
-              "Jumlah alokasi harus berupa angka bulat lebih dari 0."
-            );
+  if (
+    allocationType ===
+    "Reseller"
+  ) {
 
-            return;
+    const resellerName =
+      row
+        .querySelector(
+          ".purchase-allocation-reseller-name"
+        )
+        ?.value
+        .trim() || "";
 
-          }
+
+    const sellingPrice =
+      parseNominalInput(
+        row
+          .querySelector(
+            ".purchase-allocation-selling-price"
+          )
+          ?.value || ""
+      );
 
 
-          allocationItems.push({
+    if (!resellerName) {
 
-            id:
+      alert(
+        "Silakan isi Nama Reseller."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      sellingPrice <= 0
+    ) {
+
+      alert(
+        "Silakan isi Harga Jual Reseller."
+      );
+
+      return;
+
+    }
+
+
+    allocationItems.push({
+
+      id:
+        row.dataset.id
+          ? Number(
               row.dataset.id
-                ? Number(
-                    row.dataset.id
-                  )
-                : null,
+            )
+          : null,
 
-            recap_type:
-              recapType,
+      allocation_type:
+        "Reseller",
 
-            category:
-              category,
+      reseller_name:
+        resellerName,
 
-            batch_code:
-              batchCode,
+      selling_price:
+        sellingPrice,
 
-            quantity:
-              quantity,
+      recap_type:
+        null,
 
-            allocation_note:
-              null
+      category:
+        null,
 
-          });
+      batch_code:
+        null,
 
-        }
+      quantity:
+        quantity,
+
+      allocation_note:
+        null
+
+    });
+
+
+    continue;
+
+  }
+
+
+  /* ====================================
+     REKAP GO
+     ==================================== */
+
+  if (
+    allocationType ===
+    "Rekap GO"
+  ) {
+
+    const recapType =
+      row
+        .querySelector(
+          ".purchase-allocation-type"
+        )
+        ?.value
+        .trim() || "";
+
+
+    const category =
+      row
+        .querySelector(
+          ".purchase-allocation-category"
+        )
+        ?.value
+        .trim() || "";
+
+
+    const batchCode =
+      row
+        .querySelector(
+          ".purchase-allocation-batch"
+        )
+        ?.value
+        .trim() || "";
+
+
+    if (!recapType) {
+
+      alert(
+        "Silakan pilih Type Rekap."
+      );
+
+      return;
+
+    }
+
+
+    if (!category) {
+
+      alert(
+        "Silakan pilih Kategori."
+      );
+
+      return;
+
+    }
+
+
+    if (!batchCode) {
+
+      alert(
+        "Silakan pilih Batch."
+      );
+
+      return;
+
+    }
+
+
+    allocationItems.push({
+
+      id:
+        row.dataset.id
+          ? Number(
+              row.dataset.id
+            )
+          : null,
+
+      allocation_type:
+        "Rekap GO",
+
+      reseller_name:
+        null,
+
+      selling_price:
+        null,
+
+      recap_type:
+        recapType,
+
+      category:
+        category,
+
+      batch_code:
+        batchCode,
+
+      quantity:
+        quantity,
+
+      allocation_note:
+        null
+
+    });
+
+  }
+
+}
 
 
         /* ====================================
@@ -3544,40 +3911,46 @@ recapData.forEach(
            ==================================== */
 
         const duplicateCheck =
-          new Set();
+  new Set();
+
+for (
+  const item of allocationItems
+) {
+
+  if (
+    item.allocation_type !==
+    "Rekap GO"
+  ) {
+    continue;
+  }
 
 
-        for (
-          const item of allocationItems
-        ) {
-
-          const key =
-            item.recap_type +
-            "||" +
-            item.category +
-            "||" +
-            item.batch_code;
+  const key =
+    item.recap_type +
+    "||" +
+    item.category +
+    "||" +
+    item.batch_code;
 
 
-          if (
-            duplicateCheck.has(key)
-          ) {
+  if (
+    duplicateCheck.has(key)
+  ) {
 
-            alert(
-              "Batch yang sama tidak boleh dialokasikan dua kali dalam satu pembelian."
-            );
+    alert(
+      "Batch yang sama tidak boleh dialokasikan dua kali dalam satu pembelian."
+    );
 
-            return;
+    return;
 
-          }
+  }
 
 
-          duplicateCheck.add(
-            key
-          );
+  duplicateCheck.add(
+    key
+  );
 
-        }
-
+}
 
         /* ====================================
            TOTAL ALOKASI
@@ -3669,29 +4042,40 @@ recapData.forEach(
 
                   return {
 
-                    purchase_stock_id:
-                      purchaseId,
+  purchase_stock_id:
+    purchaseId,
 
-                    recap_type:
-                      item.recap_type,
+  allocation_type:
+    item.allocation_type,
 
-                    category:
-                      item.category,
+  reseller_name:
+    item.reseller_name,
 
-                    batch_code:
-                      item.batch_code,
+  selling_price:
+    item.selling_price,
 
-                    allocation_name:
-                      item.batch_code,
+  recap_type:
+    item.recap_type,
 
-                    quantity:
-                      item.quantity,
+  category:
+    item.category,
 
-                    allocation_note:
-                      item.allocation_note
+  batch_code:
+    item.batch_code,
 
-                  };
+  allocation_name:
+    item.allocation_type ===
+    "Reseller"
+      ? item.reseller_name
+      : item.batch_code,
 
+  quantity:
+    item.quantity,
+
+  allocation_note:
+    item.allocation_note
+
+};
                 }
               );
 
@@ -4816,17 +5200,20 @@ async function syncPurchaseStockTrackingToRecap(
       )
 
       .select(`
-        purchase_stock_id,
-        recap_type,
-        category,
-        batch_code
-      `)
-
-      .eq(
-        "purchase_stock_id",
-        purchaseStockId
-      );
-
+  purchase_stock_id,
+  allocation_type,
+  recap_type,
+  category,
+  batch_code
+`)
+.eq(
+  "purchase_stock_id",
+  purchaseStockId
+)
+.eq(
+  "allocation_type",
+  "Rekap GO"
+)
 
     if (allocationError) {
       throw allocationError;
@@ -28634,47 +29021,212 @@ async function loadPurchaseBatchInfoStatus() {
 
   try {
 
+    /* ==========================================
+       1. CARI ALOKASI YANG TERHUBUNG KE REKAP
+       ========================================== */
+
     const {
-      data,
-      error
+      data: allocationRows,
+      error: allocationError
     } = await supabaseClient
-      .from("purchase_batch_info")
+      .from("purchase_stock_allocation")
       .select(`
+        purchase_stock_id,
         recap_type,
         category,
-        batch_code
-      `);
+        batch_code,
+        allocation_type
+      `)
+      .not("batch_code", "is", null);
 
-    if (error) {
-      throw error;
+    if (allocationError) {
+      throw allocationError;
     }
 
-    (data || []).forEach(
-      function(row) {
 
-        const key =
-          String(
-            row.recap_type || ""
-          ).trim()
-          + "|"
-          + String(
-            row.category || ""
-          ).trim()
-          + "|"
-          + String(
-            row.batch_code || ""
-          ).trim();
+    if (
+      !allocationRows ||
+      !allocationRows.length
+    ) {
+      return;
+    }
 
-        purchaseBatchInfoMap[key] = true;
+
+    /* ==========================================
+       2. AMBIL ID PEMBELIAN STOK
+       ========================================== */
+
+    const purchaseIds =
+      Array.from(
+        new Set(
+          allocationRows
+            .map(function(row) {
+              return Number(
+                row.purchase_stock_id
+              );
+            })
+            .filter(function(id) {
+              return id > 0;
+            })
+        )
+      );
+
+
+    if (!purchaseIds.length) {
+      return;
+    }
+
+
+    /* ==========================================
+       3. AMBIL SELLER + WH
+       ========================================== */
+
+    const {
+      data: purchaseRows,
+      error: purchaseError
+    } = await supabaseClient
+      .from("purchase_stock")
+      .select(`
+        id,
+        seller_name,
+        warehouse_name
+      `)
+      .in(
+        "id",
+        purchaseIds
+      );
+
+
+    if (purchaseError) {
+      throw purchaseError;
+    }
+
+
+    const purchaseMap = {};
+
+
+    (purchaseRows || []).forEach(
+      function(purchase) {
+
+        purchaseMap[
+          Number(purchase.id)
+        ] = purchase;
 
       }
     );
+
+
+    /* ==========================================
+       4. BENTUK MAP PER BATCH
+       ========================================== */
+
+    allocationRows.forEach(
+      function(allocation) {
+
+        const recapType =
+          String(
+            allocation.recap_type || ""
+          ).trim();
+
+        const category =
+          String(
+            allocation.category || ""
+          ).trim();
+
+        const batchCode =
+          String(
+            allocation.batch_code || ""
+          ).trim();
+
+        if (
+          !recapType ||
+          !category ||
+          !batchCode
+        ) {
+          return;
+        }
+
+
+        const key =
+          recapType +
+          "|" +
+          category +
+          "|" +
+          batchCode;
+
+
+        if (
+          !purchaseBatchInfoMap[key]
+        ) {
+
+          purchaseBatchInfoMap[key] = {
+            sellers: [],
+            warehouses: []
+          };
+
+        }
+
+
+        const purchase =
+          purchaseMap[
+            Number(
+              allocation.purchase_stock_id
+            )
+          ];
+
+
+        if (!purchase) {
+          return;
+        }
+
+
+        const seller =
+          String(
+            purchase.seller_name || ""
+          ).trim();
+
+        const warehouse =
+          String(
+            purchase.warehouse_name || ""
+          ).trim();
+
+
+        if (
+          seller &&
+          !purchaseBatchInfoMap[key]
+            .sellers
+            .includes(seller)
+        ) {
+
+          purchaseBatchInfoMap[key]
+            .sellers
+            .push(seller);
+
+        }
+
+
+        if (
+          warehouse &&
+          !purchaseBatchInfoMap[key]
+            .warehouses
+            .includes(warehouse)
+        ) {
+
+          purchaseBatchInfoMap[key]
+            .warehouses
+            .push(warehouse);
+
+        }
+
+      }
+    );
+
 
   }
   catch (error) {
 
     console.error(
-      "Gagal memuat status informasi pembelian:",
+      "Gagal memuat informasi pembelian Seller/WH:",
       error
     );
 
@@ -28683,7 +29235,6 @@ async function loadPurchaseBatchInfoStatus() {
   }
 
 }
-
 
 /* ============================================
    DAFTAR REKAP
