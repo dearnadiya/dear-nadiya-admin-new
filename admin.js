@@ -32054,11 +32054,13 @@ let html = `
                   }
                 ).join("")}
 
-              </tbody>
+                           </tbody>
 
             </table>
 
           </div>
+
+        </div>
 
       `;
 
