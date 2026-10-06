@@ -31817,13 +31817,14 @@ let html = `
   Sisa
 </th>
 
-<th class="recap-customer-tracking-column">
-  Tracking
-</th>
-
                   <th>
                     Pembayaran
                   </th>
+
+                  <th class="recap-customer-tracking-column">
+  Tracking
+</th>
+
 
                   <th>
                     Status Customer
