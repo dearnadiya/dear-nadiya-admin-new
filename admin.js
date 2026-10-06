@@ -2895,16 +2895,19 @@ recapData.forEach(
   row.innerHTML = `
 
     <div
-      style="
-        display:grid;
-        grid-template-columns:
-  minmax(180px, 1fr)
-  minmax(120px, 180px)
-  42px;
-        gap:10px;
-        align-items:end;
-      "
-    >
+  class="purchase-allocation-grid"
+  style="
+    display:grid;
+    grid-template-columns:
+      minmax(180px, 1fr)
+      minmax(120px, 1fr)
+      minmax(120px, 1fr)
+      minmax(120px, 1fr)
+      42px;
+    gap:10px;
+    align-items:end;
+  "
+>
 
       <!-- JENIS ALOKASI -->
 
@@ -3027,6 +3030,11 @@ recapData.forEach(
     row.querySelector(
       ".purchase-allocation-kind"
     );
+
+     const allocationGrid =
+  row.querySelector(
+    ".purchase-allocation-grid"
+  );
 
 
   const dynamicContainer =
@@ -3402,22 +3410,43 @@ recapData.forEach(
 
 
   kindSelect.addEventListener(
-    "change",
-    function() {
+  "change",
+  function() {
 
-      allocation.allocation_type =
-        kindSelect.value;
+    allocation.allocation_type =
+      kindSelect.value;
 
-      allocation.recap_type = "";
-      allocation.category = "";
-      allocation.batch_code = "";
-      allocation.reseller_name = "";
-      allocation.selling_price = null;
+    allocation.recap_type = "";
+    allocation.category = "";
+    allocation.batch_code = "";
+    allocation.reseller_name = "";
+    allocation.selling_price = null;
 
-      renderDynamicFields();
+    if (
+      kindSelect.value === "Rekap GO"
+    ) {
+
+      allocationGrid.style.gridTemplateColumns =
+        "minmax(180px, 1fr) " +
+        "minmax(120px, 1fr) " +
+        "minmax(120px, 1fr) " +
+        "minmax(120px, 1fr) " +
+        "42px";
+
+    } else {
+
+      allocationGrid.style.gridTemplateColumns =
+        "minmax(180px, 1fr) " +
+        "minmax(120px, 1fr) " +
+        "minmax(120px, 1fr) " +
+        "120px 42px";
 
     }
-  );
+
+    renderDynamicFields();
+
+  }
+);
 
 
   const removeButton =
