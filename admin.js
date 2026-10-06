@@ -3888,18 +3888,12 @@ const customerWrapper =
 
   function updateAllocationSummary() {
 
-    const quantityInputs =
-      container.querySelectorAll(
-        ".purchase-allocation-quantity"
-      );
+  const quantityInputs =
+    container.querySelectorAll(
+      ".purchase-allocation-quantity"
+    );
 
-     const sellerModeSelect =
-  row.querySelector(
-    ".purchase-allocation-seller-mode"
-  );
-
-
-    let total = 0;
+  let total = 0;
 
 
     quantityInputs.forEach(
