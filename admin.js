@@ -31353,12 +31353,20 @@ container
    COLLAPSE / EXPAND BATCH
    ========================================== */
 
-/* ==========================================
-   SIMPAN BATCH YANG SEDANG TERBUKA
-   ========================================== */
+/*
+   =====================================================
+   KONTROL BUKA / TUTUP BATCH
+   HANYA 1 BATCH BOLEH TERBUKA
+   =====================================================
+*/
 
 const recapOpenBatchKey =
   "recapGO_openBatch_" + category;
+
+
+/* ==========================================
+   SIMPAN BATCH TERBUKA
+   ========================================== */
 
 function saveOpenBatch(batchCode) {
 
@@ -31373,6 +31381,11 @@ function saveOpenBatch(batchCode) {
 
 }
 
+
+/* ==========================================
+   AMBIL BATCH TERBUKA
+   ========================================== */
+
 function getOpenBatch() {
 
   return sessionStorage.getItem(
@@ -31381,6 +31394,11 @@ function getOpenBatch() {
 
 }
 
+
+/* ==========================================
+   HAPUS BATCH TERBUKA
+   ========================================== */
+
 function clearOpenBatch() {
 
   sessionStorage.removeItem(
@@ -31388,6 +31406,173 @@ function clearOpenBatch() {
   );
 
 }
+
+
+/* ==========================================
+   ATUR TAMPILAN 1 BATCH
+   ========================================== */
+
+function setRecapBatchOpen(
+  card,
+  isOpen
+) {
+
+  if (!card) {
+    return;
+  }
+
+
+  const deadlines =
+    card.querySelector(
+      ".recap-batch-deadlines"
+    );
+
+
+  const tableWrapper =
+    card.querySelector(
+      ".product-table-wrapper"
+    );
+
+
+  const pagination =
+    card.querySelector(
+      ".recap-pagination"
+    );
+
+
+  if (isOpen) {
+
+    /*
+       ==============================
+       BUKA BATCH
+       ==============================
+    */
+
+    card.classList.remove(
+      "recap-batch-collapsed"
+    );
+
+
+    if (deadlines) {
+
+      deadlines.style.setProperty(
+        "display",
+        "grid",
+        "important"
+      );
+
+    }
+
+
+    if (tableWrapper) {
+
+      tableWrapper.style.setProperty(
+        "display",
+        "block",
+        "important"
+      );
+
+    }
+
+
+    if (pagination) {
+
+      pagination.style.setProperty(
+        "display",
+        "flex",
+        "important"
+      );
+
+    }
+
+  }
+
+  else {
+
+    /*
+       ==============================
+       TUTUP BATCH
+       ==============================
+    */
+
+    card.classList.add(
+      "recap-batch-collapsed"
+    );
+
+
+    if (deadlines) {
+
+      deadlines.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+
+    }
+
+
+    if (tableWrapper) {
+
+      tableWrapper.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+
+    }
+
+
+    if (pagination) {
+
+      pagination.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+
+    }
+
+  }
+
+}
+
+
+/* ==========================================
+   TUTUP SEMUA BATCH
+   KECUALI BATCH YANG DIPILIH
+   ========================================== */
+
+function closeAllRecapBatches(
+  exceptCard = null
+) {
+
+  container
+    .querySelectorAll(
+      ".recap-batch-card"
+    )
+    .forEach(
+      function(card) {
+
+        if (
+          card === exceptCard
+        ) {
+          return;
+        }
+
+        setRecapBatchOpen(
+          card,
+          false
+        );
+
+      }
+    );
+
+}
+
+
+/* ==========================================
+   PASANG EVENT HEADER
+   ========================================== */
 
 container
   .querySelectorAll(
@@ -31401,77 +31586,50 @@ container
           ".recap-batch-card"
         );
 
+
       if (!card) {
         return;
       }
 
 
-      const deadlines =
-        card.querySelector(
-          ".recap-batch-deadlines"
-        );
-
-      const tracking =
-        card.querySelector(
-          ".batch-tracking"
-        );
-
-      const tableWrapper =
-        card.querySelector(
-          ".product-table-wrapper"
-        );
-
-
-      /* ==========================================
+      /*
+         ==============================
          KONDISI AWAL
-         BATCH COLLAPSED = SEMBUNYIKAN SEMUA DETAIL
-         ========================================== */
+         ==============================
+      */
 
-      if (
-        card.classList.contains(
-          "recap-batch-collapsed"
-        )
-      ) {
-
-        if (deadlines) {
-          deadlines.style.display =
-            "none";
-        }
-
-        if (tracking) {
-          tracking.style.display =
-            "none";
-        }
-
-        if (tableWrapper) {
-          tableWrapper.style.display =
-            "none";
-        }
-
-      }
+      setRecapBatchOpen(
+        card,
+        false
+      );
 
 
-      /* ==========================================
+      /*
+         ==============================
          KLIK HEADER
-         HANYA BATCH INI YANG BERUBAH
-         ========================================== */
+         ==============================
+      */
 
       header.addEventListener(
         "click",
         function(event) {
 
-          /* Jangan toggle ketika klik tombol/select */
+          /*
+             Jangan buka/tutup batch
+             ketika tombol atau select
+             diklik.
+          */
 
           if (
             event.target.closest(
-              "select, button"
+              "button, select, input, textarea, a"
             )
           ) {
             return;
           }
 
 
-          const isCurrentlyCollapsed =
+          const isClosed =
             card.classList.contains(
               "recap-batch-collapsed"
             );
@@ -31481,72 +31639,63 @@ container
             card.dataset.batchCode;
 
 
-          /* ==========================================
-             BUKA BATCH
-             ========================================== */
+          /*
+             ==========================
+             JIKA BATCH MASIH TERTUTUP
+             ==========================
+          */
 
-          if (
-            isCurrentlyCollapsed
-          ) {
+          if (isClosed) {
 
-            card.classList.remove(
-              "recap-batch-collapsed"
+            /*
+               Tutup SEMUA batch lain
+            */
+
+            closeAllRecapBatches(
+              card
             );
 
 
-            if (deadlines) {
-              deadlines.style.display =
-                "grid";
-            }
+            /*
+               Buka hanya batch ini
+            */
+
+            setRecapBatchOpen(
+              card,
+              true
+            );
 
 
-            if (tracking) {
-              tracking.style.display =
-                "";
-            }
-
-
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "";
-            }
-
+            /*
+               Simpan batch yang dibuka
+            */
 
             saveOpenBatch(
               batchCode
             );
 
-
           }
 
-          /* ==========================================
-             TUTUP BATCH
-             ========================================== */
+
+          /*
+             ==========================
+             JIKA BATCH SUDAH TERBUKA
+             ==========================
+          */
 
           else {
 
-            card.classList.add(
-              "recap-batch-collapsed"
+            setRecapBatchOpen(
+              card,
+              false
             );
 
 
-            if (deadlines) {
-              deadlines.style.display =
-                "none";
-            }
-
-
-            if (tracking) {
-              tracking.style.display =
-                "none";
-            }
-
-
-            if (tableWrapper) {
-              tableWrapper.style.display =
-                "none";
-            }
-
+            /*
+               Hapus penyimpanan
+               jika batch ini yang
+               sedang tersimpan.
+            */
 
             if (
               batchCode &&
@@ -31565,13 +31714,15 @@ container
 
     }
   );
-   
-   /* ==========================================
-   KEMBALI MEMBUKA BATCH TERAKHIR
+
+
+/* ==========================================
+   KEMBALI KE BATCH TERAKHIR
    ========================================== */
 
 const savedOpenBatch =
   getOpenBatch();
+
 
 if (savedOpenBatch) {
 
@@ -31582,52 +31733,39 @@ if (savedOpenBatch) {
       )}"]`
     );
 
+
   if (targetCard) {
 
-  targetCard.classList.remove(
-    "recap-batch-collapsed"
-  );
+    /*
+       Pastikan SEMUA batch lain
+       tertutup terlebih dahulu.
+    */
 
-
-  const deadlines =
-    targetCard.querySelector(
-      ".recap-batch-deadlines"
-    );
-
-  const tracking =
-    targetCard.querySelector(
-      ".batch-tracking"
-    );
-
-  const tableWrapper =
-    targetCard.querySelector(
-      ".product-table-wrapper"
+    closeAllRecapBatches(
+      targetCard
     );
 
 
-  if (deadlines) {
-    deadlines.style.display =
-      "grid";
+    /*
+       Buka hanya batch tersimpan.
+    */
+
+    setRecapBatchOpen(
+      targetCard,
+      true
+    );
+
   }
 
+  else {
 
-  if (tracking) {
-    tracking.style.display =
-      "";
+    /*
+       Batch sudah tidak ada.
+    */
+
+    clearOpenBatch();
+
   }
-
-
-  if (tableWrapper) {
-    tableWrapper.style.display =
-      "";
-  }
-
-} else {
-
-  /* Batch sudah tidak ada */
-  clearOpenBatch();
-
-}
 
 }
 
