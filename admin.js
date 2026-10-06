@@ -33109,12 +33109,20 @@ container
   .forEach(
     function(card) {
 
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
       const tbody =
         card.querySelector(
           ".product-table tbody"
         );
 
-      if (!tbody) {
+      if (
+        !tableWrapper ||
+        !tbody
+      ) {
         return;
       }
 
@@ -33126,16 +33134,24 @@ container
 
 
       /*
-       * Pagination selalu dibuat untuk
-       * setiap batch.
-       *
-       * Jika customer <= 10,
-       * pagination tetap ada tetapi
-       * hanya menampilkan informasi jumlah.
+       * Jika customer 10 atau kurang,
+       * tidak perlu pagination.
        */
+      if (
+        rows.length <=
+        CUSTOMER_PER_PAGE
+      ) {
+        return;
+      }
 
+
+      /*
+       * Buat pagination.
+       */
       const pagination =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       pagination.className =
         "recap-pagination";
@@ -33151,26 +33167,32 @@ container
       `;
 
 
-      card.appendChild(
+      /*
+       * PENTING:
+       *
+       * Pagination dimasukkan
+       * ke dalam product-table-wrapper.
+       *
+       * Jadi ketika batch ditutup,
+       * pagination otomatis ikut hilang.
+       */
+      tableWrapper.appendChild(
         pagination
       );
 
 
       /*
-       * Halaman disimpan TERPISAH
-       * untuk masing-masing batch.
+       * Halaman masing-masing batch
+       * disimpan sendiri.
        */
-
       let currentPage = 1;
 
 
       function renderPagination() {
 
         /*
-         * Hanya row yang tidak difilter
-         * yang dihitung.
+         * Ambil customer yang lolos filter.
          */
-
         const visibleRows =
           rows.filter(
             function(row) {
@@ -33185,24 +33207,19 @@ container
 
 
         const totalPages =
-          Math.max(
-            1,
-            Math.ceil(
-              visibleRows.length /
-                CUSTOMER_PER_PAGE
-            )
+          Math.ceil(
+            visibleRows.length /
+              CUSTOMER_PER_PAGE
           );
 
 
         /*
-         * Jika halaman aktif melebihi
-         * halaman yang tersedia,
-         * kembali ke halaman terakhir.
+         * Pastikan halaman aktif
+         * tidak melebihi jumlah halaman.
          */
-
         if (
-          currentPage >
-          totalPages
+          totalPages > 0 &&
+          currentPage > totalPages
         ) {
 
           currentPage =
@@ -33212,10 +33229,8 @@ container
 
 
         /*
-         * Sembunyikan seluruh customer
-         * batch ini.
+         * Sembunyikan semua row.
          */
-
         rows.forEach(
           function(row) {
 
@@ -33227,10 +33242,8 @@ container
 
 
         /*
-         * Ambil customer untuk
-         * halaman aktif.
+         * Tentukan row yang ditampilkan.
          */
-
         const start =
           (
             currentPage - 1
@@ -33257,36 +33270,20 @@ container
 
 
         /*
-         * Bangun ulang pagination.
+         * Bersihkan pagination.
          */
-
         pagination.innerHTML =
           "";
 
 
         /*
-         * Jika tidak ada customer.
+         * Jika setelah filter
+         * tidak ada customer.
          */
-
         if (
           visibleRows.length ===
           0
         ) {
-
-          const emptyInfo =
-            document.createElement(
-              "span"
-            );
-
-          emptyInfo.className =
-            "recap-pagination-info";
-
-          emptyInfo.textContent =
-            "Tidak ada customer";
-
-          pagination.appendChild(
-            emptyInfo
-          );
 
           return;
 
@@ -33294,177 +33291,177 @@ container
 
 
         /*
-         * TOMBOL SEBELUMNYA
+         * Jika hanya 1 halaman,
+         * tidak perlu tombol pagination.
          */
-
         if (
-          totalPages > 1
+          totalPages <= 1
         ) {
 
-          const previousButton =
-            document.createElement(
-              "button"
-            );
-
-          previousButton.type =
-            "button";
-
-          previousButton.textContent =
-            "‹";
-
-          previousButton.disabled =
-            currentPage === 1;
-
-
-          previousButton.addEventListener(
-            "click",
-            function(event) {
-
-              event.preventDefault();
-              event.stopPropagation();
-
-
-              if (
-                currentPage > 1
-              ) {
-
-                currentPage--;
-
-                renderPagination();
-
-              }
-
-            }
-          );
-
-
-          pagination.appendChild(
-            previousButton
-          );
+          return;
 
         }
 
 
         /*
-         * NOMOR HALAMAN
+         * ==========================
+         * TOMBOL SEBELUMNYA
+         * ==========================
          */
 
-        if (
-          totalPages > 1
-        ) {
+        const previousButton =
+          document.createElement(
+            "button"
+          );
 
-          for (
-            let page = 1;
-            page <= totalPages;
-            page++
-          ) {
+        previousButton.type =
+          "button";
 
-            const pageButton =
-              document.createElement(
-                "button"
-              );
+        previousButton.textContent =
+          "‹";
 
-            pageButton.type =
-              "button";
+        previousButton.disabled =
+          currentPage === 1;
 
-            pageButton.textContent =
-              page;
 
+        previousButton.addEventListener(
+          "click",
+          function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
 
             if (
-              page ===
-              currentPage
+              currentPage > 1
             ) {
 
-              pageButton.classList.add(
-                "active"
-              );
+              currentPage--;
+
+              renderPagination();
 
             }
 
-
-            pageButton.addEventListener(
-              "click",
-              function(event) {
-
-                event.preventDefault();
-                event.stopPropagation();
+          }
+        );
 
 
-                currentPage =
-                  page;
+        pagination.appendChild(
+          previousButton
+        );
 
-                renderPagination();
 
-              }
+        /*
+         * ==========================
+         * NOMOR HALAMAN
+         * ==========================
+         */
+
+        for (
+          let page = 1;
+          page <= totalPages;
+          page++
+        ) {
+
+          const pageButton =
+            document.createElement(
+              "button"
             );
 
+          pageButton.type =
+            "button";
 
-            pagination.appendChild(
-              pageButton
+          pageButton.textContent =
+            page;
+
+
+          if (
+            page ===
+            currentPage
+          ) {
+
+            pageButton.classList.add(
+              "active"
             );
 
           }
 
-        }
 
-
-        /*
-         * TOMBOL SESUDAHNYA
-         */
-
-        if (
-          totalPages > 1
-        ) {
-
-          const nextButton =
-            document.createElement(
-              "button"
-            );
-
-          nextButton.type =
-            "button";
-
-          nextButton.textContent =
-            "›";
-
-          nextButton.disabled =
-            currentPage ===
-            totalPages;
-
-
-          nextButton.addEventListener(
+          pageButton.addEventListener(
             "click",
             function(event) {
 
               event.preventDefault();
               event.stopPropagation();
 
+              currentPage =
+                page;
 
-              if (
-                currentPage <
-                totalPages
-              ) {
-
-                currentPage++;
-
-                renderPagination();
-
-              }
+              renderPagination();
 
             }
           );
 
 
           pagination.appendChild(
-            nextButton
+            pageButton
           );
 
         }
 
 
         /*
-         * INFORMASI CUSTOMER
+         * ==========================
+         * TOMBOL SESUDAHNYA
+         * ==========================
+         */
+
+        const nextButton =
+          document.createElement(
+            "button"
+          );
+
+        nextButton.type =
+          "button";
+
+        nextButton.textContent =
+          "›";
+
+        nextButton.disabled =
+          currentPage ===
+          totalPages;
+
+
+        nextButton.addEventListener(
+          "click",
+          function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (
+              currentPage <
+              totalPages
+            ) {
+
+              currentPage++;
+
+              renderPagination();
+
+            }
+
+          }
+        );
+
+
+        pagination.appendChild(
+          nextButton
+        );
+
+
+        /*
+         * ==========================
+         * INFO JUMLAH CUSTOMER
+         * ==========================
          */
 
         const info =
@@ -33481,7 +33478,6 @@ container
           font-size:13px;
         `;
 
-
         info.textContent =
           `${visibleRows.length} customer`;
 
@@ -33494,15 +33490,32 @@ container
 
 
       /*
-       * Render halaman pertama
-       * untuk BATCH INI.
+       * Render halaman pertama.
        */
-
       renderPagination();
+
+
+      /*
+       * Jika batch sedang tertutup
+       * ketika pagination dibuat,
+       * pagination langsung ikut disembunyikan.
+       */
+      if (
+        card.classList.contains(
+          "recap-batch-collapsed"
+        )
+      ) {
+
+        pagination.style.setProperty(
+          "display",
+          "none",
+          "important"
+        );
+
+      }
 
     }
   );
-
    /* ==========================================
    SEARCH + FILTER REKAP GO
    ========================================== */
