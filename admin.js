@@ -31405,9 +31405,47 @@ container
         return;
       }
 
+      const tracking =
+        card.querySelector(
+          ".batch-tracking"
+        );
+
+      const tableWrapper =
+        card.querySelector(
+          ".product-table-wrapper"
+        );
+
+      /* ==========================================
+         KONDISI AWAL:
+         BATCH TERTUTUP
+         ========================================== */
+
+      if (
+        card.classList.contains(
+          "recap-batch-collapsed"
+        )
+      ) {
+
+        if (tracking) {
+          tracking.style.display =
+            "none";
+        }
+
+        if (tableWrapper) {
+          tableWrapper.style.display =
+            "none";
+        }
+
+      }
+
+
       header.addEventListener(
         "click",
         function(event) {
+
+          /* ==========================================
+             JANGAN TOGGLE JIKA KLIK BUTTON / SELECT
+             ========================================== */
 
           if (
             event.target.closest(
@@ -31417,97 +31455,56 @@ container
             return;
           }
 
-          const isCurrentlyCollapsed =
-            card.classList.contains(
+
+          /* ==========================================
+             HANYA BATCH YANG DIKLIK
+             ========================================== */
+
+          const isCollapsed =
+            card.classList.toggle(
               "recap-batch-collapsed"
             );
+
 
           const batchCode =
             card.dataset.batchCode;
 
-          container
-            .querySelectorAll(
-              ".recap-batch-card"
-            )
-            .forEach(
-              function(otherCard) {
 
-                if (
-                  otherCard === card
-                ) {
-                  return;
-                }
+          /* ==========================================
+             SIMPAN BATCH YANG SEDANG TERBUKA
+             ========================================== */
 
-                otherCard.classList.add(
-                  "recap-batch-collapsed"
-                );
+          if (isCollapsed) {
 
-                const otherTracking =
-                  otherCard.querySelector(
-                    ".batch-tracking"
-                  );
+            /* Batch ditutup */
 
-                const otherTable =
-                  otherCard.querySelector(
-                    ".product-table-wrapper"
-                  );
+            if (
+              batchCode &&
+              getOpenBatch() ===
+                batchCode
+            ) {
 
-                if (otherTracking) {
-                  otherTracking.style.display =
-                    "none";
-                }
+              clearOpenBatch();
 
-                if (otherTable) {
-                  otherTable.style.display =
-                    "none";
-                }
-
-              }
-            );
-
-          if (isCurrentlyCollapsed) {
-
-            card.classList.remove(
-              "recap-batch-collapsed"
-            );
-
-            const tracking =
-              card.querySelector(
-                ".batch-tracking"
-              );
-
-            const tableWrapper =
-              card.querySelector(
-                ".product-table-wrapper"
-              );
-
-            if (tracking) {
-              tracking.style.display = "";
             }
 
-            if (tableWrapper) {
-              tableWrapper.style.display = "";
-            }
+          } else {
+
+            /* Batch dibuka */
 
             saveOpenBatch(
               batchCode
             );
 
-          } else {
+          }
 
-            card.classList.add(
-              "recap-batch-collapsed"
-            );
 
-            const tracking =
-              card.querySelector(
-                ".batch-tracking"
-              );
+          /* ==========================================
+             TAMPILKAN / SEMBUNYIKAN DETAIL
+             HANYA UNTUK CARD INI
+             ========================================== */
 
-            const tableWrapper =
-              card.querySelector(
-                ".product-table-wrapper"
-              );
+          if (isCollapsed) {
 
             if (tracking) {
               tracking.style.display =
@@ -31519,7 +31516,17 @@ container
                 "none";
             }
 
-            clearOpenBatch();
+          } else {
+
+            if (tracking) {
+              tracking.style.display =
+                "";
+            }
+
+            if (tableWrapper) {
+              tableWrapper.style.display =
+                "";
+            }
 
           }
 
