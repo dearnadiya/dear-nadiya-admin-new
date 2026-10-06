@@ -12492,7 +12492,9 @@ button {
    REKAP GO - TOMBOL SIMPAN TRACKING
    ========================================================= */
 
-#recapListContainer .batch-tracking {
+#recapListContainer
+.recap-batch-card:not(.recap-batch-collapsed)
+.batch-tracking {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
