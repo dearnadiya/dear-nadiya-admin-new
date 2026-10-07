@@ -35579,14 +35579,15 @@ container
 function getRecapTypeFromCategory(category) {
 
   const treasureCategories = [
-    "Truz",
-    "Treasure KR",
-    "Treasure JP",
-    "Treasure CH",
-    "Treasure Thai",
-    "Treasure Album",
-    "Treasure INA"
-  ];
+  "Truz",
+  "Treasure KR",
+  "Treasure JP",
+  "Treasure CH",
+  "Treasure Thai",
+  "Treasure Album",
+  "Treasure INA",
+  "Merchandise Official"
+];
 
   const multiGroupCategories = [
     "NCT",
