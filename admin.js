@@ -22883,25 +22883,6 @@ function showRecapForm(category) {
   Rekap Baru = Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.
 </small>
 
-
-<label>Tracking Batch</label>
-
-<select id="batchTrackingStatus">
-          ${getTrackingOptions(category)
-            .map(function(option) {
-
-              return `
-                <option value="${escapeHTML(option)}">
-                  ${escapeHTML(option)}
-                </option>
-              `;
-
-            })
-            .join("")
-          }
-
-        </select>
-
         <label>
          Deadline DP
         </label>
@@ -39484,43 +39465,6 @@ const existingCoDeadline =
   }
 </small>
 
-        <label>
-          Tracking Batch
-        </label>
-
-        <select
-          id="editBatchHeaderTracking"
-        >
-
-          ${getTrackingOptions(
-            category
-          ).map(
-            function(option) {
-
-              return `
-                <option
-                  value="${escapeHTML(
-                    option
-                  )}"
-                  ${
-                    batchTracking ===
-                    option
-                      ? "selected"
-                      : ""
-                  }
-                >
-                  ${escapeHTML(
-                    option
-                  )}
-                </option>
-              `;
-
-            }
-          ).join("")}
-
-        </select>
-
-
         <div
   class="form-actions"
 >
@@ -39744,13 +39688,6 @@ if (
             )
             .value ||
           null;
-
-        const newTracking =
-          document
-            .getElementById(
-              "editBatchHeaderTracking"
-            )
-            .value;
 
          const newRecapDataType =
   document
