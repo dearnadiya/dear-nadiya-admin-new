@@ -1360,7 +1360,7 @@ font-size:11px;
 color:#777;
                           "
                         >
-Qtfy:
+Qty:
 ${remainingStock}
 ${escapeHTML(
   row.quantity_unit || "Pcs"
@@ -8868,7 +8868,7 @@ Total tagihan DP: ${formatRupiah(totalCustomer)}`;
                   ) {
 
                     dpMessage +=
-`\\n\\nRincian keterlambatan:
+'Rincian keterlambatan:
 ${rincianDendaCustomer.join("\\n")}
 
 Total denda keterlambatan: ${formatRupiah(totalDendaCustomer)}
@@ -8879,7 +8879,7 @@ ${formatRupiah(totalCustomer + totalDendaCustomer)}`;
                   }
 
                   dpMessage +=
-`\\n\\nMohon segera melakukan pembayaran ya.
+'Mohon segera melakukan pembayaran ya.
 Terima kasih ♥
 Dear Nadiya`;
 
