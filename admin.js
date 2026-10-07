@@ -2894,20 +2894,102 @@ const recapData =
      ========================================== */
 
   const {
-    data: allRekapAllocations,
-    error: allRekapAllocationError
-  } = await supabaseClient
-    .from("purchase_stock_allocation")
-    .select(`
-      purchase_stock_id,
-      allocation_type,
-      recap_type,
-      category,
-      batch_code,
-      purchase_recap_id
-    `)
-    .eq("allocation_type", "Rekap GO")
-    .neq("purchase_stock_id", purchaseId);
+  data: allRekapAllocationsRaw,
+  error: allRekapAllocationError
+} = await supabaseClient
+  .from("purchase_stock_allocation")
+  .select(`
+    purchase_stock_id,
+    allocation_type,
+    recap_type,
+    category,
+    batch_code,
+    purchase_recap_id
+  `)
+  .eq(
+    "allocation_type",
+    "Rekap GO"
+  )
+  .neq(
+    "purchase_stock_id",
+    purchaseId
+  );
+
+
+if (allRekapAllocationError) {
+
+  console.error(
+    "Gagal mengambil data alokasi pembelian lain:",
+    allRekapAllocationError
+  );
+
+  alert(
+    "Gagal mengambil data alokasi pembelian lain:\n" +
+    allRekapAllocationError.message
+  );
+
+  return;
+
+}
+
+
+/*
+ * Pastikan purchase_stock_id
+ * benar-benar masih ada di
+ * tabel purchase_stock.
+ *
+ * Alokasi lama/orphan tidak
+ * boleh membuat batch dianggap
+ * sudah dibeli.
+ */
+const {
+  data: existingPurchaseStocks,
+  error: existingPurchaseStockError
+} = await supabaseClient
+  .from("purchase_stock")
+  .select("id");
+
+
+if (existingPurchaseStockError) {
+
+  console.error(
+    "Gagal memeriksa Pembelian Stok:",
+    existingPurchaseStockError
+  );
+
+  alert(
+    "Gagal memeriksa Pembelian Stok:\n" +
+    existingPurchaseStockError.message
+  );
+
+  return;
+
+}
+
+
+const validPurchaseStockIds =
+  new Set(
+    (existingPurchaseStocks || [])
+      .map(function(row) {
+        return Number(row.id);
+      })
+      .filter(function(id) {
+        return id > 0;
+      })
+  );
+
+
+const allRekapAllocations =
+  (allRekapAllocationsRaw || [])
+    .filter(function(allocation) {
+
+      return validPurchaseStockIds.has(
+        Number(
+          allocation.purchase_stock_id
+        )
+      );
+
+    });
 
 
   if (allRekapAllocationError) {
