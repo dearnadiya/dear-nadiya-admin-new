@@ -8864,25 +8864,23 @@ Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${
 Total tagihan DP: ${formatRupiah(totalCustomer)}`;
 
                   if (
-                    totalDendaCustomer > 0
-                  ) {
+  totalDendaCustomer > 0
+) {
 
-                    dpMessage +=
-'Rincian keterlambatan:
-${rincianDendaCustomer.join("\\n")}
+  dpMessage +=
+`Rincian keterlambatan:
+${rincianDendaCustomer.join("\n")}
 
 Total denda keterlambatan: ${formatRupiah(totalDendaCustomer)}
 
 Total yang perlu dibayarkan:
 ${formatRupiah(totalCustomer + totalDendaCustomer)}`;
+}
 
-                  }
-
-                  dpMessage +=
-'Mohon segera melakukan pembayaran ya.
+dpMessage +=
+`Mohon segera melakukan pembayaran ya.
 Terima kasih ♥
 Dear Nadiya`;
-
 
                   return `
                     <div
