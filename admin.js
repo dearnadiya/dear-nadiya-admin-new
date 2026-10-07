@@ -22143,9 +22143,44 @@ async function loadRecapCategories(
   }
 
 
-  return data || [];
+    const categories =
+    data || [];
 
-}
+
+  /* ==========================================
+     SIMPAN TYPE REKAP KE CACHE
+     ========================================== */
+
+  categories.forEach(
+    function(category) {
+
+      const categoryName =
+        String(
+          category.category_name || ""
+        ).trim();
+
+      const categoryRecapType =
+        String(
+          category.recap_type || ""
+        ).trim();
+
+      if (
+        categoryName &&
+        categoryRecapType
+      ) {
+
+        recapTypeByCategory[
+          categoryName
+        ] =
+          categoryRecapType;
+
+      }
+
+    }
+  );
+
+
+  return categories;
 
 /* ============================================
    FORM REKAP GO - MULTI MEMBER
@@ -35573,10 +35608,46 @@ container
    ============================================ */
 
 /* ============================================
+   CACHE TYPE REKAP DARI DATABASE
+   ============================================ */
+
+const recapTypeByCategory = {};
+
+/* ============================================
    DAPATKAN TIPE REKAP DARI KATEGORI 
    ============================================ */
 
 function getRecapTypeFromCategory(category) {
+
+  const normalizedCategory =
+    String(
+      category || ""
+    ).trim();
+
+  if (!normalizedCategory) {
+    return null;
+  }
+
+
+  /* ==========================================
+     PRIORITAS 1
+     AMBIL DARI CACHE DATABASE
+     ========================================== */
+
+  const databaseType =
+    recapTypeByCategory[
+      normalizedCategory
+    ];
+
+  if (databaseType) {
+    return databaseType;
+  }
+
+
+  /* ==========================================
+     PRIORITAS 2
+     FALLBACK UNTUK KATEGORI LAMA
+     ========================================== */
 
   const treasureCategories = [
   "Truz",
@@ -35594,7 +35665,10 @@ function getRecapTypeFromCategory(category) {
     "Lngshot",
     "Cortis",
     "Babymonster",
-    "Ateez"
+    "Ateez",
+    "Ikon",
+    "BTS",
+    "Enhypen"
   ];
 
   const tabunganCategories = [
@@ -35606,13 +35680,14 @@ function getRecapTypeFromCategory(category) {
     "Jastip Korea",
     "Jastip Jepang",
     "Jastip Thailand",
-    "Jastip China"
+    "Jastip China",
+    "Shopping Time"
   ];
 
 
   if (
     treasureCategories.includes(
-      category
+      normalizedcategory
     )
   ) {
     return "Treasure";
@@ -35621,7 +35696,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     multiGroupCategories.includes(
-      category
+      normalizedcategory
     )
   ) {
     return "Multi Group";
@@ -35630,7 +35705,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     tabunganCategories.includes(
-      category
+      normalizedcategory
     )
   ) {
     return "Tabungan";
@@ -35639,7 +35714,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     jastipCategories.includes(
-      category
+      normalizedcategory
     )
   ) {
     return "Jastip";
