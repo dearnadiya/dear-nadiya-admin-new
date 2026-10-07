@@ -22182,6 +22182,8 @@ async function loadRecapCategories(
 
   return categories;
 
+}
+
 /* ============================================
    FORM REKAP GO - MULTI MEMBER
    ============================================ */
@@ -35687,7 +35689,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     treasureCategories.includes(
-      normalizedcategory
+      normalizedCategory
     )
   ) {
     return "Treasure";
@@ -35696,7 +35698,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     multiGroupCategories.includes(
-      normalizedcategory
+      normalizedCategory
     )
   ) {
     return "Multi Group";
@@ -35705,7 +35707,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     tabunganCategories.includes(
-      normalizedcategory
+      normalizedCategory
     )
   ) {
     return "Tabungan";
@@ -35714,7 +35716,7 @@ function getRecapTypeFromCategory(category) {
 
   if (
     jastipCategories.includes(
-      normalizedcategory
+      normalizedCategory
     )
   ) {
     return "Jastip";
