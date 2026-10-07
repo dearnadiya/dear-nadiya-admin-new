@@ -3229,18 +3229,6 @@ recapData.forEach(
       return;
     }
 
-     const batchTrackingStatus =
-  String(
-    row.batch_tracking_status || ""
-  ).trim().toLowerCase();
-
-if (
-  batchTrackingStatus ===
-  "arrived admin"
-) {
-  return;
-}
-
     const key =
       type +
       "||" +
