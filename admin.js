@@ -864,6 +864,7 @@ async function renderPurchaseStockList() {
       warehouse_name,
       item_name,
       quantity,
+      quantity_unit,
       purchase_note,
       seller_currency,
       seller_price,
@@ -1359,8 +1360,8 @@ font-size:11px;
 color:#777;
                           "
                         >
-                          Qty:
-${purchaseQuantity}
+Qtfy:
+${remainingStock}
 ${escapeHTML(
   row.quantity_unit || "Pcs"
 )}
@@ -1635,14 +1636,16 @@ align-items:start;
                               </span>
 
                               <div
-                                style="
-                                  font-weight:600;
-                                  margin-top:2px;
-                                "
-                              >
-                                ${purchaseQuantity}
-                                pcs
-                              </div>
+  style="
+    font-weight:600;
+    margin-top:2px;
+  "
+>
+  ${remainingStock}
+  ${escapeHTML(
+    row.quantity_unit || "Pcs"
+  )}
+</div>
                             </div>
 
 
@@ -1965,8 +1968,11 @@ return `
                               </span>
 
                               <strong>
-                                ${totalAllocated} pcs
-                              </strong>
+  ${totalAllocated}
+  ${escapeHTML(
+    row.quantity_unit || "Pcs"
+  )}
+</strong>
 
                             </div>
 
@@ -1985,16 +1991,19 @@ return `
                               </span>
 
                               <strong
-                                style="
-                                  color:${
-                                    remainingStock > 0
-                                      ? "#b26a00"
-                                      : "#16803c"
-                                  };
-                                "
-                              >
-                                ${remainingStock} pcs
-                              </strong>
+  style="
+    color:${
+      remainingStock > 0
+        ? "#b26a00"
+        : "#16803c"
+    };
+  "
+>
+  ${remainingStock}
+  ${escapeHTML(
+    row.quantity_unit || "Pcs"
+  )}
+</strong>
 
                             </div>
 
@@ -2553,6 +2562,7 @@ return `
                 warehouse_name,
                 item_name,
                 quantity,
+                quantity_unit,
                 purchase_note,
                 seller_currency,
                 seller_price,
@@ -2722,6 +2732,7 @@ async function showPurchaseStockAllocationForm(
       id,
       item_name,
       quantity,
+      quantity_unit,
       seller_name,
       order_number
     `)
@@ -7508,6 +7519,7 @@ async function showPurchaseStockDetail(
       box_pengiriman,
       item_name,
       quantity,
+      quantity_unit,
       purchase_note,
       created_at,
       updated_at,
