@@ -3103,6 +3103,179 @@ const allRekapAllocations =
     }
   );
 
+         /* ==========================================
+     BATCH SUDAH ARRIVED ADMIN
+     DAN SUDAH MASUK ALOKASI BARANG
+     ========================================== */
+
+  const allocatedBatchKeys =
+    new Set();
+
+
+  /*
+   * Alokasi dari pembelian lain
+   */
+  (allRekapAllocations || []).forEach(
+    function(allocation) {
+
+      const recapType =
+        String(
+          allocation.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          allocation.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+      if (
+        !recapType ||
+        !category ||
+        !batchCode
+      ) {
+        return;
+      }
+
+      allocatedBatchKeys.add(
+        recapType +
+        "||" +
+        category +
+        "||" +
+        batchCode
+      );
+
+    }
+  );
+
+
+  /*
+   * Alokasi dari pembelian yang sedang dibuka
+   */
+  (allocations || []).forEach(
+    function(allocation) {
+
+      if (
+        String(
+          allocation.allocation_type || ""
+        ).trim() !== "Rekap GO"
+      ) {
+        return;
+      }
+
+      const recapType =
+        String(
+          allocation.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          allocation.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+      if (
+        !recapType ||
+        !category ||
+        !batchCode
+      ) {
+        return;
+      }
+
+      allocatedBatchKeys.add(
+        recapType +
+        "||" +
+        category +
+        "||" +
+        batchCode
+      );
+
+    }
+  );
+
+
+  /*
+   * Batch yang sudah Arrived Admin
+   * DAN sudah pernah masuk Alokasi Barang
+   */
+  const arrivedAdminAllocatedBatchKeys =
+    new Set();
+
+
+  (recapData || []).forEach(
+    function(row) {
+
+      const tracking =
+        String(
+          row.batch_tracking_status || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        tracking !==
+        "arrived admin"
+      ) {
+        return;
+      }
+
+      const recapType =
+        String(
+          row.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          row.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          row.batch_code || ""
+        ).trim();
+
+      if (
+        !recapType ||
+        !category ||
+        !batchCode
+      ) {
+        return;
+      }
+
+      const batchKey =
+        recapType +
+        "||" +
+        category +
+        "||" +
+        batchCode;
+
+      /*
+       * Hanya tandai jika memang
+       * sudah masuk Alokasi Barang.
+       */
+      if (
+        allocatedBatchKeys.has(
+          batchKey
+        )
+      ) {
+
+        arrivedAdminAllocatedBatchKeys.add(
+          batchKey
+        );
+
+      }
+
+    }
+  );
+
 
   /* ==========================================
      4. HAPUS MODAL LAMA
@@ -4108,52 +4281,214 @@ allocationGrid.style.gridTemplateColumns =
   selectedBatch;
 
 
-const customers =
-  (recapData || [])
-    .filter(
-      function(item) {
-
-        return (
-          String(
-            item.recap_type || ""
-          ).trim() ===
-            selectedType &&
-
-          String(
-            item.category || ""
-          ).trim() ===
-            selectedCategory &&
-
-          String(
-            item.batch_code || ""
-          ).trim() ===
-            selectedBatch
-        );
-
-      }
-    )
-    .filter(
-      function(customer) {
-
-        const customerKey =
-          batchKey +
-          "||" +
-          String(
-            customer.id
-          );
-
         /*
-         * Jika customer sudah pernah dibeli
-         * oleh pembelian lain, sembunyikan.
+         * ==========================================
+         * CUSTOMER YANG SUDAH DIPILIH DI ALOKASI LAIN
+         * DALAM FORM YANG SAMA
+         * ==========================================
          */
 
-        return !purchasedCustomerKeys.has(
-          customerKey
+        const draftSelectedCustomerKeys =
+          new Set();
+
+        const allocationRows =
+          container.querySelectorAll(
+            ".purchase-allocation-row"
+          );
+
+        allocationRows.forEach(
+          function(otherRow) {
+
+            /*
+             * Jangan menghitung baris sendiri.
+             */
+            if (
+              otherRow === row
+            ) {
+              return;
+            }
+
+            const otherKindSelect =
+              otherRow.querySelector(
+                ".purchase-allocation-kind"
+              );
+
+            const otherTypeSelect =
+              otherRow.querySelector(
+                ".purchase-allocation-type"
+              );
+
+            const otherCategorySelect =
+              otherRow.querySelector(
+                ".purchase-allocation-category"
+              );
+
+            const otherBatchSelect =
+              otherRow.querySelector(
+                ".purchase-allocation-batch"
+              );
+
+            const otherCustomerSelect =
+              otherRow.querySelector(
+                ".purchase-allocation-customer"
+              );
+
+            /*
+             * Hanya Rekap GO + Seller >1
+             * yang mempunyai Customer / Versi.
+             */
+            if (
+              !otherKindSelect ||
+              otherKindSelect.value !==
+                "Rekap GO" ||
+              !otherTypeSelect ||
+              !otherCategorySelect ||
+              !otherBatchSelect ||
+              !otherCustomerSelect
+            ) {
+              return;
+            }
+
+            /*
+             * Seller >1 saja.
+             */
+            const otherSellerMode =
+              otherRow.querySelector(
+                ".purchase-allocation-seller-mode"
+              );
+
+            if (
+              otherSellerMode &&
+              otherSellerMode.value !==
+                "many"
+            ) {
+              return;
+            }
+
+            const otherType =
+              String(
+                otherTypeSelect.value || ""
+              ).trim();
+
+            const otherCategory =
+              String(
+                otherCategorySelect.value || ""
+              ).trim();
+
+            const otherBatch =
+              String(
+                otherBatchSelect.value || ""
+              ).trim();
+
+            const otherCustomer =
+              String(
+                otherCustomerSelect.value || ""
+              ).trim();
+
+            if (
+              !otherType ||
+              !otherCategory ||
+              !otherBatch ||
+              !otherCustomer
+            ) {
+              return;
+            }
+
+            /*
+             * Hanya customer pada batch yang sama
+             * yang perlu disembunyikan.
+             */
+            const otherCustomerKey =
+              otherType +
+              "||" +
+              otherCategory +
+              "||" +
+              otherBatch +
+              "||" +
+              otherCustomer;
+
+            draftSelectedCustomerKeys.add(
+              otherCustomerKey
+            );
+
+          }
         );
 
-      }
-    );
 
+        /*
+         * ==========================================
+         * CUSTOMER YANG TERSEDIA
+         * ==========================================
+         *
+         * 1. Tidak boleh sudah dibeli pada
+         *    pembelian lain.
+         *
+         * 2. Tidak boleh sudah dipilih pada
+         *    baris alokasi lain yang belum disimpan.
+         */
+
+                const customers =
+          (recapData || [])
+            .filter(
+              function(item) {
+
+                return (
+                  String(
+                    item.recap_type || ""
+                  ).trim() ===
+                    selectedType &&
+
+                  String(
+                    item.category || ""
+                  ).trim() ===
+                    selectedCategory &&
+
+                  String(
+                    item.batch_code || ""
+                  ).trim() ===
+                    selectedBatch
+                );
+
+              }
+            )
+            .filter(
+              function(customer) {
+
+                const customerKey =
+                  batchKey +
+                  "||" +
+                  String(
+                    customer.id
+                  );
+
+                /*
+                 * Customer yang sudah dibeli
+                 * pada pembelian lain.
+                 */
+                if (
+                  purchasedCustomerKeys.has(
+                    customerKey
+                  )
+                ) {
+                  return false;
+                }
+
+                /*
+                 * Customer yang sudah dipilih
+                 * pada baris lain yang belum disimpan.
+                 */
+                if (
+                  draftSelectedCustomerKeys.has(
+                    customerKey
+                  )
+                ) {
+                  return false;
+                }
+
+                return true;
+
+              }
+            );
 
         const duplicateCounter = {};
 
@@ -4218,6 +4553,9 @@ const customers =
         );
 
       }
+
+        row._refreshPurchaseAllocationCustomers =
+    updateCustomers;
 
 
       /* ====================================
@@ -4300,6 +4638,98 @@ const customers =
 
       }
 
+      /* ====================================
+   BATCH YANG SUDAH DIPILIH DI ALOKASI
+   LAIN DALAM FORM YANG SAMA
+   ==================================== */
+
+function getDraftSelectedBatchKeys() {
+
+  const selectedKeys =
+    new Set();
+
+  const rows =
+    container.querySelectorAll(
+      ".purchase-allocation-row"
+    );
+
+
+  rows.forEach(
+    function(otherRow) {
+
+      /*
+       * Jangan memeriksa baris sendiri.
+       * Batch yang sedang diedit harus tetap
+       * bisa ditampilkan.
+       */
+      if (
+        otherRow === row
+      ) {
+        return;
+      }
+
+
+      const allocationKind =
+        otherRow.querySelector(
+          ".purchase-allocation-kind"
+        )?.value || "";
+
+
+      /*
+       * Hanya Rekap GO yang memiliki
+       * Type / Kategori / Batch.
+       */
+      if (
+        allocationKind !==
+        "Rekap GO"
+      ) {
+        return;
+      }
+
+
+      const type =
+        otherRow.querySelector(
+          ".purchase-allocation-type"
+        )?.value || "";
+
+
+      const category =
+        otherRow.querySelector(
+          ".purchase-allocation-category"
+        )?.value || "";
+
+
+      const batch =
+        otherRow.querySelector(
+          ".purchase-allocation-batch"
+        )?.value || "";
+
+
+      if (
+        !type ||
+        !category ||
+        !batch
+      ) {
+        return;
+      }
+
+
+      selectedKeys.add(
+        String(type).trim() +
+        "||" +
+        String(category).trim() +
+        "||" +
+        String(batch).trim()
+      );
+
+    }
+  );
+
+
+  return selectedKeys;
+
+}
+
 
       /* ====================================
          BATCH
@@ -4353,29 +4783,102 @@ const customers =
   ).filter(
     function(batch) {
 
+      const batchCode =
+        String(
+          batch.batch_code || ""
+        ).trim();
+
       const batchKey =
         selectedType +
         "||" +
         selectedCategory +
         "||" +
-        String(
-          batch.batch_code || ""
-        ).trim();
+        batchCode;
+
+       const draftSelectedBatchKeys =
+  getDraftSelectedBatchKeys();
+
+
+/*
+ * =====================================
+ * 0. BATCH SUDAH DIPILIH DI ALOKASI LAIN
+ *    MESKIPUN BELUM DI-SAVE
+ * =====================================
+ */
+
+if (
+  draftSelectedBatchKeys.has(
+    batchKey
+  )
+) {
+
+  return false;
+
+}
 
 
       /*
-       * Jika batch sudah dibeli
-       * secara 1 Seller,
-       * sembunyikan seluruh batch.
+       * =====================================
+       * 1. BATCH SUDAH ARRIVED ADMIN
+       *    DAN SUDAH MASUK ALOKASI BARANG
+       * =====================================
        *
-       * Jika baru ada pembelian >1 Seller,
-       * batch tetap ditampilkan agar
-       * customer/version lain bisa dipilih.
+       * Jika sudah memenuhi dua kondisi ini,
+       * seluruh batch tidak boleh muncul
+       * pada penambahan alokasi baru.
+       *
+       * Tetapi jika sedang EDIT alokasi yang
+       * memang sudah menggunakan batch tersebut,
+       * batch tetap dipertahankan agar data
+       * lama tidak hilang.
        */
 
-      return !purchasedBatchKeys.has(
-        batchKey
-      );
+      const isCurrentAllocation =
+        String(
+          allocation.batch_code || ""
+        ).trim() ===
+        batchCode;
+
+      if (
+        arrivedAdminAllocatedBatchKeys.has(
+          batchKey
+        ) &&
+        !isCurrentAllocation
+      ) {
+
+        return false;
+
+      }
+
+
+      /*
+       * =====================================
+       * 2. BATCH SUDAH DIBELI 1 SELLER
+       * =====================================
+       */
+
+      if (
+        purchasedBatchKeys.has(
+          batchKey
+        ) &&
+        !isCurrentAllocation
+      ) {
+
+        return false;
+
+      }
+
+
+      /*
+       * =====================================
+       * 3. BATCH >1 SELLER
+       *
+       * Tetap tampil agar customer/version
+       * lain masih dapat dipilih.
+       * =====================================
+       */
+
+      return true;
 
     }
   );
@@ -4495,6 +4998,44 @@ const customers =
 
         }
       );
+
+        customerSelect.addEventListener(
+    "change",
+    function() {
+
+      allocation.purchase_recap_id =
+        customerSelect.value || null;
+
+      const allocationRows =
+        container.querySelectorAll(
+          ".purchase-allocation-row"
+        );
+
+      allocationRows.forEach(
+        function(otherRow) {
+
+          if (
+            otherRow === row
+          ) {
+            return;
+          }
+
+          const refreshFunction =
+            otherRow
+              ._refreshPurchaseAllocationCustomers;
+
+          if (
+            typeof refreshFunction ===
+            "function"
+          ) {
+            refreshFunction();
+          }
+
+        }
+      );
+
+    }
+  );
 
 
       /* ====================================
