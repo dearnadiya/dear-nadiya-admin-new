@@ -25638,6 +25638,11 @@ const selectedRows =
 
 const batchDeadlines = {};
 
+/* ==========================================
+   AMBIL LAST PAYMENT PER BATCH
+   DP / PELUNASAN
+   ========================================== */
+
 selectedRows.forEach(
   function(row) {
 
@@ -25646,13 +25651,18 @@ selectedRows.forEach(
         row.batch_code || ""
       ).trim();
 
+    if (!batchCode) {
+      return;
+    }
+
     const deadline =
-      String(
-        row.payment_deadline || ""
-      ).trim();
+      normalizeDate(
+        paymentType === "dp"
+          ? row.dp_deadline
+          : row.payment_deadline
+      );
 
     if (
-      batchCode &&
       deadline &&
       !batchDeadlines[batchCode]
     ) {
@@ -25664,7 +25674,6 @@ selectedRows.forEach(
 
   }
 );
-
 const deadlineEntries =
   selectedBatches
     .map(
@@ -25942,6 +25951,12 @@ const dpPaid =
     billingSummary.totalDpPaid
   ) || 0;
 
+const dpDue =
+  Math.max(
+    dpMinimum - dpPaid,
+    0
+  );
+
 const remaining =
   Number(
     billingSummary.remaining
@@ -25965,8 +25980,8 @@ total +=
   price;
 
 totalDp +=
-  dpPaid;
-
+  dpDue;
+                   
 totalRemaining +=
   billRemaining;
 
@@ -25990,6 +26005,21 @@ if (
   paymentType === "pelunasan"
 ) {
 
+  if (isPaid) {
+
+    return (
+      `${batchLabel}` +
+      `${version}` +
+      `${
+        quantity > 1
+          ? ` × ${quantity}`
+          : ""
+      }` +
+      ` ✅ LUNAS`
+    );
+
+  }
+
   return (
     `${batchLabel}` +
     `${version}` +
@@ -25998,12 +26028,7 @@ if (
         ? ` × ${quantity}`
         : ""
     }` +
-    ` - Sisa Pelunasan ${money(billRemaining)}` +
-    `${
-      isPaid
-        ? " ✅ LUNAS"
-        : ""
-    }`
+    ` - ${money(billRemaining)}`
   );
 
 }
@@ -26019,9 +26044,7 @@ return (
   }` +
   ` - ${money(price)}` +
 ` DP ${
-  paymentType === "dp"
-    ? money(dpMinimum)
-    : money(dpPaid)
+  money(dpDue)
 }` +
   `${
     isPaid
