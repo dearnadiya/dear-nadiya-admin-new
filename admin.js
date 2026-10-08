@@ -41,6 +41,7 @@ const googleLoginButton =
 let purchaseBatchInfoMap = {};
 let purchaseStockSearchTerm = "";
 let purchaseStockSearchTimer = null;
+let purchaseStockOpenGroups = {};
 
 /* ============================================
    SUPABASE
@@ -1140,19 +1141,29 @@ trackingGroups.forEach(
 
       displayActiveRows.push({
         __trackingGroupHeader:
+          group.label,
+
+        __trackingGroupKey:
           group.label
       });
 
-      displayActiveRows.push(
-        ...groupRows
+      groupRows.forEach(
+        function(row) {
+
+          displayActiveRows.push({
+            ...row,
+
+            __trackingGroupKey:
+              group.label
+          });
+
+        }
       );
 
     }
 
   }
 );
-
-
   if (!filteredRows.length) {
      
     container.innerHTML = `
@@ -1498,32 +1509,75 @@ if (purchaseRecapIds.length) {
 
      if (row.__trackingGroupHeader) {
 
-  return `
-    <tr>
-      <td
-        colspan="4"
+  const groupKey =
+  row.__trackingGroupKey;
+
+const isOpen =
+  purchaseStockOpenGroups[groupKey] === true;
+
+return `
+  <tr>
+    <td
+      colspan="4"
+      style="
+        padding:0;
+        background:#f7f7f7;
+        border-top:1px solid #e5e5e5;
+        border-bottom:1px solid #e5e5e5;
+      "
+    >
+
+      <button
+        type="button"
+        class="purchase-stock-tracking-group-button"
+        data-group-key="${escapeHTML(groupKey)}"
         style="
+          width:100%;
+          border:0;
+          background:transparent;
           padding:12px;
-          background:#f7f7f7;
-          border-top:1px solid #e5e5e5;
-          border-bottom:1px solid #e5e5e5;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          cursor:pointer;
           font-weight:700;
           font-size:13px;
+          text-align:left;
         "
       >
-        ${escapeHTML(
-          row.__trackingGroupHeader
-        )}
-      </td>
-    </tr>
-  `;
 
+        <span>
+          ${escapeHTML(
+            row.__trackingGroupHeader
+          )}
+        </span>
+
+        <span
+          style="
+            font-size:12px;
+            color:#777;
+          "
+        >
+          ${isOpen ? "▲" : "▼"}
+        </span>
+
+      </button>
+
+    </td>
+  </tr>
+`;
 }
 
                   const purchaseId =
                     Number(
                       row.id
                     );
+
+     const groupKey =
+  row.__trackingGroupKey;
+
+const groupOpen =
+  purchaseStockOpenGroups[groupKey] === true;
 
 
                   const allocations =
@@ -1567,8 +1621,10 @@ if (purchaseRecapIds.length) {
 
                   return `
                     <tr
+                      data-tracking-group-row="${escapeHTML(groupKey)}"
                       style="
                         border-top:1px solid #eee;
+                        display:${groupOpen ? "table-row" : "none"};
                       "
                     >
 
@@ -1723,9 +1779,13 @@ font-size:11px;
                     </tr>
 
                     <tr
-                      class="purchase-stock-detail-row"
-                      data-detail-row-id="${purchaseId}"
-                    >
+  class="purchase-stock-detail-row"
+  data-detail-row-id="${purchaseId}"
+  data-tracking-group-row="${escapeHTML(groupKey)}"
+  style="
+    display:${groupOpen ? "table-row" : "none"};
+  "
+>
                       <td
                         colspan="4"
                         style="
@@ -2632,6 +2692,67 @@ return `
     );
 
   }
+
+   /*
+   ============================================
+   ACCORDION TRACKING
+   ============================================
+*/
+
+container
+  .querySelectorAll(
+    ".purchase-stock-tracking-group-button"
+  )
+  .forEach(
+    function(button) {
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          const groupKey =
+            button.dataset.groupKey;
+
+          purchaseStockOpenGroups[groupKey] =
+            purchaseStockOpenGroups[groupKey] !== true;
+
+          const isOpen =
+            purchaseStockOpenGroups[groupKey] === true;
+
+          container
+            .querySelectorAll(
+              `[data-tracking-group-row="${CSS.escape(groupKey)}"]`
+            )
+            .forEach(
+              function(row) {
+
+                row.style.display =
+                  isOpen
+                    ? "table-row"
+                    : "none";
+
+              }
+            );
+
+          const arrow =
+            button.querySelector(
+              "span:last-child"
+            );
+
+          if (arrow) {
+
+            arrow.textContent =
+              isOpen
+                ? "▲"
+                : "▼";
+
+          }
+
+        }
+      );
+
+    }
+  );
 
 
   /*
