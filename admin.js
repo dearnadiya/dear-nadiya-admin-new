@@ -25655,12 +25655,15 @@ selectedRows.forEach(
       return;
     }
 
+    const rawDeadline =
+      paymentType === "dp"
+        ? row.dp_deadline
+        : row.payment_deadline;
+
     const deadline =
-      normalizeDate(
-        paymentType === "dp"
-          ? row.dp_deadline
-          : row.payment_deadline
-      );
+      rawDeadline
+        ? String(rawDeadline).substring(0, 10)
+        : "";
 
     if (
       deadline &&
@@ -25674,6 +25677,7 @@ selectedRows.forEach(
 
   }
 );
+     
 const deadlineEntries =
   selectedBatches
     .map(
