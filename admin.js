@@ -24457,6 +24457,1390 @@ const po =
 
 }
 
+/* =========================================================
+   UPDATE BARANG KE GRUP GO
+   SUMBER STATUS & TANGGAL = PEMBELIAN STOK
+   ========================================================= */
+
+async function showWhatsAppTrackingUpdateBuilder(
+  category
+) {
+
+  /* ==========================================
+     1. AMBIL ALOKASI REKAP GO
+     ========================================== */
+
+  const {
+    data: allocationRows,
+    error: allocationError
+  } = await supabaseClient
+
+    .from("purchase_stock_allocation")
+
+    .select(`
+      purchase_stock_id,
+      allocation_type,
+      category,
+      batch_code,
+      purchase_recap_id
+    `)
+
+    .eq(
+      "allocation_type",
+      "Rekap GO"
+    )
+
+    .eq(
+      "category",
+      category
+    );
+
+
+  if (allocationError) {
+
+    console.error(
+      "ERROR LOAD ALOKASI UPDATE BARANG:",
+      allocationError
+    );
+
+    alert(
+      "Gagal mengambil data alokasi barang:\n\n" +
+      allocationError.message
+    );
+
+    return;
+  }
+
+
+  const validAllocations =
+    (allocationRows || [])
+      .filter(function(row) {
+
+        return (
+          row.batch_code &&
+          row.purchase_stock_id
+        );
+
+      });
+
+
+  /* ==========================================
+     2. AMBIL ID PEMBELIAN STOK
+     ========================================== */
+
+  const purchaseStockIds =
+    Array.from(
+      new Set(
+        validAllocations
+          .map(function(row) {
+
+            return Number(
+              row.purchase_stock_id
+            );
+
+          })
+          .filter(function(id) {
+
+            return id > 0;
+
+          })
+      )
+    );
+
+
+  if (!purchaseStockIds.length) {
+
+    alert(
+      "Belum ada Pembelian Stok yang dialokasikan ke Rekap GO."
+    );
+
+    return;
+  }
+
+
+  /* ==========================================
+     3. AMBIL DATA PEMBELIAN STOK
+     ========================================== */
+
+  const {
+    data: purchaseRows,
+    error: purchaseError
+  } = await supabaseClient
+
+    .from("purchase_stock")
+
+    .select(`
+      id,
+      item_name,
+      tracking_status,
+      arrived_wh_at,
+      shipping_ina_at,
+      arrived_ina_at,
+      seller_name
+    `)
+
+    .in(
+      "id",
+      purchaseStockIds
+    );
+
+
+  if (purchaseError) {
+
+    console.error(
+      "ERROR LOAD PEMBELIAN STOK UPDATE BARANG:",
+      purchaseError
+    );
+
+    alert(
+      "Gagal mengambil data Pembelian Stok:\n\n" +
+      purchaseError.message
+    );
+
+    return;
+  }
+
+
+  const purchaseMap = {};
+
+
+  (purchaseRows || [])
+    .forEach(function(row) {
+
+      purchaseMap[
+        Number(row.id)
+      ] = row;
+
+    });
+
+
+  /* ==========================================
+     4. FUNGSI TANGGAL TRACKING
+     ========================================== */
+
+  function getTrackingDate(
+    purchase
+  ) {
+
+    if (!purchase) {
+      return null;
+    }
+
+
+    const status =
+      String(
+        purchase.tracking_status || ""
+      ).trim();
+
+
+    /*
+       Arrived WH
+       Semua variasi Arrived WH
+       menggunakan arrived_wh_at
+    */
+
+    if (
+      [
+        "Arrived WH KR",
+        "Arrived WH JP",
+        "Arrived WH CH",
+        "Arrived WH Thai"
+      ].includes(status)
+    ) {
+
+      return (
+        purchase.arrived_wh_at ||
+        null
+      );
+
+    }
+
+
+    /* Shipping INA */
+
+    if (
+      status ===
+      "Shipping INA"
+    ) {
+
+      return (
+        purchase.shipping_ina_at ||
+        null
+      );
+
+    }
+
+
+    /* Arrived WH INA */
+
+    if (
+      status ===
+      "Arrived WH INA"
+    ) {
+
+      return (
+        purchase.arrived_ina_at ||
+        null
+      );
+
+    }
+
+
+    /*
+       Status lain memang tidak mempunyai
+       tanggal tracking khusus di Pembelian Stok.
+    */
+
+    return null;
+
+  }
+
+
+  /* ==========================================
+     5. FORMAT TANGGAL
+     ========================================== */
+
+  function formatTrackingDate(
+    value
+  ) {
+
+    if (!value) {
+      return "";
+    }
+
+
+    const date =
+      new Date(value);
+
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+
+      return "";
+
+    }
+
+
+    return date.toLocaleDateString(
+      "id-ID",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      }
+    );
+
+  }
+
+
+  /* ==========================================
+     6. URUTAN STATUS
+     ========================================== */
+
+  function getTrackingRank(
+    status
+  ) {
+
+    const options =
+      getTrackingOptions(
+        category
+      ) || [];
+
+
+    const index =
+      options.indexOf(
+        status
+      );
+
+
+    if (
+      index >= 0
+    ) {
+
+      return index;
+
+    }
+
+
+    /*
+       Fallback jika status tidak
+       terdapat di getTrackingOptions()
+    */
+
+    const fallback =
+      [
+        "Co Seller",
+        "Co Web / Seller",
+        "Arrived WH KR",
+        "Arrived WH JP",
+        "Arrived WH CH",
+        "Arrived WH Thai",
+        "Shipping INA",
+        "Arrived WH INA",
+        "Arrived Admin",
+        "Goods Arrive at Customer"
+      ];
+
+
+    const fallbackIndex =
+      fallback.indexOf(
+        status
+      );
+
+
+    return (
+      fallbackIndex >= 0
+        ? fallbackIndex
+        : -1
+    );
+
+  }
+
+
+  /* ==========================================
+     7. GROUP PER BATCH
+     ========================================== */
+
+  const grouped =
+    {};
+
+
+  validAllocations
+    .forEach(function(allocation) {
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+
+      if (!batchCode) {
+        return;
+      }
+
+
+      const purchase =
+        purchaseMap[
+          Number(
+            allocation.purchase_stock_id
+          )
+        ];
+
+
+      if (!purchase) {
+        return;
+      }
+
+
+      if (
+        !grouped[batchCode]
+      ) {
+
+        grouped[batchCode] =
+          [];
+
+      }
+
+
+      /*
+         Jangan memasukkan pembelian yang
+         sudah selesai.
+      */
+
+      const tracking =
+        String(
+          purchase.tracking_status || ""
+        ).trim();
+
+
+      if (
+        tracking.toLowerCase() ===
+        "arrived admin"
+      ) {
+
+        return;
+      }
+
+
+      if (
+        tracking.toLowerCase() ===
+        "goods arrive at customer"
+      ) {
+
+        return;
+      }
+
+
+      /*
+         Hindari purchase stock yang sama
+         masuk dua kali ke batch.
+      */
+
+      const alreadyExists =
+        grouped[batchCode]
+          .some(function(item) {
+
+            return (
+              Number(
+                item.purchase.id
+              ) ===
+              Number(
+                purchase.id
+              )
+            );
+
+          });
+
+
+      if (
+        alreadyExists
+      ) {
+
+        return;
+
+      }
+
+
+      grouped[batchCode]
+        .push({
+          purchase:
+            purchase,
+
+          allocation:
+            allocation
+        });
+
+    });
+
+
+  /* ==========================================
+     8. TENTUKAN STATUS BATCH
+     ========================================== */
+
+  const batchRows =
+    Object.keys(grouped)
+      .map(function(batchCode) {
+
+        const items =
+          grouped[batchCode];
+
+
+        if (
+          !items.length
+        ) {
+
+          return null;
+
+        }
+
+
+        /*
+           Jika satu batch mempunyai
+           beberapa Pembelian Stok / seller,
+           ambil status dengan progress
+           paling jauh.
+
+           Jika rank sama,
+           gunakan tanggal perubahan
+           status yang paling baru.
+        */
+
+        items.sort(
+          function(a, b) {
+
+            const statusA =
+              String(
+                a.purchase
+                  ?.tracking_status ||
+                ""
+              ).trim();
+
+
+            const statusB =
+              String(
+                b.purchase
+                  ?.tracking_status ||
+                ""
+              ).trim();
+
+
+            const rankA =
+              getTrackingRank(
+                statusA
+              );
+
+
+            const rankB =
+              getTrackingRank(
+                statusB
+              );
+
+
+            if (
+              rankA !==
+              rankB
+            ) {
+
+              return (
+                rankB -
+                rankA
+              );
+
+            }
+
+
+            const dateA =
+              getTrackingDate(
+                a.purchase
+              );
+
+
+            const dateB =
+              getTrackingDate(
+                b.purchase
+              );
+
+
+            const timeA =
+              dateA
+                ? new Date(
+                    dateA
+                  ).getTime()
+                : 0;
+
+
+            const timeB =
+              dateB
+                ? new Date(
+                    dateB
+                  ).getTime()
+                : 0;
+
+
+            return (
+              timeB -
+              timeA
+            );
+
+          }
+        );
+
+
+        const selected =
+          items[0];
+
+
+        const purchase =
+          selected.purchase;
+
+
+        const tracking =
+          String(
+            purchase
+              ?.tracking_status ||
+            ""
+          ).trim();
+
+
+        if (!tracking) {
+          return null;
+        }
+
+
+        const trackingDate =
+          getTrackingDate(
+            purchase
+          );
+
+
+        return {
+
+          batchCode:
+            batchCode,
+
+          itemName:
+            String(
+              purchase?.item_name ||
+              "Barang"
+            ).trim(),
+
+          tracking:
+            tracking,
+
+          trackingDate:
+            trackingDate,
+
+          formattedDate:
+            formatTrackingDate(
+              trackingDate
+            ),
+
+          sellerName:
+            String(
+              purchase?.seller_name ||
+              ""
+            ).trim(),
+
+          purchaseId:
+            Number(
+              purchase?.id ||
+              0
+            )
+
+        };
+
+      })
+      .filter(Boolean);
+
+
+  /* ==========================================
+     9. MODAL LAMA
+     ========================================== */
+
+  const oldModal =
+    document.getElementById(
+      "whatsappTrackingUpdateModal"
+    );
+
+
+  if (oldModal) {
+    oldModal.remove();
+  }
+
+
+  /* ==========================================
+     10. BUAT MODAL
+     ========================================== */
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "whatsappTrackingUpdateModal";
+
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    box-sizing:border-box;
+  `;
+
+
+  modal.innerHTML = `
+
+    <div
+      style="
+        width:min(1000px,100%);
+        max-height:90vh;
+        overflow:auto;
+        background:#fff;
+        border-radius:16px;
+        padding:22px;
+        box-sizing:border-box;
+        box-shadow:0 20px 60px rgba(0,0,0,.25);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:15px;
+          margin-bottom:18px;
+        "
+      >
+
+        <div>
+
+          <h3
+            style="
+              margin:0 0 5px;
+            "
+          >
+            📦 Update Barang ke Grup GO
+          </h3>
+
+          <div
+            style="
+              font-size:13px;
+              color:#777;
+            "
+          >
+            Kategori:
+            <strong>
+              ${escapeHTML(category)}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="closeWhatsAppTrackingUpdateModal"
+          class="secondary-button"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          padding:12px;
+          background:#f8f5fa;
+          border-radius:10px;
+          margin-bottom:15px;
+          font-size:13px;
+        "
+      >
+
+        Pilih batch yang ingin diumumkan
+        ke grup GO.
+
+        <br>
+
+        <span
+          style="
+            color:#777;
+          "
+        >
+          Status dan tanggal diambil dari
+          <strong>Pembelian Stok</strong>.
+          Jika tanggal perubahan status belum
+          tersedia, tanggal tidak akan ditampilkan.
+        </span>
+
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-bottom:15px;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="selectAllTrackingUpdate"
+        >
+          ☑️ Pilih Semua
+        </button>
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="clearAllTrackingUpdate"
+        >
+          ⬜ Hapus Pilihan
+        </button>
+
+      </div>
+
+
+      <div
+        id="trackingUpdateBatchList"
+      >
+      </div>
+
+
+      <div
+        style="
+          margin-top:20px;
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <button
+          type="button"
+          class="secondary-button"
+          id="cancelWhatsAppTrackingUpdate"
+        >
+          Batal
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="generateWhatsAppTrackingUpdate"
+        >
+          💬 Buat Pesan WhatsApp
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  const list =
+    modal.querySelector(
+      "#trackingUpdateBatchList"
+    );
+
+
+  /* ==========================================
+     11. TIDAK ADA DATA
+     ========================================== */
+
+  if (
+    !batchRows.length
+  ) {
+
+    list.innerHTML = `
+
+      <div
+        style="
+          padding:25px;
+          text-align:center;
+          border:1px dashed #ddd;
+          border-radius:10px;
+          color:#777;
+        "
+      >
+        Tidak ada barang yang perlu
+        di-update ke grup GO.
+      </div>
+
+    `;
+
+  }
+  else {
+
+    list.innerHTML =
+      batchRows
+        .map(function(batch) {
+
+          /*
+             Tanggal hanya dibuat jika
+             memang tersedia.
+          */
+
+          const dateHTML =
+            batch.formattedDate
+              ? `
+                <div
+                  style="
+                    font-size:12px;
+                    color:#777;
+                    margin-top:3px;
+                  "
+                >
+                  ${escapeHTML(
+                    batch.formattedDate
+                  )}
+                </div>
+              `
+              : "";
+
+
+          return `
+
+            <label
+              style="
+                display:grid;
+                grid-template-columns:30px minmax(180px,1fr) 220px;
+                gap:12px;
+                align-items:center;
+                padding:12px;
+                border:1px solid #eee;
+                border-radius:10px;
+                margin-bottom:8px;
+                cursor:pointer;
+                box-sizing:border-box;
+              "
+            >
+
+              <input
+                type="checkbox"
+                class="tracking-update-checkbox"
+                data-batch-code="${escapeHTML(
+                  batch.batchCode
+                )}"
+              >
+
+
+              <div
+                style="
+                  min-width:0;
+                "
+              >
+
+                <strong>
+                  ${escapeHTML(
+                    batch.itemName
+                  )}
+                </strong>
+
+                <div
+                  style="
+                    font-size:12px;
+                    color:#777;
+                    margin-top:3px;
+                  "
+                >
+                  Batch:
+                  ${escapeHTML(
+                    batch.batchCode
+                  )}
+                </div>
+
+              </div>
+
+
+              <div>
+
+                <div
+                  style="
+                    font-size:11px;
+                    color:#888;
+                    margin-bottom:3px;
+                  "
+                >
+                  Status
+                </div>
+
+                <strong>
+                  ${escapeHTML(
+                    batch.tracking
+                  )}
+                </strong>
+
+                ${dateHTML}
+
+              </div>
+
+            </label>
+
+          `;
+
+        })
+        .join("");
+
+  }
+
+
+  /* ==========================================
+     12. PILIH SEMUA
+     ========================================== */
+
+  const selectAllButton =
+    modal.querySelector(
+      "#selectAllTrackingUpdate"
+    );
+
+
+  if (
+    selectAllButton
+  ) {
+
+    selectAllButton.onclick =
+      function() {
+
+        modal
+          .querySelectorAll(
+            ".tracking-update-checkbox"
+          )
+          .forEach(
+            function(check) {
+
+              check.checked =
+                true;
+
+            }
+          );
+
+      };
+
+  }
+
+
+  /* ==========================================
+     13. HAPUS PILIHAN
+     ========================================== */
+
+  const clearAllButton =
+    modal.querySelector(
+      "#clearAllTrackingUpdate"
+    );
+
+
+  if (
+    clearAllButton
+  ) {
+
+    clearAllButton.onclick =
+      function() {
+
+        modal
+          .querySelectorAll(
+            ".tracking-update-checkbox"
+          )
+          .forEach(
+            function(check) {
+
+              check.checked =
+                false;
+
+            }
+          );
+
+      };
+
+  }
+
+
+  /* ==========================================
+     14. TUTUP MODAL
+     ========================================== */
+
+  function closeTrackingModal() {
+
+    modal.remove();
+
+  }
+
+
+  modal
+    .querySelector(
+      "#closeWhatsAppTrackingUpdateModal"
+    )
+    .onclick =
+      closeTrackingModal;
+
+
+  modal
+    .querySelector(
+      "#cancelWhatsAppTrackingUpdate"
+    )
+    .onclick =
+      closeTrackingModal;
+
+
+  modal.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target ===
+        modal
+      ) {
+
+        closeTrackingModal();
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================
+     15. GENERATE WHATSAPP
+     ========================================== */
+
+  const generateButton =
+    modal.querySelector(
+      "#generateWhatsAppTrackingUpdate"
+    );
+
+
+  generateButton.onclick =
+    async function() {
+
+      const selected =
+        Array.from(
+          modal.querySelectorAll(
+            ".tracking-update-checkbox:checked"
+          )
+        )
+        .map(
+          function(check) {
+
+            return check.dataset.batchCode;
+
+          }
+        );
+
+
+      if (
+        !selected.length
+      ) {
+
+        alert(
+          "Pilih minimal 1 batch."
+        );
+
+        return;
+
+      }
+
+
+      const selectedRows =
+        batchRows.filter(
+          function(batch) {
+
+            return selected.includes(
+              batch.batchCode
+            );
+
+          }
+        );
+
+
+      /* ======================================
+         BUAT PESAN
+         ====================================== */
+
+      const lines = [];
+
+
+      lines.push(
+        "📦 *UPDATE BARANG*"
+      );
+
+      lines.push(
+        ""
+      );
+
+      lines.push(
+        `*${category}*`
+      );
+
+      lines.push(
+        ""
+      );
+
+
+      selectedRows.forEach(
+        function(batch) {
+
+          lines.push(
+            `📌 *${batch.itemName || "Barang"}*`
+          );
+
+          lines.push(
+            `Batch: ${batch.batchCode}`
+          );
+
+          lines.push(
+            `Status: ${batch.tracking}`
+          );
+
+
+          /*
+             TANGGAL HANYA DITAMBAHKAN
+             JIKA MEMANG ADA
+          */
+
+          if (
+            batch.formattedDate
+          ) {
+
+            lines.push(
+              `Tanggal: ${batch.formattedDate}`
+            );
+
+          }
+
+
+          lines.push(
+            ""
+          );
+
+        }
+      );
+
+
+      lines.push(
+        "Mohon ditunggu update berikutnya. ♥"
+      );
+
+
+      const message =
+        lines.join(
+          "\n"
+        );
+
+
+      /* ======================================
+         TAMPILKAN HASIL
+         ====================================== */
+
+      list.innerHTML = `
+
+        <div
+          style="
+            margin-bottom:15px;
+          "
+        >
+
+          <strong>
+            Pesan WhatsApp:
+          </strong>
+
+        </div>
+
+
+        <textarea
+          id="generatedTrackingUpdateMessage"
+          style="
+            width:100%;
+            min-height:300px;
+            resize:vertical;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:10px;
+            box-sizing:border-box;
+            font-family:inherit;
+            line-height:1.5;
+          "
+        >${escapeHTML(
+          message
+        )}</textarea>
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:8px;
+            margin-top:10px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="backTrackingUpdateSelection"
+          >
+            ← Kembali
+          </button>
+
+          <button
+            type="button"
+            class="primary-button"
+            id="copyTrackingUpdateMessage"
+          >
+            📋 Salin Pesan
+          </button>
+
+        </div>
+
+      `;
+
+
+      const textarea =
+        list.querySelector(
+          "#generatedTrackingUpdateMessage"
+        );
+
+
+      textarea.focus();
+
+
+      /* ======================================
+         COPY
+         ====================================== */
+
+      const copyButton =
+        list.querySelector(
+          "#copyTrackingUpdateMessage"
+        );
+
+
+      copyButton.onclick =
+        async function() {
+
+          try {
+
+            await navigator.clipboard.writeText(
+              message
+            );
+
+            copyButton.textContent =
+              "✓ Berhasil Disalin";
+
+
+            setTimeout(
+              function() {
+
+                copyButton.textContent =
+                  "📋 Salin Pesan";
+
+              },
+              1500
+            );
+
+          }
+          catch (error) {
+
+            textarea.select();
+
+            document.execCommand(
+              "copy"
+            );
+
+            alert(
+              "Pesan berhasil disalin."
+            );
+
+          }
+
+        };
+
+
+      /* ======================================
+         KEMBALI
+         ====================================== */
+
+      const backButton =
+        list.querySelector(
+          "#backTrackingUpdateSelection"
+        );
+
+
+      backButton.onclick =
+        function() {
+
+          closeTrackingModal();
+
+          showWhatsAppTrackingUpdateBuilder(
+            category
+          );
+
+        };
+
+    };
+
+}
 /* ============================================
    GENERATOR TAGIHAN WHATSAPP
    ============================================ */
@@ -31994,7 +33378,7 @@ let html = `
 <button
   type="button"
   class="primary-button"
-  id="repairMinimumDPButton"
+  id="createWhatsAppTrackingUpdateButton"
   style="
     width:auto;
     display:inline-flex;
@@ -32005,7 +33389,7 @@ let html = `
     white-space:nowrap;
   "
 >
-  🔧 Perbaiki DP Batch
+  📦 Update Barang ke Grup GO
 </button>
 
 <button
@@ -35265,130 +36649,7 @@ if (addRecapBatchButton) {
   );
 
 }
-
-/* ==========================================
-   PERBAIKI DP MINIMUM PER BATCH
-   ========================================== */
-
-const repairMinimumDPButton =
-  container.querySelector(
-    "#repairMinimumDPButton"
-  );
-
-if (
-  repairMinimumDPButton
-) {
-
-  repairMinimumDPButton.addEventListener(
-    "click",
-    async function() {
-
-      const batchCode =
-        prompt(
-          "Masukkan Kode Batch yang ingin diperbaiki.\n\n" +
-          "Contoh: Tr-INA-027"
-        );
-
-      if (
-        !batchCode ||
-        !batchCode.trim()
-      ) {
-        return;
-      }
-
-      const cleanBatchCode =
-        batchCode.trim();
-
-      const yakin =
-        confirm(
-          "Perbaiki DP Minimum batch berikut?\n\n" +
-          "Kategori: " +
-          category +
-          "\n" +
-          "Batch: " +
-          cleanBatchCode +
-          "\n\n" +
-          "Sistem akan mengambil DP dari data PO.\n" +
-          "DP Aktual customer TIDAK akan diubah.\n" +
-          "Pembayaran yang sudah masuk TIDAK akan diubah."
-        );
-
-      if (!yakin) {
-        return;
-      }
-
-      repairMinimumDPButton.disabled =
-        true;
-
-      repairMinimumDPButton.textContent =
-        "⏳ Memperbaiki...";
-
-      try {
-
-        const updatedCount =
-          await repairOldMinimumDP(
-            category,
-            cleanBatchCode
-          );
-
-        if (
-          updatedCount === 0
-        ) {
-
-          alert(
-            "Tidak ada data yang diperbaiki.\n\n" +
-            "Kemungkinan:\n" +
-            "• DP Minimum batch tersebut tidak 0, atau\n" +
-            "• Batch tidak ditemukan, atau\n" +
-            "• DP pada PO juga tidak tersedia."
-          );
-
-        } else {
-
-          alert(
-            "DP Minimum berhasil diperbaiki. ♥\n\n" +
-            "Batch: " +
-            cleanBatchCode +
-            "\n" +
-            "Member yang diperbaiki: " +
-            updatedCount
-          );
-
-        }
-
-        await loadRecapList(
-          category
-        );
-
-      }
-      catch (error) {
-
-        console.error(
-          "ERROR REPAIR DP BATCH:",
-          error
-        );
-
-        alert(
-          "Gagal memperbaiki DP Minimum:\n\n" +
-          error.message
-        );
-
-      }
-      finally {
-
-        repairMinimumDPButton.disabled =
-          false;
-
-        repairMinimumDPButton.textContent =
-          "🔧 Perbaiki DP Batch";
-
-      }
-
-    }
-  );
-
-}
-
+   
    /* ==========================================
    BUAT TAGIHAN WHATSAPP
    ========================================== */
@@ -35408,6 +36669,32 @@ if (
     function() {
 
       showWhatsAppBillingBuilder(
+        category
+      );
+
+    }
+  );
+
+}
+
+/* ==========================================
+   UPDATE BARANG KE GRUP GO
+   ========================================== */
+
+const createWhatsAppTrackingUpdateButton =
+  container.querySelector(
+    "#createWhatsAppTrackingUpdateButton"
+  );
+
+if (
+  createWhatsAppTrackingUpdateButton
+) {
+
+  createWhatsAppTrackingUpdateButton.addEventListener(
+    "click",
+    function() {
+
+      showWhatsAppTrackingUpdateBuilder(
         category
       );
 
