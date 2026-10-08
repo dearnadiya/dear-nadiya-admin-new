@@ -24732,30 +24732,29 @@ async function showWhatsAppTrackingUpdateBuilder() {
 
       }
 
+       const recapType =
+  String(
+    allocation.recap_type || ""
+  ).trim();
 
-      const category =
-        String(
-          allocation.category || ""
-        ).trim();
+const category =
+  String(
+    allocation.category || ""
+  ).trim();
 
+const batchCode =
+  String(
+    allocation.batch_code || ""
+  ).trim();
 
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
-
-
-      if (
+if (
   !recapType ||
   !category ||
   !batchCode
 ) {
-
-        return;
-
-      }
-
-
+  return;
+}
+       
       const key =
   recapType +
   "||" +
@@ -24764,7 +24763,6 @@ async function showWhatsAppTrackingUpdateBuilder() {
   batchCode;
 
       if (!grouped[key]) {
-
         grouped[key] = {
 
            recapType:
