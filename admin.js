@@ -806,6 +806,23 @@ async function loadPurchaseStock() {
   </button>
 
   <button
+  type="button"
+  id="createShopeeCOListButton"
+  class="primary-button"
+  style="
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 16px;
+    font-size:13px;
+    white-space:nowrap;
+  "
+>
+  🛒 List CO Shopee
+</button>
+
+  <button
     type="button"
     id="addPurchaseStockButton"
     class="primary-button"
@@ -896,6 +913,30 @@ if (
     function() {
 
       showWhatsAppTrackingUpdateBuilder();
+
+    }
+  );
+
+}
+
+   /* ============================================
+   LIST CO SHOPEE
+   ============================================ */
+
+const createShopeeCOListButton =
+  document.getElementById(
+    "createShopeeCOListButton"
+  );
+
+if (
+  createShopeeCOListButton
+) {
+
+  createShopeeCOListButton.addEventListener(
+    "click",
+    function() {
+
+      showShopeeCOListBuilder();
 
     }
   );
@@ -26135,6 +26176,796 @@ recapTypes.forEach(
         };
 
     };
+
+}
+
+/* ============================================
+   BUILDER LIST CO SHOPEE
+   ============================================ */
+
+async function showShopeeCOListBuilder() {
+
+  /* ==========================================
+     AMBIL DATA REKAP GO
+     ========================================== */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select(`
+        id,
+        recap_type,
+        category,
+        batch_code,
+        item_name,
+        version,
+        customer_id,
+        customer_name,
+        customer_status,
+        tracking_status,
+        batch_tracking_status,
+        arrived_admin_at,
+        co_deadline
+      `)
+      .order(
+        "batch_code",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+
+    console.error(
+      "ERROR LOAD LIST CO SHOPEE:",
+      error
+    );
+
+    alert(
+      "Gagal mengambil data Rekap GO:\n" +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  const rows =
+    data || [];
+
+
+  /* ==========================================
+     HANYA BATCH ARRIVED ADMIN
+     ========================================== */
+
+  const arrivedRows =
+    rows.filter(
+      function(row) {
+
+        const tracking =
+          String(
+            row.batch_tracking_status ||
+            row.tracking_status ||
+            ""
+          ).trim();
+
+        return (
+          tracking ===
+          "Arrived Admin"
+        );
+
+      }
+    );
+
+
+  /* ==========================================
+     KELOMPOKKAN PER:
+     RECAP TYPE + CATEGORY + BATCH
+     ========================================== */
+
+  const grouped = {};
+
+
+  arrivedRows.forEach(
+    function(row) {
+
+      const recapType =
+        String(
+          row.recap_type || ""
+        ).trim();
+
+      const category =
+        String(
+          row.category || ""
+        ).trim();
+
+      const batchCode =
+        String(
+          row.batch_code || ""
+        ).trim();
+
+
+      if (
+        !recapType ||
+        !category ||
+        !batchCode
+      ) {
+
+        return;
+
+      }
+
+
+      const key =
+        recapType +
+        "||" +
+        category +
+        "||" +
+        batchCode;
+
+
+      if (
+        !grouped[key]
+      ) {
+
+        grouped[key] = {
+
+          recapType:
+            recapType,
+
+          category:
+            category,
+
+          batchCode:
+            batchCode,
+
+          itemName:
+            String(
+              row.item_name || ""
+            ).trim(),
+
+          rows:
+            []
+
+        };
+
+      }
+
+
+      grouped[key].rows.push(
+        row
+      );
+
+    }
+  );
+
+
+  /* ==========================================
+     HANYA TAMPILKAN BATCH YANG
+     BELUM 100% CHECKOUT
+     ========================================== */
+
+  const eligibleBatches =
+    Object.values(
+      grouped
+    ).filter(
+      function(batch) {
+
+        if (
+          !batch.rows.length
+        ) {
+
+          return false;
+
+        }
+
+
+        const allCheckedOut =
+          batch.rows.every(
+            function(row) {
+
+              return (
+                String(
+                  row.customer_status || ""
+                ).trim() ===
+                "Sudah Checkout Shopee"
+              );
+
+            }
+          );
+
+
+        /*
+          Kalau semua customer dalam batch
+          sudah checkout → jangan tampilkan.
+        */
+
+        return !allCheckedOut;
+
+      }
+    );
+
+
+  /* ==========================================
+     URUTKAN
+     ========================================== */
+
+  eligibleBatches.sort(
+    function(a, b) {
+
+      const categoryCompare =
+        a.category.localeCompare(
+          b.category,
+          "id"
+        );
+
+      if (
+        categoryCompare !== 0
+      ) {
+
+        return categoryCompare;
+
+      }
+
+
+      return a.batchCode.localeCompare(
+        b.batchCode,
+        "id"
+      );
+
+    }
+  );
+
+
+  /* ==========================================
+     MODAL
+     ========================================== */
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+  modal.id =
+    "shopeeCOListModal";
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:20px;
+    box-sizing:border-box;
+  `;
+
+
+  modal.innerHTML = `
+
+    <div
+      style="
+        background:#fff;
+        width:100%;
+        max-width:850px;
+        max-height:90vh;
+        overflow:auto;
+        border-radius:16px;
+        padding:22px;
+        box-sizing:border-box;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+          margin-bottom:20px;
+        "
+      >
+
+        <div>
+
+          <h2
+            style="
+              margin:0 0 5px 0;
+            "
+          >
+            🛒 List CO Shopee
+          </h2>
+
+          <div
+            style="
+              color:#777;
+              font-size:13px;
+            "
+          >
+            Membuat daftar barang yang sudah
+            Arrived Admin dan masih memiliki
+            customer yang belum checkout.
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          id="closeShopeeCOListModal"
+          class="secondary-button"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <!-- EVENT SHOPEE -->
+
+      <div
+        style="
+          margin-bottom:18px;
+        "
+      >
+
+        <label
+          style="
+            display:block;
+            font-weight:700;
+            margin-bottom:7px;
+          "
+        >
+          Event Shopee
+        </label>
+
+        <input
+          type="text"
+          id="shopeeCOEventName"
+          placeholder="Contoh: 9.9"
+          style="
+            width:100%;
+            box-sizing:border-box;
+            padding:11px 12px;
+            border:1px solid #ddd;
+            border-radius:9px;
+            font-size:14px;
+          "
+        >
+
+      </div>
+
+
+      <!-- INFO -->
+
+      <div
+        style="
+          background:#f8f9fa;
+          border:1px solid #eee;
+          border-radius:10px;
+          padding:12px;
+          margin-bottom:18px;
+          font-size:13px;
+          color:#666;
+        "
+      >
+
+        Hanya batch dengan status
+        <strong>Arrived Admin</strong>
+        yang ditampilkan.
+        <br>
+        Batch yang seluruh customernya sudah
+        <strong>Checkout Shopee</strong>
+        otomatis tidak ditampilkan.
+
+      </div>
+
+
+      <!-- PREVIEW -->
+
+      <div
+        id="shopeeCOListPreview"
+      >
+
+        <div
+          style="
+            padding:20px;
+            text-align:center;
+            color:#999;
+            border:1px dashed #ddd;
+            border-radius:10px;
+          "
+        >
+          Masukkan event Shopee terlebih dahulu.
+        </div>
+
+      </div>
+
+
+      <!-- BUTTON -->
+
+      <div
+        style="
+          margin-top:20px;
+          display:flex;
+          justify-content:flex-end;
+          gap:8px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <button
+          type="button"
+          id="cancelShopeeCOList"
+          class="secondary-button"
+        >
+          Batal
+        </button>
+
+        <button
+          type="button"
+          id="copyShopeeCOList"
+          class="primary-button"
+        >
+          📋 Copy Pesan
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  document.body.appendChild(
+    modal
+  );
+
+
+  const eventInput =
+    modal.querySelector(
+      "#shopeeCOEventName"
+    );
+
+  const preview =
+    modal.querySelector(
+      "#shopeeCOListPreview"
+    );
+
+  const copyButton =
+    modal.querySelector(
+      "#copyShopeeCOList"
+    );
+
+
+  /* ==========================================
+     BUAT PESAN
+     ========================================== */
+
+  function generateMessage() {
+
+    const eventName =
+      String(
+        eventInput.value || ""
+      ).trim();
+
+
+    if (!eventName) {
+
+      preview.innerHTML = `
+
+        <div
+          style="
+            padding:20px;
+            text-align:center;
+            color:#999;
+            border:1px dashed #ddd;
+            border-radius:10px;
+          "
+        >
+          Masukkan event Shopee terlebih dahulu.
+        </div>
+
+      `;
+
+      return "";
+
+    }
+
+
+    const lines = [];
+
+
+    lines.push(
+      `*LIST BARANG YANG SUDAH BISA DI CHECKOUT EVENT ${eventName}*📦`
+    );
+
+    lines.push("");
+
+    lines.push(
+      "*PERHATIKAN BARANG MASING-MASING DAN JANGAN CLAIM BARANG ORANG LAIN*❌"
+    );
+
+    lines.push("");
+
+
+    /* ========================================
+       KELOMPOKKAN PER CATEGORY
+       ======================================== */
+
+    const categoryGroups = {};
+
+
+    eligibleBatches.forEach(
+      function(batch) {
+
+        if (
+          !categoryGroups[
+            batch.category
+          ]
+        ) {
+
+          categoryGroups[
+            batch.category
+          ] = [];
+
+        }
+
+
+        categoryGroups[
+          batch.category
+        ].push(
+          batch
+        );
+
+      }
+    );
+
+
+    Object.keys(
+      categoryGroups
+    )
+    .sort(
+      function(a, b) {
+
+        return a.localeCompare(
+          b,
+          "id"
+        );
+
+      }
+    )
+    .forEach(
+      function(category) {
+
+        lines.push(
+          `- ${category}`
+        );
+
+
+        categoryGroups[
+          category
+        ]
+        .forEach(
+          function(batch, index) {
+
+            const itemName =
+              batch.itemName ||
+              batch.batchCode ||
+              "Barang";
+
+
+            lines.push(
+              `${index + 1}. ${itemName}`
+            );
+
+          }
+        );
+
+
+        lines.push("");
+
+      }
+    );
+
+
+    lines.push(
+      "Silahkan chat admin untuk pemilihan variasi saat CO"
+    );
+
+    lines.push("");
+
+    lines.push(
+      "📝 Saat Checkout, jangan lupa isi web bagian \"checkout yuk\" untuk list yang di CO yaa"
+    );
+
+    lines.push("");
+
+    lines.push(
+      "🔎 cek rekapan disini di link web ya"
+    );
+
+    lines.push("");
+
+    lines.push(
+      "Jika belum ada tertulis barang kalian diatas, maka tunggu kabar selanjutnya ya 🫶🏻"
+    );
+
+    lines.push("");
+
+    lines.push(
+      "Batas timbunan barang 3 bulan ya. Jadi yang merasa barang ya sudah bisa di CO silahkan CO ya gesss🙌🏻🫶🏻"
+    );
+
+
+    const message =
+      lines.join(
+        "\n"
+      );
+
+
+    preview.innerHTML = `
+
+      <div
+        style="
+          margin-bottom:8px;
+          font-weight:700;
+        "
+      >
+        Preview Pesan WhatsApp
+      </div>
+
+      <textarea
+        id="generatedShopeeCOMessage"
+        style="
+          width:100%;
+          min-height:420px;
+          resize:vertical;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:10px;
+          box-sizing:border-box;
+          font-family:inherit;
+          line-height:1.5;
+        "
+      >${escapeHTML(
+        message
+      )}</textarea>
+
+    `;
+
+
+    return message;
+
+  }
+
+
+  /* ==========================================
+     INPUT EVENT
+     ========================================== */
+
+  eventInput.addEventListener(
+    "input",
+    function() {
+
+      generateMessage();
+
+    }
+  );
+
+
+  /* ==========================================
+     COPY
+     ========================================== */
+
+  copyButton.addEventListener(
+    "click",
+    async function() {
+
+      const message =
+        generateMessage();
+
+
+      if (!message) {
+
+        alert(
+          "Isi Event Shopee terlebih dahulu."
+        );
+
+        eventInput.focus();
+
+        return;
+
+      }
+
+
+      try {
+
+        await navigator.clipboard.writeText(
+          message
+        );
+
+        alert(
+          "Pesan berhasil di-copy. ♥"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "COPY ERROR:",
+          error
+        );
+
+
+        const textarea =
+          modal.querySelector(
+            "#generatedShopeeCOMessage"
+          );
+
+        if (textarea) {
+
+          textarea.focus();
+          textarea.select();
+
+        }
+
+
+        alert(
+          "Copy otomatis tidak berhasil. Silakan Ctrl+C."
+        );
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================
+     TUTUP
+     ========================================== */
+
+  function closeModal() {
+
+    modal.remove();
+
+  }
+
+
+  modal
+    .querySelector(
+      "#closeShopeeCOListModal"
+    )
+    .onclick =
+      closeModal;
+
+
+  modal
+    .querySelector(
+      "#cancelShopeeCOList"
+    )
+    .onclick =
+      closeModal;
+
+
+  modal.addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target ===
+        modal
+      ) {
+
+        closeModal();
+
+      }
+
+    }
+  );
 
 }
 
