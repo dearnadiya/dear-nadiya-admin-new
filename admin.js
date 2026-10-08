@@ -1780,17 +1780,9 @@ background:#fff;
   📦 Detail Pembelian
 </div>
 
-                                                    <div
-                            style="
-                              display:grid;
-grid-template-columns:
-  repeat(4, minmax(0,1fr));
-gap:10px 20px;
-font-size:12px;
-align-items:start;
-                            "
-                          >
-
+                  <div
+  class="purchase-stock-detail-grid"
+>
                             <div>
                               <span
                                 style="
@@ -2881,7 +2873,10 @@ container
                 seller_price,
                 rate,
                 tax,
-                tracking_status
+                tracking_status,
+                arrived_wh_at,
+shipping_ina_at,
+arrived_ina_at
               `)
 
               .eq(
@@ -3998,7 +3993,6 @@ Object.keys(
     </div>
 
   `;
-
 
   document.body.appendChild(
     modal
@@ -6243,6 +6237,29 @@ await renderPurchaseStockList();
     );
 }
 
+/* ============================================
+   FORMAT TANGGAL TRACKING PEMBELIAN STOK
+   ============================================ */
+
+function formatPurchaseTrackingDate(value) {
+
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleString(
+    "id-ID",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+
+}
+
 
 /* ============================================
    FORM PEMBELIAN STOK
@@ -6273,35 +6290,135 @@ function showPurchaseStockForm(
       "div"
     );
 
+   const style =
+  document.createElement("style");
+
+style.textContent = `
+
+.purchase-allocation-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  align-items:end;
+}
+
+@media (max-width:600px) {
+  .purchase-allocation-grid {
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+}
+
+  .purchase-stock-form-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:15px;
+  }
+
+  .purchase-stock-item-grid {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 180px;
+    gap:15px;
+    margin-top:10px;
+  }
+
+  .purchase-stock-price-grid {
+    display:grid;
+    grid-template-columns:
+      160px
+      minmax(0,1fr)
+      160px
+      minmax(0,1fr);
+    gap:15px;
+    margin-top:10px;
+  }
+
+  .purchase-stock-detail-grid {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px 20px;
+    font-size:12px;
+    align-items:start;
+  }
+
+  @media (max-width:600px) {
+
+    .purchase-stock-modal-box {
+      width:100% !important;
+      max-width:100% !important;
+      max-height:94vh !important;
+      padding:18px !important;
+      border-radius:16px !important;
+    }
+
+    .purchase-stock-modal-box h2 {
+      font-size:20px !important;
+      line-height:1.2;
+    }
+
+    .purchase-stock-form-grid {
+      grid-template-columns:1fr !important;
+      gap:12px !important;
+    }
+
+    .purchase-stock-item-grid {
+      grid-template-columns:1fr !important;
+      gap:12px !important;
+    }
+
+    .purchase-stock-price-grid {
+      grid-template-columns:1fr !important;
+      gap:12px !important;
+    }
+
+    .purchase-stock-detail-grid {
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      gap:12px !important;
+    }
+
+    .purchase-stock-modal-box input,
+    .purchase-stock-modal-box select,
+    .purchase-stock-modal-box textarea {
+      width:100% !important;
+      max-width:100% !important;
+      box-sizing:border-box !important;
+    }
+
+  }
+`;
+
+document.head.appendChild(style);
 
   modal.id =
     "purchaseStockModal";
 
-
-  modal.style.cssText = `
-    position:fixed;
-    inset:0;
-    z-index:99999;
-    background:rgba(0,0,0,.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-  `;
+modal.style.cssText = `
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  box-sizing:border-box;
+`;
 
 
   modal.innerHTML = `
     <div
-      style="
-        width:min(850px,100%);
-        max-height:92vh;
-        overflow:auto;
-        background:#fff;
-        border-radius:18px;
-        padding:25px;
-        box-shadow:0 20px 60px rgba(0,0,0,.2);
-      "
-    >
+  class="purchase-stock-modal-box"
+  style="
+    width:min(850px,100%);
+    max-height:92vh;
+    overflow:auto;
+    background:#fff;
+    border-radius:18px;
+    padding:25px;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
+    box-sizing:border-box;
+  "
+>
 
       <div
         style="
@@ -6346,13 +6463,8 @@ function showPurchaseStockForm(
       >
 
         <div
-          style="
-            display:grid;
-            grid-template-columns:
-              repeat(2,minmax(0,1fr));
-            gap:15px;
-          "
-        >
+  class="purchase-stock-form-grid"
+>
 
           <label>
 
@@ -6554,15 +6666,8 @@ function showPurchaseStockForm(
 
 
   <div
-    style="
-      display:grid;
-      grid-template-columns:
-  minmax(0,1fr)
-  180px;
-      gap:15px;
-      margin-top:10px;
-    "
-  >
+  class="purchase-stock-item-grid"
+>
 
     <label>
 
@@ -6665,17 +6770,8 @@ function showPurchaseStockForm(
   </strong>
 
   <div
-    style="
-      display:grid;
-      grid-template-columns:
-        160px
-        minmax(0,1fr)
-        160px
-        minmax(0,1fr);
-      gap:15px;
-      margin-top:10px;
-    "
-  >
+  class="purchase-stock-price-grid"
+>
 
     <label>
 
@@ -7257,6 +7353,59 @@ web_seller:
 
 };
 
+         /* ============================================
+   CATAT WAKTU PERUBAHAN STATUS TRACKING
+   ============================================ */
+
+if (isEdit && purchase) {
+
+  const oldTrackingStatus =
+    String(
+      purchase.tracking_status || ""
+    ).trim();
+
+  const newTrackingStatus =
+    String(
+      basePayload.tracking_status || ""
+    ).trim();
+
+  /* Arrived WH */
+  if (
+    oldTrackingStatus !== newTrackingStatus &&
+    [
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai"
+    ].includes(newTrackingStatus) &&
+    !purchase.arrived_wh_at
+  ) {
+    basePayload.arrived_wh_at =
+      new Date().toISOString();
+  }
+
+  /* Shipping INA */
+  if (
+    oldTrackingStatus !== newTrackingStatus &&
+    newTrackingStatus === "Shipping INA" &&
+    !purchase.shipping_ina_at
+  ) {
+    basePayload.shipping_ina_at =
+      new Date().toISOString();
+  }
+
+  /* Arrived INA */
+  if (
+    oldTrackingStatus !== newTrackingStatus &&
+    newTrackingStatus === "Arrived WH INA" &&
+    !purchase.arrived_ina_at
+  ) {
+    basePayload.arrived_ina_at =
+      new Date().toISOString();
+  }
+
+}
+
         const submitButton =
           event.target.querySelector(
             'button[type="submit"]'
@@ -7777,9 +7926,13 @@ async function showPurchaseStockDetail(
       quantity_unit,
       purchase_note,
       created_at,
-      updated_at,
-      seller_url,
-      warehouse_name
+updated_at,
+seller_url,
+warehouse_name,
+tracking_status,
+arrived_wh_at,
+shipping_ina_at,
+arrived_ina_at
     `)
 
     .eq(
