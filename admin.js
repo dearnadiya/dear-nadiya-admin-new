@@ -24745,7 +24745,11 @@ async function showWhatsAppTrackingUpdateBuilder() {
         ).trim();
 
 
-      if (!category || !batchCode) {
+      if (
+  !recapType ||
+  !category ||
+  !batchCode
+) {
 
         return;
 
@@ -24753,14 +24757,18 @@ async function showWhatsAppTrackingUpdateBuilder() {
 
 
       const key =
-        category +
-        "||" +
-        batchCode;
-
+  recapType +
+  "||" +
+  category +
+  "||" +
+  batchCode;
 
       if (!grouped[key]) {
 
         grouped[key] = {
+
+           recapType:
+  recapType,
 
           category:
             category,
@@ -25092,6 +25100,9 @@ const trackingDate =
 
 return {
 
+   recapType:
+  group.recapType,
+
   category:
     group.category,
 
@@ -25305,42 +25316,94 @@ return {
           <strong>Goods Arrive at Customer</strong>
           tidak ditampilkan.
         </span>
-
-      </div>
-
+        </div>
 
       <div
-        style="
-          display:flex;
-          gap:8px;
-          flex-wrap:wrap;
-          margin-bottom:15px;
-        "
-      >
+  style="
+    display:grid;
+    grid-template-columns:
+      minmax(180px,1fr)
+      minmax(180px,1fr);
+    gap:12px;
+    margin-bottom:15px;
+  "
+>
 
-        <button
-          type="button"
-          class="secondary-button"
-          id="selectAllTrackingUpdate"
-        >
-          ☑️ Pilih Semua
-        </button>
+  <!-- TYPE REKAP -->
 
-        <button
-          type="button"
-          class="secondary-button"
-          id="clearAllTrackingUpdate"
-        >
-          ⬜ Hapus Pilihan
-        </button>
+  <div>
 
-      </div>
+    <div
+      style="
+        font-size:12px;
+        color:#777;
+        margin-bottom:5px;
+      "
+    >
+      Type Rekap
+    </div>
+
+    <select
+      id="trackingUpdateRecapType"
+      style="
+        width:100%;
+        padding:10px 12px;
+        border:1px solid #ddd;
+        border-radius:8px;
+        box-sizing:border-box;
+      "
+    >
+
+      <option value="">
+        Pilih Type Rekap
+      </option>
+
+    </select>
+
+  </div>
 
 
-      <div
-        id="trackingUpdateBatchList"
-      >
-      </div>
+  <!-- KATEGORI -->
+
+  <div>
+
+    <div
+      style="
+        font-size:12px;
+        color:#777;
+        margin-bottom:5px;
+      "
+    >
+      Kategori
+    </div>
+
+    <select
+      id="trackingUpdateCategory"
+      style="
+        width:100%;
+        padding:10px 12px;
+        border:1px solid #ddd;
+        border-radius:8px;
+        box-sizing:border-box;
+      "
+      disabled
+    >
+
+      <option value="">
+        Pilih Kategori
+      </option>
+
+    </select>
+
+  </div>
+
+</div>
+
+
+<div
+  id="trackingUpdateBatchList"
+>
+</div>
 
 
       <div
@@ -25386,254 +25449,325 @@ return {
       "#trackingUpdateBatchList"
     );
 
+   const recapTypeSelect =
+  modal.querySelector(
+    "#trackingUpdateRecapType"
+  );
 
-  /* ==========================================
-     9. JIKA TIDAK ADA DATA
-     ========================================== */
+const categorySelect =
+  modal.querySelector(
+    "#trackingUpdateCategory"
+  );
 
-  if (!batchRows.length) {
+
+const recapTypes =
+  Array.from(
+    new Set(
+      batchRows
+        .map(
+          function(batch) {
+
+            return String(
+              batch.recapType || ""
+            ).trim();
+
+          }
+        )
+        .filter(Boolean)
+    )
+  )
+  .sort(
+    function(a, b) {
+
+      return a.localeCompare(
+        b,
+        "id"
+      );
+
+    }
+  );
+
+
+recapTypes.forEach(
+  function(type) {
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+    option.value =
+      type;
+
+    option.textContent =
+      type;
+
+    recapTypeSelect.appendChild(
+      option
+    );
+
+  }
+);
+
+   recapTypeSelect.addEventListener(
+  "change",
+  function() {
+
+    const selectedType =
+      this.value;
+
+
+    categorySelect.innerHTML = `
+      <option value="">
+        Pilih Kategori
+      </option>
+    `;
+
+
+    categorySelect.disabled =
+      !selectedType;
+
+
+    list.innerHTML = `
+      <div
+        style="
+          padding:20px;
+          text-align:center;
+          color:#999;
+          border:1px dashed #ddd;
+          border-radius:10px;
+        "
+      >
+        Pilih Kategori.
+      </div>
+    `;
+
+
+    if (!selectedType) {
+      return;
+    }
+
+
+    const categories =
+      Array.from(
+        new Set(
+          batchRows
+            .filter(
+              function(batch) {
+
+                return (
+                  batch.recapType ===
+                  selectedType
+                );
+
+              }
+            )
+            .map(
+              function(batch) {
+
+                return String(
+                  batch.category || ""
+                ).trim();
+
+              }
+            )
+            .filter(Boolean)
+        )
+      )
+      .sort(
+        function(a, b) {
+
+          return a.localeCompare(
+            b,
+            "id"
+          );
+
+        }
+      );
+
+
+    categories.forEach(
+      function(category) {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          category;
+
+        option.textContent =
+          category;
+
+        categorySelect.appendChild(
+          option
+        );
+
+      }
+    );
+
+  }
+);
+
+   categorySelect.addEventListener(
+  "change",
+  function() {
+
+    const selectedType =
+      recapTypeSelect.value;
+
+    const selectedCategory =
+      this.value;
+
+
+    if (
+      !selectedType ||
+      !selectedCategory
+    ) {
+
+      list.innerHTML = "";
+
+      return;
+
+    }
+
+
+    const selectedRows =
+      batchRows
+        .filter(
+          function(batch) {
+
+            return (
+              batch.recapType ===
+              selectedType &&
+              batch.category ===
+              selectedCategory
+            );
+
+          }
+        );
+
+
+    if (!selectedRows.length) {
+
+      list.innerHTML = `
+        <div
+          style="
+            padding:20px;
+            text-align:center;
+            color:#999;
+            border:1px dashed #ddd;
+            border-radius:10px;
+          "
+        >
+          Tidak ada barang/batch
+          untuk kategori ini.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const lines = [];
+
+
+    lines.push(
+      "📦 *UPDATE BARANG*"
+    );
+
+    lines.push("");
+
+
+    lines.push(
+      `*${selectedCategory}*`
+    );
+
+    lines.push("");
+
+
+    selectedRows.forEach(
+      function(batch) {
+
+        lines.push(
+          `📌 *${batch.itemName || "Barang"} (${batch.batchCode})*`
+        );
+
+        lines.push(
+          `Status: ${batch.tracking || "Belum ada tracking"}`
+        );
+
+
+        if (batch.date) {
+
+          lines.push(
+            `Tanggal: ${new Date(
+              batch.date
+            ).toLocaleDateString(
+              "id-ID",
+              {
+                day:"2-digit",
+                month:"long",
+                year:"numeric"
+              }
+            )}`
+          );
+
+        }
+
+
+        lines.push("");
+
+      }
+    );
+
+
+    lines.push(
+      "Mohon ditunggu update berikutnya. ♥"
+    );
+
+
+    const message =
+      lines.join("\n");
+
 
     list.innerHTML = `
 
       <div
         style="
-          padding:25px;
-          text-align:center;
-          border:1px dashed #ddd;
-          border-radius:10px;
-          color:#777;
+          margin-bottom:8px;
+          font-weight:700;
         "
       >
-        Tidak ada barang yang perlu
-        di-update ke grup GO.
+        Preview Pesan WhatsApp
       </div>
+
+      <textarea
+        id="generatedTrackingUpdateMessage"
+        style="
+          width:100%;
+          min-height:350px;
+          resize:vertical;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:10px;
+          box-sizing:border-box;
+          font-family:inherit;
+          line-height:1.5;
+        "
+      >${escapeHTML(
+        message
+      )}</textarea>
 
     `;
 
   }
-  else {
-
-    list.innerHTML =
-      batchRows
-        .map(
-          function(batch) {
-
-            const dateHTML =
-              batch.date
-                ? `
-                    <div
-                      style="
-                        margin-top:4px;
-                        font-size:12px;
-                        color:#777;
-                      "
-                    >
-                      ${escapeHTML(
-                        new Date(
-                          batch.date
-                        ).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day:"2-digit",
-                            month:"long",
-                            year:"numeric"
-                          }
-                        )
-                      )}
-                    </div>
-                  `
-                : "";
-
-
-            return `
-
-              <label
-                style="
-                  display:grid;
-                  grid-template-columns:30px minmax(180px,1fr) 180px 180px;
-                  gap:12px;
-                  align-items:center;
-                  padding:12px;
-                  border:1px solid #eee;
-                  border-radius:10px;
-                  margin-bottom:8px;
-                  cursor:pointer;
-                  box-sizing:border-box;
-                "
-              >
-
-                <input
-                  type="checkbox"
-                  class="tracking-update-checkbox"
-                  data-category="${escapeHTML(
-                    batch.category
-                  )}"
-                  data-batch-code="${escapeHTML(
-                    batch.batchCode
-                  )}"
-                >
-
-
-                <div
-                  style="
-                    min-width:0;
-                  "
-                >
-
-                  <strong>
-                    ${escapeHTML(
-                      batch.itemName ||
-                      "Barang"
-                    )}
-                  </strong>
-
-                  <div
-                    style="
-                      font-size:12px;
-                      color:#777;
-                      margin-top:3px;
-                    "
-                  >
-                    ${escapeHTML(
-                      batch.category
-                    )}
-                    ·
-                    ${escapeHTML(
-                      batch.batchCode
-                    )}
-                  </div>
-
-                </div>
-
-
-                <div>
-
-                  <div
-                    style="
-                      font-size:11px;
-                      color:#888;
-                      margin-bottom:3px;
-                    "
-                  >
-                    Tracking
-                  </div>
-
-                  <strong>
-                    ${escapeHTML(
-                      batch.tracking ||
-                      "Belum ada tracking"
-                    )}
-                  </strong>
-
-                </div>
-
-
-                <div
-                  style="
-                    font-size:12px;
-                    color:#777;
-                  "
-                >
-
-                  ${
-                    batch.date
-                      ? `
-                        <div
-                          style="
-                            font-size:11px;
-                            color:#888;
-                            margin-bottom:3px;
-                          "
-                        >
-                          Tanggal
-                        </div>
-
-                        ${dateHTML}
-                      `
-                      : ""
-                  }
-
-                </div>
-
-              </label>
-
-            `;
-
-          }
-        )
-        .join("");
-
-  }
-
-
+);
+  
   /* ==========================================
-     10. PILIH SEMUA
-     ========================================== */
-
-  const selectAllButton =
-    modal.querySelector(
-      "#selectAllTrackingUpdate"
-    );
-
-
-  if (selectAllButton) {
-
-    selectAllButton.onclick =
-      function() {
-
-        modal
-          .querySelectorAll(
-            ".tracking-update-checkbox"
-          )
-          .forEach(
-            function(check) {
-
-              check.checked =
-                true;
-
-            }
-          );
-
-      };
-
-  }
-
-
-  /* ==========================================
-     11. HAPUS PILIHAN
-     ========================================== */
-
-  const clearAllButton =
-    modal.querySelector(
-      "#clearAllTrackingUpdate"
-    );
-
-
-  if (clearAllButton) {
-
-    clearAllButton.onclick =
-      function() {
-
-        modal
-          .querySelectorAll(
-            ".tracking-update-checkbox"
-          )
-          .forEach(
-            function(check) {
-
-              check.checked =
-                false;
-
-            }
-          );
-
-      };
-
-  }
-
-
-  /* ==========================================
-     12. TUTUP MODAL
+     9. TUTUP MODAL
      ========================================== */
 
   function closeTrackingModal() {
@@ -32415,16 +32549,20 @@ async function loadPurchaseBatchInfoStatus() {
             allocation.recap_type || ""
           ).trim();
 
-        const category =
-          String(
-            allocation.category || ""
-          ).trim();
+        const recapType =
+  String(
+    allocation.recap_type || ""
+  ).trim();
 
-        const batchCode =
-          String(
-            allocation.batch_code || ""
-          ).trim();
+const category =
+  String(
+    allocation.category || ""
+  ).trim();
 
+const batchCode =
+  String(
+    allocation.batch_code || ""
+  ).trim();
         if (
           !recapType ||
           !category ||
