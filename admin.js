@@ -1068,12 +1068,13 @@ const archivedRows =
 const trackingGroups = [
   {
   label: "📦 Co Web / Seller",
-  match: function(status) {
-    return [
-      "Co Web / Seller",
-      "Co Seller"
-    ].includes(status);
-  }
+match: function(status) {
+  return [
+    "Co Web / Seller",
+    "Co Seller",
+    "CO Seller"
+  ].includes(status);
+}
 },
 
   {
@@ -1140,13 +1141,15 @@ trackingGroups.forEach(
     if (groupRows.length) {
 
       displayActiveRows.push({
-        __trackingGroupHeader:
-          group.label,
+  __trackingGroupHeader:
+    group.label,
 
-        __trackingGroupKey:
-          group.label
-      });
+  __trackingGroupKey:
+    group.label,
 
+  __trackingGroupCount:
+    groupRows.length
+});
       groupRows.forEach(
         function(row) {
 
@@ -1447,59 +1450,6 @@ if (purchaseRecapIds.length) {
             min-width:700px;
           "
         >
-
-          <thead>
-
-            <tr
-              style="
-                background:#f8f8f8;
-              "
-            >
-
-              <th
-  style="
-    padding:8px 12px;
-    text-align:left;
-    font-size:13px;
-  "
->
-  Nama Barang
-</th>
-
-              <th
-  style="
-    padding:8px 12px;
-    text-align:left;
-    font-size:13px;
-  "
->
-  Warehouse
-</th>
-
-              <th
-  style="
-    padding:8px 12px;
-    text-align:left;
-    font-size:13px;
-  "
->
-  Tracking
-</th>
-
-              <th
-  style="
-    padding:8px 12px;
-    text-align:center;
-    width:260px;
-    font-size:13px;
-  "
->
-  Aksi
-</th>
-            </tr>
-
-          </thead>
-
 
           <tbody>
 
@@ -2353,29 +2303,31 @@ return `
 
   if (archivedRows.length) {
 
-    const archiveHTML = `
+  const archiveHTML = `
   <details
     style="
-      margin-top:20px;
-      background:#fff;
-      border-radius:16px;
+      margin-top:0;
+      background:transparent;
+      border:0;
+      border-top:1px solid #e5e5e5;
+      border-radius:0;
       overflow:hidden;
-      border:1px solid #eee;
     "
   >
-
     <summary
-      style="
-        padding:18px 20px;
-        font-weight:700;
-        cursor:pointer;
-        list-style:none;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        user-select:none;
-      "
-    >
+  style="
+    padding:12px;
+    font-weight:700;
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    user-select:none;
+    background:#f7f7f7;
+    font-size:13px;
+  "
+>
 
       <span>
         📁 Arsip Pembelian
@@ -2686,10 +2638,15 @@ return `
     `;
 
 
-    container.insertAdjacentHTML(
-      "beforeend",
-      archiveHTML
-    );
+    const purchaseListCard =
+  container.firstElementChild;
+
+if (purchaseListCard) {
+  purchaseListCard.insertAdjacentHTML(
+    "beforeend",
+    archiveHTML
+  );
+}
 
   }
 
