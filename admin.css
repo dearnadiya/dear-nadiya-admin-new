@@ -15009,3 +15009,99 @@ strong {
   }
 
 }
+
+   /* ============================================
+   PEMBELIAN STOK
+   ============================================ */
+
+.purchase-stock-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.purchase-stock-item-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.purchase-stock-price-grid {
+  display: grid;
+  grid-template-columns:
+    160px
+    minmax(0, 1fr)
+    160px
+    minmax(0, 1fr);
+  gap: 15px;
+}
+
+.purchase-stock-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 20px;
+  font-size: 12px;
+  align-items: start;
+}
+
+.purchase-allocation-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+
+/* ============================================
+   PEMBELIAN STOK - MOBILE
+   ============================================ */
+
+@media (max-width: 600px) {
+
+  .purchase-stock-modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  .purchase-stock-modal-box h2 {
+    font-size: 20px !important;
+    line-height: 1.2;
+  }
+
+  .purchase-stock-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .purchase-stock-item-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .purchase-stock-price-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .purchase-stock-detail-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px 12px !important;
+  }
+
+  .purchase-allocation-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .purchase-stock-modal-box input,
+  .purchase-stock-modal-box select,
+  .purchase-stock-modal-box textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+}
