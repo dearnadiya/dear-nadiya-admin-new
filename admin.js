@@ -1497,10 +1497,20 @@ return `
       >
 
         <span>
-          ${escapeHTML(
-            row.__trackingGroupHeader
-          )}
-        </span>
+  ${escapeHTML(
+    row.__trackingGroupHeader
+  )}
+
+  <span
+    style="
+      color:#888;
+      font-weight:400;
+      margin-left:5px;
+    "
+  >
+    (${row.__trackingGroupCount} barang)
+  </span>
+</span>
 
         <span
           style="
