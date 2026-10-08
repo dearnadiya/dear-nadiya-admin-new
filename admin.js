@@ -39,6 +39,8 @@ const googleLoginButton =
   document.getElementById("googleLoginButton");
 
 let purchaseBatchInfoMap = {};
+let purchaseStockSearchTerm = "";
+let purchaseStockSearchTimer = null;
 
 /* ============================================
    SUPABASE
@@ -786,6 +788,29 @@ async function loadPurchaseStock() {
 
       </div>
 
+      <div
+  style="
+    margin-bottom:15px;
+  "
+>
+  <input
+    type="text"
+    id="purchaseStockSearchInput"
+    placeholder="Cari nomor order / tracking / nama barang..."
+    value="${escapeHTML(
+      purchaseStockSearchTerm
+    )}"
+    style="
+      width:100%;
+      box-sizing:border-box;
+      padding:10px 12px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      font-size:13px;
+    "
+  >
+</div>
+
 
       <div
         id="purchaseStockList"
@@ -824,6 +849,36 @@ async function loadPurchaseStock() {
 
   }
 
+   const purchaseSearchInput =
+  document.getElementById(
+    "purchaseStockSearchInput"
+  );
+
+if (purchaseSearchInput) {
+
+  purchaseSearchInput.addEventListener(
+    "input",
+    function() {
+
+      purchaseStockSearchTerm =
+        this.value || "";
+
+      clearTimeout(
+        purchaseStockSearchTimer
+      );
+
+      purchaseStockSearchTimer =
+        setTimeout(
+          function() {
+            renderPurchaseStockList();
+          },
+          250
+        );
+
+    }
+  );
+
+}
 
   await renderPurchaseStockList();
 
@@ -930,10 +985,64 @@ async function renderPurchaseStockList() {
 
 
   const rows =
-    data || [];
+  data || [];
 
-   const activeRows =
-  rows.filter(
+
+const searchTerm =
+  String(
+    purchaseStockSearchTerm || ""
+  )
+    .trim()
+    .toLowerCase();
+
+
+const filteredRows =
+  !searchTerm
+    ? rows
+    : rows.filter(
+        function(row) {
+
+          const orderNumber =
+            String(
+              row.order_number || ""
+            ).toLowerCase();
+
+          const sellerTracking =
+            String(
+              row.seller_tracking || ""
+            ).toLowerCase();
+
+          const itemName =
+            String(
+              row.item_name || ""
+            ).toLowerCase();
+
+          const trackingStatus =
+            String(
+              row.tracking_status || ""
+            ).toLowerCase();
+
+          return (
+            orderNumber.includes(
+              searchTerm
+            ) ||
+            sellerTracking.includes(
+              searchTerm
+            ) ||
+            itemName.includes(
+              searchTerm
+            ) ||
+            trackingStatus.includes(
+              searchTerm
+            )
+          );
+
+        }
+      );
+
+
+const activeRows =
+  filteredRows.filter(
     function(row) {
       return String(
         row.tracking_status || ""
@@ -943,7 +1052,7 @@ async function renderPurchaseStockList() {
 
 
 const archivedRows =
-  rows.filter(
+  filteredRows.filter(
     function(row) {
       return String(
         row.tracking_status || ""
@@ -951,9 +1060,101 @@ const archivedRows =
     }
   );
 
+   /* ============================================
+   KELOMPOK TRACKING PEMBELIAN
+   ============================================ */
 
-  if (!rows.length) {
+const trackingGroups = [
+  {
+  label: "📦 Co Web / Seller",
+  match: function(status) {
+    return [
+      "Co Web / Seller",
+      "Co Seller"
+    ].includes(status);
+  }
+},
 
+  {
+  label: "📦 Arrived WH",
+  match: function(status) {
+    return [
+      "Arrived WH KR",
+      "Arrived WH JP",
+      "Arrived WH CH",
+      "Arrived WH Thai"
+    ].includes(status);
+  }
+},
+
+  {
+    label: "🚢 Shipping INA",
+    match: function(status) {
+      return status === "Shipping INA";
+    }
+  },
+
+  {
+    label: "🏠 Arrived WH INA",
+    match: function(status) {
+      return status === "Arrived WH INA";
+    }
+  },
+
+  {
+    label: "📦 Lainnya",
+    match: function(status) {
+      return (
+        status &&
+        status !== "Co Web / Seller" &&
+        !status.startsWith("Arrived WH") &&
+        status !== "Shipping INA" &&
+        status !== "Arrived WH INA" &&
+        status !== "Arrived Admin"
+      );
+    }
+  }
+];
+
+
+const displayActiveRows = [];
+
+trackingGroups.forEach(
+  function(group) {
+
+    const groupRows =
+      activeRows.filter(
+        function(row) {
+
+          const status =
+            String(
+              row.tracking_status || ""
+            ).trim();
+
+          return group.match(status);
+
+        }
+      );
+
+    if (groupRows.length) {
+
+      displayActiveRows.push({
+        __trackingGroupHeader:
+          group.label
+      });
+
+      displayActiveRows.push(
+        ...groupRows
+      );
+
+    }
+
+  }
+);
+
+
+  if (!filteredRows.length) {
+     
     container.innerHTML = `
       <div
         style="
@@ -974,8 +1175,12 @@ const archivedRows =
         </div>
 
         <strong>
-          Belum ada pembelian stok
-        </strong>
+  ${
+    searchTerm
+      ? "Pembelian tidak ditemukan"
+      : "Belum ada pembelian stok"
+  }
+</strong>
 
         <div
           style="
@@ -984,8 +1189,11 @@ const archivedRows =
             font-size:14px;
           "
         >
-          Klik "Tambah Pembelian"
-          untuk mencatat pembelian.
+          ${
+  searchTerm
+    ? "Coba gunakan nomor order, tracking, atau nama barang lain."
+    : 'Klik "Tambah Pembelian" untuk mencatat pembelian.'
+}
         </div>
 
       </div>
@@ -1285,8 +1493,32 @@ if (purchaseRecapIds.length) {
           <tbody>
 
             ${
-              activeRows
+              displayActiveRows
   .map(function(row) {
+
+     if (row.__trackingGroupHeader) {
+
+  return `
+    <tr>
+      <td
+        colspan="4"
+        style="
+          padding:12px;
+          background:#f7f7f7;
+          border-top:1px solid #e5e5e5;
+          border-bottom:1px solid #e5e5e5;
+          font-weight:700;
+          font-size:13px;
+        "
+      >
+        ${escapeHTML(
+          row.__trackingGroupHeader
+        )}
+      </td>
+    </tr>
+  `;
+
+}
 
                   const purchaseId =
                     Number(
@@ -1628,12 +1860,12 @@ align-items:start;
 
                             <div>
                               <span
-                                style="
-                                  color:#777;
-                                "
-                              >
-                                Jumlah
-                              </span>
+  style="
+    color:#777;
+  "
+>
+  Sisa Stok
+</span>
 
                               <div
   style="
@@ -1722,7 +1954,7 @@ align-items:start;
                                   color:#777;
                                 "
                               >
-                                Tax
+                                Box
                               </span>
 
                               <div
@@ -1731,18 +1963,11 @@ align-items:start;
                                   margin-top:2px;
                                 "
                               >
-                                ${
-                                  row.tax !== null &&
-                                  row.tax !== undefined
-                                    ? Number(
-                                        row.tax
-                                      ).toLocaleString(
-                                        "id-ID"
-                                      )
-                                    : "-"
-                                }
-                              </div>
-                            </div>
+    ${escapeHTML(
+      row.box_pengiriman || "-"
+    )}
+  </div>
+</div>
 
 
                             <div>
