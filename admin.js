@@ -32545,11 +32545,6 @@ async function loadPurchaseBatchInfoStatus() {
       function(allocation) {
 
         const recapType =
-          String(
-            allocation.recap_type || ""
-          ).trim();
-
-        const recapType =
   String(
     allocation.recap_type || ""
   ).trim();
