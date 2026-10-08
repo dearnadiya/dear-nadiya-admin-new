@@ -779,13 +779,41 @@ async function loadPurchaseStock() {
         </div>
 
 
-        <button
-          type="button"
-          id="addPurchaseStockButton"
-          class="primary-button"
-        >
-          ＋ Tambah Pembelian
-        </button>
+        <div
+  style="
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  "
+>
+
+  <button
+    type="button"
+    id="createPurchaseStockTrackingUpdateButton"
+    class="primary-button"
+    style="
+      width:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 16px;
+      font-size:13px;
+      white-space:nowrap;
+    "
+  >
+    📦 Update Barang ke Grup GO
+  </button>
+
+  <button
+    type="button"
+    id="addPurchaseStockButton"
+    class="primary-button"
+  >
+    ＋ Tambah Pembelian
+  </button>
+
+</div>
 
       </div>
 
@@ -849,6 +877,30 @@ async function loadPurchaseStock() {
     );
 
   }
+
+   /* ============================================
+   UPDATE BARANG KE GRUP GO
+   ============================================ */
+
+const createPurchaseStockTrackingUpdateButton =
+  document.getElementById(
+    "createPurchaseStockTrackingUpdateButton"
+  );
+
+if (
+  createPurchaseStockTrackingUpdateButton
+) {
+
+  createPurchaseStockTrackingUpdateButton.addEventListener(
+    "click",
+    function() {
+
+      showWhatsAppTrackingUpdateBuilder();
+
+    }
+  );
+
+}
 
    const purchaseSearchInput =
   document.getElementById(
@@ -927,6 +979,9 @@ async function renderPurchaseStockList() {
       rate,
       tax,
       tracking_status,
+      arrived_wh_at,
+shipping_ina_at,
+arrived_ina_at,
       created_at,
       updated_at
     `)
@@ -24459,40 +24514,52 @@ const po =
 
 /* =========================================================
    UPDATE BARANG KE GRUP GO
-   SUMBER STATUS & TANGGAL = PEMBELIAN STOK
+   SUMBER:
+   purchase_stock
+   +
+   purchase_stock_allocation
+   allocation_type = "Rekap GO"
    ========================================================= */
 
-async function showWhatsAppTrackingUpdateBuilder(
-  category
-) {
+async function showWhatsAppTrackingUpdateBuilder() {
 
   /* ==========================================
-     1. AMBIL ALOKASI REKAP GO
+     1. AMBIL DATA ALOKASI REKAP GO
      ========================================== */
 
   const {
     data: allocationRows,
     error: allocationError
   } = await supabaseClient
-
     .from("purchase_stock_allocation")
-
     .select(`
       purchase_stock_id,
-      allocation_type,
+      recap_type,
       category,
       batch_code,
+      quantity,
       purchase_recap_id
     `)
-
     .eq(
       "allocation_type",
       "Rekap GO"
     )
-
-    .eq(
+    .not(
+      "purchase_stock_id",
+      "is",
+      null
+    )
+    .order(
       "category",
-      category
+      {
+        ascending: true
+      }
+    )
+    .order(
+      "batch_code",
+      {
+        ascending: true
+      }
     );
 
 
@@ -24509,19 +24576,27 @@ async function showWhatsAppTrackingUpdateBuilder(
     );
 
     return;
+
   }
 
 
-  const validAllocations =
-    (allocationRows || [])
-      .filter(function(row) {
+  const allocations =
+    allocationRows || [];
 
-        return (
-          row.batch_code &&
-          row.purchase_stock_id
-        );
 
-      });
+  /* ==========================================
+     JIKA BELUM ADA ALOKASI REKAP GO
+     ========================================== */
+
+  if (!allocations.length) {
+
+    alert(
+      "Belum ada Pembelian Stok yang dialokasikan ke Rekap GO."
+    );
+
+    return;
+
+  }
 
 
   /* ==========================================
@@ -24531,7 +24606,7 @@ async function showWhatsAppTrackingUpdateBuilder(
   const purchaseStockIds =
     Array.from(
       new Set(
-        validAllocations
+        allocations
           .map(function(row) {
 
             return Number(
@@ -24551,34 +24626,37 @@ async function showWhatsAppTrackingUpdateBuilder(
   if (!purchaseStockIds.length) {
 
     alert(
-      "Belum ada Pembelian Stok yang dialokasikan ke Rekap GO."
+      "Belum ada Pembelian Stok yang terhubung ke Rekap GO."
     );
 
     return;
+
   }
 
 
   /* ==========================================
      3. AMBIL DATA PEMBELIAN STOK
+     
+     PENTING:
+     TANGGAL TRACKING DIAMBIL DARI SINI
      ========================================== */
 
   const {
     data: purchaseRows,
     error: purchaseError
   } = await supabaseClient
-
     .from("purchase_stock")
-
     .select(`
       id,
       item_name,
+      seller_name,
       tracking_status,
       arrived_wh_at,
       shipping_ina_at,
       arrived_ina_at,
-      seller_name
+      purchase_date,
+      updated_at
     `)
-
     .in(
       "id",
       purchaseStockIds
@@ -24598,46 +24676,189 @@ async function showWhatsAppTrackingUpdateBuilder(
     );
 
     return;
+
   }
 
 
-  const purchaseMap = {};
+  const purchaseMap =
+    new Map();
 
 
-  (purchaseRows || [])
-    .forEach(function(row) {
+  (
+    purchaseRows || []
+  ).forEach(
+    function(row) {
 
-      purchaseMap[
-        Number(row.id)
-      ] = row;
+      purchaseMap.set(
+        Number(row.id),
+        row
+      );
 
-    });
+    }
+  );
 
 
   /* ==========================================
-     4. FUNGSI TANGGAL TRACKING
+     4. KELOMPOKKAN:
+     
+     CATEGORY + BATCH
+     
+     Satu batch bisa memiliki lebih dari
+     satu Pembelian Stok / seller.
      ========================================== */
 
-  function getTrackingDate(
-    purchase
-  ) {
+  const grouped =
+    {};
 
-    if (!purchase) {
-      return null;
+
+  allocations.forEach(
+    function(allocation) {
+
+      const purchase =
+        purchaseMap.get(
+          Number(
+            allocation.purchase_stock_id
+          )
+        );
+
+
+      /* --------------------------------------
+         Abaikan allocation orphan
+         -------------------------------------- */
+
+      if (!purchase) {
+
+        return;
+
+      }
+
+
+      const category =
+        String(
+          allocation.category || ""
+        ).trim();
+
+
+      const batchCode =
+        String(
+          allocation.batch_code || ""
+        ).trim();
+
+
+      if (!category || !batchCode) {
+
+        return;
+
+      }
+
+
+      const key =
+        category +
+        "||" +
+        batchCode;
+
+
+      if (!grouped[key]) {
+
+        grouped[key] = {
+
+          category:
+            category,
+
+          batchCode:
+            batchCode,
+
+          itemName:
+            String(
+              purchase.item_name || ""
+            ).trim(),
+
+          purchases:
+            []
+
+        };
+
+      }
+
+
+      grouped[key].purchases.push({
+
+        allocation:
+          allocation,
+
+        purchase:
+          purchase
+
+      });
+
     }
+  );
 
 
-    const status =
-      String(
-        purchase.tracking_status || ""
-      ).trim();
+  /* ==========================================
+     5. TENTUKAN STATUS TERAKHIR PER BATCH
+     ========================================== */
+
+  const batchRows =
+    Object.keys(grouped)
+      .map(
+        function(key) {
+
+          const group =
+            grouped[key];
 
 
-    /*
-       Arrived WH
-       Semua variasi Arrived WH
-       menggunakan arrived_wh_at
-    */
+          if (
+            !group.purchases.length
+          ) {
+
+            return null;
+
+          }
+
+
+          /*
+           * Ambil tracking dari setiap
+           * Pembelian Stok.
+           */
+
+          /* ==========================================
+   AMBIL TRACKING DARI SETIAP PEMBELIAN STOK
+   ========================================== */
+
+const options =
+  getTrackingOptions(
+    group.category
+  ) || [];
+
+
+/*
+ * Tentukan ranking tracking.
+ * Semakin besar index = semakin maju.
+ */
+const trackingRank =
+  function(status) {
+
+    const index =
+      options.indexOf(
+        status
+      );
+
+    return (
+      index >= 0
+        ? index
+        : -1
+    );
+
+  };
+
+
+/*
+ * Tentukan tanggal tracking
+ * berdasarkan statusnya.
+ */
+const getTrackingDate =
+  function(purchase, tracking) {
 
     if (
       [
@@ -24645,7 +24866,9 @@ async function showWhatsAppTrackingUpdateBuilder(
         "Arrived WH JP",
         "Arrived WH CH",
         "Arrived WH Thai"
-      ].includes(status)
+      ].includes(
+        tracking
+      )
     ) {
 
       return (
@@ -24656,10 +24879,8 @@ async function showWhatsAppTrackingUpdateBuilder(
     }
 
 
-    /* Shipping INA */
-
     if (
-      status ===
+      tracking ===
       "Shipping INA"
     ) {
 
@@ -24671,10 +24892,8 @@ async function showWhatsAppTrackingUpdateBuilder(
     }
 
 
-    /* Arrived WH INA */
-
     if (
-      status ===
+      tracking ===
       "Arrived WH INA"
     ) {
 
@@ -24686,250 +24905,48 @@ async function showWhatsAppTrackingUpdateBuilder(
     }
 
 
-    /*
-       Status lain memang tidak mempunyai
-       tanggal tracking khusus di Pembelian Stok.
-    */
-
     return null;
 
-  }
+  };
 
 
-  /* ==========================================
-     5. FORMAT TANGGAL
-     ========================================== */
+/*
+ * Ambil tracking dari setiap
+ * Pembelian Stok.
+ *
+ * Status selesai tidak ikut
+ * menentukan status batch.
+ */
+const trackingRows =
+  group.purchases
+    .map(
+      function(entry) {
 
-  function formatTrackingDate(
-    value
-  ) {
+        const purchase =
+          entry.purchase;
 
-    if (!value) {
-      return "";
-    }
 
+        const tracking =
+          String(
+            purchase.tracking_status ||
+            ""
+          ).trim();
 
-    const date =
-      new Date(value);
 
+        const normalizedTracking =
+          tracking.toLowerCase();
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
 
-      return "";
-
-    }
-
-
-    return date.toLocaleDateString(
-      "id-ID",
-      {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-      }
-    );
-
-  }
-
-
-  /* ==========================================
-     6. URUTAN STATUS
-     ========================================== */
-
-  function getTrackingRank(
-    status
-  ) {
-
-    const options =
-      getTrackingOptions(
-        category
-      ) || [];
-
-
-    const index =
-      options.indexOf(
-        status
-      );
-
-
-    if (
-      index >= 0
-    ) {
-
-      return index;
-
-    }
-
-
-    /*
-       Fallback jika status tidak
-       terdapat di getTrackingOptions()
-    */
-
-    const fallback =
-      [
-        "Co Seller",
-        "Co Web / Seller",
-        "Arrived WH KR",
-        "Arrived WH JP",
-        "Arrived WH CH",
-        "Arrived WH Thai",
-        "Shipping INA",
-        "Arrived WH INA",
-        "Arrived Admin",
-        "Goods Arrive at Customer"
-      ];
-
-
-    const fallbackIndex =
-      fallback.indexOf(
-        status
-      );
-
-
-    return (
-      fallbackIndex >= 0
-        ? fallbackIndex
-        : -1
-    );
-
-  }
-
-
-  /* ==========================================
-     7. GROUP PER BATCH
-     ========================================== */
-
-  const grouped =
-    {};
-
-
-  validAllocations
-    .forEach(function(allocation) {
-
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
-
-
-      if (!batchCode) {
-        return;
-      }
-
-
-      const purchase =
-        purchaseMap[
-          Number(
-            allocation.purchase_stock_id
-          )
-        ];
-
-
-      if (!purchase) {
-        return;
-      }
-
-
-      if (
-        !grouped[batchCode]
-      ) {
-
-        grouped[batchCode] =
-          [];
-
-      }
-
-
-      /*
-         Jangan memasukkan pembelian yang
-         sudah selesai.
-      */
-
-      const tracking =
-        String(
-          purchase.tracking_status || ""
-        ).trim();
-
-
-      if (
-        tracking.toLowerCase() ===
-        "arrived admin"
-      ) {
-
-        return;
-      }
-
-
-      if (
-        tracking.toLowerCase() ===
-        "goods arrive at customer"
-      ) {
-
-        return;
-      }
-
-
-      /*
-         Hindari purchase stock yang sama
-         masuk dua kali ke batch.
-      */
-
-      const alreadyExists =
-        grouped[batchCode]
-          .some(function(item) {
-
-            return (
-              Number(
-                item.purchase.id
-              ) ===
-              Number(
-                purchase.id
-              )
-            );
-
-          });
-
-
-      if (
-        alreadyExists
-      ) {
-
-        return;
-
-      }
-
-
-      grouped[batchCode]
-        .push({
-          purchase:
-            purchase,
-
-          allocation:
-            allocation
-        });
-
-    });
-
-
-  /* ==========================================
-     8. TENTUKAN STATUS BATCH
-     ========================================== */
-
-  const batchRows =
-    Object.keys(grouped)
-      .map(function(batchCode) {
-
-        const items =
-          grouped[batchCode];
-
-
+        /*
+         * Status selesai tidak perlu
+         * dimasukkan ke kandidat.
+         */
         if (
-          !items.length
+          tracking === "" ||
+          normalizedTracking ===
+            "arrived admin" ||
+          normalizedTracking ===
+            "goods arrive at customer"
         ) {
 
           return null;
@@ -24937,167 +24954,216 @@ async function showWhatsAppTrackingUpdateBuilder(
         }
 
 
-        /*
-           Jika satu batch mempunyai
-           beberapa Pembelian Stok / seller,
-           ambil status dengan progress
-           paling jauh.
-
-           Jika rank sama,
-           gunakan tanggal perubahan
-           status yang paling baru.
-        */
-
-        items.sort(
-          function(a, b) {
-
-            const statusA =
-              String(
-                a.purchase
-                  ?.tracking_status ||
-                ""
-              ).trim();
-
-
-            const statusB =
-              String(
-                b.purchase
-                  ?.tracking_status ||
-                ""
-              ).trim();
-
-
-            const rankA =
-              getTrackingRank(
-                statusA
-              );
-
-
-            const rankB =
-              getTrackingRank(
-                statusB
-              );
-
-
-            if (
-              rankA !==
-              rankB
-            ) {
-
-              return (
-                rankB -
-                rankA
-              );
-
-            }
-
-
-            const dateA =
-              getTrackingDate(
-                a.purchase
-              );
-
-
-            const dateB =
-              getTrackingDate(
-                b.purchase
-              );
-
-
-            const timeA =
-              dateA
-                ? new Date(
-                    dateA
-                  ).getTime()
-                : 0;
-
-
-            const timeB =
-              dateB
-                ? new Date(
-                    dateB
-                  ).getTime()
-                : 0;
-
-
-            return (
-              timeB -
-              timeA
-            );
-
-          }
-        );
-
-
-        const selected =
-          items[0];
-
-
-        const purchase =
-          selected.purchase;
-
-
-        const tracking =
-          String(
-            purchase
-              ?.tracking_status ||
-            ""
-          ).trim();
-
-
-        if (!tracking) {
-          return null;
-        }
-
-
-        const trackingDate =
-          getTrackingDate(
-            purchase
-          );
-
-
         return {
-
-          batchCode:
-            batchCode,
-
-          itemName:
-            String(
-              purchase?.item_name ||
-              "Barang"
-            ).trim(),
 
           tracking:
             tracking,
 
-          trackingDate:
-            trackingDate,
+          purchase:
+            purchase,
 
-          formattedDate:
-            formatTrackingDate(
-              trackingDate
-            ),
+          allocation:
+            entry.allocation,
 
-          sellerName:
-            String(
-              purchase?.seller_name ||
-              ""
-            ).trim(),
-
-          purchaseId:
-            Number(
-              purchase?.id ||
-              0
+          date:
+            getTrackingDate(
+              purchase,
+              tracking
             )
 
         };
 
-      })
-      .filter(Boolean);
+      }
+    )
+    .filter(
+      function(row) {
+
+        return row !== null;
+
+      }
+    );
+
+
+/*
+ * Jika semua seller dalam batch
+ * sudah selesai, jangan tampilkan batch.
+ */
+if (
+  !trackingRows.length
+) {
+
+  return null;
+
+}
+
+
+/* ==========================================
+   PILIH STATUS TERMAJU
+   ========================================== */
+
+trackingRows.sort(
+  function(a, b) {
+
+    const rankDiff =
+      trackingRank(
+        b.tracking
+      ) -
+      trackingRank(
+        a.tracking
+      );
+
+
+    /*
+     * Jika status berbeda,
+     * prioritaskan status paling maju.
+     */
+    if (
+      rankDiff !== 0
+    ) {
+
+      return rankDiff;
+
+    }
+
+
+    /*
+     * Jika status sama:
+     * seller yang memiliki tanggal
+     * diprioritaskan.
+     */
+    if (
+      a.date &&
+      !b.date
+    ) {
+
+      return -1;
+
+    }
+
+
+    if (
+      !a.date &&
+      b.date
+    ) {
+
+      return 1;
+
+    }
+
+
+    /*
+     * Jika keduanya memiliki tanggal,
+     * gunakan tanggal paling baru.
+     */
+    if (
+      a.date &&
+      b.date
+    ) {
+
+      return (
+        new Date(b.date) -
+        new Date(a.date)
+      );
+
+    }
+
+
+    return 0;
+
+  }
+);
+
+
+const trackingRow =
+  trackingRows[0];
+
+
+const tracking =
+  trackingRow.tracking;
+
+
+const trackingDate =
+  trackingRow.date;
+
+
+/* ==========================================
+   HASIL BATCH
+   ========================================== */
+
+return {
+
+  category:
+    group.category,
+
+  batchCode:
+    group.batchCode,
+
+  itemName:
+    group.itemName,
+
+  tracking:
+    tracking,
+
+  date:
+    trackingDate,
+
+  purchases:
+    group.purchases
+
+};
+        }
+      )
+      .filter(
+        function(row) {
+
+          return row !== null;
+
+        }
+      );
 
 
   /* ==========================================
-     9. MODAL LAMA
+     6. URUTKAN CATEGORY + BATCH
+     ========================================== */
+
+  batchRows.sort(
+    function(a, b) {
+
+      const categoryCompare =
+        String(
+          a.category
+        ).localeCompare(
+          String(
+            b.category
+          ),
+          "id"
+        );
+
+
+      if (
+        categoryCompare !== 0
+      ) {
+
+        return categoryCompare;
+
+      }
+
+
+      return String(
+        a.batchCode
+      ).localeCompare(
+        String(
+          b.batchCode
+        ),
+        "id"
+      );
+
+    }
+  );
+
+
+  /* ==========================================
+     7. HAPUS MODAL LAMA
      ========================================== */
 
   const oldModal =
@@ -25107,12 +25173,14 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
   if (oldModal) {
+
     oldModal.remove();
+
   }
 
 
   /* ==========================================
-     10. BUAT MODAL
+     8. BUAT MODAL
      ========================================== */
 
   const modal =
@@ -25142,7 +25210,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
     <div
       style="
-        width:min(1000px,100%);
+        width:min(1050px,100%);
         max-height:90vh;
         overflow:auto;
         background:#fff;
@@ -25179,10 +25247,10 @@ async function showWhatsAppTrackingUpdateBuilder(
               color:#777;
             "
           >
-            Kategori:
-            <strong>
-              ${escapeHTML(category)}
-            </strong>
+            Data diambil dari
+            <strong>Pembelian Stok</strong>
+            yang sudah dialokasikan ke
+            <strong>Rekap GO</strong>.
           </div>
 
         </div>
@@ -25219,10 +25287,23 @@ async function showWhatsAppTrackingUpdateBuilder(
             color:#777;
           "
         >
-          Status dan tanggal diambil dari
-          <strong>Pembelian Stok</strong>.
-          Jika tanggal perubahan status belum
-          tersedia, tanggal tidak akan ditampilkan.
+          Tanggal hanya ditampilkan jika
+          tanggal tracking memang sudah
+          tercatat di Pembelian Stok.
+        </span>
+
+        <br>
+
+        <span
+          style="
+            color:#777;
+          "
+        >
+          Batch yang sudah
+          <strong>Arrived Admin</strong>
+          atau
+          <strong>Goods Arrive at Customer</strong>
+          tidak ditampilkan.
         </span>
 
       </div>
@@ -25307,12 +25388,10 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
   /* ==========================================
-     11. TIDAK ADA DATA
+     9. JIKA TIDAK ADA DATA
      ========================================== */
 
-  if (
-    !batchRows.length
-  ) {
+  if (!batchRows.length) {
 
     list.innerHTML = `
 
@@ -25336,119 +25415,159 @@ async function showWhatsAppTrackingUpdateBuilder(
 
     list.innerHTML =
       batchRows
-        .map(function(batch) {
+        .map(
+          function(batch) {
 
-          /*
-             Tanggal hanya dibuat jika
-             memang tersedia.
-          */
-
-          const dateHTML =
-            batch.formattedDate
-              ? `
-                <div
-                  style="
-                    font-size:12px;
-                    color:#777;
-                    margin-top:3px;
-                  "
-                >
-                  ${escapeHTML(
-                    batch.formattedDate
-                  )}
-                </div>
-              `
-              : "";
-
-
-          return `
-
-            <label
-              style="
-                display:grid;
-                grid-template-columns:30px minmax(180px,1fr) 220px;
-                gap:12px;
-                align-items:center;
-                padding:12px;
-                border:1px solid #eee;
-                border-radius:10px;
-                margin-bottom:8px;
-                cursor:pointer;
-                box-sizing:border-box;
-              "
-            >
-
-              <input
-                type="checkbox"
-                class="tracking-update-checkbox"
-                data-batch-code="${escapeHTML(
-                  batch.batchCode
-                )}"
-              >
+            const dateHTML =
+              batch.date
+                ? `
+                    <div
+                      style="
+                        margin-top:4px;
+                        font-size:12px;
+                        color:#777;
+                      "
+                    >
+                      ${escapeHTML(
+                        new Date(
+                          batch.date
+                        ).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day:"2-digit",
+                            month:"long",
+                            year:"numeric"
+                          }
+                        )
+                      )}
+                    </div>
+                  `
+                : "";
 
 
-              <div
+            return `
+
+              <label
                 style="
-                  min-width:0;
+                  display:grid;
+                  grid-template-columns:30px minmax(180px,1fr) 180px 180px;
+                  gap:12px;
+                  align-items:center;
+                  padding:12px;
+                  border:1px solid #eee;
+                  border-radius:10px;
+                  margin-bottom:8px;
+                  cursor:pointer;
+                  box-sizing:border-box;
                 "
               >
 
-                <strong>
-                  ${escapeHTML(
-                    batch.itemName
-                  )}
-                </strong>
+                <input
+                  type="checkbox"
+                  class="tracking-update-checkbox"
+                  data-category="${escapeHTML(
+                    batch.category
+                  )}"
+                  data-batch-code="${escapeHTML(
+                    batch.batchCode
+                  )}"
+                >
+
+
+                <div
+                  style="
+                    min-width:0;
+                  "
+                >
+
+                  <strong>
+                    ${escapeHTML(
+                      batch.itemName ||
+                      "Barang"
+                    )}
+                  </strong>
+
+                  <div
+                    style="
+                      font-size:12px;
+                      color:#777;
+                      margin-top:3px;
+                    "
+                  >
+                    ${escapeHTML(
+                      batch.category
+                    )}
+                    ·
+                    ${escapeHTML(
+                      batch.batchCode
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div>
+
+                  <div
+                    style="
+                      font-size:11px;
+                      color:#888;
+                      margin-bottom:3px;
+                    "
+                  >
+                    Tracking
+                  </div>
+
+                  <strong>
+                    ${escapeHTML(
+                      batch.tracking ||
+                      "Belum ada tracking"
+                    )}
+                  </strong>
+
+                </div>
+
 
                 <div
                   style="
                     font-size:12px;
                     color:#777;
-                    margin-top:3px;
                   "
                 >
-                  Batch:
-                  ${escapeHTML(
-                    batch.batchCode
-                  )}
+
+                  ${
+                    batch.date
+                      ? `
+                        <div
+                          style="
+                            font-size:11px;
+                            color:#888;
+                            margin-bottom:3px;
+                          "
+                        >
+                          Tanggal
+                        </div>
+
+                        ${dateHTML}
+                      `
+                      : ""
+                  }
+
                 </div>
 
-              </div>
+              </label>
 
+            `;
 
-              <div>
-
-                <div
-                  style="
-                    font-size:11px;
-                    color:#888;
-                    margin-bottom:3px;
-                  "
-                >
-                  Status
-                </div>
-
-                <strong>
-                  ${escapeHTML(
-                    batch.tracking
-                  )}
-                </strong>
-
-                ${dateHTML}
-
-              </div>
-
-            </label>
-
-          `;
-
-        })
+          }
+        )
         .join("");
 
   }
 
 
   /* ==========================================
-     12. PILIH SEMUA
+     10. PILIH SEMUA
      ========================================== */
 
   const selectAllButton =
@@ -25457,9 +25576,7 @@ async function showWhatsAppTrackingUpdateBuilder(
     );
 
 
-  if (
-    selectAllButton
-  ) {
+  if (selectAllButton) {
 
     selectAllButton.onclick =
       function() {
@@ -25483,7 +25600,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
   /* ==========================================
-     13. HAPUS PILIHAN
+     11. HAPUS PILIHAN
      ========================================== */
 
   const clearAllButton =
@@ -25492,9 +25609,7 @@ async function showWhatsAppTrackingUpdateBuilder(
     );
 
 
-  if (
-    clearAllButton
-  ) {
+  if (clearAllButton) {
 
     clearAllButton.onclick =
       function() {
@@ -25518,7 +25633,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
   /* ==========================================
-     14. TUTUP MODAL
+     12. TUTUP MODAL
      ========================================== */
 
   function closeTrackingModal() {
@@ -25562,7 +25677,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
   /* ==========================================
-     15. GENERATE WHATSAPP
+     13. GENERATE WHATSAPP
      ========================================== */
 
   const generateButton =
@@ -25583,15 +25698,21 @@ async function showWhatsAppTrackingUpdateBuilder(
         .map(
           function(check) {
 
-            return check.dataset.batchCode;
+            return {
+
+              category:
+                check.dataset.category,
+
+              batchCode:
+                check.dataset.batchCode
+
+            };
 
           }
         );
 
 
-      if (
-        !selected.length
-      ) {
+      if (!selected.length) {
 
         alert(
           "Pilih minimal 1 batch."
@@ -25606,8 +25727,17 @@ async function showWhatsAppTrackingUpdateBuilder(
         batchRows.filter(
           function(batch) {
 
-            return selected.includes(
-              batch.batchCode
+            return selected.some(
+              function(item) {
+
+                return (
+                  item.category ===
+                  batch.category &&
+                  item.batchCode ===
+                  batch.batchCode
+                );
+
+              }
             );
 
           }
@@ -25615,7 +25745,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
       /* ======================================
-         BUAT PESAN
+         BUAT PESAN WHATSAPP
          ====================================== */
 
       const lines = [];
@@ -25629,17 +25759,48 @@ async function showWhatsAppTrackingUpdateBuilder(
         ""
       );
 
-      lines.push(
-        `*${category}*`
-      );
 
-      lines.push(
-        ""
-      );
+      let currentCategory =
+        null;
 
 
       selectedRows.forEach(
         function(batch) {
+
+          /*
+           * Jika kategori berubah,
+           * tampilkan kategori baru.
+           */
+
+          if (
+            currentCategory !==
+            batch.category
+          ) {
+
+            if (
+              currentCategory !==
+              null
+            ) {
+
+              lines.push("");
+
+            }
+
+
+            lines.push(
+              `*${batch.category}*`
+            );
+
+            lines.push(
+              ""
+            );
+
+
+            currentCategory =
+              batch.category;
+
+          }
+
 
           lines.push(
             `📌 *${batch.itemName || "Barang"}*`
@@ -25650,21 +25811,30 @@ async function showWhatsAppTrackingUpdateBuilder(
           );
 
           lines.push(
-            `Status: ${batch.tracking}`
+            `Status: ${batch.tracking || "Belum ada tracking"}`
           );
 
 
           /*
-             TANGGAL HANYA DITAMBAHKAN
-             JIKA MEMANG ADA
-          */
+           * TANGGAL HANYA DITAMPILKAN
+           * JIKA MEMANG ADA.
+           */
 
           if (
-            batch.formattedDate
+            batch.date
           ) {
 
             lines.push(
-              `Tanggal: ${batch.formattedDate}`
+              `Tanggal: ${new Date(
+                batch.date
+              ).toLocaleDateString(
+                "id-ID",
+                {
+                  day:"2-digit",
+                  month:"long",
+                  year:"numeric"
+                }
+              )}`
             );
 
           }
@@ -25766,10 +25936,6 @@ async function showWhatsAppTrackingUpdateBuilder(
       textarea.focus();
 
 
-      /* ======================================
-         COPY
-         ====================================== */
-
       const copyButton =
         list.querySelector(
           "#copyTrackingUpdateMessage"
@@ -25818,7 +25984,7 @@ async function showWhatsAppTrackingUpdateBuilder(
 
 
       /* ======================================
-         KEMBALI
+         KEMBALI KE PEMILIHAN
          ====================================== */
 
       const backButton =
@@ -25832,15 +25998,14 @@ async function showWhatsAppTrackingUpdateBuilder(
 
           closeTrackingModal();
 
-          showWhatsAppTrackingUpdateBuilder(
-            category
-          );
+          showWhatsAppTrackingUpdateBuilder();
 
         };
 
     };
 
 }
+
 /* ============================================
    GENERATOR TAGIHAN WHATSAPP
    ============================================ */
@@ -33378,23 +33543,6 @@ let html = `
 <button
   type="button"
   class="primary-button"
-  id="createWhatsAppTrackingUpdateButton"
-  style="
-    width:auto;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:8px 16px;
-    font-size:13px;
-    white-space:nowrap;
-  "
->
-  📦 Update Barang ke Grup GO
-</button>
-
-<button
-  type="button"
-  class="primary-button"
   id="syncPaymentStatusButton"
   style="
     width:auto;
@@ -36669,32 +36817,6 @@ if (
     function() {
 
       showWhatsAppBillingBuilder(
-        category
-      );
-
-    }
-  );
-
-}
-
-/* ==========================================
-   UPDATE BARANG KE GRUP GO
-   ========================================== */
-
-const createWhatsAppTrackingUpdateButton =
-  container.querySelector(
-    "#createWhatsAppTrackingUpdateButton"
-  );
-
-if (
-  createWhatsAppTrackingUpdateButton
-) {
-
-  createWhatsAppTrackingUpdateButton.addEventListener(
-    "click",
-    function() {
-
-      showWhatsAppTrackingUpdateBuilder(
         category
       );
 
