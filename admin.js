@@ -5167,6 +5167,21 @@ const matchingBatchKeys = Object.keys(
   );
 });
 
+
+console.log("=== DEBUG BATCH PEMBELIAN STOK ===");
+
+console.log("Tipe terpilih:", selectedType);
+console.log("Kategori terpilih:", selectedCategory);
+
+console.log("Key yang cocok:", matchingBatchKeys);
+
+console.log(
+  "Batch sebelum filter:",
+  matchingBatchKeys.flatMap(function(existingKey) {
+    return batchesByTypeCategory[existingKey] || [];
+  })
+);
+
 const batches = [
   ...new Map(
     matchingBatchKeys
