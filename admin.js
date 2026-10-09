@@ -22700,6 +22700,31 @@ function showRecapForm(category) {
   Rekap Baru = Deadline CO dihitung otomatis 3 bulan setelah Arrived Admin.
 </small>
 
+
+<!-- SUMBER STOK KHUSUS TREASURE INA -->
+<div
+  id="batchStockSourceContainer"
+  style="display:none;"
+>
+  <label>Sumber Stok</label>
+
+  <select id="batchStockSource">
+    <option value="ready">
+      Stok Ready
+    </option>
+
+    <option value="seller">
+      Stok Seller
+    </option>
+  </select>
+
+  <small>
+    Stok Ready langsung Arrived Admin.
+    Stok Seller mengikuti tracking Pembelian Stok.
+  </small>
+</div>
+
+
         <label>
          Deadline DP
         </label>
@@ -39404,6 +39429,11 @@ async function saveBatchRecap(event) {
     "batchRecapDataType"
   ).value;
 
+const stockSource =
+  document.getElementById(
+    "batchStockSource"
+  )?.value || "ready";
+
 const manualCoDeadline =
   document.getElementById(
     "batchCoDeadline"
@@ -39741,15 +39771,20 @@ const remaining =
          MASUKKAN KE RECORD
          ====================================== */
 
-      records.push({
+      
+records.push({
   recap_type:
     recapType,
 
   category:
     category,
-         
-        batch_code:
-          batchCode,
+
+  stock_source:
+    stockSource,
+
+  batch_code:
+    batchCode,
+
 
         item_name:
           itemName,
