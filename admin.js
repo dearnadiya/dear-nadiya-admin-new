@@ -3645,56 +3645,6 @@ const arrivedAdminBatchKeys = new Set();
   );
 });
    
-   const recapType =
-        String(
-          row.recap_type || ""
-        ).trim();
-
-      const category =
-        String(
-          row.category || ""
-        ).trim();
-
-      const batchCode =
-        String(
-          row.batch_code || ""
-        ).trim();
-
-      if (
-        !recapType ||
-        !category ||
-        !batchCode
-      ) {
-        return;
-      }
-
-      const batchKey =
-        recapType +
-        "||" +
-        category +
-        "||" +
-        batchCode;
-
-      /*
-       * Hanya tandai jika memang
-       * sudah masuk Alokasi Barang.
-       */
-      if (
-        allocatedBatchKeys.has(
-          batchKey
-        )
-      ) {
-
-        arrivedAdminAllocatedBatchKeys.add(
-          batchKey
-        );
-
-      }
-
-    }
-  );
-
-
   /* ==========================================
      4. HAPUS MODAL LAMA
      ========================================== */
