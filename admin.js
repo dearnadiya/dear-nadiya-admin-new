@@ -5147,17 +5147,37 @@ function getDraftSelectedBatchKeys() {
         }
 
 
-        const key =
-          selectedType +
-          "||" +
-          selectedCategory;
+        
+const normalizeBatchKey = function(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+};
 
+const matchingBatchKeys = Object.keys(
+  batchesByTypeCategory
+).filter(function(existingKey) {
+  const parts = existingKey.split("||");
 
-        const batches =
-  (
-    batchesByTypeCategory[key] ||
-    []
-  ).filter(
+  return (
+    normalizeBatchKey(parts[0]) ===
+      normalizeBatchKey(selectedType) &&
+    normalizeBatchKey(parts[1]) ===
+      normalizeBatchKey(selectedCategory)
+  );
+});
+
+const batches = [
+  ...new Map(
+    matchingBatchKeys
+      .flatMap(function(existingKey) {
+        return batchesByTypeCategory[existingKey] || [];
+      })
+      .map(function(batch) {
+        return [batch.batch_code, batch];
+      })
+  ).values()
+].filter(
     function(batch) {
 
       const batchCode =
