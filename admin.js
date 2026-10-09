@@ -15769,8 +15769,6 @@ if (price <= 0) {
    STATUS DP
 ================================ */
 
-let dpStatus = "unpaid";
-
 if (
   price > 0 &&
   minimumDp <= 0 &&
@@ -15795,6 +15793,10 @@ if (
 ) {
 
   dpStatus = "insufficient";
+
+} else {
+
+  dpStatus = "unpaid";
 
 }
 
