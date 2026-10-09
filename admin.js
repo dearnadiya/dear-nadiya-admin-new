@@ -15740,6 +15740,7 @@ if (
 }
 
 
+
 /* ================================
    HITUNG TOTAL PEMBAYARAN
 ================================ */
@@ -15755,22 +15756,45 @@ const totalPaid =
 
 let remainingAmount =
   Math.max(
-    price -
-    totalPaid,
+    price - totalPaid,
     0
   );
 
+if (price <= 0) {
+  remainingAmount = 0;
+}
 
-/*
-  Kalau harga barang 0,
-  jangan dianggap lunas.
-*/
+
+/* ================================
+   STATUS DP
+================================ */
+
+let dpStatus = "unpaid";
 
 if (
-  price <= 0
+  price > 0 &&
+  minimumDp <= 0 &&
+  totalPaid > 0
 ) {
 
-  remainingAmount = 0;
+  // Tidak ada kewajiban DP.
+  dpStatus = "paid";
+
+} else if (
+  totalDpPaid > 0 &&
+  (
+    minimumDp <= 0 ||
+    totalDpPaid >= minimumDp
+  )
+) {
+
+  dpStatus = "paid";
+
+} else if (
+  totalDpPaid > 0
+) {
+
+  dpStatus = "insufficient";
 
 }
 
@@ -15779,20 +15803,17 @@ if (
    STATUS PEMBAYARAN
 ================================ */
 
-let paymentStatus =
-  "unpaid";
-
+let paymentStatus = "unpaid";
 
 if (
   price > 0 &&
-  dpStatus === "paid" &&
   remainingAmount <= 0
 ) {
 
-  paymentStatus =
-    "paid";
+  paymentStatus = "paid";
 
 }
+
 
   /* ================================
      UPDATE PURCHASE RECAP
