@@ -3607,31 +3607,45 @@ const allRekapAllocations =
 
 
   /*
-   * Batch yang sudah Arrived Admin
-   * DAN sudah pernah masuk Alokasi Barang
-   */
-  const arrivedAdminAllocatedBatchKeys =
-    new Set();
+ * Batch yang sudah Arrived Admin
+ * tidak ditampilkan untuk alokasi baru.
+ *
+ * Saat mengedit, batch yang sedang dipakai
+ * tetap boleh muncul.
+ */
+const arrivedAdminBatchKeys = new Set();
 
+(recapData || []).forEach(function(row) {
+  const tracking = String(
+    row.batch_tracking_status || ""
+  ).trim().toLowerCase();
 
-  (recapData || []).forEach(
-    function(row) {
+  if (tracking !== "arrived admin") {
+    return;
+  }
 
-      const tracking =
-        String(
-          row.batch_tracking_status || ""
-        )
-          .trim()
-          .toLowerCase();
+  const recapType = String(
+    row.recap_type || ""
+  ).trim();
 
-      if (
-        tracking !==
-        "arrived admin"
-      ) {
-        return;
-      }
+  const category = String(
+    row.category || ""
+  ).trim();
 
-      const recapType =
+  const batchCode = String(
+    row.batch_code || ""
+  ).trim();
+
+  if (!recapType || !category || !batchCode) {
+    return;
+  }
+
+  arrivedAdminBatchKeys.add(
+    recapType + "||" + category + "||" + batchCode
+  );
+});
+   
+   const recapType =
         String(
           row.recap_type || ""
         ).trim();
@@ -3719,59 +3733,69 @@ const allRekapAllocations =
 
 
   /* ==========================================
-     6. DATA UNIQUE
-     ========================================== */
+   6. DATA UNIQUE
+   KATEGORI DARI MASTER REKAP
+   ========================================== */
 
-  const recapTypes = [
-    ...new Set(
-      recapData
-        .map(function(row) {
-          return String(
-            row.recap_type || ""
-          ).trim();
-        })
-        .filter(Boolean)
-    )
-  ];
+const {
+  data: masterCategories,
+  error: masterCategoryError
+} = await supabaseClient
+  .from("recap_categories")
+  .select("recap_type, category_name")
+  .order("id", {
+    ascending: true
+  });
 
-
-  const categoriesByType = {};
-
-
-  recapData.forEach(
-    function(row) {
-
-      const type =
-        String(
-          row.recap_type || ""
-        ).trim();
-
-      const category =
-        String(
-          row.category || ""
-        ).trim();
-
-      if (!type || !category) {
-        return;
-      }
-
-      if (!categoriesByType[type]) {
-        categoriesByType[type] = [];
-      }
-
-      if (
-        !categoriesByType[type]
-          .includes(category)
-      ) {
-
-        categoriesByType[type]
-          .push(category);
-
-      }
-
-    }
+if (masterCategoryError) {
+  console.error(
+    "Gagal mengambil kategori master:",
+    masterCategoryError
   );
 
+  alert(
+    "Gagal mengambil kategori master:\n" +
+    masterCategoryError.message
+  );
+
+  return;
+}
+
+const recapTypes = [
+  ...new Set(
+    (masterCategories || [])
+      .map(function(row) {
+        return String(
+          row.recap_type || ""
+        ).trim();
+      })
+      .filter(Boolean)
+  )
+];
+
+const categoriesByType = {};
+
+(masterCategories || []).forEach(function(row) {
+  const type = String(
+    row.recap_type || ""
+  ).trim();
+
+  const category = String(
+    row.category_name || ""
+  ).trim();
+
+  if (!type || !category) {
+    return;
+  }
+
+  if (!categoriesByType[type]) {
+    categoriesByType[type] = [];
+  }
+
+  if (!categoriesByType[type].includes(category)) {
+    categoriesByType[type].push(category);
+  }
+});
 
   const batchesByTypeCategory = {};
 
@@ -5243,15 +5267,11 @@ if (
         batchCode;
 
       if (
-        arrivedAdminAllocatedBatchKeys.has(
-          batchKey
-        ) &&
-        !isCurrentAllocation
-      ) {
-
-        return false;
-
-      }
+  arrivedAdminBatchKeys.has(batchKey) &&
+  !isCurrentAllocation
+) {
+  return false;
+}
 
 
       /*
