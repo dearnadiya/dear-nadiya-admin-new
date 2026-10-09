@@ -3651,13 +3651,15 @@ const arrivedAdminBatchKeys = new Set();
     return;
   }
 
-  const recapType = String(
-    row.recap_type || ""
-  ).trim();
+  const normalizeRecapType = function(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+};
 
-  const category = String(
-    row.category || ""
-  ).trim();
+const type = normalizeRecapType(row.recap_type);
+const category = String(row.category || "").trim();
 
   const batchCode = String(
     row.batch_code || ""
@@ -3807,10 +3809,15 @@ recapData.forEach(
       return;
     }
 
-    const key =
-      type +
-      "||" +
-      category;
+    
+const key =
+  String(type || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "") +
+  "||" +
+  String(category || "").trim();
+
 
     if (
       !batchesByTypeCategory[key]
