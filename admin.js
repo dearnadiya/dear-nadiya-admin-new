@@ -3640,39 +3640,15 @@ const allRekapAllocations =
  * Saat mengedit, batch yang sedang dipakai
  * tetap boleh muncul.
  */
-const arrivedAdminBatchKeys = new Set();
-
-(recapData || []).forEach(function(row) {
-  const tracking = String(
-    row.batch_tracking_status || ""
-  ).trim().toLowerCase();
-
-  if (tracking !== "arrived admin") {
-    return;
-  }
-
-  const normalizeRecapType = function(value) {
-  return String(value || "")
+const key =
+  String(type || "")
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, "");
-};
-
-const type = normalizeRecapType(row.recap_type);
-const category = String(row.category || "").trim();
-
-  const batchCode = String(
-    row.batch_code || ""
-  ).trim();
-
-  if (!recapType || !category || !batchCode) {
-    return;
-  }
-
-  arrivedAdminBatchKeys.add(
-    recapType + "||" + category + "||" + batchCode
-  );
-});
+    .replace(/\s+/g, "") +
+  "||" +
+  String(category || "")
+    .trim()
+    .toLowerCase();
    
   /* ==========================================
      4. HAPUS MODAL LAMA
