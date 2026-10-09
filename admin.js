@@ -3633,22 +3633,49 @@ const allRekapAllocations =
   );
 
 
-  /*
+  
+/*
  * Batch yang sudah Arrived Admin
  * tidak ditampilkan untuk alokasi baru.
  *
  * Saat mengedit, batch yang sedang dipakai
  * tetap boleh muncul.
  */
-const key =
-  String(type || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "") +
-  "||" +
-  String(category || "")
+const arrivedAdminBatchKeys = new Set();
+
+(recapData || []).forEach(function(row) {
+  const tracking = String(
+    row.batch_tracking_status || ""
+  )
     .trim()
     .toLowerCase();
+
+  if (tracking !== "arrived admin") {
+    return;
+  }
+
+  
+const recapType = String(
+  row.recap_type || ""
+).trim();
+
+const category = String(
+  row.category || ""
+).trim();
+
+const batchCode = String(
+  row.batch_code || ""
+).trim();
+
+if (!recapType || !category || !batchCode) {
+  return;
+}
+
+arrivedAdminBatchKeys.add(
+  recapType + "||" + category + "||" + batchCode
+);
+});
+
    
   /* ==========================================
      4. HAPUS MODAL LAMA
@@ -3785,15 +3812,14 @@ recapData.forEach(
       return;
     }
 
-    
 const key =
   String(type || "")
     .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "") +
+    .toLowerCase() +
   "||" +
-  String(category || "").trim();
-
+  String(category || "")
+    .trim()
+    .toLowerCase();
 
     if (
       !batchesByTypeCategory[key]
