@@ -3239,6 +3239,33 @@ while (true) {
 const recapData =
   recapRows;
 
+   
+console.log("=== DEBUG DATA REKAP ASLI ===");
+console.log("Total data recapData:", recapData.length);
+
+console.table(
+  recapData
+    .filter(function(row) {
+      return [
+        "ikon",
+        "bts",
+        "enhypen",
+        "shopping time"
+      ].includes(
+        String(row.category || "").trim().toLowerCase()
+      );
+    })
+    .map(function(row) {
+      return {
+        id: row.id,
+        recap_type: row.recap_type,
+        category: row.category,
+        batch_code: row.batch_code,
+        batch_tracking_status: row.batch_tracking_status
+      };
+    })
+);
+
   /* ==========================================
      3. DATA ALOKASI LAMA
      ========================================== */
