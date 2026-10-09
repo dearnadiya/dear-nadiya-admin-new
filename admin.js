@@ -22704,7 +22704,7 @@ function showRecapForm(category) {
 <!-- SUMBER STOK KHUSUS TREASURE INA -->
 <div
   id="batchStockSourceContainer"
-  style="display:none;"
+  style="display:black;"
 >
   <label>Sumber Stok</label>
 
