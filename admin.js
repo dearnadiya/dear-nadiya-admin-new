@@ -26282,32 +26282,41 @@ async function showShopeeCOListBuilder() {
 
   try {
 
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+
     const {
       data,
       error
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .select(`
-          id,
-          recap_type,
-          category,
-          batch_code,
-          item_name,
-          version,
-          customer_id,
-          customer_name,
-          customer_status,
-          tracking_status,
-          batch_tracking_status,
-          arrived_admin_at,
-          co_deadline
-        `)
-        .order("batch_code", {
-          ascending: true
-        });
+    } = await supabaseClient
+      .from("purchase_recap")
+      .select(`
+        id,
+        recap_type,
+        category,
+        batch_code,
+        item_name,
+        version,
+        customer_id,
+        customer_name,
+        customer_status,
+        tracking_status,
+        batch_tracking_status,
+        arrived_admin_at,
+        co_deadline
+      `)
+      .order("batch_code", {
+        ascending: true
+      })
+      .order("id", {
+        ascending: true
+      })
+      .range(from, from + pageSize - 1);
 
     if (error) {
+
       console.error(
         "ERROR LOAD REKAP GO UNTUK LIST CO SHOPEE:",
         error
@@ -26321,22 +26330,35 @@ async function showShopeeCOListBuilder() {
       return;
     }
 
-    recapRows = data || [];
+    const pageRows = data || [];
 
-  } catch (err) {
+    recapRows.push(...pageRows);
 
-    console.error(
-      "ERROR LIST CO SHOPEE:",
-      err
-    );
+    if (pageRows.length < pageSize) {
+      break;
+    }
 
-    alert(
-      "Terjadi kesalahan saat mengambil Rekap GO."
-    );
-
-    return;
+    from += pageSize;
   }
 
+  console.log(
+    "LIST CO SHOPEE - TOTAL DATA REKAP:",
+    recapRows.length
+  );
+
+} catch (err) {
+
+  console.error(
+    "ERROR LIST CO SHOPEE:",
+    err
+  );
+
+  alert(
+    "Terjadi kesalahan saat mengambil Rekap GO."
+  );
+
+  return;
+}
 
   /* ============================================
      GROUP DATA REKAP GO
