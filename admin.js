@@ -20213,6 +20213,144 @@ showRecapCategories(
 
 }
 
+
+/* ==========================================
+   EDIT BATCH TABUNGAN ALBUM
+   HANYA MENGUBAH INFORMASI BATCH
+   ========================================== */
+
+async function showEditTabunganBatchForm(
+  batchCode,
+  category
+) {
+  if (category !== "Tabungan Album") {
+    alert("Edit batch hanya berlaku untuk Tabungan Album.");
+    return;
+  }
+
+  const { data: rows, error } = await supabaseClient
+    .from("purchase_recap")
+    .select("id, batch_code, item_name, item_price, minimum_dp_amount")
+    .eq("category", category)
+    .eq("batch_code", batchCode)
+    .eq("recap_type", "Tabungan")
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error("GAGAL MEMUAT BATCH TABUNGAN:", error);
+    alert("Gagal memuat batch:\n" + error.message);
+    return;
+  }
+
+  if (!rows || rows.length === 0) {
+    alert("Batch tidak ditemukan.");
+    return;
+  }
+
+  const firstRow = rows[0];
+
+  const newBatchCode = prompt(
+    "Kode batch:",
+    firstRow.batch_code || ""
+  );
+
+  if (newBatchCode === null) return;
+
+  const cleanBatchCode = newBatchCode.trim();
+
+  if (!cleanBatchCode) {
+    alert("Kode batch tidak boleh kosong.");
+    return;
+  }
+
+  const newItemName = prompt(
+    "Nama barang:",
+    firstRow.item_name || ""
+  );
+
+  if (newItemName === null) return;
+
+  if (!newItemName.trim()) {
+    alert("Nama barang tidak boleh kosong.");
+    return;
+  }
+
+  const priceInput = prompt(
+    "Harga barang per customer (angka saja):",
+    String(Number(firstRow.item_price) || 0)
+  );
+
+  if (priceInput === null) return;
+
+  const newPrice = Number(
+    priceInput.replace(/[^\d]/g, "")
+  );
+
+  if (!Number.isFinite(newPrice) || newPrice <= 0) {
+    alert("Harga harus berupa angka lebih dari 0.");
+    return;
+  }
+
+  const targetInput = prompt(
+    "Target tabungan (angka saja):",
+    String(Number(firstRow.minimum_dp_amount) || 0)
+  );
+
+  if (targetInput === null) return;
+
+  const newTarget = Number(
+    targetInput.replace(/[^\d]/g, "")
+  );
+
+  if (!Number.isFinite(newTarget) || newTarget < 0) {
+    alert("Target tabungan harus berupa angka 0 atau lebih.");
+    return;
+  }
+
+  if (!confirm(
+    "Simpan perubahan untuk seluruh batch " + batchCode + "?\n\n" +
+    "Batch baru: " + cleanBatchCode + "\n" +
+    "Nama barang: " + newItemName.trim() + "\n" +
+    "Harga: " + formatRupiah(newPrice) + "\n" +
+    "Target: " + formatRupiah(newTarget) + "\n\n" +
+    "Riwayat dan nominal pembayaran tidak akan diubah."
+  )) {
+    return;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("purchase_recap")
+    .update({
+      batch_code: cleanBatchCode,
+      item_name: newItemName.trim(),
+      item_price: newPrice,
+      minimum_dp_amount: newTarget
+    })
+    .eq("category", category)
+    .eq("batch_code", batchCode)
+    .eq("recap_type", "Tabungan");
+
+  if (updateError) {
+    console.error("GAGAL EDIT BATCH TABUNGAN:", updateError);
+    alert("Gagal menyimpan perubahan:\n" + updateError.message);
+    return;
+  }
+
+  alert(
+    "Informasi batch berhasil diperbarui.\n" +
+    "Riwayat pembayaran tidak diubah."
+  );
+
+  if (typeof renderTabunganRecapList === "function") {
+    // Muat ulang tampilan melalui fungsi render yang sudah ada.
+    // Tidak menjalankan sinkronisasi Rekap GO.
+    location.reload();
+  } else {
+    location.reload();
+  }
+}
+
+
 /* ==========================================
    TAMBAH CUSTOMER TABUNGAN KE BATCH
    ========================================== */
@@ -30848,7 +30986,6 @@ function renderAlbumBatchCards(
                   }
 
                 </select>
-
                 
 <button
   type="button"
@@ -30868,6 +31005,23 @@ function renderAlbumBatchCards(
   ＋ Tambah Customer
 </button>
 
+<button
+  type="button"
+  class="tabungan-edit-batch-button"
+  data-batch-code="${escapeHTML(batchCode)}"
+  data-category="Tabungan Album"
+  style="
+    padding:7px 12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    color:#252842;
+    font-weight:600;
+    cursor:pointer;
+  "
+>
+  ✏️ Edit Batch
+</button>
 
               </div>
 
@@ -32798,6 +32952,30 @@ container
       }
 
       showAddTabunganMemberForm(batchCode, category);
+    });
+  });
+
+     
+/* ==========================================
+   EVENT EDIT BATCH TABUNGAN
+   ========================================== */
+
+container
+  .querySelectorAll(".tabungan-edit-batch-button")
+  .forEach(function(button) {
+    button.addEventListener("click", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const batchCode = this.dataset.batchCode;
+      const category = this.dataset.category;
+
+      if (!batchCode || !category) {
+        alert("Kode batch atau kategori tidak ditemukan.");
+        return;
+      }
+
+      showEditTabunganBatchForm(batchCode, category);
     });
   });
 
