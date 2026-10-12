@@ -31999,24 +31999,50 @@ async function initTabunganAlbumBatchLinks() {
 
   try {
 
-    const [
-      { data: recapRows, error: recapError },
-      { data: savedLinks, error: linkError }
-    ] = await Promise.all([
+    
+    let recapRows = [];
+    let recapError = null;
 
-      supabaseClient
+    let savedLinks = [];
+    let linkError = null;
+
+    const pageSize = 1000;
+    let from = 0;
+
+    while (true) {
+
+      const result = await supabaseClient
         .from("purchase_recap")
         .select(
           "id, category, recap_type, recap_data_type, batch_code, customer_name, version, item_name"
         )
         .neq("category", "Tabungan Album")
-        .order("id", { ascending: true }),
+        .order("id", { ascending: true })
+        .range(from, from + pageSize - 1);
 
-      supabaseClient
-        .from("dn_tabungan_album_batch_links")
-        .select("*")
+      if (result.error) {
+        recapError = result.error;
+        break;
+      }
 
-    ]);
+      const page = result.data || [];
+
+      recapRows = recapRows.concat(page);
+
+      if (page.length < pageSize) {
+        break;
+      }
+
+      from += pageSize;
+    }
+
+    const linkResult = await supabaseClient
+      .from("dn_tabungan_album_batch_links")
+      .select("*");
+
+    savedLinks = linkResult.data || [];
+    linkError = linkResult.error;
+
 
     if (recapError) {
       throw recapError;
