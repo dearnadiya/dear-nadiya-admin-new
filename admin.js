@@ -16343,6 +16343,7 @@ async function loadCOReport() {
       version,
       quantity,
       created_at,
+      checkout_at,
       checkout_note,
       shopee_order_code
     `)
@@ -16513,14 +16514,23 @@ return (
               return item;
             }
 
-            if (
+                        const itemDate =
               new Date(
-                item.created_at
-              ) <
+                item.checkout_at ||
+                item.tanggal_co ||
+                item.created_at ||
+                0
+              ).getTime();
+
+            const firstDate =
               new Date(
-                first.created_at
-              )
-            ) {
+                first.checkout_at ||
+                first.tanggal_co ||
+                first.created_at ||
+                0
+              ).getTime();
+
+            if (itemDate < firstDate) {
               return item;
             }
 
@@ -16541,9 +16551,13 @@ return (
         items:
           items,
 
-        firstCreatedAt:
+                firstCreatedAt:
           firstItem
-            ? firstItem.created_at
+            ? (
+                firstItem.checkout_at ||
+                firstItem.tanggal_co ||
+                firstItem.created_at
+              )
             : null
       };
 
@@ -16996,7 +17010,6 @@ return (
 
           </div>
 
-
           <label
             style="
               display:flex;
@@ -17020,6 +17033,59 @@ return (
 
         </div>
 
+
+        <div
+          style="
+            margin-top:12px;
+            margin-bottom:14px;
+            padding:12px;
+            border:1px solid #e5d9ed;
+            border-radius:10px;
+            background:#fcf9ff;
+          "
+        >
+          <label
+            for="coExpeditionSelect"
+            style="
+              display:block;
+              margin-bottom:6px;
+              font-size:13px;
+              font-weight:700;
+            "
+          >
+            🚚 Ekspedisi Pengiriman
+          </label>
+
+          <select
+            id="coExpeditionSelect"
+            style="
+              width:100%;
+              padding:10px;
+              border:1px solid #ddd;
+              border-radius:8px;
+              box-sizing:border-box;
+              background:#fff;
+            "
+          >
+            <option value="">Pilih ekspedisi</option>
+            <option value="JNE">JNE</option>
+            <option value="J&T Express">J&T Express</option>
+            <option value="SiCepat">SiCepat</option>
+            <option value="Anteraja">Anteraja</option>
+            <option value="Pos Indonesia">Pos Indonesia</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+
+          <p
+            style="
+              margin:6px 0 0;
+              font-size:12px;
+              color:#777;
+            "
+          >
+            Pilih ekspedisi yang digunakan sebelum mengonfirmasi pesanan.
+          </p>
+        </div>
 
         <div
           style="
@@ -17224,6 +17290,26 @@ return (
 
         }
 
+                 const expeditionSelect =
+          document.getElementById(
+            "coExpeditionSelect"
+          );
+
+        const selectedExpedition =
+          expeditionSelect
+            ? expeditionSelect.value.trim()
+            : "";
+
+        if (
+          result === "Dikonfirmasi" &&
+          !selectedExpedition
+        ) {
+          alert(
+            "Pilih ekspedisi terlebih dahulu sebelum mengonfirmasi pesanan."
+          );
+          return;
+        }
+
 
         /*
           Konfirmasi tindakan
@@ -17330,6 +17416,40 @@ console.log(
           );
 
           return;
+
+        }
+
+                 /*
+          SIMPAN EKSPEDISI UNTUK RIWAYAT CO
+        */
+
+        if (result === "Dikonfirmasi") {
+
+          const {
+            error: expeditionError
+          } = await supabaseClient
+            .from("purchase_recap")
+            .update({
+              co_expedition: selectedExpedition
+            })
+            .in(
+              "id",
+              recapIds
+            );
+
+          if (expeditionError) {
+            console.error(
+              "ERROR SIMPAN EKSPEDISI CO:",
+              expeditionError
+            );
+
+            alert(
+              "Konfirmasi sudah diproses, tetapi penyimpanan ekspedisi gagal. Periksa koneksi dan data sebelum mencoba kembali.\n\n" +
+              expeditionError.message
+            );
+
+            return;
+          }
 
         }
 
@@ -25396,45 +25516,68 @@ return {
       );
 
 
+  
   /* ==========================================
-     6. URUTKAN CATEGORY + BATCH
+     6. URUTKAN TRACKING + CATEGORY + BATCH
      ========================================== */
 
-  batchRows.sort(
-    function(a, b) {
+  function getTrackingStageRank(status) {
 
-      const categoryCompare =
-        String(
-          a.category
-        ).localeCompare(
-          String(
-            b.category
-          ),
-          "id"
-        );
+    const normalized = String(
+      status || ""
+    ).trim().toLowerCase();
 
+    if (
+      normalized === "co web / seller" ||
+      normalized === "co seller"
+    ) {
+      return 1;
+    }
 
-      if (
-        categoryCompare !== 0
-      ) {
+    if (
+      normalized.startsWith("arrived wh ") &&
+      normalized !== "arrived wh ina"
+    ) {
+      return 2;
+    }
 
-        return categoryCompare;
+    if (normalized === "shipping ina") {
+      return 3;
+    }
 
-      }
+    if (normalized === "arrived wh ina") {
+      return 4;
+    }
 
+    return 99;
+  }
 
-      return String(
-        a.batchCode
-      ).localeCompare(
-        String(
-          b.batchCode
-        ),
+  batchRows.sort(function(a, b) {
+
+    const stageCompare =
+      getTrackingStageRank(a.tracking) -
+      getTrackingStageRank(b.tracking);
+
+    if (stageCompare !== 0) {
+      return stageCompare;
+    }
+
+    const categoryCompare =
+      String(a.category || "").localeCompare(
+        String(b.category || ""),
         "id"
       );
 
+    if (categoryCompare !== 0) {
+      return categoryCompare;
     }
-  );
 
+    return String(a.batchCode || "").localeCompare(
+      String(b.batchCode || ""),
+      "id"
+    );
+
+  });
 
   /* ==========================================
      7. HAPUS MODAL LAMA
@@ -25825,14 +25968,49 @@ width:100%;
     // SUSUN PESAN WHATSAPP
     // ==========================================
 
+    
     const lines = [];
 
-    lines.push("📦 *UPDATE BARANG*");
+    lines.push("📦 *UPDATE STATUS BARANG*");
+    lines.push("*DEAR NADIYA*");
+    lines.push("");
+    lines.push(
+      "Berikut informasi terbaru perjalanan barang:"
+    );
     lines.push("");
 
+    let currentStage = null;
     let currentCategory = null;
 
+    const stageLabels = {
+      1: "🛒 CO SELLER / WEB",
+      2: "📦 ARRIVED WH",
+      3: "🚢 SHIPPING INA",
+      4: "🏠 ARRIVED WH INA",
+      99: "📍 STATUS LAINNYA"
+    };
+
     selectedRows.forEach(function(batch) {
+
+      const stageRank =
+        getTrackingStageRank(batch.tracking);
+
+      const stageLabel =
+        stageLabels[stageRank] ||
+        "📍 STATUS LAINNYA";
+
+      if (currentStage !== stageRank) {
+
+        if (currentStage !== null) {
+          lines.push("");
+        }
+
+        lines.push(`*${stageLabel}*`);
+        lines.push("");
+
+        currentStage = stageRank;
+        currentCategory = null;
+      }
 
       if (currentCategory !== batch.category) {
 
@@ -25840,30 +26018,26 @@ width:100%;
           lines.push("");
         }
 
-        lines.push(`*${batch.category}*`);
-        lines.push("");
+        lines.push(`_${batch.category}_`);
 
         currentCategory = batch.category;
       }
 
-
       lines.push(
-        `📌 *${batch.itemName || "Barang"}*`
+        `• *${batch.itemName || "Barang"}*`
       );
 
       lines.push(
-        `Batch: ${batch.batchCode}`
+        `  Batch: ${batch.batchCode}`
       );
 
       lines.push(
-        `Status: ${batch.tracking || "Belum ada tracking"}`
+        `  Status: ${batch.tracking || "Belum ada tracking"}`
       );
 
-
-      // Tanggal hanya ditampilkan jika tersedia
       if (batch.date) {
         lines.push(
-          `Tanggal: ${new Date(
+          `  Tanggal: ${new Date(
             batch.date
           ).toLocaleDateString(
             "id-ID",
@@ -25880,14 +26054,14 @@ width:100%;
 
     });
 
-
     lines.push(
-      "Mohon ditunggu update berikutnya. ♥"
+      "Mohon menunggu pembaruan berikutnya, ya."
+    );
+    lines.push(
+      "Terima kasih sudah berbelanja bersama Dear Nadiya 💗"
     );
 
-
     const message = lines.join("\n");
-
 
     // ==========================================
     // TAMPILKAN PREVIEW DAN TOMBOL SALIN
