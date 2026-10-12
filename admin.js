@@ -32086,17 +32086,23 @@ async function initTabunganAlbumBatchLinks() {
         existingLink?.target_batch_code || "";
 
       const types = uniqueValues(
-        targetRows.map(function(row) {
-          return row.recap_data_type || row.recap_type;
-        })
+  targetRows.map(function(row) {
+    return row.recap_type;
+  })
+  .filter(function(type) {
+    return type &&
+      !["Tabungan", "lama", "baru"].includes(
+        String(type).trim().toLowerCase()
       );
+  })
+);
 
       const categoriesForType = function(type) {
         return uniqueValues(
           targetRows
             .filter(function(row) {
               return String(
-                row.recap_data_type || row.recap_type || ""
+                row.recap_type || ""
               ) === String(type);
             })
             .map(function(row) {
@@ -32110,7 +32116,7 @@ async function initTabunganAlbumBatchLinks() {
           targetRows
             .filter(function(row) {
               return String(
-                row.recap_data_type || row.recap_type || ""
+                row.recap_type || ""
               ) === String(type) &&
                 String(row.category || "") === String(categoryValue);
             })
@@ -32240,7 +32246,7 @@ async function initTabunganAlbumBatchLinks() {
 
         const matches = targetRows.filter(function(row) {
           return String(
-            row.recap_data_type || row.recap_type || ""
+            row.recap_type || ""
           ) === String(targetType) &&
             String(row.category || "") === String(targetCategory) &&
             String(row.batch_code || "") === String(targetBatch);
