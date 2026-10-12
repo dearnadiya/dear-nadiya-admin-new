@@ -25350,6 +25350,7 @@ return {
     <div
       style="
         width:min(1050px,100%);
+width:100%;
         max-height:90vh;
         overflow:auto;
         background:#fff;
@@ -25449,11 +25450,11 @@ return {
       <div
   style="
     display:grid;
-    grid-template-columns:
-      minmax(180px,1fr)
-      minmax(180px,1fr);
+    grid-template-columns:minmax(0, 1fr);
     gap:12px;
     margin-bottom:15px;
+    width:100%;
+    box-sizing:border-box;
   "
 >
 
@@ -25542,14 +25543,6 @@ return {
           Batal
         </button>
 
-        <button
-          type="button"
-          class="primary-button"
-          id="generateWhatsAppTrackingUpdate"
-        >
-          💬 Buat Pesan WhatsApp
-        </button>
-
       </div>
 
     </div>
@@ -25610,7 +25603,7 @@ return {
 
 
   // ==========================================
-  // TAMPILKAN BATCH SESUAI PILIHAN KATEGORI
+  // PREVIEW PESAN UPDATE OTOMATIS
   // ==========================================
 
   function renderTrackingUpdateBatchList() {
@@ -25628,14 +25621,16 @@ return {
       });
 
 
+    // Belum memilih Type Rekap
     if (!selectedType) {
       list.innerHTML = `
         <div style="
-          padding:20px;
+          padding:16px;
           text-align:center;
           color:#999;
           border:1px dashed #ddd;
           border-radius:10px;
+          font-size:13px;
         ">
           Pilih Type Rekap terlebih dahulu.
         </div>
@@ -25644,23 +25639,25 @@ return {
     }
 
 
+    // Belum memilih kategori
     if (!selectedCategories.length) {
       list.innerHTML = `
         <div style="
-          padding:20px;
+          padding:16px;
           text-align:center;
           color:#999;
           border:1px dashed #ddd;
           border-radius:10px;
+          font-size:13px;
         ">
-          Centang minimal satu kategori
-          untuk menampilkan batch.
+          Centang kategori untuk melihat preview pesan.
         </div>
       `;
       return;
     }
 
 
+    // Semua batch dari kategori terpilih
     const selectedRows =
       batchRows.filter(function(batch) {
         return (
@@ -25675,168 +25672,203 @@ return {
     if (!selectedRows.length) {
       list.innerHTML = `
         <div style="
-          padding:20px;
+          padding:16px;
           text-align:center;
           color:#999;
           border:1px dashed #ddd;
           border-radius:10px;
+          font-size:13px;
         ">
-          Tidak ada batch untuk kategori
-          yang dipilih.
+          Tidak ada batch pada kategori yang dipilih.
         </div>
       `;
       return;
     }
 
 
+    // ==========================================
+    // SUSUN PESAN WHATSAPP
+    // ==========================================
+
+    const lines = [];
+
+    lines.push("📦 *UPDATE BARANG*");
+    lines.push("");
+
+    let currentCategory = null;
+
+    selectedRows.forEach(function(batch) {
+
+      if (currentCategory !== batch.category) {
+
+        if (currentCategory !== null) {
+          lines.push("");
+        }
+
+        lines.push(`*${batch.category}*`);
+        lines.push("");
+
+        currentCategory = batch.category;
+      }
+
+
+      lines.push(
+        `📌 *${batch.itemName || "Barang"}*`
+      );
+
+      lines.push(
+        `Batch: ${batch.batchCode}`
+      );
+
+      lines.push(
+        `Status: ${batch.tracking || "Belum ada tracking"}`
+      );
+
+
+      // Tanggal hanya ditampilkan jika tersedia
+      if (batch.date) {
+        lines.push(
+          `Tanggal: ${new Date(
+            batch.date
+          ).toLocaleDateString(
+            "id-ID",
+            {
+              day: "2-digit",
+              month: "long",
+              year: "numeric"
+            }
+          )}`
+        );
+      }
+
+      lines.push("");
+
+    });
+
+
+    lines.push(
+      "Mohon ditunggu update berikutnya. ♥"
+    );
+
+
+    const message = lines.join("\n");
+
+
+    // ==========================================
+    // TAMPILKAN PREVIEW DAN TOMBOL SALIN
+    // ==========================================
+
     list.innerHTML = `
       <div style="
-        font-weight:700;
-        margin:4px 0 10px;
-      ">
-        Pilih batch yang ingin dimasukkan
-        ke pesan WhatsApp
-      </div>
-
-      <div style="
-        display:flex;
-        justify-content:flex-end;
-        gap:8px;
         margin-bottom:8px;
-        flex-wrap:wrap;
+        font-weight:700;
+        font-size:14px;
       ">
-        <button
-          type="button"
-          id="trackingUpdateSelectAllBatches"
-          class="secondary-button"
-          style="
-            width:auto;
-            padding:6px 10px;
-            font-size:12px;
-          "
-        >
-          Pilih semua batch
-        </button>
-
-        <button
-          type="button"
-          id="trackingUpdateClearBatches"
-          class="secondary-button"
-          style="
-            width:auto;
-            padding:6px 10px;
-            font-size:12px;
-          "
-        >
-          Hapus pilihan
-        </button>
+        Preview Pesan WhatsApp
       </div>
 
       <div style="
-        border:1px solid #eee;
-        border-radius:10px;
-        overflow:hidden;
+        margin-bottom:10px;
+        color:#777;
+        font-size:12px;
       ">
-        ${selectedRows.map(function(batch) {
-          return `
-            <label style="
-              display:flex;
-              align-items:flex-start;
-              gap:10px;
-              padding:11px 12px;
-              border-bottom:1px solid #eee;
-              cursor:pointer;
-            ">
-              <input
-                type="checkbox"
-                class="tracking-update-checkbox"
-                data-category="${escapeHTML(batch.category)}"
-                data-recap-type="${escapeHTML(batch.recapType)}"
-                data-batch-code="${escapeHTML(batch.batchCode)}"
-                style="margin-top:3px;"
-                checked
-              >
-
-              <span style="min-width:0;">
-                <strong>
-                  ${escapeHTML(batch.itemName || "Barang")}
-                </strong>
-
-                <span style="
-                  color:#777;
-                  font-size:12px;
-                ">
-                  (${escapeHTML(batch.batchCode)})
-                </span>
-
-                <span style="
-                  display:block;
-                  color:#777;
-                  font-size:12px;
-                  margin-top:3px;
-                ">
-                  ${escapeHTML(batch.category)}
-                  ·
-                  ${escapeHTML(
-                    batch.tracking || "Belum ada tracking"
-                  )}
-                </span>
-              </span>
-            </label>
-          `;
-        }).join("")}
+        ${selectedRows.length} batch dari
+        ${selectedCategories.length} kategori terpilih.
       </div>
+
+      <textarea
+        id="generatedTrackingUpdateMessage"
+        readonly
+        aria-label="Preview pesan update barang"
+        style="
+          display:block;
+          width:100%;
+          min-height:240px;
+          max-height:55vh;
+          resize:vertical;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:10px;
+          box-sizing:border-box;
+          font-family:inherit;
+          font-size:14px;
+          line-height:1.6;
+          white-space:pre-wrap;
+          overflow-wrap:anywhere;
+          background:#fff;
+          color:#222;
+        "
+      >${escapeHTML(message)}</textarea>
+
+      <button
+        type="button"
+        class="primary-button"
+        id="copyTrackingUpdateMessage"
+        style="
+          display:block;
+          width:100%;
+          margin-top:10px;
+          padding:12px;
+          box-sizing:border-box;
+        "
+      >
+        📋 Salin Pesan Update
+      </button>
     `;
 
 
-    // Pilih semua batch yang sedang ditampilkan
-    const selectAllButton =
+    // ==========================================
+    // FUNGSI SALIN PESAN
+    // ==========================================
+
+    const textarea =
       list.querySelector(
-        "#trackingUpdateSelectAllBatches"
+        "#generatedTrackingUpdateMessage"
       );
 
-    if (selectAllButton) {
-      selectAllButton.addEventListener(
-        "click",
-        function() {
-          list
-            .querySelectorAll(
-              ".tracking-update-checkbox"
-            )
-            .forEach(function(check) {
-              check.checked = true;
-            });
-        }
-      );
-    }
-
-
-    // Hapus semua centang batch
-    const clearButton =
+    const copyButton =
       list.querySelector(
-        "#trackingUpdateClearBatches"
+        "#copyTrackingUpdateMessage"
       );
 
-    if (clearButton) {
-      clearButton.addEventListener(
-        "click",
-        function() {
-          list
-            .querySelectorAll(
-              ".tracking-update-checkbox"
-            )
-            .forEach(function(check) {
-              check.checked = false;
-            });
+
+    copyButton.onclick = async function() {
+
+      try {
+
+        await navigator.clipboard.writeText(
+          message
+        );
+
+        copyButton.textContent =
+          "✓ Berhasil Disalin";
+
+      } catch (error) {
+
+        textarea.focus();
+        textarea.select();
+
+        const copied =
+          document.execCommand("copy");
+
+        if (copied) {
+          copyButton.textContent =
+            "✓ Berhasil Disalin";
+        } else {
+          alert(
+            "Pesan belum berhasil disalin. Silakan salin teks preview secara manual."
+          );
         }
-      );
-    }
+
+      }
+
+    };
 
   }
 
 
   // ==========================================
-  // BUAT CHECKLIST KATEGORI BERDASARKAN TYPE
+  // CHECKLIST KATEGORI BERDASARKAN TYPE REKAP
   // ==========================================
 
   recapTypeSelect.addEventListener(
@@ -25849,6 +25881,7 @@ return {
 
 
       if (!selectedType) {
+
         categoryChecklist.innerHTML = `
           <span style="
             font-size:12px;
@@ -25883,6 +25916,7 @@ return {
 
 
       if (!categories.length) {
+
         categoryChecklist.innerHTML = `
           <span style="
             font-size:12px;
@@ -25906,12 +25940,14 @@ return {
           display:inline-flex;
           align-items:center;
           gap:7px;
-          padding:7px 10px;
+          padding:8px 10px;
           border:1px solid #e5e5e5;
           border-radius:8px;
           background:#fafafa;
           cursor:pointer;
           font-size:13px;
+          max-width:100%;
+          box-sizing:border-box;
         `;
 
 
@@ -25926,14 +25962,20 @@ return {
         checkbox.value = category;
 
 
-        const text =
+        // Preview diperbarui saat kategori dicentang/dilepas
+        checkbox.addEventListener(
+          "change",
+          renderTrackingUpdateBatchList
+        );
+
+
+        const categoryText =
           document.createElement("span");
 
-        text.textContent = category;
-
+        categoryText.textContent = category;
 
         label.appendChild(checkbox);
-        label.appendChild(text);
+        label.appendChild(categoryText);
 
         categoryChecklist.appendChild(label);
 
@@ -25944,6 +25986,10 @@ return {
 
     }
   );
+
+
+  // Tampilkan petunjuk awal
+  renderTrackingUpdateBatchList();
   
   /* ==========================================
      9. TUTUP MODAL
@@ -25987,333 +26033,9 @@ return {
 
     }
   );
-
-
-  /* ==========================================
-     13. GENERATE WHATSAPP
-     ========================================== */
-
-  const generateButton =
-    modal.querySelector(
-      "#generateWhatsAppTrackingUpdate"
-    );
-
-
-  generateButton.onclick =
-    async function() {
-
-      // Ambil Type Rekap yang dipilih
-      const selectedType =
-        modal.querySelector(
-          "#trackingUpdateRecapType"
-        )?.value || "";
-
-
-      // Ambil semua kategori yang dicentang
-      const selectedCategories =
-        Array.from(
-          modal.querySelectorAll(
-            ".tracking-update-category-checkbox:checked"
-          )
-        ).map(function(check) {
-          return check.value;
-        });
-
-
-      // Validasi kategori, bukan batch
-      if (
-        !selectedType ||
-        !selectedCategories.length
-      ) {
-        alert(
-          "Pilih minimal 1 kategori."
-        );
-        return;
-      }
-
-
-      // Semua batch dalam kategori terpilih
-      // otomatis dimasukkan ke pesan
-      const selectedRows =
-        batchRows.filter(function(batch) {
-          return (
-            batch.recapType === selectedType &&
-            selectedCategories.includes(
-              batch.category
-            )
-          );
-        });
-
-
-      if (!selectedRows.length) {
-        alert(
-          "Tidak ada batch pada kategori yang dipilih."
-        );
-        return;
-      }
-
-      /* ======================================
-         BUAT PESAN WHATSAPP
-         ====================================== */
-
-      const lines = [];
-
-
-      lines.push(
-        "📦 *UPDATE BARANG*"
-      );
-
-      lines.push(
-        ""
-      );
-
-
-      let currentCategory =
-        null;
-
-
-      selectedRows.forEach(
-        function(batch) {
-
-          /*
-           * Jika kategori berubah,
-           * tampilkan kategori baru.
-           */
-
-          if (
-            currentCategory !==
-            batch.category
-          ) {
-
-            if (
-              currentCategory !==
-              null
-            ) {
-
-              lines.push("");
-
-            }
-
-
-            lines.push(
-              `*${batch.category}*`
-            );
-
-            lines.push(
-              ""
-            );
-
-
-            currentCategory =
-              batch.category;
-
-          }
-
-
-          lines.push(
-            `📌 *${batch.itemName || "Barang"}*`
-          );
-
-          lines.push(
-            `Batch: ${batch.batchCode}`
-          );
-
-          lines.push(
-            `Status: ${batch.tracking || "Belum ada tracking"}`
-          );
-
-
-          /*
-           * TANGGAL HANYA DITAMPILKAN
-           * JIKA MEMANG ADA.
-           */
-
-          if (
-            batch.date
-          ) {
-
-            lines.push(
-              `Tanggal: ${new Date(
-                batch.date
-              ).toLocaleDateString(
-                "id-ID",
-                {
-                  day:"2-digit",
-                  month:"long",
-                  year:"numeric"
-                }
-              )}`
-            );
-
-          }
-
-
-          lines.push(
-            ""
-          );
-
-        }
-      );
-
-
-      lines.push(
-        "Mohon ditunggu update berikutnya. ♥"
-      );
-
-
-      const message =
-        lines.join(
-          "\n"
-        );
-
-
-      /* ======================================
-         TAMPILKAN HASIL
-         ====================================== */
-
-      list.innerHTML = `
-
-        <div
-          style="
-            margin-bottom:15px;
-          "
-        >
-
-          <strong>
-            Pesan WhatsApp:
-          </strong>
-
-        </div>
-
-
-        <textarea
-          id="generatedTrackingUpdateMessage"
-          style="
-            width:100%;
-            min-height:300px;
-            resize:vertical;
-            padding:12px;
-            border:1px solid #ddd;
-            border-radius:10px;
-            box-sizing:border-box;
-            font-family:inherit;
-            line-height:1.5;
-          "
-        >${escapeHTML(
-          message
-        )}</textarea>
-
-
-        <div
-          style="
-            display:flex;
-            justify-content:flex-end;
-            gap:8px;
-            margin-top:10px;
-            flex-wrap:wrap;
-          "
-        >
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="backTrackingUpdateSelection"
-          >
-            ← Kembali
-          </button>
-
-          <button
-            type="button"
-            class="primary-button"
-            id="copyTrackingUpdateMessage"
-          >
-            📋 Salin Pesan
-          </button>
-
-        </div>
-
-      `;
-
-
-      const textarea =
-        list.querySelector(
-          "#generatedTrackingUpdateMessage"
-        );
-
-
-      textarea.focus();
-
-
-      const copyButton =
-        list.querySelector(
-          "#copyTrackingUpdateMessage"
-        );
-
-
-      copyButton.onclick =
-        async function() {
-
-          try {
-
-            await navigator.clipboard.writeText(
-              message
-            );
-
-            copyButton.textContent =
-              "✓ Berhasil Disalin";
-
-
-            setTimeout(
-              function() {
-
-                copyButton.textContent =
-                  "📋 Salin Pesan";
-
-              },
-              1500
-            );
-
-          }
-          catch (error) {
-
-            textarea.select();
-
-            document.execCommand(
-              "copy"
-            );
-
-            alert(
-              "Pesan berhasil disalin."
-            );
-
-          }
-
-        };
-
-
-      /* ======================================
-         KEMBALI KE PEMILIHAN
-         ====================================== */
-
-      const backButton =
-        list.querySelector(
-          "#backTrackingUpdateSelection"
-        );
-
-
-      backButton.onclick =
-        function() {
-
-          closeTrackingModal();
-
-          showWhatsAppTrackingUpdateBuilder();
-
-        };
-
-    };
-
 }
 
+  
 /* ============================================
    BUILDER LIST CO SHOPEE
    ============================================ */
