@@ -32014,7 +32014,7 @@ async function initTabunganAlbumBatchLinks() {
       const result = await supabaseClient
         .from("purchase_recap")
         .select(
-          "id, category, recap_type, recap_data_type, batch_code, customer_name, version, item_name"
+          "id, customer_id, category, recap_type, recap_data_type, batch_code, customer_name, version, item_name, item_price, minimum_dp_amount, dp_amount, remaining_amount, dp_status, payment_status, co_deadline, dp_deadline, tracking_status, batch_tracking_status"
         )
         .neq("category", "Tabungan Album")
         .order("id", { ascending: true })
@@ -32054,6 +32054,20 @@ async function initTabunganAlbumBatchLinks() {
 
     const targetRows = recapRows || [];
     const links = savedLinks || [];
+
+     
+    const {
+      data: savedCustomerLinks,
+      error: customerLinksError
+    } = await supabaseClient
+      .from("dn_tabungan_album_customer_links")
+      .select("id, source_recap_id, target_recap_id");
+
+    if (customerLinksError) {
+      throw customerLinksError;
+    }
+
+    const customerLinks = savedCustomerLinks || [];
 
     function uniqueValues(values) {
       return Array.from(
