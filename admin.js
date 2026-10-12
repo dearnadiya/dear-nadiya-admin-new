@@ -35227,46 +35227,42 @@ const finalRemaining =
   );
 
 
-
 /* ==========================================
    GUNAKAN NILAI FINAL
-   DP AKTUAL TERMASUK TABUNGAN TERSINKRON
+   PERTAHANKAN DP AKTUAL
    ========================================== */
 
-const storedActualDp = Math.max(
-  Number(row.dp_amount) || 0,
-  0
-);
-
-const actualDpForDisplay = Math.min(
-  storedActualDp,
+const actualDpFromStored = Math.min(
+  Math.max(Number(row.dp_amount) || 0, 0),
   price
 );
 
-const actualTotalPaidForDisplay = Math.min(
-  price,
-  Math.max(
-    actualDpForDisplay + finalPelunasanPaid,
-    finalTotalPaid
-  )
+const actualPelunasanFromStored = Math.min(
+  Math.max(Number(totalPelunasanPaid) || 0, 0),
+  Math.max(price - actualDpFromStored, 0)
 );
 
-const remainingForDisplay = Math.max(
-  price - actualTotalPaidForDisplay,
+const actualTotalFromStored = Math.min(
+  price,
+  actualDpFromStored + actualPelunasanFromStored
+);
+
+const remainingFromStored = Math.max(
+  price - actualTotalFromStored,
   0
 );
 
 recapPaymentSummary[recapId] = {
-  totalDpPaid: actualDpForDisplay,
+  totalDpPaid: actualDpFromStored,
 
   totalPelunasanPaid:
-    finalPelunasanPaid,
+    actualPelunasanFromStored,
 
   actualTotalPaid:
-    actualTotalPaidForDisplay,
+    actualTotalFromStored,
 
   actualRemaining:
-    remainingForDisplay,
+    remainingFromStored,
 
   dpStatus:
     finalDpStatus,
@@ -35281,7 +35277,7 @@ recapPaymentSummary[recapId] = {
    ========================================== */
 
 row.dp_amount =
-  actualDpForDisplay;
+  actualDpFromStored;
 
 row.dp_status =
   finalDpStatus;
@@ -35290,13 +35286,13 @@ row.payment_status =
   finalPaymentStatus;
 
 row._pelunasan_paid =
-  finalPelunasanPaid;
+  actualPelunasanFromStored;
 
 row.remaining_amount =
-  remainingForDisplay;
+  remainingFromStored;
 
 row._total_paid =
-  actualTotalPaidForDisplay;
+  actualTotalFromStored;
 
   });
 
