@@ -31227,23 +31227,14 @@ function renderAlbumBatchCards(
 
                                                 <span>
                                                   ${
-                                                    payment.payment_part ===
-                                                    "manual"
-
-                                                      ? "Tabungan Manual"
-
-                                                      : payment.payment_part ===
-                                                        "pelunasan"
-
-                                                        ? "Pelunasan"
-
-                                                        : payment.payment_part ===
-                                                          "both"
-
-                                                          ? "Tabungan + Pelunasan"
-
-                                                          : "Tabungan"
-                                                  }
+  String(payment.id || "").startsWith("manual-")
+    ? "Tabungan Manual"
+    : payment.payment_part === "pelunasan"
+      ? "Pelunasan"
+      : payment.payment_part === "both"
+        ? "Tabungan + Pelunasan"
+        : "Tabungan Terkonfirmasi"
+}
                                                 </span>
 
                                                 <strong>
