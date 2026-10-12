@@ -18212,20 +18212,55 @@ const filteredCustomerList =
 
                 <tr>
                   <td colspan="5" style="padding:0; border-bottom:1px solid #eee;">
-                    <details>
-                      <summary
-                        style="
-                          cursor:pointer;
-                          list-style:none;
-                          padding:6px 9px;
-                          color:#555;
-                          font-size:12px;
-                          background:#fcfcfc;
-                        "
-                      >
-                        ▸ Lihat ${group.items.length} barang dan catatan CO
-                      </summary>
+                    
+<details>
+  <summary
+    title="Buka atau tutup detail CO"
+    style="
+      cursor:pointer;
+      list-style:none;
+      padding:5px 9px;
+      background:#fcfcfc;
+      text-align:right;
+      color:#777;
+      font-size:11px;
+    "
+  >
+    <span style="display:inline-block;">
+      <span style="font-size:10px;">▶</span>
+    </span>
+  </summary>
 
+  <div
+    style="
+      padding:8px;
+      background:#fff;
+      width:100%;
+      max-width:100%;
+      box-sizing:border-box;
+      overflow:hidden;
+    "
+  >
+    <div
+      style="
+        display:block;
+        width:100%;
+        max-width:100%;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        border:1px solid #eee;
+      "
+    >
+      <table
+        style="
+          width:100%;
+          min-width:900px;
+          border-collapse:collapse;
+          font-size:12px;
+        "
+      >
+      
                       <div style="padding:8px; background:#fff;">
                         <div style="overflow-x:auto;">
                           <table
