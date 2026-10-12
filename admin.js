@@ -16847,6 +16847,18 @@ return (
       const customerItems =
         customer.items;
 
+       const checkoutOrderCodes = [
+  ...new Set(
+    customerItems
+      .map(function(item) {
+        return String(
+          item.shopee_order_code || ""
+        ).trim();
+      })
+      .filter(Boolean)
+  )
+];
+
        const checkoutNotes =
   customerItems
     .map(function(item) {
@@ -16900,13 +16912,36 @@ return (
 
           <div>
 
+            
             <h3
               style="
                 margin:0 0 5px 0;
               "
             >
-              ${customer.customerName}
+              ${escapeHTML(customer.customerName)}
             </h3>
+
+            ${
+              checkoutOrderCodes.length
+                ? `
+                  <div
+                    style="
+                      margin:0 0 6px 0;
+                      font-size:13px;
+                      font-weight:600;
+                      color:#2563eb;
+                    "
+                  >
+                    Kode Pesanan:
+                    ${checkoutOrderCodes
+                      .map(function(code) {
+                        return escapeHTML(code);
+                      })
+                      .join(", ")}
+                  </div>
+                `
+                : ""
+            }
 
             <p
               style="
