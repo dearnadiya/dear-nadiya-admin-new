@@ -30849,6 +30849,26 @@ function renderAlbumBatchCards(
 
                 </select>
 
+                
+<button
+  type="button"
+  class="tabungan-add-customer-batch-button"
+  data-batch-code="${escapeHTML(batchCode)}"
+  data-category="Tabungan Album"
+  style="
+    padding:7px 12px;
+    border:0;
+    border-radius:8px;
+    background:var(--primary,#252842);
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+  "
+>
+  ＋ Tambah Customer
+</button>
+
+
               </div>
 
             </div>
@@ -32757,7 +32777,29 @@ async function initTabunganAlbumBatchLinks() {
 
 initTabunganAlbumBatchLinks();
 
+     
+/* ==========================================
+   TAMBAH CUSTOMER KE BATCH TABUNGAN
+   ========================================== */
 
+container
+  .querySelectorAll(".tabungan-add-customer-batch-button")
+  .forEach(function(button) {
+    button.addEventListener("click", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const batchCode = this.dataset.batchCode;
+      const category = this.dataset.category;
+
+      if (!batchCode || !category) {
+        alert("Kode batch atau kategori tidak ditemukan.");
+        return;
+      }
+
+      showAddTabunganMemberForm(batchCode, category);
+    });
+  });
 
 /* ==========================================
    EVENT TOMBOL EDIT / HAPUS
