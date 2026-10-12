@@ -20433,37 +20433,17 @@ async function showAddTabunganMemberForm(
      AMBIL DATA BATCH
      ========================================== */
 
-  if (allocation.purchase_recap_id) {
-
-  await supabaseClient
-    .from("purchase_recap")
-    .update({
-      batch_tracking_status:
-        trackingStatus || null
-    })
-    .eq(
-      "id",
-      allocation.purchase_recap_id
-    );
-
-} else {
-
-  await supabaseClient
-    .from("purchase_recap")
-    .update({
-      batch_tracking_status:
-        trackingStatus || null
-    })
-    .eq(
-      "category",
-      category
-    )
-    .eq(
-      "batch_code",
-      batchCode
-    );
-
-}
+  
+const {
+  data: batchRows,
+  error: batchError
+} = await supabaseClient
+  .from("purchase_recap")
+  .select("*")
+  .eq("category", category)
+  .eq("batch_code", batchCode)
+  .eq("recap_type", "Tabungan")
+  .order("id", { ascending: true });
 
   if (batchError) {
 
