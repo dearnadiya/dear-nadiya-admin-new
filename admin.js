@@ -17889,13 +17889,19 @@ const filteredCustomerList =
       } =
         await supabaseClient
           .from("purchase_recap")
-          .select(`
-            id,
-            batch_code,
-            item_name,
-            version,
-            quantity
-          `)
+.select(`
+  id,
+  batch_code,
+  item_name,
+  version,
+  quantity,
+  checkout_note,
+  shopee_order_code
+`)
+.in(
+  "id",
+  recapIds
+);
           .in(
             "id",
             recapIds
@@ -18022,377 +18028,259 @@ const filteredCustomerList =
     );
 
 
+    
     /*
-      TAMPILKAN JUMLAH ARSIP
+      KELOMPOKKAN RIWAYAT CO
+      BERDASARKAN CUSTOMER, KODE PESANAN,
+      TANGGAL CO, DAN TANGGAL ARSIP
+    */
+
+    const coGroups = {};
+    const coGroupOrder = [];
+
+    historyRows.forEach(function(row) {
+      const item =
+        recapMap[String(row.recap_id)] || {};
+
+      const checkoutDate = row.checkout_at
+        ? new Date(row.checkout_at).toLocaleDateString(
+            "id-ID",
+            {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric"
+            }
+          )
+        : "-";
+
+      const archiveDate = row.created_at
+        ? new Date(row.created_at).toLocaleDateString(
+            "id-ID",
+            {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric"
+            }
+          )
+        : "-";
+
+      const customerName =
+        String(row.customer_name || "-").trim();
+
+      const orderCode =
+        String(item.shopee_order_code || "").trim();
+
+      const groupKey = JSON.stringify([
+        customerName,
+        orderCode,
+        checkoutDate,
+        archiveDate,
+        orderCode ? "" : String(row.id)
+      ]);
+
+      if (!coGroups[groupKey]) {
+        coGroups[groupKey] = {
+          customerName: customerName,
+          orderCode: orderCode || "-",
+          checkoutDate: checkoutDate,
+          archiveDate: archiveDate,
+          items: []
+        };
+
+        coGroupOrder.push(groupKey);
+      }
+
+      coGroups[groupKey].items.push({
+        row: row,
+        item: item
+      });
+    });
+
+
+    /*
+      TAMPILKAN RIWAYAT CO
+      DALAM BENTUK COLLAPSIBLE
     */
 
     container.innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div style="font-size:16px; margin-bottom:4px;">
+          ${coGroupOrder.length} Riwayat CO
+        </div>
 
-      <div
-        style="
-          margin-bottom:18px;
-        "
-      >
-
-        <h3>
-         📦 ${historyRows.length}
-          Riwayat CO
-        </h3>
-
-        <p
-          style="
-            margin-top:5px;
-            color:#777;
-          "
-        >
-         Menampilkan seluruh riwayat CO,
-          baik yang dikonfirmasi maupun tidak dikonfirmasi.
-        </p>
-
+        <div style="font-size:12px; color:#777;">
+          Klik pesanan untuk melihat daftar barang dan catatan customer.
+        </div>
       </div>
 
-
-      <div
-        style="
-          overflow-x:auto;
-          width:100%;
-        "
-      >
-
+      <div style="width:100%; overflow-x:auto;">
         <table
           style="
             width:100%;
-            min-width:1050px;
+            min-width:650px;
             border-collapse:collapse;
+            font-size:13px;
           "
         >
-
           <thead>
-
-            <tr>
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                No
+            <tr style="background:#fafafa;">
+              <th style="padding:9px 7px; text-align:center; border-bottom:1px solid #eee;">
+                No.
               </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Customer
+              <th style="padding:9px 7px; text-align:left; border-bottom:1px solid #eee;">
+                Nama Customer
               </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Nama Barang
+              <th style="padding:9px 7px; text-align:left; border-bottom:1px solid #eee;">
+                Kode Pesanan
               </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Batch
-              </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Version / Member
-              </th>
-
-
-              <th
-                style="
-                  text-align:center;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Qty
-              </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
+              <th style="padding:9px 7px; text-align:left; border-bottom:1px solid #eee;">
                 Tanggal CO
               </th>
-
-
-              <th
-                style="
-                  text-align:center;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                CO Ke-
-              </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
-                Status
-              </th>
-
-
-              <th
-                style="
-                  text-align:left;
-                  padding:10px;
-                  border-bottom:1px solid #eee;
-                  white-space:nowrap;
-                "
-              >
+              <th style="padding:9px 7px; text-align:left; border-bottom:1px solid #eee;">
                 Tanggal Arsip
               </th>
-
             </tr>
-
           </thead>
 
-
           <tbody>
+            ${coGroupOrder.map(function(groupKey, index) {
+              const group = coGroups[groupKey];
+              const detailId = "co-history-" + index;
 
-            ${historyRows
-              .map(
-                function(row, index) {
+              const detailRows = group.items.map(function(entry) {
+                const row = entry.row;
+                const item = entry.item;
 
-                  const item =
-                    recapMap[
-                      String(
-                        row.recap_id
-                      )
-                    ] || {};
+                const coNumber =
+                  historyNumberMap[String(row.id)] || 1;
 
+                const statusConfirmed =
+                  row.checkout_result === "Dikonfirmasi";
 
-                  const checkoutDate =
-                    row.checkout_at
-                      ? new Date(
-                          row.checkout_at
-                        ).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day:
-                              "2-digit",
-                            month:
-                              "2-digit",
-                            year:
-                              "numeric"
-                          }
-                        )
-                      : "-";
+                return `
+                  <tr>
+                    <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top;">
+                      ${escapeHTML(item.item_name || "-")}
+                    </td>
 
+                    <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                      ${escapeHTML(item.batch_code || "-")}
+                    </td>
 
-                  const archiveDate =
-                    row.created_at
-                      ? new Date(
-                          row.created_at
-                        ).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day:
-                              "2-digit",
-                            month:
-                              "2-digit",
-                            year:
-                              "numeric"
-                          }
-                        )
-                      : "-";
+                    <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top;">
+                      ${escapeHTML(item.version || "-")}
+                    </td>
 
+                    <td style="padding:7px; border-bottom:1px solid #eee; text-align:center; vertical-align:top;">
+                      ${Number(item.quantity || 0)}
+                    </td>
 
-                  return `
+                    <td style="padding:7px; border-bottom:1px solid #eee; text-align:center; vertical-align:top; white-space:nowrap;">
+                      #${coNumber}
+                    </td>
 
-                    <tr>
+                    <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                      <span style="color:${statusConfirmed ? "#16803c" : "#b33"};">
+                        ${statusConfirmed ? "✓ Dikonfirmasi" : "✕ Tidak Dikonfirmasi"}
+                      </span>
+                    </td>
 
-                      <td
+                    <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top; min-width:180px;">
+                      ${escapeHTML(item.checkout_note || "-")}
+                    </td>
+                  </tr>
+                `;
+              }).join("");
+
+              return `
+                <tr>
+                  <td style="padding:9px 7px; text-align:center; border-bottom:1px solid #eee; vertical-align:top;">
+                    ${index + 1}
+                  </td>
+
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top;">
+                    ${escapeHTML(group.customerName)}
+                  </td>
+
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top;">
+                    ${escapeHTML(group.orderCode)}
+                  </td>
+
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                    ${escapeHTML(group.checkoutDate)}
+                  </td>
+
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                    ${escapeHTML(group.archiveDate)}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td colspan="5" style="padding:0; border-bottom:1px solid #eee;">
+                    <details>
+                      <summary
                         style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
+                          cursor:pointer;
+                          list-style:none;
+                          padding:6px 9px;
+                          color:#555;
+                          font-size:12px;
+                          background:#fcfcfc;
                         "
                       >
-                        ${index + 1}
-                      </td>
+                        ▸ Lihat ${group.items.length} barang dan catatan CO
+                      </summary>
 
+                      <div style="padding:8px; background:#fff;">
+                        <div style="overflow-x:auto;">
+                          <table
+                            style="
+                              width:100%;
+                              min-width:850px;
+                              border-collapse:collapse;
+                              font-size:12px;
+                            "
+                          >
+                            <thead>
+                              <tr style="background:#f8f8f8;">
+                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
+                                  Nama Barang
+                                </th>
+                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
+                                  Batch
+                                </th>
+                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
+                                  Version / Member
+                                </th>
+                                <th style="padding:7px; text-align:center; font-weight:500; border-bottom:1px solid #eee;">
+                                  Qty
+                                </th>
+                                <th style="padding:7px; text-align:center; font-weight:500; border-bottom:1px solid #eee;">
+                                  CO Ke-
+                                </th>
+                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
+                                  Status
+                                </th>
+                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
+                                  Catatan Customer
+                                </th>
+                              </tr>
+                            </thead>
 
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                       <strong>
-  ${row.customer_name || ""}
-</strong>
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                        "
-                      >
-                        <strong>
-                          ${item.item_name || "-"}
-                        </strong>
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                        ${item.batch_code || "-"}
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                        ${item.version || "-"}
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          text-align:center;
-                        "
-                      >
-                        ${item.quantity || 0}
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                        ${checkoutDate}
-                      </td>
-
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          text-align:center;
-                          font-weight:600;
-                        "
-                      >
-                        #${historyNumberMap[
-                          String(row.id)
-                        ] || 1}
-                      </td>
-
-
-                      
-<td
-  style="
-    padding:10px;
-    border-bottom:1px solid #f1f1f1;
-    white-space:nowrap;
-  "
->
-  <span
-    style="
-      color:${
-        row.checkout_result === "Dikonfirmasi"
-          ? "#16803c"
-          : "#b33"
-      };
-      font-weight:600;
-    "
-  >
-    ${
-      row.checkout_result === "Dikonfirmasi"
-        ? "✓ Dikonfirmasi"
-        : "✕ Tidak Dikonfirmasi"
-    }
-  </span>
-</td>
-
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                        ${archiveDate}
-                      </td>
-
-                    </tr>
-
-                  `;
-
-                }
-              )
-              .join("")}
-
+                            <tbody>
+                              ${detailRows}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </details>
+                  </td>
+                </tr>
+              `;
+            }).join("")}
           </tbody>
-
         </table>
-
       </div>
-
     `;
 
   } catch (err) {
