@@ -17902,12 +17902,7 @@ const filteredCustomerList =
   "id",
   recapIds
 );
-          .in(
-            "id",
-            recapIds
-          );
-
-
+          
       if (recapError) {
 
         console.error(
