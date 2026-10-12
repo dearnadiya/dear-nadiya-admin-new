@@ -26002,60 +26002,55 @@ return {
   generateButton.onclick =
     async function() {
 
-      const selected =
+      // Ambil Type Rekap yang dipilih
+      const selectedType =
+        modal.querySelector(
+          "#trackingUpdateRecapType"
+        )?.value || "";
+
+
+      // Ambil semua kategori yang dicentang
+      const selectedCategories =
         Array.from(
           modal.querySelectorAll(
-            ".tracking-update-checkbox:checked"
+            ".tracking-update-category-checkbox:checked"
           )
-        )
-        .map(
-          function(check) {
-
-            return {
-
-              category:
-                check.dataset.category,
-
-              batchCode:
-                check.dataset.batchCode
-
-            };
-
-          }
-        );
+        ).map(function(check) {
+          return check.value;
+        });
 
 
-      if (!selected.length) {
-
+      // Validasi kategori, bukan batch
+      if (
+        !selectedType ||
+        !selectedCategories.length
+      ) {
         alert(
-          "Pilih minimal 1 batch."
+          "Pilih minimal 1 kategori."
         );
-
         return;
-
       }
 
 
+      // Semua batch dalam kategori terpilih
+      // otomatis dimasukkan ke pesan
       const selectedRows =
-        batchRows.filter(
-          function(batch) {
+        batchRows.filter(function(batch) {
+          return (
+            batch.recapType === selectedType &&
+            selectedCategories.includes(
+              batch.category
+            )
+          );
+        });
 
-            return selected.some(
-              function(item) {
 
-                return (
-                  item.category ===
-                  batch.category &&
-                  item.batchCode ===
-                  batch.batchCode
-                );
-
-              }
-            );
-
-          }
+      if (!selectedRows.length) {
+        alert(
+          "Tidak ada batch pada kategori yang dipilih."
         );
-
+        return;
+      }
 
       /* ======================================
          BUAT PESAN WHATSAPP
