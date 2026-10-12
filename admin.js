@@ -21540,39 +21540,28 @@ const batchArrivedAdminAt =
 
 
       
+
 <div class="different-price-fields">
 
-  <label>
-    Harga Barang
-    ${sourcePriceMode === "same" ? "(Mengikuti Harga Batch)" : "(Per Member)"}
-  </label>
+  <label>Harga Barang</label>
 
   <input
     type="text"
     class="batch-price currency-input"
-    min="0"
-    value="${sourcePriceMode === "same"
-  ? sourcePriceUnit
-  : Number(batch.item_price || 0)}"
-    ${sourcePriceMode === "same" ? "readonly" : ""}
+    value=""
+    placeholder="Masukkan harga barang"
   >
 
-  <label>
-    DP
-    ${sourceDpMode === "same" ? "(Mengikuti DP Batch)" : "(Per Member)"}
-  </label>
+  <label>DP</label>
 
   <input
     type="text"
     class="batch-dp currency-input"
-    value="${sourceDpMode === "same"
-  ? sourceDpUnit
-  : Number(batch.minimum_dp_amount || 0)}"
-    ${sourceDpMode === "same" ? "readonly" : ""}
+    value=""
+    placeholder="Masukkan DP minimum"
   >
 
 </div>
-
 
       <div class="batch-payment-fields">
 
