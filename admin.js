@@ -31479,6 +31479,8 @@ ${
         type="button"
         class="tabungan-confirm-dp-button"
         data-source-id="${escapeHTML(String(row.id))}"
+data-target="${Number(row.tabungan_target) || 0}"
+data-accumulated="${Number(row.tabungan_paid) || 0}"
         style="
           padding:8px 12px;
           border:0;
@@ -32032,22 +32034,14 @@ container
     button.addEventListener("click", async function() {
       const sourceId = Number(button.dataset.sourceId);
 
-      const sourceRow = data.find(function(row) {
-        return Number(row.id) === sourceId;
-      });
+      
+const target = Number(button.dataset.target) || 0;
+const accumulated = Number(button.dataset.accumulated) || 0;
 
-      if (!sourceRow) {
-        alert("Data Tabungan Album tidak ditemukan.");
-        return;
-      }
-
-      const target = Number(sourceRow.tabungan_target) || 0;
-      const accumulated = Number(sourceRow.tabungan_paid) || 0;
-
-      if (target <= 0 || accumulated < target) {
-        alert("Target tabungan belum terpenuhi.");
-        return;
-      }
+if (target <= 0 || accumulated < target) {
+  alert("Target tabungan belum terpenuhi.");
+  return;
+}
 
       const { data: mapping, error: mappingError } =
         await supabaseClient
@@ -32069,7 +32063,7 @@ container
       const { data: targetRow, error: targetError } =
         await supabaseClient
           .from("purchase_recap")
-          .select("id, item_price, minimum_dp_amount")
+          .select("id, item_price")
           .eq("id", mapping.target_recap_id)
           .single();
 
@@ -32079,21 +32073,20 @@ container
       }
 
       const price = Number(targetRow.item_price) || 0;
-      const dpMinimum = Number(targetRow.minimum_dp_amount) || 0;
 
-      if (price <= 0 || dpMinimum <= 0) {
-        alert("Harga atau DP minimum Rekap GO tidak valid.");
-        return;
-      }
+if (price <= 0 || target <= 0) {
+  alert("Harga barang atau target tabungan tidak valid.");
+  return;
+}
 
       if (!confirm(
-        "Konfirmasi pembayaran DP customer ini?\n\n" +
-        "Tabungan terkumpul: " + formatRupiah(accumulated) + "\n" +
-        "DP minimum: " + formatRupiah(dpMinimum) + "\n\n" +
-        "DP Aktual akan menjadi DP minimum."
-      )) {
-        return;
-      }
+  "Konfirmasi pembayaran DP customer ini?\n\n" +
+  "Target tabungan: " + formatRupiah(target) + "\n" +
+  "Tabungan terkumpul: " + formatRupiah(accumulated) + "\n\n" +
+  "DP Aktual akan menjadi sebesar target tabungan."
+)) {
+  return;
+}
 
       button.disabled = true;
 
@@ -32101,18 +32094,18 @@ container
         const { error: updateError } = await supabaseClient
           .from("purchase_recap")
           .update({
-            dp_status: "paid",
-            dp_amount: dpMinimum,
-            remaining_amount: Math.max(price - dpMinimum, 0)
-          })
+  dp_status: "paid",
+  dp_amount: target,
+  remaining_amount: Math.max(price - target, 0)
+})
           .eq("id", targetRow.id);
 
         if (updateError) throw updateError;
 
         alert(
-          "DP berhasil dikonfirmasi.\nDP Aktual: " +
-          formatRupiah(dpMinimum)
-        );
+  "DP berhasil dikonfirmasi.\nDP Aktual: " +
+  formatRupiah(target)
+);
 
         await loadRecapList(category);
 
