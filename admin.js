@@ -18143,7 +18143,7 @@ table-layout:fixed;
               const group = coGroups[groupKey];
               const detailId = "co-history-" + index;
 
-              const detailRows = group.items.map(function(entry) {
+              const detailRows = group.items.map(function(entry, itemIndex) {
                 const row = entry.row;
                 const item = entry.item;
 
@@ -18182,7 +18182,7 @@ table-layout:fixed;
                     </td>
 
                     <td style="padding:7px; border-bottom:1px solid #eee; vertical-align:top; min-width:180px;">
-                      ${escapeHTML(item.checkout_note || "-")}
+                      ${itemIndex === 0 ? escapeHTML(item.checkout_note || "-") : ""}
                     </td>
                   </tr>
                 `;
