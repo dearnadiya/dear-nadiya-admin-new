@@ -25490,41 +25490,31 @@ return {
 
   </div>
 
+<!-- KATEGORI: CHECKLIST MULTI-PILIH -->
 
-  <!-- KATEGORI -->
-
-  <div>
-
-    <div
-      style="
-        font-size:12px;
-        color:#777;
-        margin-bottom:5px;
-      "
-    >
-      Kategori
-    </div>
-
-    <select
-      id="trackingUpdateCategory"
-      style="
-        width:100%;
-        padding:10px 12px;
-        border:1px solid #ddd;
-        border-radius:8px;
-        box-sizing:border-box;
-      "
-      disabled
-    >
-
-      <option value="">
-        Pilih Kategori
-      </option>
-
-    </select>
-
+<div>
+  <div style="font-size:12px;color:#777;margin-bottom:5px;">
+    Kategori (bisa pilih lebih dari satu)
   </div>
 
+  <div
+    id="trackingUpdateCategoryChecklist"
+    style="
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:10px;
+      border:1px solid #ddd;
+      border-radius:8px;
+      min-height:42px;
+      box-sizing:border-box;
+      background:#fff;
+    "
+  >
+    <span style="font-size:12px;color:#999;">
+      Pilih Type Rekap terlebih dahulu.
+    </span>
+  </div>
 </div>
 
 
@@ -25571,328 +25561,389 @@ return {
     modal
   );
 
+  // ==========================================
+  // PENGATUR TYPE REKAP, KATEGORI, DAN BATCH
+  // ==========================================
 
   const list =
     modal.querySelector(
       "#trackingUpdateBatchList"
     );
 
-   const recapTypeSelect =
-  modal.querySelector(
-    "#trackingUpdateRecapType"
-  );
+  const recapTypeSelect =
+    modal.querySelector(
+      "#trackingUpdateRecapType"
+    );
 
-const categorySelect =
-  modal.querySelector(
-    "#trackingUpdateCategory"
-  );
+  const categoryChecklist =
+    modal.querySelector(
+      "#trackingUpdateCategoryChecklist"
+    );
 
 
-const recapTypes =
-  Array.from(
-    new Set(
-      batchRows
-        .map(
-          function(batch) {
-
+  // Ambil daftar Type Rekap yang tersedia
+  const recapTypes =
+    Array.from(
+      new Set(
+        batchRows
+          .map(function(batch) {
             return String(
               batch.recapType || ""
             ).trim();
-
-          }
-        )
-        .filter(Boolean)
-    )
-  )
-  .sort(
-    function(a, b) {
-
-      return a.localeCompare(
-        b,
-        "id"
-      );
-
-    }
-  );
+          })
+          .filter(Boolean)
+      )
+    ).sort(function(a, b) {
+      return a.localeCompare(b, "id");
+    });
 
 
-recapTypes.forEach(
-  function(type) {
-
+  recapTypes.forEach(function(type) {
     const option =
-      document.createElement(
-        "option"
-      );
+      document.createElement("option");
 
-    option.value =
-      type;
+    option.value = type;
+    option.textContent = type;
 
-    option.textContent =
-      type;
+    recapTypeSelect.appendChild(option);
+  });
 
-    recapTypeSelect.appendChild(
-      option
-    );
 
-  }
-);
+  // ==========================================
+  // TAMPILKAN BATCH SESUAI PILIHAN KATEGORI
+  // ==========================================
 
-   recapTypeSelect.addEventListener(
-  "change",
-  function() {
+  function renderTrackingUpdateBatchList() {
 
     const selectedType =
-      this.value;
+      recapTypeSelect.value;
+
+    const selectedCategories =
+      Array.from(
+        categoryChecklist.querySelectorAll(
+          ".tracking-update-category-checkbox:checked"
+        )
+      ).map(function(check) {
+        return check.value;
+      });
 
 
-    categorySelect.innerHTML = `
-      <option value="">
-        Pilih Kategori
-      </option>
-    `;
-
-
-    categorySelect.disabled =
-      !selectedType;
-
-
-    list.innerHTML = `
-      <div
-        style="
+    if (!selectedType) {
+      list.innerHTML = `
+        <div style="
           padding:20px;
           text-align:center;
           color:#999;
           border:1px dashed #ddd;
           border-radius:10px;
-        "
-      >
-        Pilih Kategori.
-      </div>
-    `;
-
-
-    if (!selectedType) {
+        ">
+          Pilih Type Rekap terlebih dahulu.
+        </div>
+      `;
       return;
     }
 
 
-    const categories =
-      Array.from(
-        new Set(
-          batchRows
-            .filter(
-              function(batch) {
-
-                return (
-                  batch.recapType ===
-                  selectedType
-                );
-
-              }
-            )
-            .map(
-              function(batch) {
-
-                return String(
-                  batch.category || ""
-                ).trim();
-
-              }
-            )
-            .filter(Boolean)
-        )
-      )
-      .sort(
-        function(a, b) {
-
-          return a.localeCompare(
-            b,
-            "id"
-          );
-
-        }
-      );
-
-
-    categories.forEach(
-      function(category) {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-        option.value =
-          category;
-
-        option.textContent =
-          category;
-
-        categorySelect.appendChild(
-          option
-        );
-
-      }
-    );
-
-  }
-);
-
-   categorySelect.addEventListener(
-  "change",
-  function() {
-
-    const selectedType =
-      recapTypeSelect.value;
-
-    const selectedCategory =
-      this.value;
-
-
-    if (
-      !selectedType ||
-      !selectedCategory
-    ) {
-
-      list.innerHTML = "";
-
+    if (!selectedCategories.length) {
+      list.innerHTML = `
+        <div style="
+          padding:20px;
+          text-align:center;
+          color:#999;
+          border:1px dashed #ddd;
+          border-radius:10px;
+        ">
+          Centang minimal satu kategori
+          untuk menampilkan batch.
+        </div>
+      `;
       return;
-
     }
 
 
     const selectedRows =
-      batchRows
-        .filter(
-          function(batch) {
-
-            return (
-              batch.recapType ===
-              selectedType &&
-              batch.category ===
-              selectedCategory
-            );
-
-          }
+      batchRows.filter(function(batch) {
+        return (
+          batch.recapType === selectedType &&
+          selectedCategories.includes(
+            batch.category
+          )
         );
+      });
 
 
     if (!selectedRows.length) {
-
       list.innerHTML = `
-        <div
-          style="
-            padding:20px;
-            text-align:center;
-            color:#999;
-            border:1px dashed #ddd;
-            border-radius:10px;
-          "
-        >
-          Tidak ada barang/batch
-          untuk kategori ini.
+        <div style="
+          padding:20px;
+          text-align:center;
+          color:#999;
+          border:1px dashed #ddd;
+          border-radius:10px;
+        ">
+          Tidak ada batch untuk kategori
+          yang dipilih.
         </div>
       `;
-
       return;
-
     }
 
 
-    const lines = [];
-
-
-    lines.push(
-      "📦 *UPDATE BARANG*"
-    );
-
-    lines.push("");
-
-
-    lines.push(
-      `*${selectedCategory}*`
-    );
-
-    lines.push("");
-
-
-    selectedRows.forEach(
-      function(batch) {
-
-        lines.push(
-          `📌 *${batch.itemName || "Barang"} (${batch.batchCode})*`
-        );
-
-        lines.push(
-          `Status: ${batch.tracking || "Belum ada tracking"}`
-        );
-
-
-        if (batch.date) {
-
-          lines.push(
-            `Tanggal: ${new Date(
-              batch.date
-            ).toLocaleDateString(
-              "id-ID",
-              {
-                day:"2-digit",
-                month:"long",
-                year:"numeric"
-              }
-            )}`
-          );
-
-        }
-
-
-        lines.push("");
-
-      }
-    );
-
-
-    lines.push(
-      "Mohon ditunggu update berikutnya. ♥"
-    );
-
-
-    const message =
-      lines.join("\n");
-
-
     list.innerHTML = `
-
-      <div
-        style="
-          margin-bottom:8px;
-          font-weight:700;
-        "
-      >
-        Preview Pesan WhatsApp
+      <div style="
+        font-weight:700;
+        margin:4px 0 10px;
+      ">
+        Pilih batch yang ingin dimasukkan
+        ke pesan WhatsApp
       </div>
 
-      <textarea
-        id="generatedTrackingUpdateMessage"
-        style="
-          width:100%;
-          min-height:350px;
-          resize:vertical;
-          padding:12px;
-          border:1px solid #ddd;
-          border-radius:10px;
-          box-sizing:border-box;
-          font-family:inherit;
-          line-height:1.5;
-        "
-      >${escapeHTML(
-        message
-      )}</textarea>
+      <div style="
+        display:flex;
+        justify-content:flex-end;
+        gap:8px;
+        margin-bottom:8px;
+        flex-wrap:wrap;
+      ">
+        <button
+          type="button"
+          id="trackingUpdateSelectAllBatches"
+          class="secondary-button"
+          style="
+            width:auto;
+            padding:6px 10px;
+            font-size:12px;
+          "
+        >
+          Pilih semua batch
+        </button>
 
+        <button
+          type="button"
+          id="trackingUpdateClearBatches"
+          class="secondary-button"
+          style="
+            width:auto;
+            padding:6px 10px;
+            font-size:12px;
+          "
+        >
+          Hapus pilihan
+        </button>
+      </div>
+
+      <div style="
+        border:1px solid #eee;
+        border-radius:10px;
+        overflow:hidden;
+      ">
+        ${selectedRows.map(function(batch) {
+          return `
+            <label style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              padding:11px 12px;
+              border-bottom:1px solid #eee;
+              cursor:pointer;
+            ">
+              <input
+                type="checkbox"
+                class="tracking-update-checkbox"
+                data-category="${escapeHTML(batch.category)}"
+                data-recap-type="${escapeHTML(batch.recapType)}"
+                data-batch-code="${escapeHTML(batch.batchCode)}"
+                style="margin-top:3px;"
+                checked
+              >
+
+              <span style="min-width:0;">
+                <strong>
+                  ${escapeHTML(batch.itemName || "Barang")}
+                </strong>
+
+                <span style="
+                  color:#777;
+                  font-size:12px;
+                ">
+                  (${escapeHTML(batch.batchCode)})
+                </span>
+
+                <span style="
+                  display:block;
+                  color:#777;
+                  font-size:12px;
+                  margin-top:3px;
+                ">
+                  ${escapeHTML(batch.category)}
+                  ·
+                  ${escapeHTML(
+                    batch.tracking || "Belum ada tracking"
+                  )}
+                </span>
+              </span>
+            </label>
+          `;
+        }).join("")}
+      </div>
     `;
 
+
+    // Pilih semua batch yang sedang ditampilkan
+    const selectAllButton =
+      list.querySelector(
+        "#trackingUpdateSelectAllBatches"
+      );
+
+    if (selectAllButton) {
+      selectAllButton.addEventListener(
+        "click",
+        function() {
+          list
+            .querySelectorAll(
+              ".tracking-update-checkbox"
+            )
+            .forEach(function(check) {
+              check.checked = true;
+            });
+        }
+      );
+    }
+
+
+    // Hapus semua centang batch
+    const clearButton =
+      list.querySelector(
+        "#trackingUpdateClearBatches"
+      );
+
+    if (clearButton) {
+      clearButton.addEventListener(
+        "click",
+        function() {
+          list
+            .querySelectorAll(
+              ".tracking-update-checkbox"
+            )
+            .forEach(function(check) {
+              check.checked = false;
+            });
+        }
+      );
+    }
+
   }
-);
+
+
+  // ==========================================
+  // BUAT CHECKLIST KATEGORI BERDASARKAN TYPE
+  // ==========================================
+
+  recapTypeSelect.addEventListener(
+    "change",
+    function() {
+
+      const selectedType = this.value;
+
+      categoryChecklist.innerHTML = "";
+
+
+      if (!selectedType) {
+        categoryChecklist.innerHTML = `
+          <span style="
+            font-size:12px;
+            color:#999;
+          ">
+            Pilih Type Rekap terlebih dahulu.
+          </span>
+        `;
+
+        renderTrackingUpdateBatchList();
+        return;
+      }
+
+
+      const categories =
+        Array.from(
+          new Set(
+            batchRows
+              .filter(function(batch) {
+                return batch.recapType === selectedType;
+              })
+              .map(function(batch) {
+                return String(
+                  batch.category || ""
+                ).trim();
+              })
+              .filter(Boolean)
+          )
+        ).sort(function(a, b) {
+          return a.localeCompare(b, "id");
+        });
+
+
+      if (!categories.length) {
+        categoryChecklist.innerHTML = `
+          <span style="
+            font-size:12px;
+            color:#999;
+          ">
+            Tidak ada kategori untuk Type Rekap ini.
+          </span>
+        `;
+
+        renderTrackingUpdateBatchList();
+        return;
+      }
+
+
+      categories.forEach(function(category) {
+
+        const label =
+          document.createElement("label");
+
+        label.style.cssText = `
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          padding:7px 10px;
+          border:1px solid #e5e5e5;
+          border-radius:8px;
+          background:#fafafa;
+          cursor:pointer;
+          font-size:13px;
+        `;
+
+
+        const checkbox =
+          document.createElement("input");
+
+        checkbox.type = "checkbox";
+
+        checkbox.className =
+          "tracking-update-category-checkbox";
+
+        checkbox.value = category;
+
+
+        const text =
+          document.createElement("span");
+
+        text.textContent = category;
+
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+
+        categoryChecklist.appendChild(label);
+
+      });
+
+
+      renderTrackingUpdateBatchList();
+
+    }
+  );
   
   /* ==========================================
      9. TUTUP MODAL
