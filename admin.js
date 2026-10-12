@@ -16331,7 +16331,7 @@ async function loadCOReport() {
   error
 } =
   await supabaseClient
-    .from("purchase_recap")
+        .from("purchase_recap")
     .select(`
       id,
       customer_id,
@@ -16343,7 +16343,8 @@ async function loadCOReport() {
       version,
       quantity,
       created_at,
-      checkout_note
+      checkout_note,
+      shopee_order_code
     `)
     .eq(
       "customer_status",
@@ -16617,11 +16618,42 @@ return (
     }
 
 
+    
     /*
       TAMPILKAN DAFTAR CUSTOMER
     */
 
-    function renderCustomerList() {
+    function renderCustomerList(searchValue = "") {
+
+      const keyword = String(searchValue)
+        .trim()
+        .toLowerCase();
+
+      const filteredCustomerList =
+        customerList.filter(function(customer) {
+
+          const customerName = String(
+            customer.customerName || ""
+          ).toLowerCase();
+
+          const matchedName =
+            customerName.includes(keyword);
+
+          const matchedOrderCode =
+            customer.items.some(function(item) {
+              return String(
+                item.shopee_order_code || ""
+              )
+                .toLowerCase()
+                .includes(keyword);
+            });
+
+          return (
+            !keyword ||
+            matchedName ||
+            matchedOrderCode
+          );
+        });
 
       container.innerHTML = `
 
@@ -16629,133 +16661,180 @@ return (
           🛒 Customer Menunggu Packing
         </h3>
 
-        <p>
-          ${customerList.length}
-          customer sudah CO dan belum
-          dikonfirmasi packing.
-        </p>
-
-
-        <div
+        <input
+          type="text"
+          id="coReportSearchInput"
+          placeholder="Cari nama customer atau kode pesanan..."
+          value="${escapeHTML(searchValue)}"
           style="
-            margin-top:20px;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
+            width:100%;
+            box-sizing:border-box;
+            padding:10px 12px;
+            margin:12px 0;
+            border:1px solid #ddd;
+            border-radius:8px;
+            font-size:14px;
           "
         >
 
-          ${customerList
-            .map(
-              function(customer, index) {
+        <p>
+          Menampilkan ${filteredCustomerList.length}
+          dari ${customerList.length} customer.
+        </p>
 
-                return `
+        ${
+          filteredCustomerList.length === 0
+            ? `
+              <p>
+                Tidak ada customer yang cocok
+                dengan pencarian tersebut.
+              </p>
+            `
+            : `
+              <div
+                style="
+                  margin-top:20px;
+                  display:flex;
+                  flex-direction:column;
+                  gap:10px;
+                "
+              >
 
-                  <button
-                    type="button"
-                    class="co-customer-button"
-                    data-customer-index="${index}"
-                    style="
-                      width:100%;
-                      text-align:left;
-                      padding:14px 16px;
-                      border:1px solid #eee;
-                      border-radius:10px;
-                      background:#fff;
-                      cursor:pointer;
-                      display:flex;
-                      align-items:center;
-                      justify-content:space-between;
-                      gap:15px;
-                    "
-                  >
+                ${filteredCustomerList
+                  .map(function(customer, index) {
+                    return `
 
-                    <div
-                      style="
-                        display:flex;
-                        align-items:center;
-                        gap:12px;
-                        min-width:0;
-                      "
-                    >
-
-                      <strong
+                      <button
+                        type="button"
+                        class="co-customer-button"
+                        data-customer-index="${index}"
                         style="
-                          min-width:28px;
+                          width:100%;
+                          text-align:left;
+                          padding:14px 16px;
+                          border:1px solid #eee;
+                          border-radius:10px;
+                          background:#fff;
+                          cursor:pointer;
+                          display:flex;
+                          align-items:center;
+                          justify-content:space-between;
+                          gap:15px;
                         "
                       >
-                        ${index + 1}.
-                      </strong>
 
-                      <strong>
-                        ${customer.customerName}
-                      </strong>
+                        <div
+                          style="
+                            display:flex;
+                            align-items:center;
+                            gap:12px;
+                            min-width:0;
+                          "
+                        >
 
-                    </div>
+                          <strong>
+                            ${index + 1}.
+                          </strong>
 
+                          <strong>
+                            ${escapeHTML(
+                              customer.customerName || ""
+                            )}
+                          </strong>
 
-                    <span
-                      style="
-                        font-size:12px;
-                        color:#777;
-                        white-space:nowrap;
-                      "
-                    >
-                      ${customer.items.length}
-                      barang →
-                    </span>
+                        </div>
 
-                  </button>
+                        <span
+                          style="
+                            font-size:12px;
+                            color:#777;
+                            white-space:nowrap;
+                          "
+                        >
+                          ${customer.items.length}
+                          barang →
+                        </span>
 
-                `;
+                      </button>
 
-              }
-            )
-            .join("")}
+                    `;
+                  })
+                  .join("")}
 
-        </div>
+              </div>
+            `
+        }
 
       `;
 
+      /*
+        EVENT PENCARIAN
+      */
+
+      const searchInput =
+        document.getElementById(
+          "coReportSearchInput"
+        );
+
+      if (searchInput) {
+
+        searchInput.addEventListener(
+          "input",
+          function() {
+
+            const currentValue = this.value;
+            const cursorPosition = this.selectionStart;
+
+            renderCustomerList(currentValue);
+
+            const updatedInput =
+              document.getElementById(
+                "coReportSearchInput"
+              );
+
+            if (updatedInput) {
+              updatedInput.focus();
+
+              updatedInput.setSelectionRange(
+                cursorPosition,
+                cursorPosition
+              );
+            }
+
+          }
+        );
+
+      }
 
       /*
         EVENT PILIH CUSTOMER
       */
 
       container
-        .querySelectorAll(
-          ".co-customer-button"
-        )
-        .forEach(
-          function(button) {
+        .querySelectorAll(".co-customer-button")
+        .forEach(function(button) {
 
-            button.addEventListener(
-              "click",
-              function() {
+          button.addEventListener(
+            "click",
+            function() {
 
-                const index =
-                  Number(
-                    this.dataset.customerIndex
-                  );
+              const index = Number(
+                this.dataset.customerIndex
+              );
 
-                const customer =
-                  customerList[
-                    index
-                  ];
+              const customer =
+                filteredCustomerList[index];
 
-
-                renderCustomerDetail(
-                  customer
-                );
-
+              if (customer) {
+                renderCustomerDetail(customer);
               }
-            );
 
-          }
-        );
+            }
+          );
+
+        });
 
     }
-
 
     /*
       DETAIL CUSTOMER
@@ -17551,6 +17630,27 @@ async function loadCOArchive(
         "ERROR LOAD CO ARCHIVE:",
         historyError
       );
+
+       const searchInput =
+  document.getElementById(
+    "coReportSearchInput"
+  );
+
+const searchTerm =
+  searchInput
+    ? searchInput.value.trim().toLowerCase()
+    : "";
+
+const filteredCustomerList =
+  customerList.filter(
+    function(customer) {
+      return String(
+        customer.customerName || ""
+      )
+        .toLowerCase()
+        .includes(searchTerm);
+    }
+  );
 
       container.innerHTML = `
   <p>
