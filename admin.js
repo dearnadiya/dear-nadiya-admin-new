@@ -38811,939 +38811,470 @@ function getRecapTypeFromCategory(category) {
   return null;
 }
 
+
 /* ============================================
-   FORM KHUSUS TABUNGAN
+   FORM TABUNGAN MULTI-CUSTOMER
+   ALBUM DAN LIGHTSTICK
    ============================================ */
 
 async function showTabunganRecapForm(category) {
 
-  const container =
-    document.getElementById(
-      "recapFormContainer"
-    );
-
+  const container = document.getElementById("recapFormContainer");
   if (!container) return;
 
+  const isLightstick =
+    String(category || "").trim().toLowerCase() === "tabungan lightstick";
 
   container.style.display = "block";
 
-
   container.innerHTML = `
-
     <div class="panel recap-form">
+      <h3>💰 Tambah Tabungan</h3>
 
-      <h3>
-        💰 Tambah Tabungan
-      </h3>
-
-      <p>
-        Kategori:
-        <strong>
-          ${escapeHTML(category)}
-        </strong>
-      </p>
-
+      <p>Kategori: <strong>${escapeHTML(category)}</strong></p>
 
       <form id="tabunganRecapForm">
-
-
-        <input
-          type="hidden"
-          id="tabunganCategory"
-          value="${escapeHTML(category)}"
-        >
-
+        <input type="hidden" id="tabunganCategory"
+          value="${escapeHTML(category)}">
 
         <div class="form-group">
-
-          <label>
-            Kode Batch / Program
-          </label>
-
-          <input
-            id="tabunganBatchCode"
-            type="text"
-            placeholder="Contoh: LS-001"
-            required
-          >
-
+          <label>Kode Batch / Program</label>
+          <input id="tabunganBatchCode" type="text"
+            placeholder="Contoh: LS-001" required>
         </div>
-
 
         <div class="form-group">
-
-          <label>
-            Nama Barang
-          </label>
-
-          <input
-            id="tabunganItemName"
-            type="text"
-            placeholder="Contoh: Lightstick"
-            required
-          >
-
+          <label>Nama Barang</label>
+          <input id="tabunganItemName" type="text"
+            placeholder="Contoh: Lightstick / Album" required>
         </div>
 
+        <hr>
 
-       <div class="form-group">
-
-  <label>
-    Customer
-  </label>
-
-  <div style="position:relative;">
-
-    <input
-      id="tabunganCustomerName"
-      type="text"
-      placeholder="Cari nama / DN ID / username WhatsApp"
-      autocomplete="off"
-      required
-      style="width:100%;"
-    >
-
-    <input
-      type="hidden"
-      id="tabunganCustomerId"
-      value=""
-    >
-
-    <div
-      id="tabunganCustomerResults"
-      style="
-        display:none;
-        position:absolute;
-        left:0;
-        right:0;
-        top:100%;
-        z-index:9999;
-        background:#fff;
-        border:1px solid #ddd;
-        border-radius:8px;
-        box-shadow:0 8px 20px rgba(0,0,0,.12);
-        max-height:240px;
-        overflow-y:auto;
-      "
-    ></div>
-
-  </div>
-
-  <small style="color:#777;">
-    Pilih customer dari Data Customer.
-  </small>
-
-</div>
-
-
-        <div class="form-group">
-
-          <label>
-            Quantity
-          </label>
-
-          <input
-            id="tabunganQuantity"
-            type="number"
-            min="1"
-            value="1"
-            required
-          >
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>
-            Harga Total
-          </label>
-
-          <input
-            id="tabunganItemPrice"
-            type="text"
-            class="currency-input"
-            placeholder="660.000"
-            required
-          >
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>
-            Target Tabungan
-          </label>
-
-          <input
-            id="tabunganTarget"
-            type="text"
-            class="currency-input"
-            placeholder="540.000"
-            required
-          >
-
-          <small>
-            Target Tabungan adalah batas minimum
-            agar barang dapat dipesankan.
-            Ini bukan uang yang sudah dibayar.
-          </small>
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>
-            Deadline CO
-          </label>
-
-          <input
-            id="tabunganCoDeadline"
-            type="date"
-          >
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>
-            Catatan
-          </label>
-
-          <textarea
-            id="tabunganNote"
-            rows="3"
-            placeholder="Catatan tambahan..."
-          ></textarea>
-
-        </div>
-
-
-        <div
-          style="
-            display:flex;
-            gap:10px;
-            margin-top:18px;
-            flex-wrap:wrap;
-          "
-        >
-
-          <button
-            type="submit"
-            class="primary-button"
-          >
-            💾 Simpan Tabungan
+        <div style="display:flex;justify-content:space-between;
+          align-items:center;gap:10px;flex-wrap:wrap">
+          <h4 style="margin:0">Daftar Customer</h4>
+          <button type="button" class="secondary-button"
+            id="addTabunganCustomerButton">
+            ＋ Tambah Customer
           </button>
-
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="cancelTabunganButton"
-          >
-            Batal
-          </button>
-
         </div>
 
+        <p style="font-size:12px;color:#777">
+          Setiap customer mempunyai quantity, harga, dan target tabungan sendiri.
+        </p>
 
-        <p
-          id="tabunganFormMessage"
-          style="
-            margin-top:12px;
-            color:#777;
-          "
-        ></p>
+        <div id="tabunganCustomerRows"></div>
 
+        <div class="form-group">
+          <label>Catatan Batch (opsional)</label>
+          <textarea id="tabunganNote" rows="2"
+            placeholder="Catatan untuk batch ini"></textarea>
+        </div>
 
+        <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+          <button type="submit" class="primary-button">
+            💾 Simpan Semua Customer
+          </button>
+          <button type="button" class="secondary-button"
+            id="cancelTabunganButton">Batal</button>
+        </div>
+
+        <p id="tabunganFormMessage"
+          style="margin-top:12px;color:#777"></p>
       </form>
-
     </div>
-
   `;
 
-/* ==========================================
-   CUSTOMER DARI DATA CUSTOMER
-   ========================================== */
+  const rowsContainer =
+    document.getElementById("tabunganCustomerRows");
 
-const customerInput =
-  document.getElementById(
-    "tabunganCustomerName"
-  );
-
-const customerIdInput =
-  document.getElementById(
-    "tabunganCustomerId"
-  );
-
-const customerResults =
-  document.getElementById(
-    "tabunganCustomerResults"
-  );
-
-
-let tabunganCustomerList = [];
-
-
-const {
-  data: customers,
-  error: customersError
-} =
-  await supabaseClient
+  const {
+    data: customers,
+    error: customersError
+  } = await supabaseClient
     .from("customers")
-    .select(
-      "id, dn_id, name, username_wa"
-    )
-    .order(
-      "id",
-      {
-        ascending: true
-      }
-    );
+    .select("id, dn_id, name, username_wa")
+    .order("id", { ascending: true });
 
+  if (customersError) {
+    console.error("ERROR LOAD CUSTOMER TABUNGAN:", customersError);
+    alert("Gagal memuat Data Customer: " + customersError.message);
+    return;
+  }
 
-if (customersError) {
+  const customerList = customers || [];
 
-  console.error(
-    "ERROR LOAD CUSTOMER TABUNGAN:",
-    customersError
-  );
+  function addCustomerRow() {
 
-  if (customerResults) {
+    const row = document.createElement("div");
 
-    customerResults.innerHTML = `
-      <div
-        style="
-          padding:10px;
-          color:#b91c1c;
-          font-size:12px;
-        "
-      >
-        Gagal memuat Data Customer.
+    row.className = "tabungan-customer-row";
+    row.style.cssText =
+      "border:1px solid #ddd;border-radius:10px;padding:14px;" +
+      "margin-top:12px;position:relative;background:#fff";
+
+    row.innerHTML = `
+      <div style="display:flex;justify-content:space-between;
+        align-items:center;gap:8px">
+        <strong class="tabungan-customer-row-title">Customer</strong>
+        <button type="button" class="secondary-button remove-tabungan-customer">
+          Hapus
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;position:relative">
+        <label>Customer</label>
+        <input type="text" class="tabungan-customer-name"
+          placeholder="Cari nama / DN ID / username WhatsApp"
+          autocomplete="off" required style="width:100%">
+        <input type="hidden" class="tabungan-customer-id">
+        <div class="tabungan-customer-results"
+          style="display:none;position:absolute;left:0;right:0;top:100%;
+          z-index:9999;background:#fff;border:1px solid #ddd;
+          border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.12);
+          max-height:220px;overflow-y:auto"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" class="tabungan-quantity"
+          min="1" value="1" required>
+      </div>
+
+      <div class="form-group">
+        <label>Harga Total</label>
+        <input type="text" class="tabungan-item-price currency-input"
+          placeholder="660.000" required>
+      </div>
+
+      <div class="form-group">
+        <label>Target Tabungan</label>
+        <input type="text" class="tabungan-target currency-input"
+          placeholder="540.000" required>
+        <small>Target tabungan bukan jumlah uang yang sudah dibayar.</small>
       </div>
     `;
 
-    customerResults.style.display =
-      "block";
+    rowsContainer.appendChild(row);
 
-  }
+    row.querySelector(".remove-tabungan-customer")
+      .addEventListener("click", function() {
 
-} else {
+        if (rowsContainer.querySelectorAll(".tabungan-customer-row").length <= 1) {
+          alert("Minimal harus ada satu customer.");
+          return;
+        }
 
-  tabunganCustomerList =
-    customers || [];
+        row.remove();
+        updateCustomerRowTitles();
+      });
 
-}
+    const nameInput =
+      row.querySelector(".tabungan-customer-name");
 
+    const idInput =
+      row.querySelector(".tabungan-customer-id");
 
-/* ==========================================
-   SEARCH CUSTOMER
-   ========================================== */
+    const results =
+      row.querySelector(".tabungan-customer-results");
 
-if (
-  customerInput &&
-  customerResults
-) {
+    nameInput.addEventListener("input", function() {
 
-  customerInput.addEventListener(
-    "input",
-    function() {
+      idInput.value = "";
 
-      const keyword =
-        this.value
-          .trim()
-          .toLowerCase();
-
-      /*
-       * Jika nama diubah setelah memilih,
-       * ID customer harus dikosongkan lagi.
-       */
-      customerIdInput.value = "";
+      const keyword = this.value.trim().toLowerCase();
 
       if (!keyword) {
-
-        customerResults.innerHTML =
-          "";
-
-        customerResults.style.display =
-          "none";
-
+        results.innerHTML = "";
+        results.style.display = "none";
         return;
-
       }
 
+      const matches = customerList.filter(function(customer) {
 
-      const matches =
-        tabunganCustomerList
-          .filter(
-            function(customer) {
-
-              const dnId =
-                String(
-                  customer.dn_id || ""
-                ).toLowerCase();
-
-              const name =
-                String(
-                  customer.name || ""
-                ).toLowerCase();
-
-              const username =
-                String(
-                  customer.username_wa || ""
-                ).toLowerCase();
-
-              return (
-                dnId.includes(keyword) ||
-                name.includes(keyword) ||
-                username.includes(keyword)
-              );
-
-            }
-          )
-          .slice(0, 10);
-
-
-      if (!matches.length) {
-
-        customerResults.innerHTML = `
-          <div
-            style="
-              padding:10px;
-              color:#777;
-              font-size:12px;
-            "
-          >
-            Customer tidak ditemukan di Data Customer.
-          </div>
-        `;
-
-        customerResults.style.display =
-          "block";
-
-        return;
-
-      }
-
-
-      customerResults.innerHTML =
-        matches
-          .map(
-            function(customer) {
-
-              return `
-                <button
-                  type="button"
-                  class="tabungan-customer-result"
-                  data-id="${escapeHTML(
-                    String(customer.id)
-                  )}"
-                  data-name="${escapeHTML(
-                    customer.name || ""
-                  )}"
-                  style="
-                    display:block;
-                    width:100%;
-                    text-align:left;
-                    border:0;
-                    border-bottom:1px solid #eee;
-                    background:#fff;
-                    padding:10px;
-                    cursor:pointer;
-                  "
-                >
-
-                  <strong>
-                    ${escapeHTML(
-                      customer.name || "Tanpa Nama"
-                    )}
-                  </strong>
-
-                  <div
-                    style="
-                      margin-top:3px;
-                      font-size:11px;
-                      color:#777;
-                    "
-                  >
-                    ${escapeHTML(
-                      customer.dn_id || "—"
-                    )}
-
-                    ${
-                      customer.username_wa
-                        ? " • " +
-                          escapeHTML(
-                            customer.username_wa
-                          )
-                        : ""
-                    }
-                  </div>
-
-                </button>
-              `;
-
-            }
-          )
-          .join("");
-
-
-      customerResults.style.display =
-        "block";
-
-    }
-  );
-
-
-  customerResults.addEventListener(
-    "click",
-    function(event) {
-
-      const button =
-        event.target.closest(
-          ".tabungan-customer-result"
+        return (
+          String(customer.name || "").toLowerCase().includes(keyword) ||
+          String(customer.dn_id || "").toLowerCase().includes(keyword) ||
+          String(customer.username_wa || "").toLowerCase().includes(keyword)
         );
 
-      if (!button) {
+      }).slice(0, 10);
+
+      if (!matches.length) {
+        results.innerHTML =
+          '<div style="padding:10px;color:#777">Customer tidak ditemukan.</div>';
+        results.style.display = "block";
         return;
       }
 
+      results.innerHTML = matches.map(function(customer) {
 
-      customerInput.value =
-        button.dataset.name || "";
+        return `
+          <button type="button" class="tabungan-customer-result"
+            data-id="${escapeHTML(String(customer.id))}"
+            data-name="${escapeHTML(customer.name || "")}"
+            style="display:block;width:100%;text-align:left;border:0;
+            border-bottom:1px solid #eee;background:#fff;padding:10px;cursor:pointer">
+            <strong>${escapeHTML(customer.name || "Tanpa Nama")}</strong>
+            <div style="font-size:11px;color:#777;margin-top:3px">
+              ${escapeHTML(customer.dn_id || "—")}
+              ${customer.username_wa ? " • " + escapeHTML(customer.username_wa) : ""}
+            </div>
+          </button>
+        `;
 
-      customerIdInput.value =
-        button.dataset.id || "";
+      }).join("");
 
+      results.style.display = "block";
 
-      customerResults.innerHTML =
-        "";
+    });
 
-      customerResults.style.display =
-        "none";
+    results.addEventListener("click", function(event) {
 
+      const button = event.target.closest(".tabungan-customer-result");
+      if (!button) return;
+
+      nameInput.value = button.dataset.name || "";
+      idInput.value = button.dataset.id || "";
+
+      results.innerHTML = "";
+      results.style.display = "none";
+
+    });
+
+    if (typeof initCurrencyInputs === "function") {
+      initCurrencyInputs(row);
     }
-  );
 
+    updateCustomerRowTitles();
+  }
 
-  /*
-   * Klik di luar hasil pencarian
-   */
-  document.addEventListener(
-    "click",
-    function(event) {
+  function updateCustomerRowTitles() {
 
-      if (
-        !customerInput.contains(
-          event.target
-        ) &&
-        !customerResults.contains(
-          event.target
-        )
-      ) {
+    rowsContainer.querySelectorAll(".tabungan-customer-row")
+      .forEach(function(row, index) {
 
-        customerResults.style.display =
-          "none";
+        const title = row.querySelector(".tabungan-customer-row-title");
 
-      }
+        if (title) {
+          title.textContent = "Customer " + (index + 1);
+        }
 
-    }
-  );
+      });
+  }
 
+  document.getElementById("addTabunganCustomerButton")
+    .addEventListener("click", addCustomerRow);
+
+  document.getElementById("cancelTabunganButton")
+    .addEventListener("click", function() {
+
+      container.innerHTML = "";
+      container.style.display = "none";
+
+    });
+
+  document.getElementById("tabunganRecapForm")
+    .addEventListener("submit", saveTabunganRecap);
+
+  addCustomerRow();
 }
 
-
-  /* ==========================================
-     FORMAT ANGKA RUPIAH
-     ========================================== */
-
-  if (
-    typeof initCurrencyInputs ===
-    "function"
-  ) {
-
-    initCurrencyInputs(
-      container
-    );
-
-  }
-
-
-  /* ==========================================
-     BATAL
-     ========================================== */
-
-  const cancelButton =
-    document.getElementById(
-      "cancelTabunganButton"
-    );
-
-  if (cancelButton) {
-
-    cancelButton.addEventListener(
-      "click",
-      function() {
-
-        container.innerHTML = "";
-
-        container.style.display =
-          "none";
-
-      }
-    );
-
-  }
-
-
-  /* ==========================================
-     SIMPAN
-     ========================================== */
-
-  const form =
-    document.getElementById(
-      "tabunganRecapForm"
-    );
-
-  if (form) {
-
-    form.addEventListener(
-      "submit",
-      saveTabunganRecap
-    );
-
-  }
-
-}
 
 /* ============================================
-   SIMPAN TABUNGAN BARU
+   SIMPAN TABUNGAN MULTI-CUSTOMER
    ============================================ */
 
 async function saveTabunganRecap(event) {
 
   event.preventDefault();
 
-
-  const message =
-    document.getElementById(
-      "tabunganFormMessage"
-    );
-
-
-  if (message) {
-
-    message.textContent =
-      "Menyimpan tabungan...";
-
-  }
-
+  const form = event.currentTarget;
+  const message = document.getElementById("tabunganFormMessage");
+  const submitButton = form.querySelector('button[type="submit"]');
 
   const category =
-    document.getElementById(
-      "tabunganCategory"
-    ).value.trim();
-
+    document.getElementById("tabunganCategory").value.trim();
 
   const batchCode =
-    document.getElementById(
-      "tabunganBatchCode"
-    ).value.trim();
-
+    document.getElementById("tabunganBatchCode").value.trim();
 
   const itemName =
-    document.getElementById(
-      "tabunganItemName"
-    ).value.trim();
-
-
-  const customerName =
-  document.getElementById(
-    "tabunganCustomerName"
-  ).value.trim();
-
-const customerId =
-  Number(
-    document.getElementById(
-      "tabunganCustomerId"
-    ).value
-  ) || null;
-
-
-  const quantity =
-    Number(
-      document.getElementById(
-        "tabunganQuantity"
-      ).value
-    ) || 1;
-
-
-  const itemPrice =
-    Number(
-      document.getElementById(
-        "tabunganItemPrice"
-      ).value
-        .replace(/\D/g, "")
-    ) || 0;
-
-
-  const targetTabungan =
-    Number(
-      document.getElementById(
-        "tabunganTarget"
-      ).value
-        .replace(/\D/g, "")
-    ) || 0;
-
-
-  const coDeadline =
-    document.getElementById(
-      "tabunganCoDeadline"
-    ).value || null;
-
+    document.getElementById("tabunganItemName").value.trim();
 
   const note =
-    document.getElementById(
-      "tabunganNote"
-    ).value.trim() || null;
+    document.getElementById("tabunganNote").value.trim() || null;
 
+  const isLightstick =
+    category.toLowerCase() === "tabungan lightstick";
 
-  /* ==========================================
-     VALIDASI
-     ========================================== */
-
-  if (!category) {
-
-    alert(
-      "Kategori Tabungan tidak ditemukan."
-    );
-
+  if (!category || !batchCode || !itemName) {
+    alert("Kategori, kode batch, dan nama barang wajib diisi.");
     return;
-
   }
 
-
-  if (!itemName) {
-
-    alert(
-      "Nama barang wajib diisi."
-    );
-
-    return;
-
-  }
-
-
-  if (
-  !customerId ||
-  !customerName
-) {
-
-  alert(
-    "Customer wajib dipilih dari Data Customer."
+  const rows = Array.from(
+    form.querySelectorAll(".tabungan-customer-row")
   );
 
-  return;
-
-}
-
-
-  if (itemPrice <= 0) {
-
-    alert(
-      "Harga total harus lebih dari 0."
-    );
-
+  if (!rows.length) {
+    alert("Tambahkan minimal satu customer.");
     return;
-
   }
 
+  const recapRows = [];
 
-  if (targetTabungan < 0) {
+  for (let index = 0; index < rows.length; index++) {
 
-    alert(
-      "Target Tabungan tidak boleh negatif."
-    );
+    const row = rows[index];
 
-    return;
+    const customerName =
+      row.querySelector(".tabungan-customer-name").value.trim();
 
-  }
+    const customerId =
+      Number(row.querySelector(".tabungan-customer-id").value) || null;
 
+    const quantity =
+      Number(row.querySelector(".tabungan-quantity").value) || 0;
 
-  if (
-    targetTabungan >
-    itemPrice
-  ) {
+    const itemPrice =
+      Number(
+        row.querySelector(".tabungan-item-price").value.replace(/\D/g, "")
+      ) || 0;
 
-    alert(
-      "Target Tabungan tidak boleh lebih besar dari Harga Total."
-    );
+    const targetTabungan =
+      Number(
+        row.querySelector(".tabungan-target").value.replace(/\D/g, "")
+      ) || 0;
 
-    return;
-
-  }
-
-
-  /* ==========================================
-     DATA TABUNGAN BARU
-     ========================================== */
-
-  const recap = {
-
-  recap_type:
-    "Tabungan",
-
-  category:
-    category,
-
-  batch_code:
-    batchCode || null,
-
-  item_name:
-    itemName,
-
-  customer_id:
-    customerId,
-
-  customer_name:
-    customerName,
-
-  version:
-    null,
-    quantity:
-      quantity,
-
-    item_price:
-      itemPrice,
-
-    /*
-     * TARGET TABUNGAN
-     * BUKAN UANG YANG SUDAH DIBAYAR
-     */
-    minimum_dp_amount:
-      targetTabungan,
-
-    /*
-     * CUSTOMER BELUM MEMBAYAR
-     */
-    dp_amount:
-      0,
-
-    dp_status:
-      targetTabungan === 0
-        ? "paid"
-        : "unpaid",
-
-    /*
-     * AWALNYA SELURUH HARGA
-     * MASIH MENJADI KEWAJIBAN
-     */
-    remaining_amount:
-      itemPrice,
-
-    payment_status:
-      "unpaid",
-
-    tracking_status:
-  "Menabung",
-
-batch_tracking_status:
-  "Menabung",
-
-    recap_data_type:
-      "baru",
-
-    co_deadline:
-      coDeadline,
-
-    note:
-      note
-
-  };
-
-
-  /* ==========================================
-     SIMPAN KE SUPABASE
-     ========================================== */
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from(
-        "purchase_recap"
-      )
-      .insert(
-        recap
-      )
-      .select()
-      .single();
-
-
-  if (error) {
-
-    console.error(
-      "ERROR SAVE TABUNGAN:",
-      error
-    );
-
-
-    if (message) {
-
-      message.textContent =
-        "Gagal menyimpan Tabungan: " +
-        error.message;
-
+    if (!customerId || !customerName) {
+      alert("Customer " + (index + 1) + " wajib dipilih dari Data Customer.");
+      return;
     }
 
-    return;
+    if (quantity < 1) {
+      alert("Quantity Customer " + (index + 1) + " minimal 1.");
+      return;
+    }
 
+    if (itemPrice <= 0) {
+      alert("Harga Customer " + (index + 1) + " harus lebih dari 0.");
+      return;
+    }
+
+    if (targetTabungan < 0 || targetTabungan > itemPrice) {
+      alert(
+        "Target tabungan Customer " + (index + 1) +
+        " harus di antara 0 dan harga total."
+      );
+      return;
+    }
+
+    recapRows.push({
+
+      recap_type: "Tabungan",
+      category: category,
+      batch_code: batchCode,
+      item_name: itemName,
+
+      customer_id: customerId,
+      customer_name: customerName,
+      version: null,
+
+      quantity: quantity,
+      item_price: itemPrice,
+
+      minimum_dp_amount: targetTabungan,
+      dp_amount: 0,
+      dp_status: targetTabungan === 0 ? "paid" : "unpaid",
+      remaining_amount: itemPrice,
+      payment_status: "unpaid",
+
+      tracking_status: "Menabung",
+      batch_tracking_status: "Menabung",
+
+      recap_data_type: "baru",
+
+      // Deadline Album mengikuti batch Rekap GO yang terhubung.
+      // Lightstick tidak menggunakan deadline pembayaran.
+      co_deadline: null,
+
+      note: note
+
+    });
   }
 
+  const customerIds = recapRows.map(function(row) {
+    return row.customer_id;
+  });
 
-  console.log(
-    "TABUNGAN BERHASIL DISIMPAN:",
-    data
-  );
+  if (new Set(customerIds).size !== customerIds.length) {
+    alert(
+      "Ada customer yang dipilih lebih dari satu kali. " +
+      "Periksa daftar customer sebelum menyimpan."
+    );
+    return;
+  }
 
+  if (!confirm(
+    "Simpan " + recapRows.length + " customer ke batch " + batchCode + "?"
+  )) {
+    return;
+  }
 
   if (message) {
-
-    message.textContent =
-      "Tabungan berhasil disimpan. ♥";
-
+    message.textContent = "Menyimpan " + recapRows.length + " customer...";
   }
 
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
 
-  alert(
-    "Data Tabungan berhasil disimpan."
-  );
+  try {
 
+    const { data, error } = await supabaseClient
+      .from("purchase_recap")
+      .insert(recapRows)
+      .select();
 
-  const container =
-    document.getElementById(
-      "recapFormContainer"
+    if (error) {
+      throw error;
+    }
+
+    console.log("TABUNGAN MULTI-CUSTOMER BERHASIL DISIMPAN:", data);
+
+    alert(
+      "Berhasil menyimpan " + recapRows.length +
+      " customer dalam batch " + batchCode + "."
     );
 
+    const container = document.getElementById("recapFormContainer");
 
-  if (container) {
+    if (container) {
+      container.innerHTML = "";
+      container.style.display = "none";
+    }
 
-    container.innerHTML =
-      "";
+    await loadRecapList(category);
 
-    container.style.display =
-      "none";
+  } catch (error) {
+
+    console.error("ERROR SAVE TABUNGAN MULTI-CUSTOMER:", error);
+
+    if (message) {
+      message.textContent = "Gagal menyimpan tabungan: " + error.message;
+    }
+
+    alert("Gagal menyimpan tabungan:\n\n" + error.message);
+
+  } finally {
+
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
 
   }
-
-
-  await loadRecapList(
-    category
-  );
-
 }
 
 /* ============================================
