@@ -16287,38 +16287,42 @@ async function loadCOReport() {
 </div>
 
 
-<div
+
+<details
   class="welcome-card"
   style="margin-top:20px;"
 >
+  <summary
+    style="
+      cursor:pointer;
+      padding:16px;
+      font-weight:700;
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    "
+  >
+    <span>📦 Riwayat CO</span>
+    <span
+      style="
+        font-size:12px;
+        font-weight:500;
+        color:#777;
+      "
+    >
+      Klik untuk melihat riwayat
+    </span>
+  </summary>
 
-  <div class="panel-header">
-
-    <div>
-
-      <h3>
-        📦 Riwayat CO
-      </h3>
-
-      <p>
-        Riwayat barang yang pernah CO
-        tetapi tidak dikonfirmasi packing.
-      </p>
-
-    </div>
-
+  <div
+    id="coArchiveContainer"
+    style="padding:0 16px 16px;"
+  >
+    <p>Memuat riwayat CO...</p>
   </div>
-
-
-  <div id="coArchiveContainer">
-
-    <p>
-      Memuat arsip...
-    </p>
-
-  </div>
-
-</div>
+</details>
     </div>
 
   `;
@@ -17767,10 +17771,6 @@ async function loadCOArchive(
           checkout_result,
           created_at
         `)
-        .eq(
-          "checkout_result",
-          "Tidak Dikonfirmasi"
-        )
         .order(
           "created_at",
           {
@@ -17832,8 +17832,7 @@ const filteredCustomerList =
 
       container.innerHTML = `
         <p>
-          Belum ada arsip CO yang
-          tidak dikonfirmasi.
+          Belum ada riwayat CO.
         </p>
       `;
 
@@ -18036,8 +18035,8 @@ const filteredCustomerList =
       >
 
         <h3>
-          📦 ${historyRows.length}
-          Riwayat CO Tidak Dikonfirmasi
+         📦 ${historyRows.length}
+          Riwayat CO
         </h3>
 
         <p
@@ -18046,8 +18045,8 @@ const filteredCustomerList =
             color:#777;
           "
         >
-          Seluruh histori tetap disimpan
-          meskipun barang dapat di-CO kembali.
+         Menampilkan seluruh riwayat CO,
+          baik yang dikonfirmasi maupun tidak dikonfirmasi.
         </p>
 
       </div>
@@ -18344,23 +18343,31 @@ const filteredCustomerList =
                       </td>
 
 
-                      <td
-                        style="
-                          padding:10px;
-                          border-bottom:1px solid #f1f1f1;
-                          white-space:nowrap;
-                        "
-                      >
-                        <span
-                          style="
-                            color:#b33;
-                            font-weight:600;
-                          "
-                        >
-                          ✕ Tidak Dikonfirmasi
-                        </span>
-                      </td>
-
+                      
+<td
+  style="
+    padding:10px;
+    border-bottom:1px solid #f1f1f1;
+    white-space:nowrap;
+  "
+>
+  <span
+    style="
+      color:${
+        row.checkout_result === "Dikonfirmasi"
+          ? "#16803c"
+          : "#b33"
+      };
+      font-weight:600;
+    "
+  >
+    ${
+      row.checkout_result === "Dikonfirmasi"
+        ? "✓ Dikonfirmasi"
+        : "✕ Tidak Dikonfirmasi"
+    }
+  </span>
+</td>
 
                       <td
                         style="
