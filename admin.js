@@ -31975,6 +31975,366 @@ container
     }
   );
 
+     
+/* ==========================================
+   TABUNGAN ALBUM
+   PENGHUBUNG BATCH KE REKAP GO
+   ========================================== */
+
+async function initTabunganAlbumBatchLinks() {
+
+  if (category !== "Tabungan Album") {
+    return;
+  }
+
+  const batchCards = Array.from(
+    container.querySelectorAll(
+      ".tabungan-album-batch"
+    )
+  );
+
+  if (!batchCards.length) {
+    return;
+  }
+
+  try {
+
+    const [
+      { data: recapRows, error: recapError },
+      { data: savedLinks, error: linkError }
+    ] = await Promise.all([
+
+      supabaseClient
+        .from("purchase_recap")
+        .select(
+          "id, category, recap_type, recap_data_type, batch_code, customer_name, version, item_name"
+        )
+        .neq("category", "Tabungan Album")
+        .order("id", { ascending: true }),
+
+      supabaseClient
+        .from("dn_tabungan_album_batch_links")
+        .select("*")
+
+    ]);
+
+    if (recapError) {
+      throw recapError;
+    }
+
+    if (linkError) {
+      throw linkError;
+    }
+
+    const targetRows = recapRows || [];
+    const links = savedLinks || [];
+
+    function uniqueValues(values) {
+      return Array.from(
+        new Set(
+          values
+            .filter(Boolean)
+            .map(function(value) {
+              return String(value).trim();
+            })
+            .filter(Boolean)
+        )
+      ).sort();
+    }
+
+    function optionHTML(values, selectedValue, placeholder) {
+
+      return `
+        <option value="">
+          ${escapeHTML(placeholder)}
+        </option>
+        ${
+          values.map(function(value) {
+            return `
+              <option
+                value="${escapeHTML(value)}"
+                ${String(value) === String(selectedValue) ? "selected" : ""}
+              >
+                ${escapeHTML(value)}
+              </option>
+            `;
+          }).join("")
+        }
+      `;
+    }
+
+    batchCards.forEach(function(card) {
+
+      const sourceBatch =
+        card.dataset.batchCode;
+
+      if (!sourceBatch || sourceBatch === "Tanpa Batch") {
+        return;
+      }
+
+      const existingLink = links.find(function(link) {
+        return link.source_batch_code === sourceBatch;
+      });
+
+      const savedType =
+        existingLink?.target_recap_type || "";
+
+      const savedCategory =
+        existingLink?.target_category || "";
+
+      const savedBatch =
+        existingLink?.target_batch_code || "";
+
+      const types = uniqueValues(
+        targetRows.map(function(row) {
+          return row.recap_data_type || row.recap_type;
+        })
+      );
+
+      const categoriesForType = function(type) {
+        return uniqueValues(
+          targetRows
+            .filter(function(row) {
+              return String(
+                row.recap_data_type || row.recap_type || ""
+              ) === String(type);
+            })
+            .map(function(row) {
+              return row.category;
+            })
+        );
+      };
+
+      const batchesFor = function(type, categoryValue) {
+        return uniqueValues(
+          targetRows
+            .filter(function(row) {
+              return String(
+                row.recap_data_type || row.recap_type || ""
+              ) === String(type) &&
+                String(row.category || "") === String(categoryValue);
+            })
+            .map(function(row) {
+              return row.batch_code;
+            })
+        );
+      };
+
+      const panel = document.createElement("div");
+
+      panel.className = "tabungan-album-link-panel";
+
+      panel.style.cssText = [
+        "margin-top:16px",
+        "padding:14px",
+        "border:1px solid var(--line)",
+        "border-radius:12px",
+        "background:#fcfbff"
+      ].join(";");
+
+      panel.innerHTML = `
+        <div style="font-weight:700;margin-bottom:10px">
+          🔗 Hubungkan ke Rekap GO
+        </div>
+
+        <div style="display:grid;gap:10px">
+
+          <label style="display:grid;gap:5px;font-size:12px">
+            Tipe Rekap
+            <select class="tabungan-link-type">
+              ${optionHTML(types, savedType, "Pilih tipe rekap")}
+            </select>
+          </label>
+
+          <label style="display:grid;gap:5px;font-size:12px">
+            Kategori
+            <select class="tabungan-link-category">
+              ${optionHTML(
+                categoriesForType(savedType),
+                savedCategory,
+                "Pilih kategori"
+              )}
+            </select>
+          </label>
+
+          <label style="display:grid;gap:5px;font-size:12px">
+            Batch Tujuan
+            <select class="tabungan-link-target-batch">
+              ${optionHTML(
+                batchesFor(savedType, savedCategory),
+                savedBatch,
+                "Pilih batch Rekap GO"
+              )}
+            </select>
+          </label>
+
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button type="button" class="primary-button tabungan-link-save">
+              Simpan Hubungan Batch
+            </button>
+            <span class="tabungan-link-status" style="font-size:12px;color:#666">
+              ${
+                existingLink
+                  ? "Sudah terhubung: " + escapeHTML(savedBatch)
+                  : "Belum terhubung"
+              }
+            </span>
+          </div>
+
+        </div>
+      `;
+
+      card.appendChild(panel);
+
+      const typeSelect =
+        panel.querySelector(".tabungan-link-type");
+
+      const categorySelect =
+        panel.querySelector(".tabungan-link-category");
+
+      const batchSelect =
+        panel.querySelector(".tabungan-link-target-batch");
+
+      const saveButton =
+        panel.querySelector(".tabungan-link-save");
+
+      const statusText =
+        panel.querySelector(".tabungan-link-status");
+
+      typeSelect.addEventListener("change", function() {
+
+        categorySelect.innerHTML = optionHTML(
+          categoriesForType(this.value),
+          "",
+          "Pilih kategori"
+        );
+
+        batchSelect.innerHTML = optionHTML(
+          [],
+          "",
+          "Pilih batch Rekap GO"
+        );
+
+      });
+
+      categorySelect.addEventListener("change", function() {
+
+        batchSelect.innerHTML = optionHTML(
+          batchesFor(typeSelect.value, this.value),
+          "",
+          "Pilih batch Rekap GO"
+        );
+
+      });
+
+      saveButton.addEventListener("click", async function() {
+
+        const targetType = typeSelect.value;
+        const targetCategory = categorySelect.value;
+        const targetBatch = batchSelect.value;
+
+        if (!targetType || !targetCategory || !targetBatch) {
+          alert("Pilih tipe rekap, kategori, dan batch tujuan terlebih dahulu.");
+          return;
+        }
+
+        const matches = targetRows.filter(function(row) {
+          return String(
+            row.recap_data_type || row.recap_type || ""
+          ) === String(targetType) &&
+            String(row.category || "") === String(targetCategory) &&
+            String(row.batch_code || "") === String(targetBatch);
+        });
+
+        if (!matches.length) {
+          alert("Batch tujuan tidak ditemukan. Muat ulang daftar dan coba lagi.");
+          return;
+        }
+
+        const confirmed = confirm(
+          "Simpan hubungan batch berikut?\n\n" +
+          "Tabungan Album: " + sourceBatch + "\n" +
+          "Tipe Rekap: " + targetType + "\n" +
+          "Kategori: " + targetCategory + "\n" +
+          "Batch tujuan: " + targetBatch + "\n\n" +
+          "Belum ada nominal pembayaran yang akan diubah."
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.textContent = "Menyimpan...";
+
+        try {
+
+          const { error } = await supabaseClient
+            .from("dn_tabungan_album_batch_links")
+            .upsert(
+              {
+                source_batch_code: sourceBatch,
+                target_recap_type: targetType,
+                target_category: targetCategory,
+                target_batch_code: targetBatch,
+                updated_at: new Date().toISOString()
+              },
+              {
+                onConflict: "source_batch_code"
+              }
+            );
+
+          if (error) {
+            throw error;
+          }
+
+          statusText.textContent =
+            "Tersimpan: " + targetBatch;
+
+          alert("Hubungan batch berhasil disimpan.");
+
+        } catch (error) {
+
+          console.error(
+            "ERROR SIMPAN HUBUNGAN BATCH TABUNGAN ALBUM:",
+            error
+          );
+
+          alert(
+            "Gagal menyimpan hubungan batch:\n\n" +
+            error.message
+          );
+
+        } finally {
+
+          saveButton.disabled = false;
+          saveButton.textContent = "Simpan Hubungan Batch";
+
+        }
+
+      });
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "ERROR MEMUAT HUBUNGAN BATCH TABUNGAN ALBUM:",
+      error
+    );
+
+    alert(
+      "Gagal memuat penghubung batch Tabungan Album:\n\n" +
+      error.message
+    );
+
+  }
+
+}
+
+initTabunganAlbumBatchLinks();
+
+
 
 /* ==========================================
    EVENT TOMBOL EDIT / HAPUS
