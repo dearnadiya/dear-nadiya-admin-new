@@ -31470,6 +31470,31 @@ function renderAlbumBatchCards(
                             "
                           >
 
+                          
+${
+  Number(row.tabungan_target) > 0 &&
+  Number(row.tabungan_paid) >= Number(row.tabungan_target)
+    ? `
+      <button
+        type="button"
+        class="tabungan-confirm-dp-button"
+        data-source-id="${escapeHTML(String(row.id))}"
+        style="
+          padding:8px 12px;
+          border:0;
+          border-radius:8px;
+          background:#16803c;
+          color:#fff;
+          font-weight:600;
+          cursor:pointer;
+        "
+      >
+        ✓ Konfirmasi Pembayaran DP
+      </button>
+    `
+    : ""
+}
+
                             <button
                               type="button"
                               class="primary-button edit-recap-button"
@@ -31995,6 +32020,111 @@ list.innerHTML =
           }
         )
         .join("");
+
+     
+/* ==========================================
+   KONFIRMASI DP TABUNGAN ALBUM
+   ========================================== */
+
+container
+  .querySelectorAll(".tabungan-confirm-dp-button")
+  .forEach(function(button) {
+    button.addEventListener("click", async function() {
+      const sourceId = Number(button.dataset.sourceId);
+
+      const sourceRow = data.find(function(row) {
+        return Number(row.id) === sourceId;
+      });
+
+      if (!sourceRow) {
+        alert("Data Tabungan Album tidak ditemukan.");
+        return;
+      }
+
+      const target = Number(sourceRow.tabungan_target) || 0;
+      const accumulated = Number(sourceRow.tabungan_paid) || 0;
+
+      if (target <= 0 || accumulated < target) {
+        alert("Target tabungan belum terpenuhi.");
+        return;
+      }
+
+      const { data: mapping, error: mappingError } =
+        await supabaseClient
+          .from("dn_tabungan_album_customer_links")
+          .select("target_recap_id")
+          .eq("source_recap_id", sourceId)
+          .maybeSingle();
+
+      if (mappingError) {
+        alert("Gagal membaca hubungan customer: " + mappingError.message);
+        return;
+      }
+
+      if (!mapping?.target_recap_id) {
+        alert("Customer belum dihubungkan ke Rekap GO.");
+        return;
+      }
+
+      const { data: targetRow, error: targetError } =
+        await supabaseClient
+          .from("purchase_recap")
+          .select("id, item_price, minimum_dp_amount")
+          .eq("id", mapping.target_recap_id)
+          .single();
+
+      if (targetError) {
+        alert("Gagal membaca data Rekap GO: " + targetError.message);
+        return;
+      }
+
+      const price = Number(targetRow.item_price) || 0;
+      const dpMinimum = Number(targetRow.minimum_dp_amount) || 0;
+
+      if (price <= 0 || dpMinimum <= 0) {
+        alert("Harga atau DP minimum Rekap GO tidak valid.");
+        return;
+      }
+
+      if (!confirm(
+        "Konfirmasi pembayaran DP customer ini?\n\n" +
+        "Tabungan terkumpul: " + formatRupiah(accumulated) + "\n" +
+        "DP minimum: " + formatRupiah(dpMinimum) + "\n\n" +
+        "DP Aktual akan menjadi DP minimum."
+      )) {
+        return;
+      }
+
+      button.disabled = true;
+
+      try {
+        const { error: updateError } = await supabaseClient
+          .from("purchase_recap")
+          .update({
+            dp_status: "paid",
+            dp_amount: dpMinimum,
+            remaining_amount: Math.max(price - dpMinimum, 0)
+          })
+          .eq("id", targetRow.id);
+
+        if (updateError) throw updateError;
+
+        alert(
+          "DP berhasil dikonfirmasi.\nDP Aktual: " +
+          formatRupiah(dpMinimum)
+        );
+
+        await loadRecapList(category);
+
+      } catch (error) {
+        console.error("GAGAL KONFIRMASI DP:", error);
+        alert("Gagal mengonfirmasi DP: " + error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
 
      /* ==========================================
    TRACKING TABUNGAN LIGHTSTICK
@@ -35226,43 +35356,25 @@ const finalRemaining =
     0
   );
 
-
 /* ==========================================
    GUNAKAN NILAI FINAL
-   PERTAHANKAN DP AKTUAL
+   PEMULIHAN LOGIKA REKAP GO
    ========================================== */
 
-const actualDpFromStored = Math.min(
-  Math.max(Number(row.dp_amount) || 0, 0),
-  price
-);
-
-const actualPelunasanFromStored = Math.min(
-  Math.max(Number(totalPelunasanPaid) || 0, 0),
-  Math.max(price - actualDpFromStored, 0)
-);
-
-const actualTotalFromStored = Math.min(
-  price,
-  actualDpFromStored + actualPelunasanFromStored
-);
-
-const remainingFromStored = Math.max(
-  price - actualTotalFromStored,
-  0
-);
-
 recapPaymentSummary[recapId] = {
-  totalDpPaid: actualDpFromStored,
+  totalDpPaid:
+    finalDpStatus === "paid"
+      ? fixedDp
+      : 0,
 
   totalPelunasanPaid:
-    actualPelunasanFromStored,
+    finalPelunasanPaid,
 
   actualTotalPaid:
-    actualTotalFromStored,
+    finalTotalPaid,
 
   actualRemaining:
-    remainingFromStored,
+    finalRemaining,
 
   dpStatus:
     finalDpStatus,
@@ -35276,24 +35388,17 @@ recapPaymentSummary[recapId] = {
    TAMPILAN REKAP GO
    ========================================== */
 
-row.dp_amount =
-  actualDpFromStored;
+row.dp_amount = fixedDp;
 
-row.dp_status =
-  finalDpStatus;
+row.dp_status = finalDpStatus;
+row.payment_status = finalPaymentStatus;
 
-row.payment_status =
-  finalPaymentStatus;
+row._pelunasan_paid = finalPelunasanPaid;
 
-row._pelunasan_paid =
-  actualPelunasanFromStored;
+row.remaining_amount = finalRemaining;
 
-row.remaining_amount =
-  remainingFromStored;
-
-row._total_paid =
-  actualTotalFromStored;
-
+row._total_paid = finalTotalPaid;
+ 
   });
 
 
