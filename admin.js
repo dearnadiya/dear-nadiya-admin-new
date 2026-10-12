@@ -21205,6 +21205,48 @@ async function showAddRecapMemberForm(
     batch.tracking_status ||
     "";
 
+   
+/* ==========================================
+   AMBIL MODE HARGA DAN DP DARI PO ASAL
+   ========================================== */
+
+let sourcePriceMode = "different";
+let sourceDpMode = "different";
+
+const {
+  data: sourcePO,
+  error: sourcePOError
+} = await supabaseClient
+  .from("po_posts")
+  .select("id, price_mode, dp_mode, price_text, dp_text")
+  .eq("recap_batch_code", batchCode)
+  .eq("recap_category", category)
+  .order("id", { ascending: false })
+  .limit(1);
+
+
+let sourcePriceUnit = 0;
+let sourceDpUnit = 0;
+
+if (sourcePOError) {
+  console.error(
+    "ERROR AMBIL MODE PO ASAL:",
+    sourcePOError
+  );
+} else if (sourcePO && sourcePO.length > 0) {
+  sourcePriceMode =
+    sourcePO[0].price_mode || "same";
+
+  sourceDpMode =
+    sourcePO[0].dp_mode || "same";
+
+  sourcePriceUnit =
+    parseNominalInput(sourcePO[0].price_text);
+
+  sourceDpUnit =
+    parseNominalInput(sourcePO[0].dp_text);
+}
+
    const recapDataType =
   batch.recap_data_type ||
   "baru";
@@ -21497,35 +21539,39 @@ const batchArrivedAdminAt =
       >
 
 
-      <div class="different-price-fields">
+      
+<div class="different-price-fields">
 
-        <label>
-          Harga Barang
-        </label>
+  <label>
+    Harga Barang
+    ${sourcePriceMode === "same" ? "(Mengikuti Harga Batch)" : "(Per Member)"}
+  </label>
 
-        <input
-          type="text"
-          class="batch-price currency-input"
-          min="0"
-          value="${Number(
-            batch.item_price || 0
-          )}"
-        >
+  <input
+    type="text"
+    class="batch-price currency-input"
+    min="0"
+    value="${sourcePriceMode === "same"
+  ? sourcePriceUnit
+  : Number(batch.item_price || 0)}"
+    ${sourcePriceMode === "same" ? "readonly" : ""}
+  >
 
+  <label>
+    DP
+    ${sourceDpMode === "same" ? "(Mengikuti DP Batch)" : "(Per Member)"}
+  </label>
 
-        <label>
-          DP
-        </label>
+  <input
+    type="text"
+    class="batch-dp currency-input"
+    value="${sourceDpMode === "same"
+  ? sourceDpUnit
+  : Number(batch.minimum_dp_amount || 0)}"
+    ${sourceDpMode === "same" ? "readonly" : ""}
+  >
 
-        <input
-  type="text"
-  class="batch-dp currency-input"
-  value="${Number(
-  batch.minimum_dp_amount || 0
-)}"
->
-
-      </div>
+</div>
 
 
       <div class="batch-payment-fields">
@@ -22398,24 +22444,37 @@ const memberId =
               ) || 1;
 
 
-            const price =
+            
+const inputPrice =
   parseNominalInput(
-    item
-      .querySelector(
-        ".batch-price"
-      )
-      .value
+    item.querySelector(".batch-price").value
   );
 
+const inputDP =
+  parseNominalInput(
+    item.querySelector(".batch-dp").value
+  );
+
+/*
+ * MODE SAME:
+ * Harga dan DP yang diinput adalah satuan.
+ * Kalikan dengan Quantity.
+ *
+ * MODE DIFFERENT:
+ * Pertahankan nilai yang diinput
+ * sebagai nilai per member, mengikuti
+ * perilaku arsip PO saat ini.
+ */
+
+const price =
+  sourcePriceMode === "same"
+    ? inputPrice * quantity
+    : inputPrice;
 
 const dp =
-  parseNominalInput(
-    item
-      .querySelector(
-        ".batch-dp"
-      )
-      .value
-  );
+  sourceDpMode === "same"
+    ? inputDP * quantity
+    : inputDP;
 
 
             const dpStatus =
@@ -22496,7 +22555,7 @@ dp_status:
   "unpaid",
 
 remaining_amount:
-  price,
+  remaining,
 
 payment_status:
   "unpaid",
