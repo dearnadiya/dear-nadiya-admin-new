@@ -18187,123 +18187,77 @@ const filteredCustomerList =
                 `;
               }).join("");
 
-              return `
-                <tr>
-                  <td style="padding:9px 7px; text-align:center; border-bottom:1px solid #eee; vertical-align:top;">
+                            return `
+                <tr
+                  class="co-history-customer-row"
+                  data-detail-id="${detailId}"
+                  style="cursor:pointer;"
+                  title="Klik untuk membuka atau menutup detail barang"
+                >
+                  <td style="padding:9px 7px; text-align:center; border-bottom:1px solid #eee;">
                     ${index + 1}
                   </td>
 
-                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top;">
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee;">
                     ${escapeHTML(group.customerName)}
                   </td>
 
-                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top;">
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee;">
                     ${escapeHTML(group.orderCode)}
                   </td>
 
-                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; white-space:nowrap;">
                     ${escapeHTML(group.checkoutDate)}
                   </td>
 
-                  <td style="padding:9px 7px; border-bottom:1px solid #eee; vertical-align:top; white-space:nowrap;">
+                  <td style="padding:9px 7px; border-bottom:1px solid #eee; white-space:nowrap;">
                     ${escapeHTML(group.archiveDate)}
                   </td>
                 </tr>
 
-                <tr>
-                  <td colspan="5" style="padding:0; border-bottom:1px solid #eee;">
-                    
-<details>
-  <summary
-    title="Buka atau tutup detail CO"
-    style="
-      cursor:pointer;
-      list-style:none;
-      padding:5px 9px;
-      background:#fcfcfc;
-      text-align:right;
-      color:#777;
-      font-size:11px;
-    "
-  >
-    <span style="display:inline-block;">
-      <span style="font-size:10px;">▶</span>
-    </span>
-  </summary>
+                <tr
+                  id="${detailId}"
+                  class="co-history-detail-row"
+                  style="display:none;"
+                >
+                  <td colspan="5" style="padding:0 8px 8px; border-bottom:1px solid #eee;">
+                    <div
+                      style="
+                        width:100%;
+                        max-width:100%;
+                        box-sizing:border-box;
+                        overflow-x:auto;
+                        overflow-y:hidden;
+                        -webkit-overflow-scrolling:touch;
+                        border:1px solid #eee;
+                      "
+                    >
+                      <table
+                        style="
+                          width:900px;
+                          min-width:900px;
+                          border-collapse:collapse;
+                          table-layout:auto;
+                          font-size:12px;
+                        "
+                      >
+                        <thead>
+                          <tr style="background:#f8f8f8;">
+                            <th style="padding:7px; text-align:left; border-bottom:1px solid #eee;">Nama Barang</th>
+                            <th style="padding:7px; text-align:left; border-bottom:1px solid #eee;">Batch</th>
+                            <th style="padding:7px; text-align:left; border-bottom:1px solid #eee;">Version / Member</th>
+                            <th style="padding:7px; text-align:center; border-bottom:1px solid #eee;">Qty</th>
+                            <th style="padding:7px; text-align:center; border-bottom:1px solid #eee;">CO Ke-</th>
+                            <th style="padding:7px; text-align:left; border-bottom:1px solid #eee;">Status</th>
+                            <th style="padding:7px; text-align:left; border-bottom:1px solid #eee;">Catatan Customer</th>
+                          </tr>
+                        </thead>
 
-  <div
-    style="
-      padding:8px;
-      background:#fff;
-      width:100%;
-      max-width:100%;
-      box-sizing:border-box;
-      overflow:hidden;
-    "
-  >
-    <div
-      style="
-        display:block;
-        width:100%;
-        max-width:100%;
-        overflow-x:auto;
-        overflow-y:hidden;
-        -webkit-overflow-scrolling:touch;
-        border:1px solid #eee;
-      "
-    >
-      <table
-        style="
-          width:100%;
-          min-width:900px;
-          border-collapse:collapse;
-          font-size:12px;
-        "
-      >
-      
-                      <div style="padding:8px; background:#fff;">
-                        <div style="overflow-x:auto;">
-                          <table
-                            style="
-                              width:100%;
-                              min-width:850px;
-                              border-collapse:collapse;
-                              font-size:12px;
-                            "
-                          >
-                            <thead>
-                              <tr style="background:#f8f8f8;">
-                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
-                                  Nama Barang
-                                </th>
-                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
-                                  Batch
-                                </th>
-                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
-                                  Version / Member
-                                </th>
-                                <th style="padding:7px; text-align:center; font-weight:500; border-bottom:1px solid #eee;">
-                                  Qty
-                                </th>
-                                <th style="padding:7px; text-align:center; font-weight:500; border-bottom:1px solid #eee;">
-                                  CO Ke-
-                                </th>
-                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
-                                  Status
-                                </th>
-                                <th style="padding:7px; text-align:left; font-weight:500; border-bottom:1px solid #eee;">
-                                  Catatan Customer
-                                </th>
-                              </tr>
-                            </thead>
-
-                            <tbody>
-                              ${detailRows}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </details>
+                        <tbody>
+                          ${detailRows}
+                        </tbody>
+                      </table>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -18312,6 +18266,27 @@ const filteredCustomerList =
         </table>
       </div>
     `;
+
+         container
+      .querySelectorAll(".co-history-customer-row")
+      .forEach(function(row) {
+        row.addEventListener("click", function() {
+          const detailId = row.dataset.detailId;
+          const detailRow = container.querySelector(
+            "#" + detailId
+          );
+
+          if (!detailRow) {
+            return;
+          }
+
+          const isOpen =
+            detailRow.style.display !== "none";
+
+          detailRow.style.display =
+            isOpen ? "none" : "table-row";
+        });
+      });
 
   } catch (err) {
 
