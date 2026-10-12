@@ -31720,22 +31720,13 @@ list.innerHTML =
 
                                       <span>
                                         ${
-  payment.payment_part ===
-  "manual"
-
+  String(payment.id || "").startsWith("manual-")
     ? "Tabungan Manual"
-
-    : payment.payment_part ===
-      "pelunasan"
-
-        ? "Pelunasan"
-
-        : payment.payment_part ===
-          "both"
-
-            ? "Tabungan + Pelunasan"
-
-            : "Tabungan"
+    : payment.payment_part === "pelunasan"
+      ? "Pelunasan"
+      : payment.payment_part === "both"
+        ? "Tabungan + Pelunasan"
+        : "Tabungan Terkonfirmasi"
 }
                                       </span>
 
