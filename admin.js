@@ -35227,34 +35227,52 @@ const finalRemaining =
   );
 
 
+
 /* ==========================================
    GUNAKAN NILAI FINAL
+   DP AKTUAL TERMASUK TABUNGAN TERSINKRON
    ========================================== */
 
-recapPaymentSummary[
-  recapId
-] = {
+const storedActualDp = Math.max(
+  Number(row.dp_amount) || 0,
+  0
+);
 
-  totalDpPaid:
-    finalDpStatus === "paid"
-      ? fixedDp
-      : 0,
+const actualDpForDisplay = Math.min(
+  storedActualDp,
+  price
+);
+
+const actualTotalPaidForDisplay = Math.min(
+  price,
+  Math.max(
+    actualDpForDisplay + finalPelunasanPaid,
+    finalTotalPaid
+  )
+);
+
+const remainingForDisplay = Math.max(
+  price - actualTotalPaidForDisplay,
+  0
+);
+
+recapPaymentSummary[recapId] = {
+  totalDpPaid: actualDpForDisplay,
 
   totalPelunasanPaid:
     finalPelunasanPaid,
 
   actualTotalPaid:
-    finalTotalPaid,
+    actualTotalPaidForDisplay,
 
   actualRemaining:
-    finalRemaining,
+    remainingForDisplay,
 
   dpStatus:
     finalDpStatus,
 
   paymentStatus:
     finalPaymentStatus
-
 };
 
 
@@ -35262,18 +35280,8 @@ recapPaymentSummary[
    TAMPILAN REKAP GO
    ========================================== */
 
-/*
- * DP yang ditampilkan SELALU
- * adalah DP minimum.
- */
-
 row.dp_amount =
-  fixedDp;
-
-
-/*
- * Status tetap mengikuti admin.
- */
+  actualDpForDisplay;
 
 row.dp_status =
   finalDpStatus;
@@ -35281,30 +35289,15 @@ row.dp_status =
 row.payment_status =
   finalPaymentStatus;
 
-
-/*
- * Pelunasan hanya muncul
- * ketika status pembayaran LUNAS.
- */
-
 row._pelunasan_paid =
   finalPelunasanPaid;
 
-
-/*
- * Sisa mengikuti status pembayaran.
- */
-
 row.remaining_amount =
-  finalRemaining;
-
-
-/*
- * Total pembayaran.
- */
+  remainingForDisplay;
 
 row._total_paid =
-  finalTotalPaid;
+  actualTotalPaidForDisplay;
+
   });
 
 
