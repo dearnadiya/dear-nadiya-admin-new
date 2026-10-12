@@ -32956,6 +32956,7 @@ container
   });
 
      
+
 /* ==========================================
    EVENT EDIT BATCH TABUNGAN
    ========================================== */
@@ -32963,7 +32964,7 @@ container
 container
   .querySelectorAll(".tabungan-edit-batch-button")
   .forEach(function(button) {
-    button.addEventListener("click", function(event) {
+    button.addEventListener("click", async function(event) {
       event.preventDefault();
       event.stopPropagation();
 
@@ -32975,9 +32976,42 @@ container
         return;
       }
 
-      showEditTabunganBatchForm(batchCode, category);
+      this.disabled = true;
+
+      try {
+        const { data: rows, error } = await supabaseClient
+          .from("purchase_recap")
+          .select("*")
+          .eq("category", category)
+          .eq("batch_code", batchCode)
+          .eq("recap_type", "Tabungan")
+          .order("id", { ascending: true });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!rows || rows.length === 0) {
+          alert("Data batch tidak ditemukan.");
+          return;
+        }
+
+        showEditTabunganBatchForm(
+          rows,
+          batchCode,
+          category,
+          document.getElementById("recapFormContainer")
+        );
+
+      } catch (error) {
+        console.error("GAGAL MEMUAT DATA EDIT BATCH:", error);
+        alert("Gagal memuat data batch:\n" + error.message);
+      } finally {
+        this.disabled = false;
+      }
     });
   });
+
 
 /* ==========================================
    EVENT TOMBOL EDIT / HAPUS
