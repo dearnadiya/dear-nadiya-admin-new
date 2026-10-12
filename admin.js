@@ -18108,13 +18108,14 @@ const filteredCustomerList =
         </div>
       </div>
 
-      <div style="width:100%; overflow-x:auto;">
+      <div style="width:100%; overflow-x:visible;">
         <table
           style="
             width:100%;
-            min-width:650px;
-            border-collapse:collapse;
-            font-size:13px;
+min-width:0;
+border-collapse:collapse;
+font-size:13px;
+table-layout:fixed;
           "
         >
           <thead>
