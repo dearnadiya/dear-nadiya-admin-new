@@ -30977,153 +30977,181 @@ function renderAlbumBatchCards(
                  ========================== -->
 
             <div
-              style="
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:12px;
-                flex-wrap:wrap;
-                padding-bottom:14px;
-                border-bottom:1px solid var(--line);
-              "
+  class="tabungan-album-batch-header"
+  style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:10px 12px;
+    border:1px solid #e5d8ee;
+    border-radius:10px;
+    background:#f8f4fb;
+    box-sizing:border-box;
+    cursor:pointer;
+  "
+>
+  <div
+    style="
+      display:flex;
+      align-items:center;
+      gap:9px;
+      flex:1;
+      min-width:150px;
+    "
+  >
+    <div
+      style="
+        width:32px;
+        height:32px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-shrink:0;
+        border-radius:9px;
+        background:#eadcf4;
+        font-size:16px;
+      "
+    >
+      📦
+    </div>
+
+    <div style="min-width:0;">
+      <div
+        style="
+          font-size:14px;
+          font-weight:700;
+          color:#493354;
+          overflow-wrap:anywhere;
+        "
+      >
+        ${escapeHTML(batchCode)}
+      </div>
+
+      <div
+        style="
+          margin-top:2px;
+          font-size:11px;
+          color:#777;
+        "
+      >
+        ${batchRows.length} customer
+      </div>
+    </div>
+  </div>
+
+  <div
+    style="
+      display:flex;
+      align-items:center;
+      gap:5px;
+      flex-wrap:wrap;
+    "
+  >
+    <select
+      class="tabungan-album-tracking-select"
+      data-batch-code="${escapeHTML(batchCode)}"
+      style="
+        max-width:150px;
+        padding:6px 8px;
+        border:1px solid #ddd;
+        border-radius:8px;
+        background:#fff;
+        font-size:11px;
+        font-weight:600;
+        cursor:pointer;
+      "
+    >
+      ${
+        trackingOptions.map(function(status) {
+          return `
+            <option
+              value="${escapeHTML(status)}"
+              ${status === tracking ? "selected" : ""}
             >
+              ${escapeHTML(status)}
+            </option>
+          `;
+        }).join("")
+      }
+    </select>
 
-              <div>
+    <button
+      type="button"
+      class="tabungan-edit-batch-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+      data-category="Tabungan Album"
+      style="
+        padding:6px 9px;
+        border:1px solid #d8c3e8;
+        border-radius:7px;
+        background:#fff;
+        color:#70418b;
+        font-size:11px;
+        font-weight:600;
+        cursor:pointer;
+      "
+    >
+      ✏️ Edit
+    </button>
 
-                <div
-                  style="
-                    font-size:17px;
-                    font-weight:700;
-                  "
-                >
-                  📦 Batch
-                  ${escapeHTML(
-                    batchCode
-                  )}
-                </div>
+    <button
+      type="button"
+      class="tabungan-add-customer-batch-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+      data-category="Tabungan Album"
+      style="
+        padding:6px 9px;
+        border:0;
+        border-radius:7px;
+        background:#70418b;
+        color:#fff;
+        font-size:11px;
+        font-weight:600;
+        cursor:pointer;
+      "
+    >
+      ＋ Customer
+    </button>
 
-                <div
-                  style="
-                    margin-top:4px;
-                    font-size:12px;
-                    color:#777;
-                  "
-                >
-                  ${escapeHTML(
-                    firstRow.item_name ||
-                    "Tabungan Album"
-                  )}
-                </div>
+    <button
+      type="button"
+      class="delete-batch-header-button"
+      data-batch-code="${escapeHTML(batchCode)}"
+      data-category="Tabungan Album"
+      title="Hapus seluruh batch"
+      style="
+        padding:6px 9px;
+        border:1px solid #f0cccc;
+        border-radius:7px;
+        background:#fff;
+        color:#b42318;
+        font-size:11px;
+        cursor:pointer;
+      "
+    >
+      🗑️
+    </button>
 
-                <div
-                  style="
-                    margin-top:6px;
-                    font-size:11px;
-                    color:#777;
-                  "
-                >
-                  ${batchRows.length}
-                  customer
-                </div>
+    <span
+      class="tabungan-album-batch-arrow"
+      style="
+        padding:0 3px;
+        color:#70418b;
+        font-size:16px;
+        font-weight:700;
+      "
+    >
+      ＋
+    </span>
+  </div>
+</div>
 
-              </div>
-
-
-              <div
-                style="
-                  display:flex;
-                  align-items:center;
-                  gap:8px;
-                  flex-wrap:wrap;
-                "
-              >
-
-                <select
-                  class="tabungan-album-tracking-select"
-                  data-batch-code="${escapeHTML(
-                    batchCode
-                  )}"
-                  style="
-                    padding:7px 10px;
-                    border-radius:999px;
-                    border:1px solid #ddd;
-                    background:#fff;
-                    font-size:11px;
-                    font-weight:700;
-                    cursor:pointer;
-                  "
-                >
-
-                  ${
-                    trackingOptions
-                      .map(
-                        function(status) {
-
-                          return `
-                            <option
-                              value="${escapeHTML(
-                                status
-                              )}"
-                              ${
-                                status ===
-                                tracking
-                                  ? "selected"
-                                  : ""
-                              }
-                            >
-                              ${escapeHTML(
-                                status
-                              )}
-                            </option>
-                          `;
-
-                        }
-                      )
-                      .join("")
-                  }
-
-                </select>
-                
-<button
-  type="button"
-  class="tabungan-add-customer-batch-button"
-  data-batch-code="${escapeHTML(batchCode)}"
-  data-category="Tabungan Album"
-  style="
-    padding:7px 12px;
-    border:0;
-    border-radius:8px;
-    background:var(--primary,#252842);
-    color:#fff;
-    font-weight:600;
-    cursor:pointer;
-  "
+<div
+  class="tabungan-album-batch-content"
+  style="display:none; margin-top:8px;"
 >
-  ＋ Tambah Customer
-</button>
-
-<button
-  type="button"
-  class="tabungan-edit-batch-button"
-  data-batch-code="${escapeHTML(batchCode)}"
-  data-category="Tabungan Album"
-  style="
-    padding:7px 12px;
-    border:1px solid #ddd;
-    border-radius:8px;
-    background:#fff;
-    color:#252842;
-    font-weight:600;
-    cursor:pointer;
-  "
->
-  ✏️ Edit Batch
-</button>
-
-              </div>
-
-            </div>
-
 
             <!-- ==========================
                  RINGKASAN BATCH
@@ -31224,38 +31252,48 @@ function renderAlbumBatchCards(
 
                       return `
 
-                        <div
+                                                <div
+                          class="tabungan-album-customer"
                           style="
-                            padding:14px;
+                            padding:12px;
                             border:1px solid var(--line);
-                            border-radius:12px;
+                            border-radius:10px;
                             background:#fff;
                           "
                         >
 
+                          <!-- NAMA CUSTOMER -->
                           <div
                             style="
                               display:flex;
+                              align-items:center;
                               justify-content:space-between;
-                              align-items:flex-start;
                               gap:10px;
                               flex-wrap:wrap;
                             "
                           >
-
-                            <div>
-
-                              <div
+                            <div style="min-width:0;">
+                              <button
+                                type="button"
+                                class="tabungan-album-customer-toggle"
+                                aria-expanded="false"
                                 style="
-                                  font-size:15px;
+                                  display:block;
+                                  padding:0;
+                                  border:0;
+                                  background:transparent;
+                                  color:#252842;
+                                  font-size:14px;
                                   font-weight:700;
+                                  text-align:left;
+                                  cursor:pointer;
                                 "
                               >
+                                <span class="tabungan-album-customer-arrow">＋</span>
                                 ${escapeHTML(
-                                  row.customer_name ||
-                                  "Tanpa Customer"
+                                  row.customer_name || "Tanpa Customer"
                                 )}
-                              </div>
+                              </button>
 
                               ${
                                 row.version
@@ -31267,20 +31305,16 @@ function renderAlbumBatchCards(
                                         color:#777;
                                       "
                                     >
-                                      ${escapeHTML(
-                                        row.version
-                                      )}
+                                      ${escapeHTML(row.version)}
                                     </div>
                                   `
                                   : ""
                               }
-
                             </div>
 
-
-                            <div
+                            <span
                               style="
-                                padding:6px 9px;
+                                padding:5px 8px;
                                 border-radius:999px;
                                 background:#f6f1f7;
                                 font-size:10px;
@@ -31288,28 +31322,30 @@ function renderAlbumBatchCards(
                               "
                             >
                               ${escapeHTML(
-                                row.tabungan_status
+                                row.tabungan_status || "Menabung"
                               )}
-                            </div>
-
+                            </span>
                           </div>
 
-
+                          <!-- DETAIL CUSTOMER -->
                           <div
-                            style="
-                              display:grid;
-                              grid-template-columns:
-                                repeat(
-                                  auto-fit,
-                                  minmax(130px, 1fr)
-                                );
-                              gap:10px;
-                              margin-top:12px;
-                            "
+                            class="tabungan-album-customer-details"
+                            style="display:none;"
                           >
 
-                            <div>
-
+                            <div
+                              style="
+                                display:grid;
+                                grid-template-columns:
+                                  repeat(
+                                    auto-fit,
+                                    minmax(130px, 1fr)
+                                  );
+                                gap:10px;
+                                margin-top:12px;
+                              "
+                            >
+                            
                               <div
                                 style="
                                   font-size:10px;
@@ -31691,6 +31727,8 @@ ${
               }
 
             </div>
+
+          </div>
 
           </div>
 
@@ -32402,6 +32440,126 @@ const batchHeader =
           }
         )
         .join("");
+
+// ==========================================
+// COLLAPSED BATCH DAN DETAIL CUSTOMER
+// TABUNGAN ALBUM
+// ==========================================
+
+if (category === "Tabungan Album") {
+  const albumBatches = container.querySelectorAll(
+    ".tabungan-album-batch"
+  );
+
+  albumBatches.forEach(function(batch) {
+    const header = batch.querySelector(
+      ".tabungan-album-batch-header"
+    );
+
+    const content = batch.querySelector(
+      ".tabungan-album-batch-content"
+    );
+
+    const batchArrow = batch.querySelector(
+      ".tabungan-album-batch-arrow"
+    );
+
+    if (!header || !content || !batchArrow) {
+      return;
+    }
+
+    // Batch tertutup saat pertama kali ditampilkan
+    content.style.display = "none";
+    header.setAttribute("aria-expanded", "false");
+
+    header.addEventListener("click", function(event) {
+      // Klik tombol atau pilihan tracking tidak membuka/menutup batch
+      if (
+        event.target.closest("button") ||
+        event.target.closest("select")
+      ) {
+        return;
+      }
+
+      const expanded =
+        header.getAttribute("aria-expanded") === "true";
+
+      header.setAttribute(
+        "aria-expanded",
+        String(!expanded)
+      );
+
+      content.style.display = expanded ? "none" : "block";
+      batchArrow.textContent = expanded ? "＋" : "−";
+
+      // Tutup detail semua customer ketika batch ditutup
+      if (expanded) {
+        batch.querySelectorAll(
+          ".tabungan-album-customer-details"
+        ).forEach(function(details) {
+          details.style.display = "none";
+        });
+
+        batch.querySelectorAll(
+          ".tabungan-album-customer-toggle"
+        ).forEach(function(button) {
+          button.setAttribute("aria-expanded", "false");
+
+          const arrow = button.querySelector(
+            ".tabungan-album-customer-arrow"
+          );
+
+          if (arrow) {
+            arrow.textContent = "＋";
+          }
+        });
+      }
+    });
+
+    // Klik nama customer untuk membuka detailnya
+    batch.querySelectorAll(
+      ".tabungan-album-customer"
+    ).forEach(function(customer) {
+      const customerButton = customer.querySelector(
+        ".tabungan-album-customer-toggle"
+      );
+
+      const details = customer.querySelector(
+        ".tabungan-album-customer-details"
+      );
+
+      const customerArrow = customer.querySelector(
+        ".tabungan-album-customer-arrow"
+      );
+
+      if (!customerButton || !details) {
+        return;
+      }
+
+      details.style.display = "none";
+
+      customerButton.addEventListener("click", function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const expanded =
+          customerButton.getAttribute("aria-expanded") === "true";
+
+        customerButton.setAttribute(
+          "aria-expanded",
+          String(!expanded)
+        );
+
+        details.style.display = expanded ? "none" : "block";
+
+        if (customerArrow) {
+          customerArrow.textContent = expanded ? "＋" : "−";
+        }
+      });
+    });
+  });
+}
+
 
      // ==========================================
 // COLLAPSED BATCH DAN DETAIL CUSTOMER
