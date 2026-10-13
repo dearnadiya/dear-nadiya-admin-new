@@ -31429,9 +31429,6 @@ function renderAlbumBatchCards(
 
                             </div>
 
-                          </div>
-
-
                           <div
                             style="
                               margin-top:12px;
@@ -31724,6 +31721,8 @@ ${
                           </div>
 
                         </div>
+
+                           </div>
 
                       `;
 
