@@ -31720,33 +31720,102 @@ list.innerHTML =
                   ).trim()
                 : "";
 
-            const batchHeader =
-              category === "Tabungan Lightstick" &&
-              currentBatchCode !== previousBatchCode
-                ? `
-                  <div
-                    style="
-                      grid-column:1 / -1;
-                      margin:12px 0 2px;
-                      padding:12px 14px;
-                      border-radius:12px;
-                      background:#f6f1f7;
-                      border:1px solid #eadff0;
-                    "
-                  >
-                    <strong>
-                      Batch ${escapeHTML(currentBatchCode)}
-                    </strong>
-                    <div style="font-size:12px;color:#777;margin-top:4px;">
-                      ${
-                        rows.filter(function(item) {
-                          return String(item.batch_code || "Tanpa Batch").trim() === currentBatchCode;
-                        }).length
-                      } customer
-                    </div>
-                  </div>
-                `
-                : "";
+const batchHeader =
+  category === "Tabungan Lightstick" &&
+  currentBatchCode !== previousBatchCode
+    ? `
+      <div
+        class="tabungan-batch-heading"
+        style="
+          grid-column:1 / -1;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+          margin:16px 0 2px;
+          padding:14px 16px;
+          border:1px solid #e5d8ee;
+          border-radius:12px;
+          background:#f8f4fb;
+          box-sizing:border-box;
+          width:100%;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+            min-width:0;
+          "
+        >
+          <div
+            style="
+              width:38px;
+              height:38px;
+              flex-shrink:0;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              border-radius:10px;
+              background:#eadcf4;
+              color:#70418b;
+              font-size:18px;
+              font-weight:700;
+            "
+          >
+            📦
+          </div>
+
+          <div style="min-width:0;">
+            <div
+              style="
+                font-size:15px;
+                font-weight:700;
+                color:#493354;
+                overflow-wrap:anywhere;
+              "
+            >
+              Batch ${escapeHTML(currentBatchCode)}
+            </div>
+
+            <div
+              style="
+                margin-top:4px;
+                font-size:12px;
+                color:#777;
+              "
+            >
+              ${escapeHTML(
+                String(
+                  rows.filter(function(item) {
+                    return String(
+                      item.batch_code || "Tanpa Batch"
+                    ).trim() === currentBatchCode;
+                  }).length
+                )
+              )} customer
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            font-size:12px;
+            color:#70418b;
+            font-weight:600;
+            padding:6px 10px;
+            border-radius:999px;
+            background:#eee3f5;
+            white-space:nowrap;
+          "
+        >
+          Tabungan Lightstick
+        </div>
+      </div>
+    `
+    : "";
 
             const progress =
               Math.round(
