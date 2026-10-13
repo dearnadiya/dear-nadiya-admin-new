@@ -33386,55 +33386,83 @@ async function initTabunganAlbumBatchLinks() {
           🔗 Hubungkan ke Rekap GO
         </div>
 
-        <div style="display:grid;gap:10px">
+          ${
+  existingLink
+    ? `
+      <div
+        class="tabungan-link-status"
+        style="font-size:12px;color:#267344;font-weight:600"
+      >
+        Sudah terhubung: ${escapeHTML(savedBatch)}
+      </div>
+    `
+    : `
+      <div style="display:grid;gap:10px">
 
-          <label style="display:grid;gap:5px;font-size:12px">
-            Tipe Rekap
-            <select class="tabungan-link-type">
-              ${optionHTML(types, savedType, "Pilih tipe rekap")}
-            </select>
-          </label>
+        <label style="display:grid;gap:5px;font-size:12px">
+          Tipe Rekap
+          <select class="tabungan-link-type">
+            ${optionHTML(types, savedType, "Pilih tipe rekap")}
+          </select>
+        </label>
 
-          <label style="display:grid;gap:5px;font-size:12px">
-            Kategori
-            <select class="tabungan-link-category">
-              ${optionHTML(
-                categoriesForType(savedType),
-                savedCategory,
-                "Pilih kategori"
-              )}
-            </select>
-          </label>
+        <label style="display:grid;gap:5px;font-size:12px">
+          Kategori
+          <select class="tabungan-link-category">
+            ${optionHTML(
+              categoriesForType(savedType),
+              savedCategory,
+              "Pilih kategori"
+            )}
+          </select>
+        </label>
 
-          <label style="display:grid;gap:5px;font-size:12px">
-            Batch Tujuan
-            <select class="tabungan-link-target-batch">
-              ${optionHTML(
-                batchesFor(savedType, savedCategory),
-                savedBatch,
-                "Pilih batch Rekap GO"
-              )}
-            </select>
-          </label>
+        <label style="display:grid;gap:5px;font-size:12px">
+          Batch Tujuan
+          <select class="tabungan-link-target-batch">
+            ${optionHTML(
+              batchesFor(savedType, savedCategory),
+              savedBatch,
+              "Pilih batch Rekap GO"
+            )}
+          </select>
+        </label>
 
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button type="button" class="primary-button tabungan-link-save">
-              Simpan Hubungan Batch
-            </button>
-            <span class="tabungan-link-status" style="font-size:12px;color:#666">
-              ${
-                existingLink
-                  ? "Sudah terhubung: " + escapeHTML(savedBatch)
-                  : "Belum terhubung"
-              }
-            </span>
-          </div>
+        <button
+          type="button"
+          class="primary-button tabungan-link-save"
+        >
+          Simpan Hubungan Batch
+        </button>
 
+        <span class="tabungan-link-status" style="font-size:12px;color:#666">
+          Belum terhubung
+        </span>
+
+      </div>
+    `
+}
         </div>
       `;
 
-      card.appendChild(panel);
+      const batchHeader = card.querySelector(
+  ".tabungan-album-batch-header"
+);
 
+if (batchHeader) {
+  panel.style.flex = "1 0 100%";
+  panel.style.width = "100%";
+  panel.style.boxSizing = "border-box";
+  batchHeader.appendChild(panel);
+} else {
+  card.appendChild(panel);
+}
+
+panel.addEventListener("click", function(event) {
+  event.stopPropagation();
+});
+
+       if (!existingLink) {
       const typeSelect =
         panel.querySelector(".tabungan-link-type");
 
@@ -33538,10 +33566,17 @@ async function initTabunganAlbumBatchLinks() {
             throw error;
           }
 
-          statusText.textContent =
-            "Tersimpan: " + targetBatch;
+          panel.innerHTML = `
+  <div style="font-weight:700;margin-bottom:6px">
+    🔗 Hubungkan ke Rekap GO
+  </div>
 
-          alert("Hubungan batch berhasil disimpan.");
+  <div style="font-size:12px;color:#267344;font-weight:600">
+    Sudah terhubung: ${escapeHTML(targetBatch)}
+  </div>
+`;
+
+alert("Hubungan batch berhasil disimpan.");
 
         } catch (error) {
 
@@ -33563,6 +33598,8 @@ async function initTabunganAlbumBatchLinks() {
         }
 
       });
+
+       }
 
        
       // ==========================================
