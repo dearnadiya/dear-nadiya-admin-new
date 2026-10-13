@@ -31030,32 +31030,15 @@ function renderAlbumBatchCards(
       </div>
 
       
+      
       <div
         style="
-          display:flex;
-          align-items:center;
-          gap:7px;
-          flex-wrap:wrap;
           margin-top:2px;
           font-size:11px;
+          color:#777;
         "
       >
-        <span style="color:#777;">
-          ${batchRows.length} customer
-        </span>
-
-        ${
-          existingLink
-            ? `
-              <span
-                class="tabungan-album-batch-link-status"
-                style="color:#267344;font-weight:600;"
-              >
-                · Terhubung: ${escapeHTML(savedBatch)}
-              </span>
-            `
-            : ""
-        }
+        ${batchRows.length} customer
       </div>
     </div>
   </div>
