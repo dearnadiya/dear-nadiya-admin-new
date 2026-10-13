@@ -31731,12 +31731,12 @@ const batchHeader =
           display:flex;
           justify-content:space-between;
           align-items:center;
-          gap:12px;
+          gap:8px;
           flex-wrap:wrap;
-          margin:16px 0 2px;
-          padding:14px 16px;
+          margin:8px 0 0;
+          padding:10px 12px;
           border:1px solid #e5d8ee;
-          border-radius:12px;
+          border-radius:10px;
           background:#f8f4fb;
           box-sizing:border-box;
           width:100%;
@@ -31746,23 +31746,22 @@ const batchHeader =
           style="
             display:flex;
             align-items:center;
-            gap:12px;
-            min-width:0;
+            gap:9px;
+            min-width:150px;
+            flex:1;
           "
         >
           <div
             style="
-              width:38px;
-              height:38px;
+              width:32px;
+              height:32px;
               flex-shrink:0;
               display:flex;
               align-items:center;
               justify-content:center;
-              border-radius:10px;
+              border-radius:9px;
               background:#eadcf4;
-              color:#70418b;
-              font-size:18px;
-              font-weight:700;
+              font-size:16px;
             "
           >
             📦
@@ -31771,7 +31770,7 @@ const batchHeader =
           <div style="min-width:0;">
             <div
               style="
-                font-size:15px;
+                font-size:14px;
                 font-weight:700;
                 color:#493354;
                 overflow-wrap:anywhere;
@@ -31782,36 +31781,96 @@ const batchHeader =
 
             <div
               style="
-                margin-top:4px;
-                font-size:12px;
+                margin-top:2px;
+                font-size:11px;
                 color:#777;
               "
             >
-              ${escapeHTML(
-                String(
-                  rows.filter(function(item) {
-                    return String(
-                      item.batch_code || "Tanpa Batch"
-                    ).trim() === currentBatchCode;
-                  }).length
-                )
-              )} customer
+              ${rows.filter(function(item) {
+                return String(
+                  item.batch_code || "Tanpa Batch"
+                ).trim() === currentBatchCode;
+              }).length} customer
             </div>
           </div>
         </div>
 
         <div
           style="
-            font-size:12px;
-            color:#70418b;
-            font-weight:600;
-            padding:6px 10px;
-            border-radius:999px;
-            background:#eee3f5;
-            white-space:nowrap;
+            display:flex;
+            align-items:center;
+            gap:5px;
+            flex-wrap:wrap;
           "
         >
-          Tabungan Lightstick
+          <button
+            type="button"
+            class="tabungan-edit-batch-button"
+            data-batch-code="${escapeHTML(currentBatchCode)}"
+            data-category="${escapeHTML(category)}"
+            style="
+              padding:6px 9px;
+              border:1px solid #d8c3e8;
+              border-radius:7px;
+              background:#fff;
+              color:#70418b;
+              font-size:11px;
+              font-weight:600;
+              cursor:pointer;
+            "
+          >
+            ✏️ Edit
+          </button>
+
+          <button
+            type="button"
+            class="tabungan-add-customer-batch-button"
+            data-batch-code="${escapeHTML(currentBatchCode)}"
+            data-category="${escapeHTML(category)}"
+            style="
+              padding:6px 9px;
+              border:0;
+              border-radius:7px;
+              background:#70418b;
+              color:#fff;
+              font-size:11px;
+              font-weight:600;
+              cursor:pointer;
+            "
+          >
+            ＋ Customer
+          </button>
+
+          <button
+            type="button"
+            class="delete-batch-header-button"
+            data-batch-code="${escapeHTML(currentBatchCode)}"
+            data-category="${escapeHTML(category)}"
+            style="
+              padding:6px 9px;
+              border:1px solid #f0cccc;
+              border-radius:7px;
+              background:#fff;
+              color:#b42318;
+              font-size:11px;
+              font-weight:600;
+              cursor:pointer;
+            "
+          >
+            🗑️
+          </button>
+
+          <span
+            class="tabungan-batch-toggle-icon"
+            style="
+              margin-left:3px;
+              font-size:16px;
+              font-weight:700;
+              color:#70418b;
+            "
+          >
+            ＋
+          </span>
         </div>
       </div>
     `
@@ -32386,19 +32445,13 @@ if (category === "Tabungan Lightstick") {
     header.setAttribute("tabindex", "0");
     header.setAttribute("aria-expanded", "false");
 
-    const indicator = document.createElement("span");
+    const indicator = header.querySelector(
+  ".tabungan-batch-toggle-icon"
+);
 
-    indicator.className = "tabungan-batch-toggle-icon";
-    indicator.textContent = "＋";
-    indicator.style.cssText = `
-      margin-left:10px;
-      font-size:18px;
-      font-weight:700;
-      color:#70418b;
-    `;
-
-    header.appendChild(indicator);
-
+if (!indicator) {
+  return;
+}
     function toggleBatch() {
       const expanded =
         header.getAttribute("aria-expanded") === "true";
@@ -41523,6 +41576,78 @@ async function showEditTabunganBatchForm(
   const firstRow =
     rows[0];
 
+   // ==========================================
+// EDIT BATCH LIGHTSTICK
+// HANYA KODE BATCH DAN NAMA BARANG
+// HARGA DAN TARGET TETAP PER CUSTOMER
+// ==========================================
+
+if (category === "Tabungan Lightstick") {
+  const newBatchCode = prompt(
+    "Kode Batch:",
+    batchCode || ""
+  );
+
+  if (newBatchCode === null) return;
+
+  const cleanBatchCode = newBatchCode.trim();
+
+  if (!cleanBatchCode) {
+    alert("Kode batch tidak boleh kosong.");
+    return;
+  }
+
+  const newItemName = prompt(
+    "Nama Barang:",
+    firstRow.item_name || ""
+  );
+
+  if (newItemName === null) return;
+
+  if (!newItemName.trim()) {
+    alert("Nama barang tidak boleh kosong.");
+    return;
+  }
+
+  if (
+    cleanBatchCode !== batchCode &&
+    lightstickBatchCodes.includes(cleanBatchCode)
+  ) {
+    alert("Kode batch tersebut sudah digunakan.");
+    return;
+  }
+
+  if (!confirm(
+    "Simpan perubahan batch " + batchCode + "?\n\n" +
+    "Kode batch baru: " + cleanBatchCode + "\n" +
+    "Nama barang: " + newItemName.trim() + "\n\n" +
+    "Harga, target tabungan, DP, tracking customer, " +
+    "dan riwayat pembayaran setiap customer tidak diubah."
+  )) {
+    return;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("purchase_recap")
+    .update({
+      batch_code: cleanBatchCode,
+      item_name: newItemName.trim()
+    })
+    .eq("category", category)
+    .eq("batch_code", batchCode)
+    .eq("recap_type", "Tabungan");
+
+  if (updateError) {
+    console.error("GAGAL EDIT BATCH LIGHTSTICK:", updateError);
+    alert("Gagal mengubah batch:\n" + updateError.message);
+    return;
+  }
+
+  alert("Informasi batch berhasil diperbarui.");
+
+  await loadRecapList(category);
+  return;
+}
 
   const currentPrice =
     Number(
