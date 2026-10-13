@@ -30816,6 +30816,29 @@ if (category === "Tabungan Album") {
         }
       );
 
+     
+const lightstickBatchCodes = [
+  ...new Set(
+    rows
+      .map(function(row) {
+        return String(row.batch_code || "").trim();
+      })
+      .filter(Boolean)
+  )
+].sort(function(a, b) {
+  return a.localeCompare(b, "id", { numeric: true });
+});
+
+const customerRows =
+  category === "Tabungan Lightstick"
+    ? [...filtered].sort(function(a, b) {
+        return String(a.batch_code || "Tanpa Batch").localeCompare(
+          String(b.batch_code || "Tanpa Batch"),
+          "id",
+          { numeric: true }
+        );
+      })
+    : filtered;
 
     if (
       filtered.length === 0
@@ -31679,12 +31702,51 @@ ${
 
 }
 
+
 list.innerHTML =
   category === "Tabungan Album"
     ? renderAlbumBatchCards(filtered)
-    : filtered
+    : customerRows
         .map(
-          function(row) {
+          function(row, index) {
+
+            const currentBatchCode =
+              String(row.batch_code || "Tanpa Batch").trim();
+
+            const previousBatchCode =
+              index > 0
+                ? String(
+                    customerRows[index - 1].batch_code || "Tanpa Batch"
+                  ).trim()
+                : "";
+
+            const batchHeader =
+              category === "Tabungan Lightstick" &&
+              currentBatchCode !== previousBatchCode
+                ? `
+                  <div
+                    style="
+                      grid-column:1 / -1;
+                      margin:12px 0 2px;
+                      padding:12px 14px;
+                      border-radius:12px;
+                      background:#f6f1f7;
+                      border:1px solid #eadff0;
+                    "
+                  >
+                    <strong>
+                      Batch ${escapeHTML(currentBatchCode)}
+                    </strong>
+                    <div style="font-size:12px;color:#777;margin-top:4px;">
+                      ${
+                        rows.filter(function(item) {
+                          return String(item.batch_code || "Tanpa Batch").trim() === currentBatchCode;
+                        }).length
+                      } customer
+                    </div>
+                  </div>
+                `
+                : "";
 
             const progress =
               Math.round(
@@ -31698,6 +31760,7 @@ list.innerHTML =
 
 
             return `
+  ${batchHeader}
 
               <div
                 class="panel tabungan-card"
@@ -31842,6 +31905,42 @@ list.innerHTML =
       `
       : ""
   }
+
+  ${
+  category === "Tabungan Lightstick"
+    ? `
+      <select
+        class="tabungan-move-batch-select"
+        data-id="${escapeHTML(String(row.id))}"
+        data-current-batch="${escapeHTML(String(row.batch_code || ""))}"
+        title="Pindahkan customer ke batch lain"
+        style="
+          padding:7px 10px;
+          border-radius:10px;
+          border:1px solid #ddd;
+          background:#fff;
+          font-size:11px;
+          max-width:190px;
+        "
+      >
+        ${
+          lightstickBatchCodes
+            .map(function(code) {
+              return `
+                <option
+                  value="${escapeHTML(code)}"
+                  ${code === String(row.batch_code || "").trim() ? "selected" : ""}
+                >
+                  Batch ${escapeHTML(code)}
+                </option>
+              `;
+            })
+            .join("")
+        }
+      </select>
+    `
+    : ""
+}
 
   <div
     style="
@@ -32388,6 +32487,63 @@ container
 
       } finally {
         button.disabled = false;
+      }
+    });
+  });
+
+     
+/* ==========================================
+   PINDAHKAN CUSTOMER TABUNGAN LIGHTSTICK
+   ========================================== */
+
+container
+  .querySelectorAll(".tabungan-move-batch-select")
+  .forEach(function(select) {
+    select.addEventListener("change", async function() {
+      const recapId = Number(this.dataset.id);
+      const oldBatchCode = this.dataset.currentBatch || "";
+      const newBatchCode = String(this.value || "").trim();
+
+      if (!recapId || !newBatchCode || newBatchCode === oldBatchCode) {
+        return;
+      }
+
+      const customerRow = rows.find(function(row) {
+        return Number(row.id) === recapId;
+      });
+
+      const customerName =
+        customerRow?.customer_name || "Customer ini";
+
+      if (!confirm(
+        "Pindahkan " + customerName + " ke batch " + newBatchCode + "?\n\n" +
+        "Harga, target, riwayat pembayaran, dan tracking tidak diubah."
+      )) {
+        this.value = oldBatchCode;
+        return;
+      }
+
+      this.disabled = true;
+
+      try {
+        const { error } = await supabaseClient
+          .from("purchase_recap")
+          .update({ batch_code: newBatchCode })
+          .eq("id", recapId);
+
+        if (error) throw error;
+
+        alert("Customer berhasil dipindahkan ke batch " + newBatchCode + ".");
+
+        await loadRecapList(category);
+
+      } catch (error) {
+        console.error("Gagal memindahkan batch:", error);
+
+        alert("Gagal memindahkan batch: " + error.message);
+
+        this.value = oldBatchCode;
+        this.disabled = false;
       }
     });
   });
