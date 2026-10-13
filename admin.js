@@ -13005,6 +13005,108 @@ if (isTabunganPayment) {
   );
 
 }
+
+   
+/* ==========================================
+   FORMAT JENIS PEMBAYARAN CUSTOMER
+   ========================================== */
+
+let paymentTypeDisplay = "—";
+
+try {
+  const paymentTypeData =
+    JSON.parse(
+      String(payment.payment_type || "")
+    );
+
+  if (
+    paymentTypeData.mode === "different" &&
+    Array.isArray(paymentTypeData.items)
+  ) {
+    paymentTypeDisplay = `
+      <div style="
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+        margin-top:8px;
+      ">
+        ${paymentTypeData.items.map(function(part) {
+          const item = selectedItems.find(function(row) {
+            return Number(row.id) === Number(part.recap_id);
+          });
+
+          const paymentPart =
+            String(part.payment_part || "")
+              .toLowerCase();
+
+          const partLabel =
+            paymentPart === "dp"
+              ? "DP"
+              : paymentPart === "pelunasan"
+                ? "Pelunasan"
+                : paymentPart === "both"
+                  ? "Full Payment"
+                  : paymentPart === "manual"
+                    ? "Tabungan"
+                    : paymentPart;
+
+          const itemLabel = item
+            ? (
+                item.batch_code ||
+                item.product_code ||
+                item.item_name ||
+                item.product_name ||
+                "Barang"
+              )
+            : "Barang";
+
+          return `
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:12px;
+              padding:9px 10px;
+              background:#fff;
+              border:1px solid #f0e3e9;
+              border-radius:9px;
+            ">
+              <div style="min-width:0;">
+                <div style="
+                  font-weight:700;
+                  color:#604752;
+                ">
+                  ${escapeHTML(partLabel)}
+                </div>
+                <div style="
+                  font-size:11px;
+                  color:#777;
+                  overflow-wrap:anywhere;
+                ">
+                  ${escapeHTML(itemLabel)}
+                </div>
+              </div>
+
+              <strong style="
+                white-space:nowrap;
+                color:#8d526d;
+              ">
+                ${formatRupiah(part.amount)}
+              </strong>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  } else {
+    paymentTypeDisplay =
+      escapeHTML(payment.payment_type || "—");
+  }
+} catch (error) {
+  paymentTypeDisplay =
+    escapeHTML(payment.payment_type || "—");
+}
+
    
   /* ================================
      MODAL
@@ -13763,13 +13865,14 @@ data-remaining="${remaining}"
 
         <br>
 
-        Jenis pembayaran:
-        <strong>
-          ${escapeHTML(
-            payment.payment_type ||
-            "—"
-          )}
-        </strong>
+        <div style="
+  margin-top:8px;
+  font-weight:600;
+">
+  Jenis pembayaran:
+</div>
+
+${paymentTypeDisplay}
 
         <br>
 
