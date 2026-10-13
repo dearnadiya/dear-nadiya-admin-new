@@ -32454,6 +32454,7 @@ if (category === "Tabungan Album") {
   );
 
   albumBatches.forEach(function(batch) {
+     
     const header = batch.querySelector(
       ".tabungan-album-batch-header"
     );
@@ -33448,9 +33449,43 @@ async function initTabunganAlbumBatchLinks() {
       `;
 
       
-      if (!existingLink) {
-        card.appendChild(panel);
-      }
+      
+const batchHeader = card.querySelector(
+  ".tabungan-album-batch-header"
+);
+
+if (existingLink) {
+  panel.remove();
+
+  if (batchHeader) {
+    const infoArea = batchHeader.firstElementChild;
+    const batchInfo = infoArea
+      ? infoArea.lastElementChild
+      : null;
+
+    if (
+      batchInfo &&
+      !batchInfo.querySelector(
+        ".tabungan-album-batch-link-status"
+      )
+    ) {
+      const status = document.createElement("div");
+
+      status.className =
+        "tabungan-album-batch-link-status";
+
+      status.style.cssText =
+        "margin-top:3px;font-size:11px;font-weight:600;color:#267344";
+
+      status.textContent = "Terhubung: " + savedBatch;
+
+      batchInfo.appendChild(status);
+    }
+  }
+} else {
+  card.appendChild(panel);
+}
+
 
 panel.addEventListener("click", function(event) {
   event.stopPropagation();
@@ -33560,18 +33595,41 @@ panel.addEventListener("click", function(event) {
             throw error;
           }
 
-          panel.innerHTML = `
-  <div style="font-weight:700;margin-bottom:6px">
-    🔗 Hubungkan ke Rekap GO
-  </div>
+          
+panel.remove();
 
-  <div style="font-size:12px;color:#267344;font-weight:600">
-    Sudah terhubung: ${escapeHTML(targetBatch)}
-  </div>
-`;
+const batchHeader = card.querySelector(
+  ".tabungan-album-batch-header"
+);
+
+if (batchHeader) {
+  const infoArea = batchHeader.firstElementChild;
+  const batchInfo = infoArea
+    ? infoArea.lastElementChild
+    : null;
+
+  if (batchInfo) {
+    let status = batchInfo.querySelector(
+      ".tabungan-album-batch-link-status"
+    );
+
+    if (!status) {
+      status = document.createElement("div");
+      status.className =
+        "tabungan-album-batch-link-status";
+
+      status.style.cssText =
+        "margin-top:3px;font-size:11px;font-weight:600;color:#267344";
+
+      batchInfo.appendChild(status);
+    }
+
+    status.textContent = "Terhubung: " + targetBatch;
+  }
+}
 
 alert("Hubungan batch berhasil disimpan.");
-
+           
         } catch (error) {
 
           console.error(
