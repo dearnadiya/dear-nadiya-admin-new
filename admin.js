@@ -33840,9 +33840,14 @@ function renderCustomerMappingPanel() {
       `;
     }
 
-    details.appendChild(panel);
+    customerCard.appendChild(panel);
   });
 }
+
+       renderCustomerMappingPanel();
+
+// Event simpan pemetaan dan sinkronisasi.
+card.addEventListener("click", async function(event) {
 
 // Event simpan pemetaan dan sinkronisasi.
 card.addEventListener("click", async function(event) {
