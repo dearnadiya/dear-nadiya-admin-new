@@ -32286,10 +32286,7 @@ const batchHeader =
                                       </strong>
 
                                     </div>
-
-</div>
-
-`;
+                                    `;
 
                                 }
                               )
@@ -32336,6 +32333,8 @@ const batchHeader =
 </button>
 
                 </div>
+
+              </div>
 
               </div>
 
