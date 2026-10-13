@@ -31029,14 +31029,33 @@ function renderAlbumBatchCards(
         ${escapeHTML(batchCode)}
       </div>
 
+      
       <div
         style="
+          display:flex;
+          align-items:center;
+          gap:7px;
+          flex-wrap:wrap;
           margin-top:2px;
           font-size:11px;
-          color:#777;
         "
       >
-        ${batchRows.length} customer
+        <span style="color:#777;">
+          ${batchRows.length} customer
+        </span>
+
+        ${
+          existingLink
+            ? `
+              <span
+                class="tabungan-album-batch-link-status"
+                style="color:#267344;font-weight:600;"
+              >
+                · Terhubung: ${escapeHTML(savedBatch)}
+              </span>
+            `
+            : ""
+        }
       </div>
     </div>
   </div>
@@ -33445,18 +33464,10 @@ async function initTabunganAlbumBatchLinks() {
         </div>
       `;
 
-      const batchHeader = card.querySelector(
-  ".tabungan-album-batch-header"
-);
-
-if (batchHeader) {
-  panel.style.flex = "1 0 100%";
-  panel.style.width = "100%";
-  panel.style.boxSizing = "border-box";
-  batchHeader.appendChild(panel);
-} else {
-  card.appendChild(panel);
-}
+      
+      if (!existingLink) {
+        card.appendChild(panel);
+      }
 
 panel.addEventListener("click", function(event) {
   event.stopPropagation();
