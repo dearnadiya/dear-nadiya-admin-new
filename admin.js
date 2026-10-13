@@ -31259,7 +31259,7 @@ function renderAlbumBatchCards(
   class="tabungan-album-customer"
   data-source-id="${Number(row.id)}"
                           style="
-  margin:12px 0;
+  margin:6px 0;
   padding:14px 16px;
   border:1px solid #eee2f3;
   border-radius:14px;
@@ -31270,13 +31270,15 @@ function renderAlbumBatchCards(
 
                           <!-- NAMA CUSTOMER -->
                           <div
-                            style="
-                              display:flex;
-                              align-items:center;
-                              justify-content:space-between;
-                              gap:10px;
-                              flex-wrap:wrap;
-                            "
+                           
+style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+  flex-wrap:wrap;
+"
+
                           >
                             <div style="min-width:0;">
                               <button
