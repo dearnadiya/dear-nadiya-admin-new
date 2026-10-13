@@ -31259,11 +31259,13 @@ function renderAlbumBatchCards(
   class="tabungan-album-customer"
   data-source-id="${Number(row.id)}"
                           style="
-                            padding:12px;
-                            border:1px solid var(--line);
-                            border-radius:10px;
-                            background:#fff;
-                          "
+  margin:12px 0;
+  padding:14px 16px;
+  border:1px solid #eee2f3;
+  border-radius:14px;
+  background:#fff;
+  box-sizing:border-box;
+"
                         >
 
                           <!-- NAMA CUSTOMER -->
@@ -33722,11 +33724,13 @@ function renderCustomerMappingPanel() {
     panel.className =
       "tabungan-album-customer-mapping-panel";
 
-    panel.style.cssText = [
-      "margin-top:14px",
-      "padding-top:12px",
-      "border-top:1px dashed #e5d8ee"
-    ].join(";");
+panel.style.cssText = [
+  "margin-top:16px",
+  "padding:14px",
+  "border:1px solid #e7e1f0",
+  "border-radius:12px",
+  "background:#fff"
+].join(";");
 
     const batchLinked = links.some(function(link) {
       return String(link.source_batch_code || "") ===
@@ -33840,7 +33844,7 @@ function renderCustomerMappingPanel() {
       `;
     }
 
-    customerCard.appendChild(panel);
+    details.appendChild(panel);
   });
 }
 
