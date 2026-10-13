@@ -31863,17 +31863,28 @@ const batchHeader =
 
                   <div>
 
-                    <div
-                      style="
-                        font-size:16px;
-                        font-weight:700;
-                      "
-                    >
-                      ${escapeHTML(
-                        row.customer_name ||
-                        "Tanpa Customer"
-                      )}
-                    </div>
+                    <button
+  type="button"
+  class="tabungan-customer-toggle"
+  aria-expanded="false"
+  style="
+    display:block;
+    padding:0;
+    border:0;
+    background:transparent;
+    color:inherit;
+    font-size:16px;
+    font-weight:700;
+    text-align:left;
+    cursor:pointer;
+  "
+>
+  <span class="tabungan-customer-arrow">＋</span>
+  ${escapeHTML(
+    row.customer_name ||
+    "Tanpa Customer"
+  )}
+</button>
 
                     <div
                       style="
@@ -32030,7 +32041,10 @@ const batchHeader =
 
                 </div>
 
-
+               <div
+  class="tabungan-customer-details"
+  style="display:none;"
+>
                 <div
                   style="
                     display:grid;
@@ -32273,7 +32287,9 @@ const batchHeader =
 
                                     </div>
 
-                                  `;
+</div>
+
+`;
 
                                 }
                               )
@@ -32329,7 +32345,161 @@ const batchHeader =
         )
         .join("");
 
-     
+     // ==========================================
+// COLLAPSED BATCH DAN DETAIL CUSTOMER
+// TABUNGAN LIGHTSTICK
+// ==========================================
+
+if (category === "Tabungan Lightstick") {
+  const batchHeaders = list.querySelectorAll(
+    ".tabungan-batch-heading"
+  );
+
+  batchHeaders.forEach(function(header) {
+    const customerCards = [];
+
+    let nextElement = header.nextElementSibling;
+
+    while (
+      nextElement &&
+      !nextElement.classList.contains(
+        "tabungan-batch-heading"
+      )
+    ) {
+      if (
+        nextElement.classList.contains(
+          "tabungan-card"
+        )
+      ) {
+        customerCards.push(nextElement);
+      }
+
+      nextElement = nextElement.nextElementSibling;
+    }
+
+    // Batch tertutup saat pertama kali dimuat
+    customerCards.forEach(function(card) {
+      card.style.display = "none";
+    });
+
+    header.style.cursor = "pointer";
+    header.setAttribute("role", "button");
+    header.setAttribute("tabindex", "0");
+    header.setAttribute("aria-expanded", "false");
+
+    const indicator = document.createElement("span");
+
+    indicator.className = "tabungan-batch-toggle-icon";
+    indicator.textContent = "＋";
+    indicator.style.cssText = `
+      margin-left:10px;
+      font-size:18px;
+      font-weight:700;
+      color:#70418b;
+    `;
+
+    header.appendChild(indicator);
+
+    function toggleBatch() {
+      const expanded =
+        header.getAttribute("aria-expanded") === "true";
+
+      header.setAttribute(
+        "aria-expanded",
+        String(!expanded)
+      );
+
+      indicator.textContent = expanded ? "＋" : "−";
+
+      customerCards.forEach(function(card) {
+        card.style.display = expanded ? "none" : "";
+
+        // Tutup detail customer saat batch ditutup
+        const details = card.querySelector(
+          ".tabungan-customer-details"
+        );
+
+        const customerButton = card.querySelector(
+          ".tabungan-customer-toggle"
+        );
+
+        const arrow = card.querySelector(
+          ".tabungan-customer-arrow"
+        );
+
+        if (details) {
+          details.style.display = "none";
+        }
+
+        if (customerButton) {
+          customerButton.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+        }
+
+        if (arrow) {
+          arrow.textContent = "＋";
+        }
+      });
+    }
+
+    header.addEventListener("click", toggleBatch);
+
+    header.addEventListener("keydown", function(event) {
+      if (
+        event.key === "Enter" ||
+        event.key === " "
+      ) {
+        event.preventDefault();
+        toggleBatch();
+      }
+    });
+
+    // Klik nama customer untuk membuka detailnya
+    customerCards.forEach(function(card) {
+      const customerButton = card.querySelector(
+        ".tabungan-customer-toggle"
+      );
+
+      const details = card.querySelector(
+        ".tabungan-customer-details"
+      );
+
+      const arrow = card.querySelector(
+        ".tabungan-customer-arrow"
+      );
+
+      if (!customerButton || !details) {
+        return;
+      }
+
+      customerButton.addEventListener(
+        "click",
+        function(event) {
+          event.stopPropagation();
+
+          const expanded =
+            customerButton.getAttribute(
+              "aria-expanded"
+            ) === "true";
+
+          details.style.display = expanded ? "none" : "";
+
+          customerButton.setAttribute(
+            "aria-expanded",
+            String(!expanded)
+          );
+
+          if (arrow) {
+            arrow.textContent = expanded ? "＋" : "−";
+          }
+        }
+      );
+    });
+  });
+}
+
 /* ==========================================
    KONFIRMASI DP TABUNGAN ALBUM
    ========================================== */
