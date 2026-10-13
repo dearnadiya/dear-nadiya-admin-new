@@ -30707,62 +30707,6 @@ async function renderTabunganRecapList(
       "#tabunganList"
     );
 
-
-  function renderCards(
-    keyword = ""
-  ) {
-
-    const search =
-      keyword
-        .toLowerCase()
-        .trim();
-
-
-    const filtered =
-      rows.filter(
-        function(row) {
-
-          const text =
-            [
-              row.customer_name,
-              row.item_name,
-              row.version,
-              row.batch_code
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase();
-
-
-          return (
-            !search ||
-            text.includes(search)
-          );
-
-        }
-      );
-
-
-    if (
-      filtered.length === 0
-    ) {
-
-      list.innerHTML = `
-        <div
-          class="panel"
-          style="
-            text-align:center;
-            padding:30px;
-          "
-        >
-          Tidak ada data tabungan yang cocok.
-        </div>
-      `;
-
-      return;
-
-    }
-
      /* ==========================================
    STATUS REKAP GO YANG TERHUBUNG
    KHUSUS TABUNGAN ALBUM
@@ -30771,7 +30715,7 @@ async function renderTabunganRecapList(
 const albumLinkStatusBySource = {};
 
 if (category === "Tabungan Album") {
-  const sourceIds = filtered
+  const sourceIds = rows
     .map(row => Number(row.id))
     .filter(id => Number.isFinite(id));
 
@@ -30837,8 +30781,63 @@ if (category === "Tabungan Album") {
     }
   }
 }
+   
+  function renderCards(
+    keyword = ""
+  ) {
 
-     /* ==========================================
+    const search =
+      keyword
+        .toLowerCase()
+        .trim();
+
+
+    const filtered =
+      rows.filter(
+        function(row) {
+
+          const text =
+            [
+              row.customer_name,
+              row.item_name,
+              row.version,
+              row.batch_code
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+
+          return (
+            !search ||
+            text.includes(search)
+          );
+
+        }
+      );
+
+
+    if (
+      filtered.length === 0
+    ) {
+
+      list.innerHTML = `
+        <div
+          class="panel"
+          style="
+            text-align:center;
+            padding:30px;
+          "
+        >
+          Tidak ada data tabungan yang cocok.
+        </div>
+      `;
+
+      return;
+
+    }
+
+        /* ==========================================
    RENDER KHUSUS TABUNGAN ALBUM
    GROUP PER BATCH
    ========================================== */
