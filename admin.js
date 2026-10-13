@@ -31254,8 +31254,10 @@ function renderAlbumBatchCards(
 
                       return `
 
-                                                <div
-                          class="tabungan-album-customer"
+                          
+<div
+  class="tabungan-album-customer"
+  data-source-id="${Number(row.id)}"
                           style="
                             padding:12px;
                             border:1px solid var(--line);
@@ -33688,320 +33690,329 @@ alert("Hubungan batch berhasil disimpan.");
         });
       };
 
-      const customerPanel = document.createElement("div");
-      customerPanel.className = "tabungan-album-customer-mapping-panel";
+      
+function renderCustomerMappingPanel() {
+  const linkedTargets = getLinkedTargets();
 
-      customerPanel.style.cssText = [
-        "margin-top:12px",
-        "padding:14px",
-        "border:1px solid #e7e1f0",
-        "border-radius:12px",
-        "background:#fff"
-      ].join(";");
+  // Bersihkan panel pemetaan sebelumnya di setiap detail customer.
+  card.querySelectorAll(
+    ".tabungan-album-customer-mapping-panel"
+  ).forEach(function(panel) {
+    panel.remove();
+  });
 
-      card.appendChild(customerPanel);
+  sourceRows.forEach(function(sourceRow) {
+    const sourceId = Number(sourceRow.id);
 
-      function renderCustomerMappingPanel() {
-        const linkedTargets = getLinkedTargets();
+    const customerCard = card.querySelector(
+      '.tabungan-album-customer[data-source-id="' +
+      sourceId +
+      '"]'
+    );
 
-        customerPanel.innerHTML = `
-          <div style="font-weight:700;margin-bottom:6px">
-            👤 Hubungkan Customer Tabungan
-          </div>
+    const details = customerCard
+      ? customerCard.querySelector(
+          ".tabungan-album-customer-details"
+        )
+      : null;
 
-          <div style="font-size:12px;color:#777;margin-bottom:12px">
-            Hubungkan setiap penabung dengan satu baris customer Rekap GO.
-            Cocokkan nama, versi, dan ID sebelum menyimpan.
-          </div>
+    if (!details) return;
 
-          ${
-            !links.some(function(link) {
-              return String(link.source_batch_code || "") ===
-                String(sourceBatch);
-            })
-              ? `
-                <div style="color:#b26a00;font-size:12px">
-                  Hubungkan batch di bagian atas terlebih dahulu,
-                  lalu muat ulang daftar Tabungan Album.
-                </div>
-              `
-              : !linkedTargets.length
-                ? `
-                  <div style="color:#b42318;font-size:12px">
-                    Customer pada batch tujuan tidak ditemukan.
-                    Periksa tipe, kategori, dan batch tujuan.
-                  </div>
-                `
-                : sourceRows.map(function(sourceRow) {
-                    const sourceId = Number(sourceRow.id);
+    const panel = document.createElement("div");
+    panel.className =
+      "tabungan-album-customer-mapping-panel";
 
-                    const savedMapping = customerLinks.find(function(link) {
-                      return Number(link.source_recap_id) === sourceId;
-                    });
+    panel.style.cssText = [
+      "margin-top:14px",
+      "padding-top:12px",
+      "border-top:1px dashed #e5d8ee"
+    ].join(";");
 
-                    const selectedTargetId = savedMapping
-                      ? Number(savedMapping.target_recap_id)
-                      : 0;
+    const batchLinked = links.some(function(link) {
+      return String(link.source_batch_code || "") ===
+        String(sourceBatch);
+    });
 
-                    const options = linkedTargets.map(function(target) {
-                      const label = [
-                        target.customer_name || "Tanpa Nama",
-                        target.version ? "Versi " + target.version : "",
-                        target.item_name || "",
-                        "ID " + target.id
-                      ].filter(Boolean).join(" · ");
+    const savedMapping = customerLinks.find(function(link) {
+      return Number(link.source_recap_id) === sourceId;
+    });
 
-                      return `
-                        <option
-                          value="${Number(target.id)}"
-                          ${selectedTargetId === Number(target.id) ? "selected" : ""}
-                        >${escapeHTML(label)}</option>
-                      `;
-                    }).join("");
+    const selectedTargetId = savedMapping
+      ? Number(savedMapping.target_recap_id)
+      : 0;
 
-                    const savedTarget = linkedTargets.find(function(target) {
-                      return Number(target.id) === selectedTargetId;
-                    });
+    const savedTarget = linkedTargets.find(function(target) {
+      return Number(target.id) === selectedTargetId;
+    });
 
-                    return `
-                      <div style="
-                        border-top:1px solid #eee;
-                        padding:12px 0;
-                        display:grid;
-                        gap:8px;
-                      ">
-                        <strong style="font-size:13px">
-                          ${escapeHTML(sourceRow.customer_name || "Tanpa Nama")}
-                          ${sourceRow.version
-                            ? " · " + escapeHTML(sourceRow.version)
-                            : ""}
-                        </strong>
+    if (!batchLinked) {
+      panel.innerHTML = `
+        <div style="font-size:12px;color:#b26a00">
+          Hubungkan batch ke Rekap GO terlebih dahulu.
+        </div>
+      `;
+    } else if (!linkedTargets.length) {
+      panel.innerHTML = `
+        <div style="font-size:12px;color:#b42318">
+          Customer pada batch tujuan tidak ditemukan.
+        </div>
+      `;
+    } else if (savedTarget) {
+      panel.innerHTML = `
+        <div style="
+          font-size:12px;
+          color:#267344;
+          font-weight:600;
+        ">
+          ✓ Sudah terhubung: ${escapeHTML(
+            savedTarget.customer_name || "Tanpa Nama"
+          )}
+        </div>
 
-                        <div style="font-size:11px;color:#777">
-                          ID Tabungan: ${sourceId}
-                          · Terkumpul: ${formatRupiah(sourceRow.tabungan_paid || 0)}
-                        </div>
+        <button
+          type="button"
+          class="secondary-button tabungan-customer-sync"
+          data-source-id="${sourceId}"
+          style="
+            width:auto;
+            margin-top:8px;
+            padding:6px 10px;
+            font-size:11px;
+          "
+        >
+          Sinkronkan Tabungan
+        </button>
+      `;
+    } else {
+      const options = linkedTargets.map(function(target) {
+        const label = [
+          target.customer_name || "Tanpa Nama",
+          target.version ? "Versi " + target.version : "",
+          target.item_name || "",
+          "ID " + target.id
+        ].filter(Boolean).join(" · ");
 
-                        <select
-                          class="tabungan-customer-target-select"
-                          data-source-id="${sourceId}"
-                          style="
-                            width:100%;
-                            box-sizing:border-box;
-                            padding:9px;
-                            border:1px solid #ddd;
-                            border-radius:8px;
-                            background:#fff;
-                          "
-                        >
-                          <option value="">Pilih customer Rekap GO</option>
-                          ${options}
-                        </select>
-
-                        <div style="display:flex;gap:8px;flex-wrap:wrap">
-                          <button
-                            type="button"
-                            class="primary-button tabungan-customer-mapping-save"
-                            data-source-id="${sourceId}"
-                            style="width:auto;padding:8px 12px;font-size:12px"
-                          >Simpan Pemetaan</button>
-
-                          <button
-                            type="button"
-                            class="secondary-button tabungan-customer-sync"
-                            data-source-id="${sourceId}"
-                            ${savedTarget ? "" : "disabled"}
-                            style="width:auto;padding:8px 12px;font-size:12px"
-                          >Sinkronkan Tabungan</button>
-                        </div>
-
-                        <div
-                          class="tabungan-customer-mapping-status"
-                          data-source-id="${sourceId}"
-                          style="font-size:11px;color:#777"
-                        >
-                          ${
-                            savedTarget
-                              ? "Terhubung ke " +
-                                escapeHTML(savedTarget.customer_name || "Tanpa Nama") +
-                                " · ID " + savedTarget.id
-                              : "Belum ada pemetaan customer."
-                          }
-                        </div>
-                      </div>
-                    `;
-                  }).join("")
-          }
+        return `
+          <option value="${Number(target.id)}">
+            ${escapeHTML(label)}
+          </option>
         `;
+      }).join("");
 
-        // Simpan pemetaan customer secara eksplisit.
-        customerPanel
-          .querySelectorAll(".tabungan-customer-mapping-save")
-          .forEach(function(button) {
-            button.addEventListener("click", async function() {
-              const sourceId = Number(button.dataset.sourceId);
+      panel.innerHTML = `
+        <div style="
+          font-size:12px;
+          font-weight:600;
+          margin-bottom:7px;
+        ">
+          Hubungkan ke Customer Rekap GO
+        </div>
 
-              const select = customerPanel.querySelector(
-                '.tabungan-customer-target-select[data-source-id="' +
-                sourceId + '"]'
-              );
+        <select
+          class="tabungan-customer-target-select"
+          data-source-id="${sourceId}"
+          style="
+            width:100%;
+            box-sizing:border-box;
+            padding:8px;
+            border:1px solid #ddd;
+            border-radius:8px;
+            background:#fff;
+          "
+        >
+          <option value="">Pilih customer Rekap GO</option>
+          ${options}
+        </select>
 
-              const status = customerPanel.querySelector(
-                '.tabungan-customer-mapping-status[data-source-id="' +
-                sourceId + '"]'
-              );
+        <button
+          type="button"
+          class="primary-button tabungan-customer-mapping-save"
+          data-source-id="${sourceId}"
+          style="
+            width:auto;
+            margin-top:8px;
+            padding:7px 11px;
+            font-size:11px;
+          "
+        >
+          Simpan Pemetaan
+        </button>
+      `;
+    }
 
-              const targetId = Number(select.value || 0);
+    details.appendChild(panel);
+  });
+}
 
-              if (!targetId) {
-                alert("Pilih customer Rekap GO terlebih dahulu.");
-                return;
-              }
+// Event simpan pemetaan dan sinkronisasi.
+card.addEventListener("click", async function(event) {
+  const saveButton = event.target.closest(
+    ".tabungan-customer-mapping-save"
+  );
 
-              const targetExists = getLinkedTargets().some(function(target) {
-                return Number(target.id) === targetId;
-              });
+  const syncButton = event.target.closest(
+    ".tabungan-customer-sync"
+  );
 
-              if (!targetExists) {
-                alert("Customer yang dipilih tidak termasuk batch tujuan.");
-                return;
-              }
+  if (!saveButton && !syncButton) return;
 
-              const duplicate = customerLinks.find(function(link) {
-                return (
-                  Number(link.target_recap_id) === targetId &&
-                  Number(link.source_recap_id) !== sourceId
-                );
-              });
+  event.stopPropagation();
 
-              if (duplicate) {
-                alert(
-                  "Customer Rekap GO ini sudah dipetakan ke penabung lain."
-                );
-                return;
-              }
+  const button = saveButton || syncButton;
+  const sourceId = Number(button.dataset.sourceId);
 
-              if (!confirm(
-                "Simpan pemetaan ini?\n\n" +
-                "ID Tabungan: " + sourceId + "\n" +
-                "ID Rekap GO: " + targetId + "\n\n" +
-                "Nominal pembayaran belum diubah."
-              )) return;
+  if (saveButton) {
+    const select = card.querySelector(
+      '.tabungan-customer-target-select[data-source-id="' +
+      sourceId +
+      '"]'
+    );
 
-              button.disabled = true;
-              button.textContent = "Menyimpan...";
+    const targetId = Number(select?.value || 0);
 
-              try {
-                const { data: saved, error } = await supabaseClient
-                  .from("dn_tabungan_album_customer_links")
-                  .upsert({
-                    source_recap_id: sourceId,
-                    target_recap_id: targetId,
-                    updated_at: new Date().toISOString()
-                  }, {
-                    onConflict: "source_recap_id"
-                  })
-                  .select("id, source_recap_id, target_recap_id")
-                  .single();
+    if (!targetId) {
+      alert("Pilih customer Rekap GO terlebih dahulu.");
+      return;
+    }
 
-                if (error) throw error;
+    const linkedTargets = getLinkedTargets();
 
-                const oldIndex = customerLinks.findIndex(function(link) {
-                  return Number(link.source_recap_id) === sourceId;
-                });
+    const targetExists = linkedTargets.some(function(target) {
+      return Number(target.id) === targetId;
+    });
 
-                if (oldIndex >= 0) {
-                  customerLinks[oldIndex] = saved;
-                } else {
-                  customerLinks.push(saved);
-                }
+    if (!targetExists) {
+      alert("Customer yang dipilih tidak termasuk batch tujuan.");
+      return;
+    }
 
-                alert("Pemetaan customer berhasil disimpan.");
-                renderCustomerMappingPanel();
+    const duplicate = customerLinks.find(function(link) {
+      return (
+        Number(link.target_recap_id) === targetId &&
+        Number(link.source_recap_id) !== sourceId
+      );
+    });
 
-              } catch (error) {
-                console.error("GAGAL SIMPAN PEMETAAN CUSTOMER:", error);
-                alert("Gagal menyimpan pemetaan:\n" + error.message);
+    if (duplicate) {
+      alert(
+        "Customer Rekap GO ini sudah dipetakan ke penabung lain."
+      );
+      return;
+    }
 
-              } finally {
-                button.disabled = false;
-                button.textContent = "Simpan Pemetaan";
-              }
-            });
-          });
+    if (!confirm(
+      "Simpan pemetaan ini?\n\n" +
+      "ID Tabungan: " + sourceId + "\n" +
+      "ID Rekap GO: " + targetId + "\n\n" +
+      "Nominal pembayaran belum diubah."
+    )) return;
 
-        // Sinkronisasi nominal hanya setelah pemetaan tersimpan.
-        customerPanel
-          .querySelectorAll(".tabungan-customer-sync")
-          .forEach(function(button) {
-            button.addEventListener("click", async function() {
-              const sourceId = Number(button.dataset.sourceId);
+    button.disabled = true;
+    button.textContent = "Menyimpan...";
 
-              const mapping = customerLinks.find(function(link) {
-                return Number(link.source_recap_id) === sourceId;
-              });
+    try {
+      const { data: saved, error } = await supabaseClient
+        .from("dn_tabungan_album_customer_links")
+        .upsert({
+          source_recap_id: sourceId,
+          target_recap_id: targetId,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: "source_recap_id"
+        })
+        .select("id, source_recap_id, target_recap_id")
+        .single();
 
-              const sourceRow = sourceRows.find(function(row) {
-                return Number(row.id) === sourceId;
-              });
+      if (error) throw error;
 
-              const targetRow = mapping
-                ? getLinkedTargets().find(function(row) {
-                    return Number(row.id) ===
-                      Number(mapping.target_recap_id);
-                  })
-                : null;
+      const oldIndex = customerLinks.findIndex(function(link) {
+        return Number(link.source_recap_id) === sourceId;
+      });
 
-              if (!sourceRow || !targetRow) {
-                alert(
-                  "Pemetaan atau data customer tujuan tidak ditemukan."
-                );
-                return;
-              }
-
-              const accumulated = Number(sourceRow.tabungan_paid) || 0;
-              const itemPrice = Number(targetRow.item_price) || 0;
-              const remaining = Math.max(itemPrice - accumulated, 0);
-
-              if (!confirm(
-                "Sinkronkan tabungan ke Rekap GO?\n\n" +
-                "Customer: " + (targetRow.customer_name || "Tanpa Nama") + "\n" +
-                "Versi: " + (targetRow.version || "—") + "\n" +
-                "ID Rekap GO: " + targetRow.id + "\n\n" +
-                "DP: " + formatRupiah(accumulated) + "\n" +
-                "Sisa: " + formatRupiah(remaining) + "\n\n" +
-                "Hanya dp_amount dan remaining_amount yang diubah."
-              )) return;
-
-              button.disabled = true;
-              button.textContent = "Menyinkronkan...";
-
-              try {
-                const { error } = await supabaseClient
-                  .from("purchase_recap")
-                  .update({
-                    dp_amount: accumulated,
-                    remaining_amount: remaining
-                  })
-                  .eq("id", targetRow.id);
-
-                if (error) throw error;
-
-                alert("Sinkronisasi berhasil.");
-              } catch (error) {
-                console.error("GAGAL SINKRON TABUNGAN:", error);
-                alert("Gagal sinkronisasi:\n" + error.message);
-              } finally {
-                button.disabled = false;
-                button.textContent = "Sinkronkan Tabungan";
-              }
-            });
-          });
+      if (oldIndex >= 0) {
+        customerLinks[oldIndex] = saved;
+      } else {
+        customerLinks.push(saved);
       }
 
       renderCustomerMappingPanel();
+      alert("Pemetaan customer berhasil disimpan.");
 
-    });
+    } catch (error) {
+      console.error("GAGAL SIMPAN PEMETAAN CUSTOMER:", error);
+      alert("Gagal menyimpan pemetaan:\n" + error.message);
+
+    } finally {
+      if (button.isConnected) {
+        button.disabled = false;
+        button.textContent = "Simpan Pemetaan";
+      }
+    }
+
+    return;
+  }
+
+  // Sinkronisasi nominal setelah pemetaan tersimpan.
+  const mapping = customerLinks.find(function(link) {
+    return Number(link.source_recap_id) === sourceId;
+  });
+
+  const sourceRow = sourceRows.find(function(row) {
+    return Number(row.id) === sourceId;
+  });
+
+  const targetRow = mapping
+    ? getLinkedTargets().find(function(row) {
+        return Number(row.id) === Number(mapping.target_recap_id);
+      })
+    : null;
+
+  if (!sourceRow || !targetRow) {
+    alert("Pemetaan atau data customer tujuan tidak ditemukan.");
+    return;
+  }
+
+  const accumulated = Number(sourceRow.tabungan_paid) || 0;
+  const itemPrice = Number(targetRow.item_price) || 0;
+  const remaining = Math.max(itemPrice - accumulated, 0);
+
+  if (!confirm(
+    "Sinkronkan tabungan ke Rekap GO?\n\n" +
+    "Customer: " + (targetRow.customer_name || "Tanpa Nama") + "\n" +
+    "Versi: " + (targetRow.version || "—") + "\n" +
+    "ID Rekap GO: " + targetRow.id + "\n\n" +
+    "DP: " + formatRupiah(accumulated) + "\n" +
+    "Sisa: " + formatRupiah(remaining) + "\n\n" +
+    "Hanya dp_amount dan remaining_amount yang diubah."
+  )) return;
+
+  button.disabled = true;
+  button.textContent = "Menyinkronkan...";
+
+  try {
+    const { error } = await supabaseClient
+      .from("purchase_recap")
+      .update({
+        dp_amount: accumulated,
+        remaining_amount: remaining
+      })
+      .eq("id", targetRow.id);
+
+    if (error) throw error;
+
+    alert("Sinkronisasi berhasil.");
+
+  } catch (error) {
+    console.error("GAGAL SINKRON TABUNGAN:", error);
+    alert("Gagal sinkronisasi:\n" + error.message);
+
+  } finally {
+    if (button.isConnected) {
+      button.disabled = false;
+      button.textContent = "Sinkronkan Tabungan";
+    }
+  }
+});
 
   } catch (error) {
 
