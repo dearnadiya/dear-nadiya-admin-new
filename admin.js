@@ -33848,9 +33848,6 @@ function renderCustomerMappingPanel() {
 
 // Event simpan pemetaan dan sinkronisasi.
 card.addEventListener("click", async function(event) {
-
-// Event simpan pemetaan dan sinkronisasi.
-card.addEventListener("click", async function(event) {
   const saveButton = event.target.closest(
     ".tabungan-customer-mapping-save"
   );
