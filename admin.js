@@ -34012,6 +34012,7 @@ card.addEventListener("click", async function(event) {
       button.textContent = "Sinkronkan Tabungan";
     }
   }
+   });
 });
 
   } catch (error) {
