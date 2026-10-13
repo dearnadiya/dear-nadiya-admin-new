@@ -31776,7 +31776,7 @@ const batchHeader =
                 overflow-wrap:anywhere;
               "
             >
-              Batch ${escapeHTML(currentBatchCode)}
+              ${escapeHTML(currentBatchCode)}
             </div>
 
             <div
