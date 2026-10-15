@@ -15291,24 +15291,6 @@ if (
         }
       );
 
-
-      /* ================================
-         VALIDASI TOTAL
-      ================================ */
-
-      if (
-        totalAllocated >
-        paymentAmount
-      ) {
-
-        alert(
-          "Total alokasi tidak boleh melebihi total pembayaran."
-        );
-
-        return;
-      }
-
-
       if (
         allocations.length === 0
       ) {
@@ -41188,10 +41170,8 @@ async function saveBatchRecap(event) {
     ).value;
 
 
- const batchTracking =
-  "Co Web / Seller";
 
-   const recapDataType =
+const recapDataType =
   document.getElementById(
     "batchRecapDataType"
   ).value;
@@ -41201,6 +41181,15 @@ const stockSource =
     "batchStockSource"
   )?.value || "ready";
 
+/* ==========================================
+   STATUS TRACKING AWAL BERDASARKAN SUMBER STOK
+   ========================================== */
+
+const batchTracking =
+  stockSource === "ready"
+    ? "Arrived Admin"
+    : "Co Web / Seller";
+   
 const manualCoDeadline =
   document.getElementById(
     "batchCoDeadline"
