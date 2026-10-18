@@ -16663,15 +16663,15 @@ async function openManualCustomerPayment() {
   const keyword = searchInput.value.trim();
 
   if (!keyword) {
-    resultsContainer.innerHTML = "";
+    customerResults.innerHTML = "";
     return;
   }
 
   renderCustomers();
 });
 
-// Jangan tampilkan daftar customer saat modal pertama dibuka.
-resultsContainer.innerHTML = "";
+// Daftar customer kosong saat modal pertama dibuka.
+customerResults.innerHTML = "";
 }
 
 /* ============================================
