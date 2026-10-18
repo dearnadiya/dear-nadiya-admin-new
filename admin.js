@@ -16659,13 +16659,19 @@ async function openManualCustomerPayment() {
 
   }
 
-  searchInput.addEventListener(
-    "input",
-    renderCustomers
-  );
+  searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.trim();
+
+  if (!keyword) {
+    resultsContainer.innerHTML = "";
+    return;
+  }
 
   renderCustomers();
+});
 
+// Jangan tampilkan daftar customer saat modal pertama dibuka.
+resultsContainer.innerHTML = "";
 }
 
 /* ============================================
