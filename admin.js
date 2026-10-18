@@ -11206,7 +11206,8 @@ pageContent.innerHTML = `
 `;
      loadPaymentArchive();
 
-   const manualPaymentButton =
+ 
+const manualPaymentButton =
   document.getElementById(
     "openManualCustomerPayment"
   );
@@ -11214,9 +11215,39 @@ pageContent.innerHTML = `
 if (manualPaymentButton) {
   manualPaymentButton.addEventListener(
     "click",
-    function() {
-      openManualCustomerPayment();
+    async function() {
+      console.log(
+        "[Pembayaran Manual] Tombol diklik."
+      );
+
+      try {
+        if (
+          typeof openManualCustomerPayment !==
+          "function"
+        ) {
+          throw new Error(
+            "Fungsi openManualCustomerPayment tidak ditemukan atau tidak berada di scope yang benar."
+          );
+        }
+
+        await openManualCustomerPayment();
+
+      } catch (error) {
+        console.error(
+          "[Pembayaran Manual] Gagal membuka fungsi:",
+          error
+        );
+
+        alert(
+          "Pembayaran Manual gagal dibuka: " +
+          (error.message || error)
+        );
+      }
     }
+  );
+} else {
+  console.error(
+    "[Pembayaran Manual] Tombol tidak ditemukan."
   );
 }
 
