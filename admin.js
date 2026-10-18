@@ -11063,20 +11063,27 @@ pageContent.innerHTML = `
 
     <div class="panel-header">
 
-      <div>
+  <div>
 
-        <h2>
-          Pembayaran
-        </h2>
+    <h2>
+      Pembayaran
+    </h2>
 
-        <p>
-          Kelola bukti pembayaran customer.
-        </p>
+    <p>
+      Kelola pembayaran website dan pembayaran manual customer.
+    </p>
 
-      </div>
+  </div>
 
-    </div>
+  <button
+    type="button"
+    id="openManualCustomerPayment"
+    class="primary-button"
+  >
+    ＋ Pembayaran Manual Customer
+  </button>
 
+</div>
 
     <!-- =====================================
          PEMBAYARAN AKTIF
@@ -11198,6 +11205,20 @@ pageContent.innerHTML = `
 
 `;
      loadPaymentArchive();
+
+   const manualPaymentButton =
+  document.getElementById(
+    "openManualCustomerPayment"
+  );
+
+if (manualPaymentButton) {
+  manualPaymentButton.addEventListener(
+    "click",
+    function() {
+      openManualCustomerPayment();
+    }
+  );
+}
 
   const container =
     document.getElementById(
@@ -12595,7 +12616,8 @@ if (
    ============================================ */
 
 async function openPaymentAllocation(
-  paymentId
+  paymentId,
+  manualRecapIds = null
 ) {
 
   /* ================================
@@ -13107,6 +13129,48 @@ try {
     escapeHTML(payment.payment_type || "—");
 }
 
+   /* ==========================================
+   FILTER TAGIHAN PILIHAN PEMBAYARAN MANUAL
+   ========================================== */
+
+if (
+  Array.isArray(manualRecapIds) &&
+  manualRecapIds.length > 0
+) {
+
+  const selectedRecapIdSet =
+    new Set(
+      manualRecapIds.map(function(id) {
+        return String(id);
+      })
+    );
+
+  for (
+    let i = selectedItems.length - 1;
+    i >= 0;
+    i--
+  ) {
+
+    if (
+      !selectedRecapIdSet.has(
+        String(selectedItems[i].id)
+      )
+    ) {
+      selectedItems.splice(i, 1);
+    }
+
+  }
+
+}
+
+if (manualRecapIds && selectedItems.length === 0) {
+
+  alert(
+    "Tagihan yang dipilih tidak ditemukan pada alokasi pembayaran."
+  );
+
+  return;
+}
    
   /* ================================
      MODAL
@@ -15379,7 +15443,555 @@ if (
         return;
       }
 
+       /* ============================================
+   PEMBAYARAN MANUAL CUSTOMER
+   ============================================ */
 
+async function openManualCustomerPayment() {
+
+  const {
+    data: customers,
+    error: customerError
+  } = await supabaseClient
+    .from("customers")
+    .select("id, dn_id, name")
+    .order("name", {
+      ascending: true
+    });
+
+  if (customerError) {
+    alert(
+      "Gagal mengambil data customer: " +
+      customerError.message
+    );
+    return;
+  }
+
+  const modal = document.createElement("div");
+
+  modal.id = "manualCustomerPaymentModal";
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      width:100%;
+      max-width:650px;
+      max-height:90vh;
+      overflow:auto;
+      background:#fff;
+      border-radius:16px;
+      padding:22px;
+      box-sizing:border-box;
+    ">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:16px;
+      ">
+        <div>
+          <h3 style="margin:0 0 5px;">
+            Pembayaran Manual Customer
+          </h3>
+          <div style="font-size:12px;color:#777;">
+            Pilih customer dan tagihan yang akan dibayar.
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="closeManualCustomerPayment"
+          class="delete-button"
+        >
+          ✕
+        </button>
+      </div>
+
+      <label style="display:block;margin-bottom:7px;">
+        Cari nama customer
+      </label>
+
+      <input
+        id="manualCustomerSearch"
+        type="text"
+        placeholder="Ketik nama customer..."
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:11px;
+          border:1px solid #ddd;
+          border-radius:10px;
+          margin-bottom:14px;
+        "
+      >
+
+      <div id="manualCustomerResults"></div>
+
+      <div
+        id="manualCustomerBills"
+        style="display:none;margin-top:16px;"
+      ></div>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeModal = function() {
+    modal.remove();
+  };
+
+  modal
+    .querySelector("#closeManualCustomerPayment")
+    .addEventListener("click", closeModal);
+
+  const searchInput =
+    modal.querySelector("#manualCustomerSearch");
+
+  const customerResults =
+    modal.querySelector("#manualCustomerResults");
+
+  const billsContainer =
+    modal.querySelector("#manualCustomerBills");
+
+  let customerRows = customers || [];
+  let selectedCustomer = null;
+
+  /* ==========================================
+     TAMPILKAN CUSTOMER
+     ========================================== */
+
+  function renderCustomers() {
+
+    const keyword =
+      String(searchInput.value || "")
+        .trim()
+        .toLowerCase();
+
+    const filtered = customerRows.filter(
+      function(customer) {
+        return String(customer.name || "")
+          .toLowerCase()
+          .includes(keyword);
+      }
+    );
+
+    if (!filtered.length) {
+      customerResults.innerHTML = `
+        <div style="padding:12px;color:#777;">
+          Customer tidak ditemukan.
+        </div>
+      `;
+      return;
+    }
+
+    customerResults.innerHTML =
+      filtered.map(function(customer) {
+        return `
+          <button
+            type="button"
+            data-customer-id="${escapeHTML(customer.id)}"
+            style="
+              display:block;
+              width:100%;
+              text-align:left;
+              padding:12px;
+              border:1px solid #eee;
+              border-radius:10px;
+              background:#fff;
+              margin-bottom:7px;
+              cursor:pointer;
+            "
+          >
+            <strong>
+              ${escapeHTML(customer.name || "Tanpa nama")}
+            </strong>
+
+            <div style="font-size:11px;color:#888;margin-top:4px;">
+              ${escapeHTML(customer.dn_id || "")}
+            </div>
+          </button>
+        `;
+      }).join("");
+
+    customerResults
+      .querySelectorAll("[data-customer-id]")
+      .forEach(function(button) {
+
+        button.addEventListener(
+          "click",
+          async function() {
+
+            const customerId =
+              this.dataset.customerId;
+
+            selectedCustomer =
+              customerRows.find(function(customer) {
+                return String(customer.id) ===
+                  String(customerId);
+              });
+
+            if (selectedCustomer) {
+              await loadCustomerBills(selectedCustomer);
+            }
+
+          }
+        );
+
+      });
+
+  }
+
+  /* ==========================================
+     AMBIL TAGIHAN CUSTOMER
+     ========================================== */
+
+  async function loadCustomerBills(customer) {
+
+    billsContainer.style.display = "block";
+
+    billsContainer.innerHTML = `
+      <div style="padding:12px;color:#777;">
+        Memuat tagihan ${escapeHTML(customer.name)}...
+      </div>
+    `;
+
+    const {
+      data: recaps,
+      error: recapError
+    } = await supabaseClient
+      .from("purchase_recap")
+      .select(`
+        id,
+        customer_id,
+        customer_name,
+        recap_type,
+        batch_code,
+        version,
+        item_name,
+        item_price,
+        minimum_dp_amount,
+        remaining_amount,
+        payment_status
+      `)
+      .eq("customer_id", customer.id)
+      .order("id", {
+        ascending: false
+      });
+
+    if (recapError) {
+      billsContainer.innerHTML = `
+        <div style="color:#b42318;padding:12px;">
+          Gagal mengambil tagihan:
+          ${escapeHTML(recapError.message)}
+        </div>
+      `;
+      return;
+    }
+
+    /*
+     * Pembayaran manual ini hanya untuk tagihan biasa.
+     * Tabungan tidak dimasukkan ke alur ini.
+     */
+
+    const eligibleRecaps = (recaps || []).filter(
+      function(row) {
+
+        const recapType =
+          String(row.recap_type || "")
+            .trim()
+            .toLowerCase();
+
+        return recapType !== "tabungan";
+      }
+    );
+
+    if (!eligibleRecaps.length) {
+      billsContainer.innerHTML = `
+        <div style="padding:12px;color:#777;">
+          Tidak ada tagihan biasa untuk customer ini.
+        </div>
+      `;
+      return;
+    }
+
+    billsContainer.innerHTML = `
+      <h4 style="margin:0 0 8px;">
+        Tagihan ${escapeHTML(customer.name)}
+      </h4>
+
+      <p style="font-size:12px;color:#777;">
+        Centang satu atau beberapa tagihan.
+      </p>
+
+      ${eligibleRecaps.map(function(row) {
+
+        const price =
+          Number(row.item_price) || 0;
+
+        const remaining =
+          Number(row.remaining_amount);
+
+        const displayedRemaining =
+          Number.isFinite(remaining)
+            ? Math.max(remaining, 0)
+            : price;
+
+        return `
+          <label style="
+            display:flex;
+            gap:10px;
+            align-items:flex-start;
+            padding:12px;
+            border:1px solid #eee;
+            border-radius:10px;
+            margin-bottom:8px;
+            cursor:pointer;
+          ">
+
+            <input
+              type="checkbox"
+              class="manual-customer-bill"
+              value="${escapeHTML(row.id)}"
+              style="margin-top:4px;"
+            >
+
+            <span style="flex:1;">
+
+              <strong>
+                ${escapeHTML(
+                  row.item_name ||
+                  row.batch_code ||
+                  "Tagihan"
+                )}
+              </strong>
+
+              <span style="
+                display:block;
+                color:#777;
+                font-size:12px;
+                margin-top:4px;
+              ">
+                Batch: ${escapeHTML(row.batch_code || "—")}
+                ${row.version
+                  ? " • " + escapeHTML(row.version)
+                  : ""}
+              </span>
+
+              <span style="
+                display:block;
+                margin-top:5px;
+                font-size:12px;
+              ">
+                Harga: ${formatRupiah(price)}
+              </span>
+
+              <span style="
+                display:block;
+                font-size:12px;
+                color:#8d526d;
+              ">
+                Sisa tercatat: ${formatRupiah(displayedRemaining)}
+              </span>
+
+            </span>
+          </label>
+        `;
+      }).join("")}
+
+      <button
+        type="button"
+        id="continueManualCustomerBills"
+        class="primary-button"
+        style="width:100%;margin-top:10px;"
+      >
+        Lanjut ke Alokasi Barang
+      </button>
+    `;
+
+    /* ==========================================
+       LANJUT KE MODAL ALOKASI YANG SUDAH ADA
+       ========================================== */
+
+    billsContainer
+      .querySelector("#continueManualCustomerBills")
+      .addEventListener("click", async function() {
+
+        const button = this;
+
+        const selectedIds = Array.from(
+          billsContainer.querySelectorAll(
+            ".manual-customer-bill:checked"
+          )
+        ).map(function(input) {
+          return input.value;
+        });
+
+        if (!selectedIds.length) {
+          alert("Pilih minimal satu tagihan.");
+          return;
+        }
+
+        if (!selectedCustomer) {
+          alert("Pilih customer terlebih dahulu.");
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Menyiapkan alokasi...";
+
+        try {
+
+          /*
+           * Ambil ulang tagihan yang dipilih untuk
+           * memastikan batch dan versi tersedia.
+           */
+
+          const {
+            data: selectedRecaps,
+            error: selectedError
+          } = await supabaseClient
+            .from("purchase_recap")
+            .select(`
+              id,
+              customer_id,
+              recap_type,
+              batch_code,
+              version
+            `)
+            .eq("customer_id", selectedCustomer.id)
+            .in("id", selectedIds);
+
+          if (selectedError) {
+            throw selectedError;
+          }
+
+          if (
+            !selectedRecaps ||
+            selectedRecaps.length !== selectedIds.length
+          ) {
+            throw new Error(
+              "Sebagian tagihan tidak ditemukan. Silakan pilih ulang."
+            );
+          }
+
+          const invalidRecap = selectedRecaps.some(
+            function(row) {
+
+              return (
+                String(row.recap_type || "")
+                  .trim()
+                  .toLowerCase() === "tabungan" ||
+                !String(row.batch_code || "").trim()
+              );
+
+            }
+          );
+
+          if (invalidRecap) {
+            throw new Error(
+              "Tagihan Tabungan atau tagihan tanpa kode batch tidak dapat diproses di sini."
+            );
+          }
+
+          const productCodes = [
+            ...new Set(
+              selectedRecaps.map(function(row) {
+                return String(row.batch_code).trim();
+              })
+            )
+          ];
+
+          const productVersions = [
+            ...new Set(
+              selectedRecaps
+                .map(function(row) {
+                  return String(row.version || "").trim();
+                })
+                .filter(Boolean)
+            )
+          ];
+
+          /*
+           * Buat catatan pembayaran sementara.
+           * Nominal aktual diisi pada modal alokasi.
+           */
+
+          const {
+            data: payment,
+            error: insertError
+          } = await supabaseClient
+            .from("dn_payment_submissions")
+            .insert({
+              customer_id: selectedCustomer.id,
+              customer_name: selectedCustomer.name,
+              whatsapp_last4: "",
+              product_code: productCodes.join(","),
+              product_version: productVersions.join(","),
+              amount: 0,
+              payment_date: new Date()
+                .toISOString()
+                .slice(0, 10),
+              proof_path: null,
+              payment_type: "manual",
+              status: "pending"
+            })
+            .select("id")
+            .single();
+
+          if (insertError) {
+            throw insertError;
+          }
+
+          closeModal();
+
+          await openPaymentAllocation(
+            payment.id,
+            selectedIds
+          );
+
+        } catch (error) {
+
+          console.error(
+            "ERROR PEMBAYARAN MANUAL CUSTOMER:",
+            error
+          );
+
+          alert(
+            "Gagal menyiapkan pembayaran manual: " +
+            (error.message || "Kesalahan tidak diketahui.")
+          );
+
+          button.disabled = false;
+          button.textContent = "Lanjut ke Alokasi Barang";
+
+        }
+
+      });
+
+  }
+
+  searchInput.addEventListener(
+    "input",
+    renderCustomers
+  );
+
+  renderCustomers();
+
+}
+       
       /* ================================
          UPDATE STATUS PEMBAYARAN
       ================================ */
