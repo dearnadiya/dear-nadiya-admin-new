@@ -16383,16 +16383,49 @@ async function openManualCustomerPayment() {
      */
 
     const eligibleRecaps = (recaps || []).filter(
-      function(row) {
+  function(row) {
 
-        const recapType =
-          String(row.recap_type || "")
-            .trim()
-            .toLowerCase();
+    const recapType =
+      String(row.recap_type || "")
+        .trim()
+        .toLowerCase();
 
-        return recapType !== "tabungan";
-      }
-    );
+    const paymentStatus =
+      String(
+        row.payment_status ||
+        row.status ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const remaining =
+      Number(row.remaining_amount);
+
+    const price =
+      Number(row.item_price) || 0;
+
+    // Tabungan tidak diproses melalui pembayaran manual ini.
+    if (recapType === "tabungan") {
+      return false;
+    }
+
+    // Sembunyikan tagihan yang statusnya sudah lunas.
+    if (
+      ["paid", "lunas", "fully_paid"].includes(paymentStatus)
+    ) {
+      return false;
+    }
+
+    // Jika sisa tagihan tercatat, gunakan nilai tersebut.
+    if (Number.isFinite(remaining)) {
+      return remaining > 0;
+    }
+
+    // Jika sisa belum tercatat, gunakan harga sebagai fallback.
+    return price > 0;
+  }
+);
 
     if (!eligibleRecaps.length) {
       billsContainer.innerHTML = `
@@ -16617,12 +16650,12 @@ async function openManualCustomerPayment() {
               product_code: productCodes.join(","),
               product_version: productVersions.join(","),
               amount: 0,
-              payment_date: new Date()
-                .toISOString()
-                .slice(0, 10),
-              proof_path: null,
-              payment_type: "manual",
-              status: "pending"
+payment_date: new Date()
+  .toISOString()
+  .slice(0, 10),
+proof_path: "",
+payment_type: "manual",
+status: "pending"
             })
             .select("id")
             .single();
