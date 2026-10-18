@@ -46585,98 +46585,43 @@ const totalActualPaid =
     paymentSummary.totalPaid
   ) || 0;
          
+
 /* ==========================================
    STATUS PEMBAYARAN SAAT EDIT REKAP
    ========================================== */
 
 /*
- * EDIT DATA TIDAK BOLEH MENGUBAH
- * STATUS PEMBAYARAN YANG SUDAH TERSIMPAN.
+ * Total pembayaran aktual diambil dari histori
+ * pembayaran yang sudah dikonfirmasi.
  *
- * Status DP dan pelunasan hanya boleh berubah
- * melalui:
- * - dropdown status customer
- * - dropdown status batch
- * - proses konfirmasi pembayaran
- *
- * Jadi saat edit customer/item:
- * dp_status      = status lama
- * payment_status = status lama
+ * DP minimum bukan jumlah uang yang sudah dibayar.
+ * DP aktual dan pelunasan aktual tetap mengikuti
+ * histori pembayaran.
  */
 
+// Pertahankan status DP yang tersimpan.
 const newDpStatus =
-  data.dp_status ||
-  "unpaid";
+  data.dp_status || "unpaid";
 
+// Total seluruh pembayaran aktual.
+const totalPaidAfterEdit = Math.max(
+  Number(totalActualPaid) || 0,
+  0
+);
+
+// Sisa tagihan = harga baru - total pembayaran aktual.
+const newRemaining = Math.max(
+  Number(newPrice || 0) - totalPaidAfterEdit,
+  0
+);
+
+// Status pembayaran mengikuti total pembayaran aktual
+// dibandingkan dengan harga baru.
 const newPaymentStatus =
-  data.payment_status ||
-  "unpaid";
-
-
-/* ==========================================
-   HITUNG SISA BERDASARKAN STATUS TERSIMPAN
-   ========================================== */
-
-let newRemaining = 0;
-
-
-/*
- * Jika sudah lunas:
- * sisa selalu 0.
- */
-if (
-  newPaymentStatus ===
-  "paid"
-) {
-
-  newRemaining =
-    0;
-
-}
-
-
-/*
- * Jika DP sudah dibayar
- * tetapi belum lunas:
- *
- * Harga baru - DP minimum baru
- */
-else if (
-  newDpStatus ===
-  "paid"
-) {
-
-  const fixedDp =
-    Math.min(
-      newDpMinimum,
-      newPrice
-    );
-
-  newRemaining =
-    Math.max(
-      newPrice -
-      fixedDp,
-      0
-    );
-
-}
-
-
-/*
- * Jika DP belum dibayar
- * dan belum lunas:
- *
- * seluruh harga menjadi sisa.
- */
-else {
-
-  newRemaining =
-    Math.max(
-      newPrice,
-      0
-    );
-
-}
+  Number(newPrice) > 0 &&
+  totalPaidAfterEdit >= Number(newPrice)
+    ? "paid"
+    : "unpaid";
          
 const updatedData = {
 
@@ -46721,21 +46666,26 @@ const updatedData = {
   quantity:
   newQuantity,
 
+
 item_price:
   newPrice,
 
 minimum_dp_amount:
   newDpMinimum,
-   
-   /*
-   * STATUS PEMBAYARAN TIDAK DIUBAH
-   * DARI FORM EDIT.
-   *
-   * dp_amount juga tidak disentuh.
-   */
 
-  remaining_amount:
-    newRemaining,
+// Status DP tetap mengikuti data yang tersimpan.
+dp_status:
+  newDpStatus,
+
+// Status pembayaran diperbarui berdasarkan
+// total pembayaran aktual dan harga baru.
+payment_status:
+  newPaymentStatus,
+
+// Sisa dihitung dari harga baru dikurangi
+// total pembayaran aktual.
+remaining_amount:
+  newRemaining,
 
   customer_status:
     document
