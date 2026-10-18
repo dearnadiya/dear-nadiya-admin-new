@@ -44536,6 +44536,17 @@ if (
         totalPrice
       );
 
+     console.log(
+  "DEBUG EDIT BATCH PAYMENT:",
+  {
+    recapId: row.id,
+    customer: row.customer_name,
+    totalPrice,
+    totalDp,
+    paymentSummary
+  }
+);
+
     if (
       paymentSummary.error
     ) {
