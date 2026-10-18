@@ -44492,69 +44492,147 @@ const updateData = {
     newArrivedAdminAt
 };
          
-/* ======================================
+
+/* ==========================================
    HARGA & DP HEADER
    PER CUSTOMER SESUAI QUANTITY
-   ====================================== */
+   HITUNG ULANG TAGIHAN DARI PAYMENT CONFIRMED
+   ========================================== */
 
 if (
   newPrice !== null &&
   newDp !== null
 ) {
 
-  const headerPrice =
-    newPrice;
+  const headerPrice = newPrice;
+  const headerDp = newDp;
 
-  const headerDp =
-    newDp;
+  const preparedPriceUpdates = [];
 
-  for (
-    const row of data
-  ) {
+  /*
+   * TAHAP 1:
+   * Baca riwayat dan hitung semua customer
+   * sebelum melakukan update harga.
+   */
+  for (const row of data) {
+
     const quantity =
       Number(row.quantity) || 1;
 
     const totalPrice =
       Math.round(
-        headerPrice *
-        quantity
+        headerPrice * quantity
       );
 
     const totalDp =
       Math.round(
-        headerDp *
-        quantity
+        headerDp * quantity
       );
+
+    const paymentSummary =
+      await getConfirmedPaymentSummary(
+        row.id,
+        totalDp,
+        totalPrice
+      );
+
+    if (
+      paymentSummary.error
+    ) {
+
+      console.error(
+        "GAGAL MEMBACA RIWAYAT PEMBAYARAN:",
+        row.id,
+        paymentSummary.error
+      );
+
+      message.textContent =
+        "Perubahan dibatalkan. Riwayat pembayaran customer " +
+        (row.customer_name || row.id) +
+        " gagal dibaca: " +
+        paymentSummary.error.message;
+
+      return;
+    }
+
+    const totalPaid =
+      Number(paymentSummary.totalPaid) || 0;
+
+    const remainingAmount =
+      Math.max(
+        totalPrice - totalPaid,
+        0
+      );
+
+    /*
+     * Status lunas berdasarkan total pembayaran
+     * terkonfirmasi terhadap harga baru.
+     *
+     * dp_status dan dp_amount tidak diubah.
+     */
+    const paymentStatus =
+      totalPrice > 0 &&
+      totalPaid >= totalPrice
+        ? "paid"
+        : "unpaid";
+
+    preparedPriceUpdates.push({
+      id: row.id,
+      customerName: row.customer_name,
+      itemPrice: totalPrice,
+      minimumDpAmount: totalDp,
+      remainingAmount: remainingAmount,
+      paymentStatus: paymentStatus
+    });
+
+  }
+
+
+  /*
+   * TAHAP 2:
+   * Setelah seluruh riwayat berhasil dibaca,
+   * simpan perubahan harga dan tagihan.
+   */
+  for (
+    const item of preparedPriceUpdates
+  ) {
 
     const {
       error: priceDpError
-    } =
-      await supabaseClient
-        .from("purchase_recap")
-        .update({
-          item_price:
-            totalPrice,
+    } = await supabaseClient
+      .from("purchase_recap")
+      .update({
+        item_price:
+          item.itemPrice,
 
-          minimum_dp_amount:
-            totalDp
-        })
-        .eq(
-          "id",
-          row.id
-        );
+        minimum_dp_amount:
+          item.minimumDpAmount,
+
+        remaining_amount:
+          item.remainingAmount,
+
+        payment_status:
+          item.paymentStatus
+      })
+      .eq(
+        "id",
+        item.id
+      );
 
     if (
       priceDpError
     ) {
 
       console.error(
-        "ERROR UPDATE HARGA DP CUSTOMER:",
-        row.id,
+        "ERROR UPDATE HARGA DAN TAGIHAN CUSTOMER:",
+        item.id,
         priceDpError
       );
 
       message.textContent =
-        "Gagal mengubah harga/DP customer: " +
+        "Gagal memperbarui tagihan customer " +
+        (item.customerName || item.id) +
+        ": " +
         priceDpError.message;
 
       return;
@@ -44563,6 +44641,7 @@ if (
   }
 
 }
+
 
 const {
   error: updateError
