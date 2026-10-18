@@ -36997,14 +36997,11 @@ if (!hasConfirmedDpAllocation) {
 
 }
 
-   /* ==========================================
-   REKAP GO - ATURAN PEMBAYARAN SEDERHANA
-
-   DP = NOMINAL DP MINIMUM
-   BUKAN jumlah uang yang sudah ditransfer.
-
-   Status pembayaran tetap berasal dari
-   status admin / payment system.
+   
+/* ==========================================
+   REKAP GO - NILAI PEMBAYARAN AKTUAL
+   Gunakan hasil perhitungan riwayat pembayaran
+   yang sudah dilakukan di atas.
    ========================================== */
 
 const fixedDp =
@@ -37015,7 +37012,7 @@ const fixedDp =
 
 
 /* ==========================================
-   STATUS ADMIN / PAYMENT SYSTEM
+   PERTAHANKAN STATUS PEMBAYARAN
    ========================================== */
 
 const finalDpStatus =
@@ -37028,90 +37025,58 @@ const finalPaymentStatus =
 
 
 /* ==========================================
-   PELUNASAN
-
-   Kalau sudah LUNAS:
-   Pelunasan = Harga - DP
-
-   Kalau belum:
-   Pelunasan = 0
+   TOTAL DP DAN PELUNASAN TERBAYAR
+   Gunakan hasil hitung sebelumnya.
+   Jangan menentukan pelunasan hanya dari
+   payment_status === "paid".
    ========================================== */
 
-let finalPelunasanPaid =
-  0;
-
-if (
-  finalPaymentStatus ===
-  "paid"
-) {
-
-  finalPelunasanPaid =
+const finalDpPaid =
+  Math.min(
     Math.max(
-      price -
-      fixedDp,
+      Number(totalDpPaid) || 0,
       0
-    );
+    ),
+    price
+  );
 
-}
-
-
-/* ==========================================
-   TOTAL TERBAYAR
-
-   DP dianggap terbayar hanya jika
-   status DP = paid.
-
-   Kalau langsung LUNAS,
-   otomatis seluruh harga dianggap
-   sudah dibayar.
-   ========================================== */
-
-let finalTotalPaid =
-  0;
-
-
-if (
-  finalPaymentStatus ===
-  "paid"
-) {
-
-  finalTotalPaid =
-    price;
-
-}
-
-else if (
-  finalDpStatus ===
-  "paid"
-) {
-
-  finalTotalPaid =
-    fixedDp;
-
-}
+const finalPelunasanPaid =
+  Math.min(
+    Math.max(
+      Number(totalPelunasanPaid) || 0,
+      0
+    ),
+    Math.max(
+      price - finalDpPaid,
+      0
+    )
+  );
 
 
 /* ==========================================
-   SISA
+   TOTAL TERBAYAR DAN SISA TAGIHAN
    ========================================== */
+
+const finalTotalPaid =
+  Math.min(
+    price,
+    finalDpPaid + finalPelunasanPaid
+  );
 
 const finalRemaining =
   Math.max(
-    price -
-    finalTotalPaid,
+    price - finalTotalPaid,
     0
   );
 
+
 /* ==========================================
-   GUNAKAN NILAI FINAL
-   PEMULIHAN LOGIKA REKAP GO
+   SIMPAN RINGKASAN UNTUK TAMPILAN REKAP GO
    ========================================== */
 
 recapPaymentSummary[recapId] = {
   totalDpPaid:
-    finalDpStatus === "paid"
-      ? fixedDp
-      : 0,
+    finalDpPaid,
 
   totalPelunasanPaid:
     finalPelunasanPaid,
@@ -37131,19 +37096,26 @@ recapPaymentSummary[recapId] = {
 
 
 /* ==========================================
-   TAMPILAN REKAP GO
+   NILAI YANG DIPAKAI OLEH TAMPILAN
    ========================================== */
 
-row.dp_amount = fixedDp;
+row.dp_amount =
+  fixedDp;
 
-row.dp_status = finalDpStatus;
-row.payment_status = finalPaymentStatus;
+row.dp_status =
+  finalDpStatus;
 
-row._pelunasan_paid = finalPelunasanPaid;
+row.payment_status =
+  finalPaymentStatus;
 
-row.remaining_amount = finalRemaining;
+row._pelunasan_paid =
+  finalPelunasanPaid;
 
-row._total_paid = finalTotalPaid;
+row.remaining_amount =
+  finalRemaining;
+
+row._total_paid =
+  finalTotalPaid;
  
   });
 
@@ -44535,17 +44507,6 @@ if (
         totalDp,
         totalPrice
       );
-
-     console.log(
-  "DEBUG EDIT BATCH PAYMENT:",
-  {
-    recapId: row.id,
-    customer: row.customer_name,
-    totalPrice,
-    totalDp,
-    paymentSummary
-  }
-);
 
     if (
       paymentSummary.error
