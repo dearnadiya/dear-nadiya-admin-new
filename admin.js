@@ -13991,35 +13991,36 @@ ${paymentTypeDisplay}
   "
 >
   <label
-    style="
-      display:block;
-      margin-bottom:5px;
-      font-size:11px;
-      font-weight:600;
-      color:#604752;
-    "
-  >
-    Nominal pembayaran yang diterima Admin
-  </label>
+  style="
+    display:block;
+    margin-bottom:5px;
+    font-size:11px;
+    font-weight:600;
+    color:#604752;
+  "
+>
+  Nominal pembayaran yang diterima Admin
+</label>
 
-  <input
-    type="number"
-    id="paymentVerifiedAmount"
-    min="0"
-    step="1000"
-    value="${Number(payment.verified_amount ?? payment.amount) || 0}"
-    style="
-      width:100%;
-      box-sizing:border-box;
-      padding:10px;
-      border:1px solid var(--line);
-      border-radius:9px;
-      background:#fff;
-      font-family:inherit;
-      font-size:13px;
-      font-weight:600;
-    "
-  >
+<input
+  type="text"
+  inputmode="numeric"
+  autocomplete="off"
+  id="paymentVerifiedAmount"
+  class="currency-input"
+  value="${Number(payment.verified_amount ?? payment.amount) || ""}"
+  style="
+    width:100%;
+    box-sizing:border-box;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:#fff;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+  "
+>
 
   <div
     style="
@@ -14204,8 +14205,7 @@ ${paymentTypeDisplay}
     document.body.appendChild(
     modal
   );
-
-
+   
   /* ================================
      TAMPILKAN BUKTI TRANSFER
      ================================ */
@@ -14711,9 +14711,9 @@ else if (
 
 const paymentAmount =
   verifiedAmountElement
-    ? Number(
-        verifiedAmountElement.value
-      ) || 0
+    ? parseNominalInput(
+  verifiedAmountElement.value
+)
     : Number(
         payment.amount
       ) || 0;
@@ -14777,9 +14777,9 @@ function autoAllocatePayment() {
 
   let availableAmount =
     verifiedAmountElement
-      ? Number(
-          verifiedAmountElement.value
-        ) || 0
+      ? parseNominalInput(
+  verifiedAmountElement.value
+)
       : Number(
           payment.amount
         ) || 0;
@@ -15282,9 +15282,9 @@ const button = this;
 
 const paymentAmount =
   verifiedAmountElement
-    ? Number(
-        verifiedAmountElement.value
-      ) || 0
+    ? parseNominalInput(
+  verifiedAmountElement.value
+)
     : Number(
         payment.amount
       ) || 0;
