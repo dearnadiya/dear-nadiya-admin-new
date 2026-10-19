@@ -993,12 +993,6 @@ async function showResellerBatchForm() {
           </div>
 
           <div class="form-group">
-            <label>Nama Batch</label>
-            <input id="resellerBatchName" required
-              placeholder="Contoh: Treasure Album">
-          </div>
-
-          <div class="form-group">
             <label>Nama Barang</label>
             <input id="resellerBatchItemName" required
               placeholder="Nama barang">
@@ -1291,7 +1285,6 @@ async function showResellerBatchForm() {
     const saveButton = form.querySelector('button[type="submit"]');
 
     const batchCode = document.getElementById("resellerBatchCode").value.trim();
-    const batchName = document.getElementById("resellerBatchName").value.trim();
     const itemName = document.getElementById("resellerBatchItemName").value.trim();
     const priceMode = document.getElementById("resellerPriceMode").value;
     const notes = document.getElementById("resellerBatchNotes").value.trim();
@@ -1320,7 +1313,7 @@ async function showResellerBatchForm() {
       };
     });
 
-    if (!batchCode || !batchName || !itemName) {
+    if (!batchCode || !itemName) {
       message.textContent = "Lengkapi kode batch, nama batch, dan nama barang.";
       return;
     }
@@ -1355,8 +1348,8 @@ async function showResellerBatchForm() {
         .from("dn_reseller_batches")
         .insert({
           batch_code: batchCode,
-          batch_name: batchName,
-          item_name: itemName,
+          batch_name: itemName,
+item_name: itemName,
           price_mode: priceMode,
           common_item_price: priceMode === "same"
             ? parseNominalInput(
