@@ -812,7 +812,7 @@ async function renderResellerBatchList() {
     .from("dn_reseller_batches")
     .select(`
       id,
-      reseller_id,
+      customer_id,
       batch_code,
       batch_name,
       item_name,
@@ -835,27 +835,33 @@ async function renderResellerBatchList() {
     return;
   }
 
-  const {
-    data: resellers,
-    error: resellerError
-  } = await supabaseClient
-    .from("dn_resellers")
-    .select("id, reseller_name")
-    .order("reseller_name", { ascending: true });
+ 
+const {
+  data: customers,
+  error: customerError
+} = await supabaseClient
+  .from("customers")
+  .select("id, dn_id, name, username_wa")
+  .order("name", { ascending: true });
 
-  if (resellerError) {
-    console.error("Gagal memuat reseller:", resellerError);
-    container.textContent =
-      "Gagal memuat data reseller: " + resellerError.message;
-    return;
-  }
+if (customerError) {
+  console.error("Gagal memuat Data Customer:", customerError);
 
-  const resellerMap = {};
+  container.textContent =
+    "Gagal memuat Data Customer: " + customerError.message;
 
-  (resellers || []).forEach(function(reseller) {
-    resellerMap[Number(reseller.id)] =
-      reseller.reseller_name;
-  });
+  return;
+}
+
+const customerMap = {};
+
+(customers || []).forEach(function(customer) {
+  customerMap[Number(customer.id)] = [
+    customer.dn_id,
+    customer.name,
+    customer.username_wa
+  ].filter(Boolean).join(" · ");
+});
 
   if (!batches || !batches.length) {
     container.innerHTML = `
@@ -887,7 +893,7 @@ async function renderResellerBatchList() {
         ">
           <div>
             <div style="font-size:12px;color:#777">
-              ${escapeHTML(resellerMap[Number(batch.reseller_id)] || "Reseller tidak ditemukan")}
+              ${escapeHTML(customerMap[Number(batch.customer_id)] || "Customer tidak ditemukan")}
             </div>
 
             <h3 style="margin:5px 0">
@@ -938,6 +944,7 @@ async function renderResellerBatchList() {
    FORM BUAT BATCH RESELLER MANUAL
    ============================================ */
 
+
 async function showResellerBatchForm() {
   const container = document.getElementById(
     "resellerBatchFormContainer"
@@ -946,23 +953,21 @@ async function showResellerBatchForm() {
   if (!container) return;
 
   const {
-    data: resellers,
+    data: customers,
     error
   } = await supabaseClient
-    .from("dn_resellers")
-    .select("id, reseller_name")
-    .eq("is_active", true)
-    .order("reseller_name", { ascending: true });
+    .from("customers")
+    .select("id, dn_id, name, username_wa")
+    .order("name", { ascending: true });
 
   if (error) {
-    alert("Gagal memuat daftar reseller:\n" + error.message);
+    console.error("Gagal memuat Data Customer:", error);
+    alert("Gagal memuat Data Customer:\n" + error.message);
     return;
   }
 
-  if (!resellers || !resellers.length) {
-    alert(
-      "Belum ada reseller aktif. Tambahkan data reseller terlebih dahulu."
-    );
+  if (!customers || !customers.length) {
+    alert("Data Customer masih kosong.");
     return;
   }
 
@@ -972,13 +977,20 @@ async function showResellerBatchForm() {
 
       <form id="resellerBatchForm">
         <div class="form-group">
-          <label>Reseller</label>
-          <select id="resellerBatchResellerId" required>
-            <option value="">Pilih reseller</option>
-            ${resellers.map(function(reseller) {
+          <label>Customer / Reseller</label>
+          <select id="resellerBatchCustomerId" required>
+            <option value="">Pilih customer</option>
+
+            ${customers.map(function(customer) {
+              const identity = [
+                customer.dn_id,
+                customer.name,
+                customer.username_wa
+              ].filter(Boolean).join(" · ");
+
               return `
-                <option value="${Number(reseller.id)}">
-                  ${escapeHTML(reseller.reseller_name)}
+                <option value="${Number(customer.id)}">
+                  ${escapeHTML(identity)}
                 </option>
               `;
             }).join("")}
@@ -1000,7 +1012,7 @@ async function showResellerBatchForm() {
             <input
               id="resellerBatchName"
               required
-              placeholder="Contoh: Album Treasure Oktober"
+              placeholder="Contoh: Album Treasure"
             >
           </div>
 
@@ -1035,6 +1047,7 @@ async function showResellerBatchForm() {
           <button type="submit" class="primary-button">
             Simpan Batch
           </button>
+
           <button
             type="button"
             class="secondary-button"
@@ -1044,8 +1057,10 @@ async function showResellerBatchForm() {
           </button>
         </div>
 
-        <p id="resellerBatchFormMessage"
-          style="font-size:13px;color:#777"></p>
+        <p
+          id="resellerBatchFormMessage"
+          style="font-size:13px;color:#777"
+        ></p>
       </form>
     </div>
   `;
@@ -1061,34 +1076,42 @@ async function showResellerBatchForm() {
     ?.addEventListener("submit", async function(event) {
       event.preventDefault();
 
-      const saveButton = this.querySelector(
+      const form = this;
+      const saveButton = form.querySelector(
         'button[type="submit"]'
       );
       const message = document.getElementById(
         "resellerBatchFormMessage"
       );
 
-      const resellerId = Number(
-        document.getElementById("resellerBatchResellerId").value
+      const customerId = Number(
+        document.getElementById(
+          "resellerBatchCustomerId"
+        ).value
       );
+
       const batchCode = document.getElementById(
         "resellerBatchCode"
       ).value.trim();
+
       const batchName = document.getElementById(
         "resellerBatchName"
       ).value.trim();
+
       const itemName = document.getElementById(
         "resellerBatchItemName"
       ).value.trim();
+
       const version = document.getElementById(
         "resellerBatchVersion"
       ).value.trim();
+
       const notes = document.getElementById(
         "resellerBatchNotes"
       ).value.trim();
 
-      if (!resellerId || !batchCode || !batchName || !itemName) {
-        alert("Lengkapi reseller, kode batch, nama batch, dan nama barang.");
+      if (!customerId || !batchCode || !batchName || !itemName) {
+        alert("Lengkapi customer, kode batch, nama batch, dan nama barang.");
         return;
       }
 
@@ -1100,7 +1123,7 @@ async function showResellerBatchForm() {
       } = await supabaseClient
         .from("dn_reseller_batches")
         .insert({
-          reseller_id: resellerId,
+          customer_id: customerId,
           batch_code: batchCode,
           batch_name: batchName,
           item_name: itemName,
@@ -1113,15 +1136,10 @@ async function showResellerBatchForm() {
       if (saveError) {
         console.error("Gagal menyimpan batch reseller:", saveError);
 
-        if (
+        message.textContent =
           saveError.code === "23505"
-        ) {
-          message.textContent =
-            "Kode batch tersebut sudah digunakan untuk reseller ini.";
-        } else {
-          message.textContent =
-            "Gagal menyimpan batch: " + saveError.message;
-        }
+            ? "Kode batch ini sudah digunakan untuk reseller tersebut."
+            : "Gagal menyimpan batch: " + saveError.message;
 
         saveButton.disabled = false;
         saveButton.textContent = "Simpan Batch";
@@ -1134,7 +1152,6 @@ async function showResellerBatchForm() {
       await renderResellerBatchList();
     });
 }
-
 
 /* ============================================
    PEMBELIAN STOK
