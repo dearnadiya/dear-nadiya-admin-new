@@ -44535,14 +44535,6 @@ if (newStockSource !== "multi_seller") {
     newArrivedAdminAt;
 }
 
-  co_deadline:
-    newCoDeadline,
-
-  arrived_admin_at:
-    newArrivedAdminAt
-};
-         
-
 /* ==========================================
    HARGA & DP HEADER
    PER CUSTOMER SESUAI QUANTITY
