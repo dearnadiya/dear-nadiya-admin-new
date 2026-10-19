@@ -3844,6 +3844,112 @@ async function showPurchaseStockAllocationForm(
     return;
   }
 
+   
+  /* ==========================================
+     DATA BATCH RESELLER DAN DETAIL CUSTOMER
+     ========================================== */
+
+  const {
+    data: resellerBatches,
+    error: resellerBatchError
+  } = await supabaseClient
+    .from("dn_reseller_batches")
+    .select("id, batch_code, batch_name, item_name")
+    .order("created_at", { ascending: false });
+
+  if (resellerBatchError) {
+    alert(
+      "Gagal mengambil batch reseller:\n" +
+      resellerBatchError.message
+    );
+    return;
+  }
+
+  const {
+    data: resellerBatchItems,
+    error: resellerItemsError
+  } = await supabaseClient
+    .from("dn_reseller_batch_items")
+    .select(`
+      id,
+      batch_id,
+      customer_id,
+      version,
+      quantity
+    `)
+    .order("id", { ascending: true });
+
+  if (resellerItemsError) {
+    alert(
+      "Gagal mengambil detail batch reseller:\n" +
+      resellerItemsError.message
+    );
+    return;
+  }
+
+  const {
+    data: resellerCustomers,
+    error: resellerCustomersError
+  } = await supabaseClient
+    .from("customers")
+    .select("id, dn_id, name")
+    .order("name", { ascending: true });
+
+  if (resellerCustomersError) {
+    alert(
+      "Gagal mengambil customer reseller:\n" +
+      resellerCustomersError.message
+    );
+    return;
+  }
+
+  const resellerBatchMap = new Map(
+    (resellerBatches || []).map(function(batch) {
+      return [Number(batch.id), batch];
+    })
+  );
+
+  const resellerCustomerMap = new Map(
+    (resellerCustomers || []).map(function(customer) {
+      return [Number(customer.id), customer];
+    })
+  );
+
+  const resellerBatchItemOptions = (
+    resellerBatchItems || []
+  ).map(function(item) {
+    const batch = resellerBatchMap.get(
+      Number(item.batch_id)
+    );
+
+    const customer = resellerCustomerMap.get(
+      Number(item.customer_id)
+    );
+
+    if (!batch || !customer) {
+      return null;
+    }
+
+    const customerLabel = [
+      customer.dn_id,
+      customer.name,
+      item.version
+    ].filter(Boolean).join(" · ");
+
+    return {
+      id: Number(item.id),
+      batchId: Number(item.batch_id),
+      label:
+        batch.batch_code +
+        " — " +
+        (batch.batch_name || batch.item_name || "") +
+        " | " +
+        customerLabel,
+      customerName: customer.name,
+      batchCode: batch.batch_code
+    };
+  }).filter(Boolean);
+
 
   /* ==========================================
      2. DATA REKAP GO
@@ -3969,7 +4075,8 @@ console.table(
   batch_code,
   quantity,
   allocation_note,
-  purchase_recap_id
+  purchase_recap_id,
+  reseller_batch_item_id
 `)
     .eq(
       "purchase_stock_id",
@@ -5068,78 +5175,43 @@ allocationGrid.style.gridTemplateColumns =
        RESELLER
        ====================================== */
 
-    if (
-  type === "Reseller"
-) {
+   
+if (type === "Reseller") {
+  allocationGrid.style.gridTemplateColumns =
+    "repeat(4, minmax(0, 1fr))";
 
- allocationGrid.style.gridTemplateColumns =
-  "repeat(4, minmax(0, 1fr))";
+  const selectedItemId =
+    Number(allocation.reseller_batch_item_id || 0);
 
+  dynamicContainer.innerHTML = `
+    <label>
+      <div style="
+        margin-bottom:5px;
+        font-size:13px;
+        font-weight:600;
+      ">
+        Batch / Customer Reseller
+      </div>
 
-      dynamicContainer.innerHTML = `
+      <select
+        class="purchase-allocation-reseller-item"
+        style="width:100%;"
+      >
+        <option value="">Pilih batch dan customer</option>
 
-        <label>
+        ${resellerBatchItemOptions.map(function(item) {
+          return optionHTML(
+            String(item.id),
+            item.label,
+            item.id === selectedItemId
+          );
+        }).join("")}
+      </select>
+    </label>
+  `;
 
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Nama Reseller
-          </div>
-
-          <input
-            type="text"
-            class="purchase-allocation-reseller-name"
-            value="${escapeHTML(
-              allocation.reseller_name || ""
-            )}"
-            placeholder="Nama reseller"
-            style="width:100%;"
-          >
-
-        </label>
-
-
-        <label>
-
-          <div
-            style="
-              margin-bottom:5px;
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            Harga Jual
-          </div>
-
-          <input
-            type="text"
-            class="
-              purchase-allocation-selling-price
-              currency-input
-            "
-            value="${
-              allocation.selling_price !== null &&
-              allocation.selling_price !== undefined
-                ? formatNominalInput(
-                    allocation.selling_price
-                  )
-                : ""
-            }"
-            placeholder="Harga jual"
-            style="width:100%;"
-          >
-
-        </label>
-
-      `;
-
-      return;
-    }
-
+  return;
+}
 
     /* ======================================
        REKAP GO
@@ -6558,94 +6630,50 @@ for (
      RESELLER
      ==================================== */
 
-  if (
-    allocationType ===
-    "Reseller"
-  ) {
+  
+if (allocationType === "Reseller") {
+  const resellerItemSelect = row.querySelector(
+    ".purchase-allocation-reseller-item"
+  );
 
-    const resellerName =
-      row
-        .querySelector(
-          ".purchase-allocation-reseller-name"
-        )
-        ?.value
-        .trim() || "";
+  const resellerBatchItemId = Number(
+    resellerItemSelect?.value || 0
+  );
 
-
-    const sellingPrice =
-      parseNominalInput(
-        row
-          .querySelector(
-            ".purchase-allocation-selling-price"
-          )
-          ?.value || ""
-      );
-
-
-    if (!resellerName) {
-
-      alert(
-        "Silakan isi Nama Reseller."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      sellingPrice <= 0
-    ) {
-
-      alert(
-        "Silakan isi Harga Jual Reseller."
-      );
-
-      return;
-
-    }
-
-
-    allocationItems.push({
-
-      id:
-        row.dataset.id
-          ? Number(
-              row.dataset.id
-            )
-          : null,
-
-      allocation_type:
-        "Reseller",
-
-      reseller_name:
-        resellerName,
-
-      selling_price:
-        sellingPrice,
-
-      recap_type:
-        null,
-
-      category:
-        null,
-
-      batch_code:
-        null,
-
-      quantity:
-        quantity,
-
-      allocation_note:
-        null
-
+  const selectedResellerItem =
+    resellerBatchItemOptions.find(function(item) {
+      return item.id === resellerBatchItemId;
     });
 
-
-    continue;
-
+  if (!selectedResellerItem) {
+    alert(
+      "Pilih batch dan customer pada alokasi Reseller."
+    );
+    return;
   }
 
+  allocationItems.push({
+    id: row.dataset.id
+      ? Number(row.dataset.id)
+      : null,
+
+    allocation_type: "Reseller",
+    reseller_name: selectedResellerItem.customerName,
+    selling_price: null,
+
+    reseller_batch_item_id: resellerBatchItemId,
+
+    recap_type: null,
+    category: null,
+    batch_code: selectedResellerItem.batchCode,
+    purchase_recap_id: null,
+
+    quantity: quantity,
+    allocation_note: null
+  });
+
+  continue;
+}
 
   /* ====================================
      REKAP GO
