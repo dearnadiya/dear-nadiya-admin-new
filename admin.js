@@ -944,7 +944,6 @@ const customerMap = {};
    FORM BUAT BATCH RESELLER MANUAL
    ============================================ */
 
-
 async function showResellerBatchForm() {
   const container = document.getElementById(
     "resellerBatchFormContainer"
@@ -952,10 +951,7 @@ async function showResellerBatchForm() {
 
   if (!container) return;
 
-  const {
-    data: customers,
-    error
-  } = await supabaseClient
+  const { data: customers, error } = await supabaseClient
     .from("customers")
     .select("id, dn_id, name, username_wa")
     .order("name", { ascending: true });
@@ -971,186 +967,449 @@ async function showResellerBatchForm() {
     return;
   }
 
+  const customerOptions = customers.map(function(customer) {
+    const label = [
+      customer.dn_id,
+      customer.name,
+      customer.username_wa
+    ].filter(Boolean).join(" · ");
+
+    return {
+      id: Number(customer.id),
+      label: label
+    };
+  });
+
   container.innerHTML = `
     <div class="panel" style="padding:20px;margin-bottom:18px">
-      <h3 style="margin-top:0">＋ Buat Batch Reseller</h3>
+      <h3>＋ Buat Batch Reseller</h3>
 
       <form id="resellerBatchForm">
-        <div class="form-group">
-          <label>Customer / Reseller</label>
-          <select id="resellerBatchCustomerId" required>
-            <option value="">Pilih customer</option>
-
-            ${customers.map(function(customer) {
-              const identity = [
-                customer.dn_id,
-                customer.name,
-                customer.username_wa
-              ].filter(Boolean).join(" · ");
-
-              return `
-                <option value="${Number(customer.id)}">
-                  ${escapeHTML(identity)}
-                </option>
-              `;
-            }).join("")}
-          </select>
-        </div>
-
         <div class="form-grid">
           <div class="form-group">
             <label>Kode Batch</label>
-            <input
-              id="resellerBatchCode"
-              required
-              placeholder="Contoh: RS-TRZ-001"
-            >
+            <input id="resellerBatchCode" required
+              placeholder="Contoh: RS-TRZ-001">
           </div>
 
           <div class="form-group">
             <label>Nama Batch</label>
-            <input
-              id="resellerBatchName"
-              required
-              placeholder="Contoh: Album Treasure"
-            >
+            <input id="resellerBatchName" required
+              placeholder="Contoh: Treasure Album">
           </div>
 
           <div class="form-group">
             <label>Nama Barang</label>
-            <input
-              id="resellerBatchItemName"
-              required
-              placeholder="Nama barang"
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Versi / Member</label>
-            <input
-              id="resellerBatchVersion"
-              placeholder="Opsional"
-            >
+            <input id="resellerBatchItemName" required
+              placeholder="Nama barang">
           </div>
         </div>
 
         <div class="form-group">
-          <label>Catatan</label>
-          <textarea
-            id="resellerBatchNotes"
-            rows="2"
-            placeholder="Catatan batch (opsional)"
-          ></textarea>
+          <label>Tipe Harga</label>
+          <select id="resellerPriceMode">
+            <option value="same">Harga Sama untuk Semua Reseller</option>
+            <option value="different">Harga Berbeda per Reseller</option>
+          </select>
+        </div>
+
+        <div id="resellerCommonPriceFields">
+          <h4>Harga Batch</h4>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Harga Satuan</label>
+              <input id="resellerCommonPrice"
+                class="currency-input" inputmode="numeric"
+                placeholder="50.000">
+            </div>
+
+            <div class="form-group">
+              <label>DP Satuan</label>
+              <input id="resellerCommonDp"
+                class="currency-input" inputmode="numeric"
+                placeholder="20.000">
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <h4>Reseller / Customer</h4>
+        <div id="resellerBatchItems"></div>
+
+        <button type="button" class="secondary-button"
+          id="addResellerBatchItem">
+          ＋ Tambah Reseller / Versi
+        </button>
+
+        <hr>
+        <div class="form-group">
+          <label>Catatan Batch</label>
+          <textarea id="resellerBatchNotes" rows="2"></textarea>
         </div>
 
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="submit" class="primary-button">
             Simpan Batch
           </button>
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="cancelResellerBatchButton"
-          >
+          <button type="button" class="secondary-button"
+            id="cancelResellerBatchButton">
             Batal
           </button>
         </div>
 
-        <p
-          id="resellerBatchFormMessage"
-          style="font-size:13px;color:#777"
-        ></p>
+        <p id="resellerBatchFormMessage"
+          style="font-size:13px;color:#777"></p>
       </form>
     </div>
   `;
 
-  document
-    .getElementById("cancelResellerBatchButton")
-    ?.addEventListener("click", function() {
-      container.innerHTML = "";
-    });
+  const form = document.getElementById("resellerBatchForm");
+  const itemsContainer = document.getElementById("resellerBatchItems");
 
-  document
-    .getElementById("resellerBatchForm")
-    ?.addEventListener("submit", async function(event) {
-      event.preventDefault();
+  function rupiah(value) {
+    return formatNominalInput(value);
+  }
 
-      const form = this;
-      const saveButton = form.querySelector(
-        'button[type="submit"]'
-      );
-      const message = document.getElementById(
-        "resellerBatchFormMessage"
-      );
+  function makeResellerItem() {
+    const item = document.createElement("div");
+    item.className = "panel reseller-batch-item";
+    item.style.cssText =
+      "padding:14px;margin:12px 0;border:1px solid #eee";
 
-      const customerId = Number(
-        document.getElementById(
-          "resellerBatchCustomerId"
-        ).value
-      );
+    item.innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <strong>Reseller / Versi</strong>
+        <button type="button" class="secondary-button remove-reseller-item">
+          Hapus
+        </button>
+      </div>
 
-      const batchCode = document.getElementById(
-        "resellerBatchCode"
-      ).value.trim();
+      <div class="form-group" style="position:relative">
+        <label>Cari Customer (DN ID / Nama / Username WA)</label>
+        <input type="text" class="reseller-customer-search"
+          autocomplete="off" placeholder="Ketik untuk mencari..." required>
+        <input type="hidden" class="reseller-customer-id">
+        <div class="reseller-customer-results"
+          style="position:relative;z-index:10"></div>
+        <small class="reseller-selected-customer"></small>
+      </div>
 
-      const batchName = document.getElementById(
-        "resellerBatchName"
-      ).value.trim();
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Versi / Member</label>
+          <input class="reseller-version" placeholder="Contoh: Yoshi / Random / Set">
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" class="reseller-quantity"
+            min="1" step="1" value="1" required>
+        </div>
+      </div>
 
-      const itemName = document.getElementById(
-        "resellerBatchItemName"
-      ).value.trim();
+      <div class="reseller-different-price" style="display:none">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Harga Satuan</label>
+            <input class="reseller-unit-price currency-input"
+              inputmode="numeric" placeholder="Harga barang">
+          </div>
+          <div class="form-group">
+            <label>DP Satuan</label>
+            <input class="reseller-unit-dp currency-input"
+              inputmode="numeric" placeholder="DP barang">
+          </div>
+        </div>
+      </div>
 
-      const version = document.getElementById(
-        "resellerBatchVersion"
-      ).value.trim();
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Total Harga Barang</label>
+          <input class="reseller-total-price" readonly>
+        </div>
+        <div class="form-group">
+          <label>Total DP</label>
+          <input class="reseller-total-dp" readonly>
+        </div>
+        <div class="form-group">
+          <label>Sisa Harga Barang</label>
+          <input class="reseller-remaining" readonly>
+        </div>
+      </div>
 
-      const notes = document.getElementById(
-        "resellerBatchNotes"
-      ).value.trim();
+      <div class="form-group">
+        <label>Catatan Reseller</label>
+        <textarea class="reseller-item-notes" rows="2"></textarea>
+      </div>
+    `;
 
-      if (!customerId || !batchCode || !batchName || !itemName) {
-        alert("Lengkapi customer, kode batch, nama batch, dan nama barang.");
+    const search = item.querySelector(".reseller-customer-search");
+    const customerIdInput = item.querySelector(".reseller-customer-id");
+    const results = item.querySelector(".reseller-customer-results");
+    const selectedLabel = item.querySelector(".reseller-selected-customer");
+
+    function showResults() {
+      const query = search.value.trim().toLowerCase();
+      customerIdInput.value = "";
+      selectedLabel.textContent = "";
+
+      const matches = customerOptions.filter(function(customer) {
+        return customer.label.toLowerCase().includes(query);
+      }).slice(0, 20);
+
+      results.innerHTML = "";
+
+      if (!query) return;
+
+      if (!matches.length) {
+        results.innerHTML =
+          '<div style="padding:8px;color:#777">Customer tidak ditemukan.</div>';
         return;
       }
 
-      saveButton.disabled = true;
-      saveButton.textContent = "Menyimpan...";
+      matches.forEach(function(customer) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "secondary-button";
+        button.style.cssText =
+          "display:block;width:100%;text-align:left;margin-top:4px";
+        button.textContent = customer.label;
 
-      const {
-        error: saveError
-      } = await supabaseClient
+        button.addEventListener("click", function() {
+          search.value = customer.label;
+          customerIdInput.value = String(customer.id);
+          selectedLabel.textContent = "Customer terpilih: " + customer.label;
+          results.innerHTML = "";
+        });
+
+        results.appendChild(button);
+      });
+    }
+
+    search.addEventListener("input", showResults);
+
+    item.querySelector(".remove-reseller-item")
+      .addEventListener("click", function() {
+        item.remove();
+        updateAllTotals();
+      });
+
+    itemsContainer.appendChild(item);
+    return item;
+  }
+
+  function getUnitPrice(item) {
+    const mode = document.getElementById("resellerPriceMode").value;
+
+    if (mode === "same") {
+      return parseNominalInput(
+        document.getElementById("resellerCommonPrice").value
+      ) || 0;
+    }
+
+    return parseNominalInput(
+      item.querySelector(".reseller-unit-price").value
+    ) || 0;
+  }
+
+  function getUnitDp(item) {
+    const mode = document.getElementById("resellerPriceMode").value;
+
+    if (mode === "same") {
+      return parseNominalInput(
+        document.getElementById("resellerCommonDp").value
+      ) || 0;
+    }
+
+    return parseNominalInput(
+      item.querySelector(".reseller-unit-dp").value
+    ) || 0;
+  }
+
+  function updateAllTotals() {
+    const mode = document.getElementById("resellerPriceMode").value;
+
+    document.getElementById("resellerCommonPriceFields").style.display =
+      mode === "same" ? "" : "none";
+
+    itemsContainer.querySelectorAll(".reseller-batch-item")
+      .forEach(function(item) {
+        item.querySelector(".reseller-different-price").style.display =
+          mode === "different" ? "" : "none";
+
+        const quantity = Math.max(
+          1,
+          Number(item.querySelector(".reseller-quantity").value) || 1
+        );
+
+        const totalPrice = getUnitPrice(item) * quantity;
+        const totalDp = getUnitDp(item) * quantity;
+
+        item.querySelector(".reseller-total-price").value =
+          rupiah(totalPrice);
+
+        item.querySelector(".reseller-total-dp").value =
+          rupiah(totalDp);
+
+        item.querySelector(".reseller-remaining").value =
+          rupiah(Math.max(0, totalPrice - totalDp));
+      });
+  }
+
+  itemsContainer.addEventListener("input", function(event) {
+    if (event.target.matches(
+      ".reseller-quantity, .reseller-unit-price, .reseller-unit-dp"
+    )) {
+      updateAllTotals();
+    }
+  });
+
+  document.getElementById("resellerPriceMode")
+    .addEventListener("change", updateAllTotals);
+
+  ["resellerCommonPrice", "resellerCommonDp"].forEach(function(id) {
+    document.getElementById(id).addEventListener("input", updateAllTotals);
+  });
+
+  document.getElementById("addResellerBatchItem")
+    .addEventListener("click", function() {
+      makeResellerItem();
+      updateAllTotals();
+    });
+
+  document.getElementById("cancelResellerBatchButton")
+    .addEventListener("click", function() {
+      container.innerHTML = "";
+    });
+
+  makeResellerItem();
+
+  form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const message = document.getElementById("resellerBatchFormMessage");
+    const saveButton = form.querySelector('button[type="submit"]');
+
+    const batchCode = document.getElementById("resellerBatchCode").value.trim();
+    const batchName = document.getElementById("resellerBatchName").value.trim();
+    const itemName = document.getElementById("resellerBatchItemName").value.trim();
+    const priceMode = document.getElementById("resellerPriceMode").value;
+    const notes = document.getElementById("resellerBatchNotes").value.trim();
+
+    const items = Array.from(
+      itemsContainer.querySelectorAll(".reseller-batch-item")
+    ).map(function(item) {
+      const quantity = Number(item.querySelector(".reseller-quantity").value);
+      const customerId = Number(item.querySelector(".reseller-customer-id").value);
+      const unitPrice = getUnitPrice(item);
+      const unitDp = getUnitDp(item);
+
+      return {
+        customer_id: customerId,
+        version: item.querySelector(".reseller-version").value.trim() || null,
+        quantity: quantity,
+        item_price_total: unitPrice * quantity,
+        dp_amount: unitDp * quantity,
+        dp_status: "Belum Dibayar",
+        payment_status: "Belum Lunas",
+        item_paid: false,
+        reseller_item_total: unitPrice * quantity,
+        reseller_tax_total: 0,
+        reseller_tax_ready: false,
+        notes: item.querySelector(".reseller-item-notes").value.trim() || null
+      };
+    });
+
+    if (!batchCode || !batchName || !itemName) {
+      message.textContent = "Lengkapi kode batch, nama batch, dan nama barang.";
+      return;
+    }
+
+    if (!items.length || items.some(function(item) {
+      return !item.customer_id || !Number.isInteger(item.quantity) ||
+        item.quantity < 1 || item.dp_amount > item.item_price_total;
+    })) {
+      message.textContent =
+        "Pilih customer dari hasil pencarian, isi quantity, dan pastikan DP tidak melebihi total harga.";
+      return;
+    }
+
+    const customerIds = items.map(function(item) {
+      return item.customer_id;
+    });
+
+    if (new Set(customerIds).size !== customerIds.length) {
+      message.textContent =
+        "Customer yang sama tidak boleh ditambahkan dua kali pada batch ini. Gabungkan quantity atau gunakan versi berbeda dalam satu kartu.";
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Menyimpan...";
+    message.textContent = "Menyimpan batch dan detail reseller...";
+
+    let batchId = null;
+
+    try {
+      const { data: batch, error: batchError } = await supabaseClient
         .from("dn_reseller_batches")
         .insert({
-          customer_id: customerId,
           batch_code: batchCode,
           batch_name: batchName,
           item_name: itemName,
-          version: version || null,
+          price_mode: priceMode,
+          common_item_price: priceMode === "same"
+            ? parseNominalInput(
+                document.getElementById("resellerCommonPrice").value
+              ) || 0
+            : 0,
+          common_dp: priceMode === "same"
+            ? parseNominalInput(
+                document.getElementById("resellerCommonDp").value
+              ) || 0
+            : 0,
           notes: notes || null,
           tracking_status: "Co Web / Seller",
           co_status: "Belum CO"
-        });
+        })
+        .select("id")
+        .single();
 
-      if (saveError) {
-        console.error("Gagal menyimpan batch reseller:", saveError);
+      if (batchError) throw batchError;
+      batchId = batch.id;
 
-        message.textContent =
-          saveError.code === "23505"
-            ? "Kode batch ini sudah digunakan untuk reseller tersebut."
-            : "Gagal menyimpan batch: " + saveError.message;
+      const detailPayload = items.map(function(item) {
+        return {
+          ...item,
+          batch_id: batchId
+        };
+      });
 
-        saveButton.disabled = false;
-        saveButton.textContent = "Simpan Batch";
-        return;
+      const { error: detailError } = await supabaseClient
+        .from("dn_reseller_batch_items")
+        .insert(detailPayload);
+
+      if (detailError) {
+        // Jangan tinggalkan batch kosong jika penyimpanan detail gagal.
+        await supabaseClient
+          .from("dn_reseller_batches")
+          .delete()
+          .eq("id", batchId);
+
+        throw detailError;
       }
 
       alert("Batch reseller berhasil dibuat.");
       container.innerHTML = "";
-
       await renderResellerBatchList();
-    });
+
+    } catch (error) {
+      console.error("Gagal menyimpan batch reseller:", error);
+      message.textContent = "Gagal menyimpan batch: " + error.message;
+      saveButton.disabled = false;
+      saveButton.textContent = "Simpan Batch";
+    }
+  });
 }
 
 /* ============================================
