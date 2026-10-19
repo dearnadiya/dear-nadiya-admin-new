@@ -10199,10 +10199,6 @@ coRows.forEach(function(row) {
 const coCustomers = [
   ...coCustomerMap.values()
 ];
-      })
-      .filter(Boolean)
-  ).values()
-];
 
 const coList =
   document.getElementById(
