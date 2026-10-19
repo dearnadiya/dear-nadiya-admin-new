@@ -7567,6 +7567,7 @@ await renderPurchaseStockList();
 
 }
 
+
 /* =========================================================
    SYNC TRACKING PEMBELIAN STOK → REKAP GO
    ========================================================= */
@@ -7575,28 +7576,20 @@ async function syncPurchaseStockTrackingToRecap(
   purchaseStockId,
   trackingStatus
 ) {
-
   if (!purchaseStockId) {
     return;
   }
 
   try {
-
     /*
-       Cari allocation yang terhubung
-       dengan Pembelian Stok ini.
-
-       purchase_recap_id:
-       - NULL  = 1 Seller / batch-level
-       - ADA    = >1 Seller / customer-level
-    */
+     * Ambil semua allocation Rekap GO yang terhubung
+     * dengan Pembelian Stok ini.
+     */
     const {
       data: allocations,
       error: allocationError
     } = await supabaseClient
-
       .from("purchase_stock_allocation")
-
       .select(`
         purchase_stock_id,
         allocation_type,
@@ -7605,335 +7598,239 @@ async function syncPurchaseStockTrackingToRecap(
         batch_code,
         purchase_recap_id
       `)
-
-      .eq(
-        "purchase_stock_id",
-        purchaseStockId
-      )
-
-      .eq(
-        "allocation_type",
-        "Rekap GO"
-      );
-
+      .eq("purchase_stock_id", purchaseStockId)
+      .eq("allocation_type", "Rekap GO");
 
     if (allocationError) {
       throw allocationError;
     }
 
-
-    if (
-      !allocations ||
-      !allocations.length
-    ) {
-
+    if (!allocations || !allocations.length) {
       console.log(
         "Tidak ada allocation Rekap GO untuk purchase stock:",
         purchaseStockId
       );
-
       return;
     }
 
-
     /*
-       PROSES SETIAP ALOKASI
-    */
-    for (
-      const allocation
-      of allocations
-    ) {
+     * Proses setiap allocation.
+     */
+    for (const allocation of allocations) {
+      const category = String(
+        allocation.category || ""
+      ).trim();
 
-      const category =
-        String(
-          allocation.category || ""
-        ).trim();
-
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
+      const batchCode = String(
+        allocation.batch_code || ""
+      ).trim();
 
       const purchaseRecapId =
-        allocation.purchase_recap_id
-          ? Number(
-              allocation.purchase_recap_id
-            )
+        allocation.purchase_recap_id != null &&
+        allocation.purchase_recap_id !== ""
+          ? Number(allocation.purchase_recap_id)
           : null;
 
-
-      /*
-         Data dasar wajib ada
-      */
-      if (
-        !category ||
-        !batchCode
-      ) {
+      if (!category || !batchCode) {
+        console.warn(
+          "Allocation dilewati karena category/batch kosong:",
+          allocation
+        );
         continue;
       }
 
+      /*
+       * Ambil baris Rekap GO dalam batch untuk menentukan
+       * jenis sumber stok yang benar.
+       */
+      const {
+        data: batchRows,
+        error: batchRowsError
+      } = await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          stock_source,
+          batch_tracking_status,
+          arrived_admin_at,
+          co_deadline
+        `)
+        .eq("category", category)
+        .eq("batch_code", batchCode);
+
+      if (batchRowsError) {
+        throw batchRowsError;
+      }
+
+      if (!batchRows || !batchRows.length) {
+        console.warn(
+          "Batch Rekap GO tidak ditemukan:",
+          { category, batchCode }
+        );
+        continue;
+      }
 
       /*
-       =====================================================
-       >1 SELLER
-       =====================================================
+       * Pastikan sumber stok dalam batch konsisten.
+       * Jangan melakukan update jika satu batch berisi
+       * beberapa jenis stock_source yang berbeda.
+       */
+      const stockSources = [
+        ...new Set(
+          batchRows.map((row) =>
+            String(row.stock_source || "").trim()
+          )
+        )
+      ];
 
-       Jika purchase_recap_id ADA,
-       tracking hanya diberikan kepada
-       customer/version tersebut.
-      */
       if (
-        purchaseRecapId
+        stockSources.length !== 1 ||
+        !["ready", "seller", "multi_seller"].includes(
+          stockSources[0]
+        )
       ) {
+        console.warn(
+          "Sinkronisasi dilewati karena stock_source kosong/tidak konsisten:",
+          {
+            category,
+            batchCode,
+            stockSources
+          }
+        );
+        continue;
+      }
 
-         const {
-  data: existingRecap,
-  error: existingRecapError
-} = await supabaseClient
+      const stockSource = stockSources[0];
 
-  .from("purchase_recap")
+      /*
+       * JENIS 1: STOK READY
+       * Tracking berasal dari stok ready, bukan dari
+       * perubahan tracking Pembelian Stok.
+       */
+      if (stockSource === "ready") {
+        console.log(
+          "Sinkronisasi dilewati: Stok Ready.",
+          { category, batchCode }
+        );
+        continue;
+      }
 
-  .select(`
-    id,
-    batch_tracking_status,
-    arrived_admin_at,
-    co_deadline
-  `)
+      let targetRows = [];
 
-  .eq(
-    "id",
-    purchaseRecapId
-  )
+      /*
+       * JENIS 2: STOK SELLER
+       * Satu tracking berlaku untuk semua customer
+       * dalam batch yang sama, meskipun allocation
+       * memiliki purchase_recap_id.
+       */
+      if (stockSource === "seller") {
+        targetRows = batchRows;
+      }
 
-  .single();
+      /*
+       * JENIS 3: STOK MULTI SELLER
+       * Hanya update customer yang terhubung langsung
+       * melalui purchase_recap_id.
+       *
+       * Jika ID kosong atau tidak valid, jangan pernah
+       * fallback ke update seluruh batch.
+       */
+      if (stockSource === "multi_seller") {
+        if (
+          !Number.isInteger(purchaseRecapId) ||
+          purchaseRecapId <= 0
+        ) {
+          console.warn(
+            "Sinkronisasi Multi Seller dilewati karena purchase_recap_id kosong/tidak valid:",
+            {
+              purchaseStockId,
+              category,
+              batchCode
+            }
+          );
+          continue;
+        }
 
+        targetRows = batchRows.filter(
+          (row) => Number(row.id) === purchaseRecapId
+        );
 
-if (
-  existingRecapError
-) {
-  throw existingRecapError;
-}
+        if (!targetRows.length) {
+          console.warn(
+            "Customer Multi Seller tidak ditemukan dalam batch terkait:",
+            {
+              purchaseStockId,
+              purchaseRecapId,
+              category,
+              batchCode
+            }
+          );
+          continue;
+        }
+      }
 
+      /*
+       * Update tracking dan deadline untuk target yang
+       * memang berhak menerima perubahan.
+       */
+      for (const recapRow of targetRows) {
+        const updateData = {
+          batch_tracking_status: trackingStatus || null
+        };
 
-const updateData = {
-  batch_tracking_status:
-    trackingStatus || null
-};
+        /*
+         * Buat timestamp dan deadline +3 bulan hanya
+         * saat status baru berubah menjadi Arrived Admin.
+         * Jika sudah Arrived Admin, jangan reset.
+         */
+        if (
+          trackingStatus === "Arrived Admin" &&
+          recapRow.batch_tracking_status !== "Arrived Admin"
+        ) {
+          const now = new Date();
+          const deadline = new Date(now);
 
+          deadline.setMonth(deadline.getMonth() + 3);
 
-/*
- * Jika status BARU menjadi
- * Arrived Admin:
- *
- * simpan waktu Arrived Admin
- * dan deadline +3 bulan.
- *
- * Jika sudah pernah Arrived Admin,
- * jangan reset waktunya.
- */
+          updateData.arrived_admin_at = now.toISOString();
+          updateData.co_deadline = deadline.toISOString();
+        }
 
-if (
-  trackingStatus ===
-    "Arrived Admin" &&
-  existingRecap?.batch_tracking_status !==
-    "Arrived Admin"
-) {
+        const {
+          error: updateError
+        } = await supabaseClient
+          .from("purchase_recap")
+          .update(updateData)
+          .eq("id", recapRow.id);
 
-  const now =
-    new Date();
-
-  const deadline =
-    new Date(now);
-
-  deadline.setMonth(
-    deadline.getMonth() + 3
-  );
-
-  updateData.arrived_admin_at =
-    now.toISOString();
-
-  updateData.co_deadline =
-    deadline.toISOString();
-
-}
-
-
-const {
-  error: updateCustomerError
-} = await supabaseClient
-
-  .from("purchase_recap")
-
-  .update(
-    updateData
-  )
-
-  .eq(
-    "id",
-    purchaseRecapId
-  );
-
-
-if (
-  updateCustomerError
-) {
-  throw updateCustomerError;
-}
+        if (updateError) {
+          throw updateError;
+        }
 
         console.log(
-          "TRACKING CUSTOMER UPDATED:",
+          "TRACKING REKAP GO UPDATED:",
           {
             purchaseStockId,
-            purchaseRecapId,
+            stockSource,
+            purchaseRecapId: recapRow.id,
             category,
             batchCode,
             trackingStatus
           }
         );
-
-
-        continue;
       }
-
-
-      /*
-       =====================================================
-       1 SELLER
-       =====================================================
-
-       Jika purchase_recap_id NULL,
-       gunakan sistem lama:
-       tracking berlaku untuk seluruh batch.
-      */
-      const {
-  data: existingBatchRows,
-  error: existingBatchError
-} = await supabaseClient
-
-  .from("purchase_recap")
-
-  .select(`
-    id,
-    batch_tracking_status,
-    arrived_admin_at,
-    co_deadline
-  `)
-
-  .eq(
-    "category",
-    category
-  )
-
-  .eq(
-    "batch_code",
-    batchCode
-  );
-
-
-if (
-  existingBatchError
-) {
-  throw existingBatchError;
-}
-
-
-for (
-  const recapRow
-  of (
-    existingBatchRows || []
-  )
-) {
-
-  const updateBatchData = {
-    batch_tracking_status:
-      trackingStatus || null
-  };
-
-
-  /*
-   * Jika baris ini BARU menjadi
-   * Arrived Admin, buat timestamp
-   * dan deadline +3 bulan.
-   */
-
-  if (
-    trackingStatus ===
-      "Arrived Admin" &&
-    recapRow.batch_tracking_status !==
-      "Arrived Admin"
-  ) {
-
-    const now =
-      new Date();
-
-    const deadline =
-      new Date(now);
-
-    deadline.setMonth(
-      deadline.getMonth() + 3
-    );
-
-    updateBatchData.arrived_admin_at =
-      now.toISOString();
-
-    updateBatchData.co_deadline =
-      deadline.toISOString();
-
-  }
-
-
-  const {
-    error: updateBatchError
-  } = await supabaseClient
-
-    .from("purchase_recap")
-
-    .update(
-      updateBatchData
-    )
-
-    .eq(
-      "id",
-      recapRow.id
-    );
-
-
-  if (
-    updateBatchError
-  ) {
-    throw updateBatchError;
-  }
-
-}
-
-      console.log(
-        "TRACKING BATCH UPDATED:",
-        {
-          purchaseStockId,
-          category,
-          batchCode,
-          trackingStatus
-        }
-      );
-
     }
-
-  }
-  catch (error) {
-
+  } catch (error) {
     console.error(
       "Gagal sinkronisasi tracking Pembelian Stok → Rekap GO:",
       error
     );
 
     /*
-       Jangan menggagalkan penyimpanan
-       Pembelian Stok hanya karena
-       sinkronisasi tracking gagal.
-    */
-
+     * Jangan menggagalkan penyimpanan Pembelian Stok
+     * hanya karena sinkronisasi tracking gagal.
+     */
   }
-
 }
 
 /* ============================================
@@ -9947,7 +9844,7 @@ const orderDescription =
 
                   let paymentMessage =
 `Halo ${customerName} ♥
-Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan berikut masih memiliki sisa ${formatRupiah(totalCustomer)}.
+Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan untuk pesanan:
 
 • ${orderDescription}
 
@@ -23883,20 +23780,26 @@ function showRecapForm(category) {
 >
   <label>Sumber Stok</label>
 
-  <select id="batchStockSource">
-    <option value="ready">
-      Stok Ready
-    </option>
+  
+<select id="batchStockSource">
+  <option value="ready">
+    Stok Ready
+  </option>
 
-    <option value="seller">
-      Stok Seller
-    </option>
-  </select>
+  <option value="seller">
+    Stok Seller
+  </option>
 
-  <small>
-    Stok Ready langsung Arrived Admin.
-    Stok Seller mengikuti tracking Pembelian Stok.
-  </small>
+  <option value="multi_seller">
+    Stok Multi Seller
+  </option>
+</select>
+
+<small>
+  Stok Ready langsung Arrived Admin.
+  Stok Seller mengikuti tracking Pembelian Stok per batch.
+  Stok Multi Seller mengikuti tracking Pembelian Stok per customer.
+</small>
 </div>
 
 
@@ -37638,22 +37541,35 @@ let html = `
         : 0;
 
     const isMultiSeller =
-      sellerCount > 1;
+  rows.some(function(row) {
+    return (
+      String(
+        row.stock_source || ""
+      ).trim() === "multi_seller"
+    );
+  });
 
-     const batchTrackingStatus =
-  (
-    rows.find(
-      function(row) {
-        return (
-          row.batch_tracking_status !== null &&
-          row.batch_tracking_status !== undefined &&
-          String(
-            row.batch_tracking_status
-          ).trim() !== ""
-        );
-      }
-    )?.batch_tracking_status || ""
-  );
+     
+const trackingStatuses = [
+  ...new Set(
+    rows
+      .map(function(row) {
+        return String(
+          row.batch_tracking_status ||
+          row.tracking_status ||
+          ""
+        ).trim();
+      })
+      .filter(Boolean)
+  )
+];
+
+const batchTrackingStatus =
+  trackingStatuses.length === 0
+    ? "—"
+    : trackingStatuses.length === 1
+      ? trackingStatuses[0]
+      : "Beragam";
 
 
     html += `
@@ -38447,21 +38363,15 @@ let html = `
 </select>
 </td>
 
+
 <td class="recap-customer-tracking-cell">
-  ${
-    escapeHTML(
-      isMultiSeller
-        ? (
-            row.batch_tracking_status ||
-            "—"
-          )
-        : (
-            batchTrackingStatus ||
-            "—"
-          )
-    )
-  }
+  ${escapeHTML(
+    row.batch_tracking_status ||
+    row.tracking_status ||
+    "—"
+  )}
 </td>
+
 
                        <td>
   <select
