@@ -44472,6 +44472,7 @@ else if (
    UPDATE SEMUA CUSTOMER DALAM BATCH
    ====================================== */
 
+
 const updateData = {
   batch_code:
     newBatchCode,
@@ -44479,17 +44480,34 @@ const updateData = {
   item_name:
     newItemName,
 
-   stock_source:
-  newStockSource,
+  stock_source:
+    newStockSource,
 
-   recap_data_type:
-  newRecapDataType,
+  recap_data_type:
+    newRecapDataType,
 
   dp_deadline:
     newDpDeadline,
 
   payment_deadline:
-    newPaymentDeadline,
+    newPaymentDeadline
+};
+
+/*
+ * SELLER / READY:
+ * Pertahankan perilaku header sebelumnya.
+ *
+ * MULTI SELLER:
+ * Jangan menimpa arrived_admin_at dan co_deadline
+ * milik setiap customer dengan nilai firstRow.
+ */
+if (newStockSource !== "multi_seller") {
+  updateData.co_deadline =
+    newCoDeadline;
+
+  updateData.arrived_admin_at =
+    newArrivedAdminAt;
+}
 
   co_deadline:
     newCoDeadline,
