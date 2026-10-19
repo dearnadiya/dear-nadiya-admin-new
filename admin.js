@@ -38080,16 +38080,26 @@ const batchTrackingStatus =
   >
     <strong>Deadline CO:</strong>
 
-    <div style="margin-top:3px;">
+    <div
+      style="
+        margin-top:3px;
+        font-size:13px;
+        font-weight:600;
+      "
+    >
       ${
-        rows[0]?.co_deadline
-          ? String(
-              rows[0].co_deadline
-            ).substring(0, 10)
-          : "—"
+        isMultiSeller
+          ? "👥 Per Customer"
+          : (
+              rows[0]?.co_deadline
+                ? String(
+                    rows[0].co_deadline
+                  ).substring(0, 10)
+                : "—"
+            )
       }
     </div>
-    </div>
+  </div>
 
     <!-- =========================
      TRACKING
@@ -38234,6 +38244,9 @@ const batchTrackingStatus =
   Tracking
 </th>
 
+<th class="recap-customer-deadline-column">
+  Deadline CO
+</th>
 
                   <th>
                     Status Customer
@@ -38370,6 +38383,19 @@ const batchTrackingStatus =
     row.tracking_status ||
     "—"
   )}
+</td>
+
+
+<td class="recap-customer-deadline-cell">
+  ${
+    row.co_deadline
+      ? escapeHTML(
+          String(
+            row.co_deadline
+          ).substring(0, 10)
+        )
+      : "—"
+  }
 </td>
 
 
