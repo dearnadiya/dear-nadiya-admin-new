@@ -8131,6 +8131,25 @@ while (true) {
   dashboardFrom += dashboardPageSize;
 }
 
+     /* =====================================
+   NAMA PESANAN UNTUK PESAN WHATSAPP
+   NAMA BARANG + VERSI / MEMBER
+   ===================================== */
+
+function getDashboardOrderLabel(row) {
+  const itemName = String(
+    row?.item_name || "Pesanan"
+  ).trim();
+
+  const version = String(
+    row?.version || ""
+  ).trim();
+
+  return version
+    ? `${itemName} — ${version}`
+    : itemName;
+}
+
 const data = allDashboardRows;
 const error = null;
     if (error) {
@@ -9237,8 +9256,8 @@ if (
                           denda;
 
                         rincianDendaCustomer.push(
-                          `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
-                        );
+  `• ${getDashboardOrderLabel(row)}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+);
 
                       }
 
@@ -9302,13 +9321,22 @@ if (
                       String(customerId)
                     ] || "";
 
+                   const orderLabels = [
+  ...new Set(
+    customerRows.map(getDashboardOrderLabel)
+  )
+];
+
+const orderDescription =
+  orderLabels.join("\n• ");
 
                   let dpMessage =
 `Halo ${customerName} ♥
-Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan ${batchCode}.
+Kami dari Dear Nadiya ingin mengingatkan mengenai pembayaran DP untuk pesanan:
+
+• ${orderDescription}
 
 Total tagihan DP: ${formatRupiah(totalCustomer)}`;
-
                   if (
   totalDendaCustomer > 0
 ) {
@@ -9843,9 +9871,9 @@ const paymentBatchKeys =
                         totalDendaCustomer +=
                           denda;
 
-                        rincianDendaCustomer.push(
-                          `• ${row.batch_code || "—"}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
-                        );
+                       rincianDendaCustomer.push(
+  `• ${getDashboardOrderLabel(row)}: ${hariTerlambat} hari × ${formatRupiah(DENDA_PER_HARI)} = ${formatRupiah(denda)}`
+);
 
                       }
 
@@ -9908,10 +9936,20 @@ const paymentBatchKeys =
                       String(customerId)
                     ] || "";
 
+                   const orderLabels = [
+  ...new Set(
+    customerRows.map(getDashboardOrderLabel)
+  )
+];
+
+const orderDescription =
+  orderLabels.join("\n• ");
 
                   let paymentMessage =
 `Halo ${customerName} ♥
-Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan ${batchCode} masih memiliki sisa ${formatRupiah(totalCustomer)}.
+Kami dari Dear Nadiya ingin mengingatkan bahwa pembayaran pelunasan pesanan berikut masih memiliki sisa ${formatRupiah(totalCustomer)}.
+
+• ${orderDescription}
 
 Deadline pelunasan:
 ${deadline}`;
@@ -10119,44 +10157,48 @@ const coRows =
   });
 
 
+const coCustomerMap = new Map();
+
+coRows.forEach(function(row) {
+  const customerId =
+    Number(row.customer_id) || null;
+
+  const name = String(
+    row.customer_name || ""
+  ).trim();
+
+  const deadline = normalizeDate(
+    row.co_deadline
+  );
+
+  if ((!customerId && !name) || !deadline) {
+    return;
+  }
+
+  const groupKey = customerId
+    ? `id:${customerId}`
+    : `name:${name}`;
+
+  if (!coCustomerMap.has(groupKey)) {
+    coCustomerMap.set(groupKey, {
+      customerId,
+      name,
+      deadline,
+      orderLabels: []
+    });
+  }
+
+  const customer = coCustomerMap.get(groupKey);
+  const orderLabel = getDashboardOrderLabel(row);
+
+  if (!customer.orderLabels.includes(orderLabel)) {
+    customer.orderLabels.push(orderLabel);
+  }
+});
+
 const coCustomers = [
-  ...new Map(
-    coRows
-      .map(row => {
-
-        const customerId =
-          Number(row.customer_id) || null;
-
-        const name =
-          String(
-            row.customer_name || ""
-          ).trim();
-
-        const deadline =
-          normalizeDate(
-            row.co_deadline
-          );
-
-        if (
-          (!customerId && !name) ||
-          !deadline
-        ) {
-          return null;
-        }
-
-        const groupKey =
-          customerId
-            ? `id:${customerId}`
-            : `name:${name}`;
-
-        return [
-          groupKey,
-          {
-            customerId,
-            name,
-            deadline
-          }
-        ];
+  ...coCustomerMap.values()
+];
       })
       .filter(Boolean)
   ).values()
@@ -10226,7 +10268,14 @@ if (
             )},
             ${JSON.stringify(
 `Halo ${customer.name} ♥
-Pengingat dari Dear Nadiya, batas akhir checkout untuk pesanan ini adalah ${customer.deadline}.
+Pengingat dari Dear Nadiya, berikut pesanan yang perlu segera checkout:
+
+${customer.orderLabels
+  .map(item => `• ${item}`)
+  .join("\n")}
+
+Batas akhir checkout:
+${customer.deadline}
 
 Mohon segera melakukan checkout ya.
 Terima kasih ♥
