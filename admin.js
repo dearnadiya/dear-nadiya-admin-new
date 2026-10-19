@@ -43901,6 +43901,63 @@ const existingCoDeadline =
           required
         >
 
+        
+        <label>
+          Jenis Sumber Stok
+        </label>
+
+        <select
+          id="editBatchHeaderStockSource"
+          required
+        >
+          <option
+            value=""
+            ${!firstRow.stock_source ? "selected" : ""}
+            disabled
+          >
+            Pilih jenis sumber stok
+          </option>
+
+          <option
+            value="ready"
+            ${
+              firstRow.stock_source === "ready"
+                ? "selected"
+                : ""
+            }
+          >
+            Stok Ready
+          </option>
+
+          <option
+            value="seller"
+            ${
+              firstRow.stock_source === "seller"
+                ? "selected"
+                : ""
+            }
+          >
+            Stok Seller
+          </option>
+
+          <option
+            value="multi_seller"
+            ${
+              firstRow.stock_source === "multi_seller"
+                ? "selected"
+                : ""
+            }
+          >
+            Stok Multi Seller
+          </option>
+        </select>
+
+        <small>
+          Stok Ready tidak mengikuti tracking Pembelian Stok.
+          Stok Seller mengikuti tracking seluruh batch.
+          Stok Multi Seller mengikuti tracking customer yang terhubung.
+        </small>
+
 
         <label>Harga</label>
 
@@ -44271,6 +44328,25 @@ if (
             .value
             .trim();
 
+         
+const newStockSource =
+  document
+    .getElementById(
+      "editBatchHeaderStockSource"
+    )
+    .value;
+
+if (
+  !["ready", "seller", "multi_seller"].includes(
+    newStockSource
+  )
+) {
+  message.textContent =
+    "Pilih Jenis Sumber Stok terlebih dahulu.";
+
+  return;
+}
+
 
 /* ======================================
    HARGA & DP HEADER
@@ -44402,6 +44478,9 @@ const updateData = {
 
   item_name:
     newItemName,
+
+   stock_source:
+  newStockSource,
 
    recap_data_type:
   newRecapDataType,
