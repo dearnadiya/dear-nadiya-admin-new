@@ -6662,6 +6662,7 @@ if (allocationType === "Reseller") {
     selling_price: null,
 
     reseller_batch_item_id: resellerBatchItemId,
+     reseller_batch_id: selectedResellerItem.batchId,
 
     recap_type: null,
     category: null,
@@ -6940,22 +6941,99 @@ if (
              HAPUS ALOKASI LAMA
              ================================== */
 
-          const {
-            error: deleteError
-          } = await supabaseClient
-            .from(
-              "purchase_stock_allocation"
-            )
-            .delete()
-            .eq(
-              "purchase_stock_id",
-              purchaseId
-            );
+          
+/* VALIDASI ALOKASI YANG AKAN DIHAPUS */
+const retainedIds = new Set(
+  allocationItems
+    .filter(item => item.id)
+    .map(item => Number(item.id))
+);
 
+const removedIds = (existingAllocations || [])
+  .filter(item => !retainedIds.has(Number(item.id)))
+  .map(item => Number(item.id));
 
-          if (deleteError) {
-            throw deleteError;
-          }
+/*
+ * Jangan hapus alokasi yang sudah memiliki riwayat pembayaran.
+ * Riwayat pembayaran harus tetap terhubung ke ID alokasi aslinya.
+ */
+if (removedIds.length > 0) {
+  const {
+    data: linkedPayments,
+    error: paymentCheckError
+  } = await supabaseClient
+    .from("dn_reseller_payments")
+    .select("allocation_id")
+    .in("allocation_id", removedIds);
+
+  if (paymentCheckError) {
+    throw paymentCheckError;
+  }
+
+  if ((linkedPayments || []).length > 0) {
+    throw new Error(
+      "Penghapusan dibatalkan karena ada alokasi yang memiliki riwayat pembayaran. Pertahankan alokasi tersebut agar riwayat pembayaran tetap aman."
+    );
+  }
+}
+
+/* SIMPAN ALOKASI: UPDATE ID LAMA, INSERT ALOKASI BARU */
+for (const item of allocationItems) {
+  const payload = {
+    purchase_stock_id: purchaseId,
+    allocation_type: item.allocation_type,
+    reseller_name: item.reseller_name || null,
+    selling_price: item.selling_price ?? null,
+    reseller_batch_id: item.reseller_batch_id || null,
+    reseller_batch_item_id:
+      item.reseller_batch_item_id || null,
+    recap_type: item.recap_type || null,
+    category: item.category || null,
+    batch_code: item.batch_code || null,
+    allocation_name:
+      item.allocation_type === "Reseller"
+        ? item.reseller_name
+        : item.batch_code,
+    quantity: item.quantity,
+    allocation_note: item.allocation_note || null,
+    purchase_recap_id: item.purchase_recap_id || null
+  };
+
+  if (item.id) {
+    /* Pertahankan ID alokasi yang sudah ada */
+    const { error: updateError } = await supabaseClient
+      .from("purchase_stock_allocation")
+      .update(payload)
+      .eq("id", Number(item.id))
+      .eq("purchase_stock_id", purchaseId);
+
+    if (updateError) {
+      throw updateError;
+    }
+  } else {
+    /* Alokasi baru mendapat ID baru */
+    const { error: insertError } = await supabaseClient
+      .from("purchase_stock_allocation")
+      .insert(payload);
+
+    if (insertError) {
+      throw insertError;
+    }
+  }
+}
+
+/* HAPUS ALOKASI YANG BENAR-BENAR DIHILANGKAN */
+if (removedIds.length > 0) {
+  const { error: deleteError } = await supabaseClient
+    .from("purchase_stock_allocation")
+    .delete()
+    .in("id", removedIds)
+    .eq("purchase_stock_id", purchaseId);
+
+  if (deleteError) {
+    throw deleteError;
+  }
+}
 
 
           /* ==================================
