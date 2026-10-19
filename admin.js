@@ -728,7 +728,413 @@ function showPage(
 
 }
 
+       if (page === "reseller-recap") {
+  loadResellerRecap();
+  return;
 }
+
+}
+
+
+/* ============================================
+   REKAP RESELLER - HALAMAN MANDIRI
+   ============================================ */
+
+async function loadResellerRecap() {
+  if (pageTitle) {
+    pageTitle.textContent = "🏷️ Rekap Reseller";
+  }
+
+  if (!pageContent) return;
+
+  pageContent.innerHTML = `
+    <div class="purchase-stock-page">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:20px;
+      ">
+        <div>
+          <h2 style="margin:0 0 6px">
+            🏷️ Rekap Reseller
+          </h2>
+          <div style="color:#777;font-size:14px">
+            Kelola batch, alokasi barang, tracking,
+            dan pembayaran reseller.
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          id="createResellerBatchButton"
+          style="width:auto"
+        >
+          ＋ Buat Batch Reseller
+        </button>
+      </div>
+
+      <div id="resellerBatchFormContainer"></div>
+      <div id="resellerBatchListContainer">
+        Memuat batch reseller...
+      </div>
+    </div>
+  `;
+
+  document
+    .getElementById("createResellerBatchButton")
+    ?.addEventListener("click", function() {
+      showResellerBatchForm();
+    });
+
+  await renderResellerBatchList();
+}
+
+
+/* ============================================
+   DAFTAR BATCH RESELLER
+   ============================================ */
+
+async function renderResellerBatchList() {
+  const container = document.getElementById(
+    "resellerBatchListContainer"
+  );
+
+  if (!container) return;
+
+  const {
+    data: batches,
+    error: batchError
+  } = await supabaseClient
+    .from("dn_reseller_batches")
+    .select(`
+      id,
+      reseller_id,
+      batch_code,
+      batch_name,
+      item_name,
+      version,
+      tracking_status,
+      co_status,
+      created_at
+    `)
+    .order("created_at", { ascending: false });
+
+  if (batchError) {
+    console.error("Gagal memuat batch reseller:", batchError);
+
+    container.innerHTML = `
+      <div class="panel">
+        Gagal memuat batch reseller:
+        ${escapeHTML(batchError.message || "")}
+      </div>
+    `;
+    return;
+  }
+
+  const {
+    data: resellers,
+    error: resellerError
+  } = await supabaseClient
+    .from("dn_resellers")
+    .select("id, reseller_name")
+    .order("reseller_name", { ascending: true });
+
+  if (resellerError) {
+    console.error("Gagal memuat reseller:", resellerError);
+    container.textContent =
+      "Gagal memuat data reseller: " + resellerError.message;
+    return;
+  }
+
+  const resellerMap = {};
+
+  (resellers || []).forEach(function(reseller) {
+    resellerMap[Number(reseller.id)] =
+      reseller.reseller_name;
+  });
+
+  if (!batches || !batches.length) {
+    container.innerHTML = `
+      <div class="panel" style="padding:28px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">📦</div>
+        <strong>Belum ada batch reseller</strong>
+        <div style="color:#777;margin-top:6px;font-size:13px">
+          Klik “Buat Batch Reseller” untuk memulai.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = batches.map(function(batch) {
+    return `
+      <div class="panel" style="
+        padding:18px;
+        margin-bottom:12px;
+        background:#fff;
+        border-radius:14px;
+      ">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:12px;
+          flex-wrap:wrap;
+        ">
+          <div>
+            <div style="font-size:12px;color:#777">
+              ${escapeHTML(resellerMap[Number(batch.reseller_id)] || "Reseller tidak ditemukan")}
+            </div>
+
+            <h3 style="margin:5px 0">
+              ${escapeHTML(batch.batch_name)}
+            </h3>
+
+            <div style="font-size:13px;color:#666">
+              Kode: ${escapeHTML(batch.batch_code)}
+            </div>
+
+            <div style="margin-top:8px">
+              ${escapeHTML(batch.item_name)}
+              ${batch.version
+                ? " · " + escapeHTML(batch.version)
+                : ""}
+            </div>
+          </div>
+
+          <div style="text-align:right;font-size:12px">
+            <div style="margin-bottom:6px">
+              Tracking:
+              <strong>${escapeHTML(batch.tracking_status || "-")}</strong>
+            </div>
+            <div>
+              Status CO:
+              <strong>${escapeHTML(batch.co_status || "-")}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="
+          margin-top:12px;
+          padding-top:10px;
+          border-top:1px solid #eee;
+          font-size:12px;
+          color:#777;
+        ">
+          Detail alokasi barang dan pembayaran akan ditampilkan
+          pada pengembangan tahap berikutnya.
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+
+/* ============================================
+   FORM BUAT BATCH RESELLER MANUAL
+   ============================================ */
+
+async function showResellerBatchForm() {
+  const container = document.getElementById(
+    "resellerBatchFormContainer"
+  );
+
+  if (!container) return;
+
+  const {
+    data: resellers,
+    error
+  } = await supabaseClient
+    .from("dn_resellers")
+    .select("id, reseller_name")
+    .eq("is_active", true)
+    .order("reseller_name", { ascending: true });
+
+  if (error) {
+    alert("Gagal memuat daftar reseller:\n" + error.message);
+    return;
+  }
+
+  if (!resellers || !resellers.length) {
+    alert(
+      "Belum ada reseller aktif. Tambahkan data reseller terlebih dahulu."
+    );
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="panel" style="padding:20px;margin-bottom:18px">
+      <h3 style="margin-top:0">＋ Buat Batch Reseller</h3>
+
+      <form id="resellerBatchForm">
+        <div class="form-group">
+          <label>Reseller</label>
+          <select id="resellerBatchResellerId" required>
+            <option value="">Pilih reseller</option>
+            ${resellers.map(function(reseller) {
+              return `
+                <option value="${Number(reseller.id)}">
+                  ${escapeHTML(reseller.reseller_name)}
+                </option>
+              `;
+            }).join("")}
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Kode Batch</label>
+            <input
+              id="resellerBatchCode"
+              required
+              placeholder="Contoh: RS-TRZ-001"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Nama Batch</label>
+            <input
+              id="resellerBatchName"
+              required
+              placeholder="Contoh: Album Treasure Oktober"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Nama Barang</label>
+            <input
+              id="resellerBatchItemName"
+              required
+              placeholder="Nama barang"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Versi / Member</label>
+            <input
+              id="resellerBatchVersion"
+              placeholder="Opsional"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Catatan</label>
+          <textarea
+            id="resellerBatchNotes"
+            rows="2"
+            placeholder="Catatan batch (opsional)"
+          ></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="submit" class="primary-button">
+            Simpan Batch
+          </button>
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancelResellerBatchButton"
+          >
+            Batal
+          </button>
+        </div>
+
+        <p id="resellerBatchFormMessage"
+          style="font-size:13px;color:#777"></p>
+      </form>
+    </div>
+  `;
+
+  document
+    .getElementById("cancelResellerBatchButton")
+    ?.addEventListener("click", function() {
+      container.innerHTML = "";
+    });
+
+  document
+    .getElementById("resellerBatchForm")
+    ?.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const saveButton = this.querySelector(
+        'button[type="submit"]'
+      );
+      const message = document.getElementById(
+        "resellerBatchFormMessage"
+      );
+
+      const resellerId = Number(
+        document.getElementById("resellerBatchResellerId").value
+      );
+      const batchCode = document.getElementById(
+        "resellerBatchCode"
+      ).value.trim();
+      const batchName = document.getElementById(
+        "resellerBatchName"
+      ).value.trim();
+      const itemName = document.getElementById(
+        "resellerBatchItemName"
+      ).value.trim();
+      const version = document.getElementById(
+        "resellerBatchVersion"
+      ).value.trim();
+      const notes = document.getElementById(
+        "resellerBatchNotes"
+      ).value.trim();
+
+      if (!resellerId || !batchCode || !batchName || !itemName) {
+        alert("Lengkapi reseller, kode batch, nama batch, dan nama barang.");
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButton.textContent = "Menyimpan...";
+
+      const {
+        error: saveError
+      } = await supabaseClient
+        .from("dn_reseller_batches")
+        .insert({
+          reseller_id: resellerId,
+          batch_code: batchCode,
+          batch_name: batchName,
+          item_name: itemName,
+          version: version || null,
+          notes: notes || null,
+          tracking_status: "Co Web / Seller",
+          co_status: "Belum CO"
+        });
+
+      if (saveError) {
+        console.error("Gagal menyimpan batch reseller:", saveError);
+
+        if (
+          saveError.code === "23505"
+        ) {
+          message.textContent =
+            "Kode batch tersebut sudah digunakan untuk reseller ini.";
+        } else {
+          message.textContent =
+            "Gagal menyimpan batch: " + saveError.message;
+        }
+
+        saveButton.disabled = false;
+        saveButton.textContent = "Simpan Batch";
+        return;
+      }
+
+      alert("Batch reseller berhasil dibuat.");
+      container.innerHTML = "";
+
+      await renderResellerBatchList();
+    });
+}
+
 
 /* ============================================
    PEMBELIAN STOK
