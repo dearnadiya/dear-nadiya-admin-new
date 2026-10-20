@@ -1344,6 +1344,14 @@ async function showResellerBatchForm() {
     let batchId = null;
 
     try {
+       const { data: sessionData, error: sessionError } =
+  await supabaseClient.auth.getSession();
+
+console.log("DEBUG BATCH RLS:", {
+  sessionError: sessionError?.message || null,
+  userId: sessionData?.session?.user?.id || null,
+  email: sessionData?.session?.user?.email || null
+});
       const { data: batch, error: batchError } = await supabaseClient
         .from("dn_reseller_batches")
         .insert({
