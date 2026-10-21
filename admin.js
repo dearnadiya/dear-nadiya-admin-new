@@ -19151,6 +19151,13 @@ function loadRecap() {
           📦 Rekap Jastip
         </button>
 
+        <button
+  type="button"
+  data-recap-type="Reseller"
+>
+  🛍️ Rekap Reseller
+</button>
+
       </div>
 
 
@@ -53696,6 +53703,10 @@ localStorage.removeItem(
         <option value="Jastip">
           📦 Jastip
         </option>
+
+        <option value="Reseller">
+  🛍️ Reseller
+</option>
       </select>
     </div>
 
