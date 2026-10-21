@@ -47200,6 +47200,21 @@ if (!container) {
   return;
 }
 
+   
+/* ==========================================
+   FORM KHUSUS RESELLER
+   Harus diperiksa sebelum form edit umum
+   ========================================== */
+if (
+  String(data.recap_type || "")
+    .trim()
+    .toLowerCase() === "reseller"
+) {
+  await showEditResellerCustomerForm(data, container);
+  return;
+}
+
+
 /* ==========================================
    FORM KHUSUS TABUNGAN
    ========================================== */
