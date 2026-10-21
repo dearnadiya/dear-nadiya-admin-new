@@ -21979,6 +21979,13 @@ async function showAddRecapMemberForm(
   const batch =
     data[0];
 
+   // FORM KHUSUS TAMBAH RESELLER KE BATCH
+if (
+  String(batch.recap_type || "").trim().toLowerCase() === "reseller" ||
+  String(getRecapTypeFromCategory(batch.category) || "").trim().toLowerCase() === "reseller"
+) {
+  return showAddResellerMemberForm(batch);
+}
 
   const recapType =
     batch.recap_type ||
