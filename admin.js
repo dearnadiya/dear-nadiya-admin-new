@@ -45616,242 +45616,384 @@ async function showEditResellerBatchForm(
    Harga batch dan tax dikelola di Edit Header.
    ============================================ */
 
+
 async function showEditResellerCustomerForm(data, container) {
   if (!data || !data.id || !container) {
     alert("Data customer Reseller tidak ditemukan.");
     return;
   }
 
-  container.style.display = "block";
-
   const money = value =>
     formatNominalInput(Number(value) || 0);
 
-  const unitPrice = Number(data.reseller_price) || 0;
-  const currentQuantity = Number(data.quantity) || 1;
+  const { data: customers, error: customerError } =
+    await supabaseClient
+      .from("customers")
+      .select("id, dn_id, name, username_wa")
+      .order("id", { ascending: true });
 
+  if (customerError) {
+    alert("Gagal memuat customer: " + customerError.message);
+    return;
+  }
+
+  const customerList = customers || [];
+  const quantityNow = Math.max(1, Number(data.quantity) || 1);
+  const priceNow = Number(data.reseller_price) || 0;
+  const taxNow = data.tax_per_unit == null
+    ? ""
+    : money(data.tax_per_unit);
+
+  container.style.display = "block";
   container.innerHTML = `
     <div class="panel recap-form">
       <h3>✏️ Edit Customer Reseller</h3>
 
-      <p>
-        Kategori:
-        <strong>${escapeHTML(data.category || "-")}</strong>
-      </p>
-
-      <p>
-        Kode Batch:
-        <strong>${escapeHTML(data.batch_code || "-")}</strong>
-      </p>
-
-      <p>
-        Nama Barang:
-        <strong>${escapeHTML(data.item_name || "-")}</strong>
-      </p>
-
-      <hr>
-      <h4>Data Customer</h4>
-
       <form id="editResellerCustomerForm">
-        <label>Nama Customer</label>
-        <input
-          id="editResellerCustomerName"
-          value="${escapeHTML(data.customer_name || "")}"
-          required
-        >
+        <label>Kategori</label>
+        <input value="${escapeHTML(data.category || "")}" disabled>
 
-        <label>Versi / Member</label>
-        <input
-          id="editResellerCustomerVersion"
-          value="${escapeHTML(data.version || "")}"
-          required
-        >
+        <label>Kode Batch</label>
+        <input id="editResellerBatchCode"
+          value="${escapeHTML(data.batch_code || "")}" required>
 
-        <label>Quantity</label>
-        <input
-          id="editResellerCustomerQuantity"
-          type="number"
-          min="1"
-          step="1"
-          value="${currentQuantity}"
-          required
-        >
-
-        <label>Catatan</label>
-        <textarea
-          id="editResellerCustomerNote"
-          rows="3"
-        >${escapeHTML(data.note || "")}</textarea>
+        <label>Nama Barang</label>
+        <input id="editResellerItemName"
+          value="${escapeHTML(data.item_name || "")}" required>
 
         <hr>
-        <h4>Informasi Harga</h4>
+        <h3>Harga Batch</h3>
+
+        <label>Modal per Item/Set</label>
+        <input id="editResellerModalPrice" class="currency-input"
+          value="${money(data.modal_price)}" required>
 
         <label>Harga Reseller per Item/Set</label>
-        <input
-          value="${money(unitPrice)}"
-          disabled
-        >
+        <input id="editResellerSellingPrice" class="currency-input"
+          value="${money(priceNow)}" required>
 
-        <label>Total Harga Customer</label>
-        <input
-          id="editResellerCustomerTotal"
-          value="${money(unitPrice * currentQuantity)}"
-          disabled
-        >
+        <label>Rate</label>
+        <input id="editResellerExchangeRate" type="number"
+          min="0.000001" step="any"
+          value="${Number(data.exchange_rate) || ""}" required>
 
-        <p style="font-size:12px;color:#777;">
-          Total harga dihitung otomatis berdasarkan
-          harga reseller pada header dikali quantity.
-          Ubah harga dan tax melalui Edit Header.
-        </p>
+        <label>Fee CO/TF</label>
+        <input id="editResellerCoTfFee" class="currency-input"
+          value="${money(data.co_tf_fee)}">
 
-        <p
-          id="editResellerCustomerMessage"
-          class="login-error"
-        ></p>
+        <label>Tax per Item/Set</label>
+        <input id="editResellerTaxPerUnit" class="currency-input"
+          value="${taxNow}"
+          placeholder="Kosongkan jika belum diketahui">
+
+        <hr>
+        <h3>Data Customer Reseller</h3>
+
+        <label>Customer Reseller</label>
+        <input id="editResellerCustomerSearch"
+          value="${escapeHTML(data.customer_name || "")}"
+          autocomplete="off" required>
+        <input type="hidden" id="editResellerCustomerId"
+          value="${escapeHTML(String(data.customer_id || ""))}">
+        <div id="editResellerCustomerResults"
+          style="display:none;border:1px solid #ddd;max-height:180px;overflow:auto">
+        </div>
+
+        <label>Versi / Member</label>
+        <input id="editResellerCustomerVersion"
+          value="${escapeHTML(data.version || "")}" required>
+
+        <label>Quantity</label>
+        <input id="editResellerCustomerQuantity"
+          type="number" min="1" step="1"
+          value="${quantityNow}" required>
+
+        <label>Total Harga</label>
+        <input id="editResellerCustomerTotal"
+          value="${money(priceNow * quantityNow)}" readonly>
+
+        <label>Status Pembayaran</label>
+        <select id="editResellerPaymentStatus">
+          <option value="unpaid"
+            ${data.payment_status === "unpaid" ? "selected" : ""}>
+            Belum Dibayar
+          </option>
+          <option value="paid"
+            ${data.payment_status === "paid" ? "selected" : ""}>
+            Sudah Dibayar
+          </option>
+        </select>
+
+        <label>Total Tax</label>
+        <input id="editResellerCustomerTaxTotal"
+          value="${data.tax_per_unit == null
+            ? ""
+            : money(Number(data.tax_per_unit) * quantityNow)}"
+          readonly placeholder="Menunggu tax diketahui">
+
+        <label>Status Tax</label>
+        <select id="editResellerTaxStatus">
+          <option value="Belum Diketahui"
+            ${data.tax_status === "Belum Diketahui" ? "selected" : ""}>
+            Belum Diketahui
+          </option>
+          <option value="Belum Dibayar"
+            ${data.tax_status === "Belum Dibayar" ? "selected" : ""}>
+            Belum Dibayar
+          </option>
+          <option value="Sudah Dibayar"
+            ${data.tax_status === "Sudah Dibayar" ? "selected" : ""}>
+            Sudah Dibayar
+          </option>
+        </select>
+
+        <label>Catatan</label>
+        <textarea id="editResellerCustomerNote" rows="2">${escapeHTML(data.note || "")}</textarea>
+
+        <hr>
+        <h3>Pengaturan Batch</h3>
+
+        <label>Sumber Stok</label>
+        <select id="editResellerStockSource" required>
+          <option value="ready"
+            ${data.stock_source === "ready" ? "selected" : ""}>
+            Stok Ready
+          </option>
+          <option value="seller"
+            ${data.stock_source === "seller" ? "selected" : ""}>
+            Stok Seller
+          </option>
+          <option value="multi_seller"
+            ${data.stock_source === "multi_seller" ? "selected" : ""}>
+            Stok Multi Seller
+          </option>
+        </select>
+
+        <p id="editResellerCustomerMessage" class="login-error"></p>
 
         <div class="form-actions">
           <button type="submit" class="primary-button">
             💾 Simpan Perubahan
           </button>
-
-          <button
-            type="button"
-            id="cancelEditResellerCustomer"
-            class="secondary-button"
-          >
-            Batal
-          </button>
+          <button type="button" id="cancelEditResellerCustomer"
+            class="secondary-button">Batal</button>
         </div>
       </form>
     </div>
   `;
 
-  const form = document.getElementById(
-    "editResellerCustomerForm"
-  );
+  const form = document.getElementById("editResellerCustomerForm");
+  const message = document.getElementById("editResellerCustomerMessage");
+  const customerSearch = document.getElementById("editResellerCustomerSearch");
+  const customerIdInput = document.getElementById("editResellerCustomerId");
+  const results = document.getElementById("editResellerCustomerResults");
+  const quantityInput = document.getElementById("editResellerCustomerQuantity");
+  const priceInput = document.getElementById("editResellerSellingPrice");
+  const taxInput = document.getElementById("editResellerTaxPerUnit");
 
-  const message = document.getElementById(
-    "editResellerCustomerMessage"
-  );
-
-  const quantityInput = document.getElementById(
-    "editResellerCustomerQuantity"
-  );
-
-  const totalInput = document.getElementById(
-    "editResellerCustomerTotal"
-  );
-
-  function updateTotal() {
+  function updateTotals() {
     const quantity = Number(quantityInput.value);
+    const price = parseNominalInput(priceInput.value);
+    const taxText = taxInput.value.trim();
+    const tax = taxText === "" ? null : parseNominalInput(taxText);
 
-    totalInput.value =
+    document.getElementById("editResellerCustomerTotal").value =
       Number.isInteger(quantity) && quantity > 0
-        ? money(unitPrice * quantity)
+        ? money(price * quantity)
         : "";
+
+    document.getElementById("editResellerCustomerTaxTotal").value =
+      tax === null || !Number.isInteger(quantity) || quantity < 1
+        ? ""
+        : money(tax * quantity);
   }
 
-  quantityInput.addEventListener("input", updateTotal);
+  quantityInput.addEventListener("input", updateTotals);
+  priceInput.addEventListener("input", updateTotals);
+  taxInput.addEventListener("input", updateTotals);
 
-  document
-    .getElementById("cancelEditResellerCustomer")
-    .addEventListener("click", function() {
+  customerSearch.addEventListener("input", () => {
+    customerIdInput.value = "";
+    const term = customerSearch.value.trim().toLowerCase();
+
+    if (!term) {
+      results.innerHTML = "";
+      results.style.display = "none";
+      return;
+    }
+
+    const matches = customerList.filter(customer =>
+      [customer.name, customer.dn_id, customer.username_wa]
+        .some(value => String(value || "").toLowerCase().includes(term))
+    ).slice(0, 30);
+
+    results.innerHTML = matches.length
+      ? matches.map(customer => `
+          <button type="button"
+            class="edit-reseller-customer-option"
+            data-id="${escapeHTML(String(customer.id))}"
+            data-name="${escapeHTML(customer.name || "")}"
+            style="display:block;width:100%;padding:8px;text-align:left">
+            ${escapeHTML(customer.name || "Tanpa Nama")}
+            ${customer.dn_id ? " — " + escapeHTML(customer.dn_id) : ""}
+            ${customer.username_wa ? " — " + escapeHTML(customer.username_wa) : ""}
+          </button>
+        `).join("")
+      : `<div style="padding:8px">Customer tidak ditemukan.</div>`;
+
+    results.style.display = "block";
+  });
+
+  results.addEventListener("click", event => {
+    const option = event.target.closest(".edit-reseller-customer-option");
+    if (!option) return;
+
+    customerIdInput.value = option.dataset.id;
+    customerSearch.value = option.dataset.name;
+    results.style.display = "none";
+  });
+
+  document.getElementById("cancelEditResellerCustomer")
+    .addEventListener("click", () => {
       container.innerHTML = "";
       container.style.display = "none";
     });
 
-  form.addEventListener("submit", async function(event) {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
+    message.textContent = "Menyimpan perubahan...";
 
-    const customerName = document
-      .getElementById("editResellerCustomerName")
-      .value.trim();
+    const batchCode = document.getElementById("editResellerBatchCode").value.trim();
+    const itemName = document.getElementById("editResellerItemName").value.trim();
+    const modalPrice = parseNominalInput(
+      document.getElementById("editResellerModalPrice").value
+    );
+    const resellerPrice = parseNominalInput(priceInput.value);
+    const exchangeRate = Number(
+      document.getElementById("editResellerExchangeRate").value
+    );
+    const coTfFee = parseNominalInput(
+      document.getElementById("editResellerCoTfFee").value
+    );
+    const taxText = taxInput.value.trim();
+    const taxPerUnit = taxText === "" ? null : parseNominalInput(taxText);
+    const stockSource = document.getElementById("editResellerStockSource").value;
 
-    const version = document
-      .getElementById("editResellerCustomerVersion")
-      .value.trim();
-
+    const customerId = Number(customerIdInput.value) || null;
+    const customerName = customerSearch.value.trim();
+    const version = document.getElementById("editResellerCustomerVersion").value.trim();
     const quantity = Number(quantityInput.value);
+    const note = document.getElementById("editResellerCustomerNote").value.trim();
+    const paymentStatus = document.getElementById("editResellerPaymentStatus").value;
+    const taxStatus = document.getElementById("editResellerTaxStatus").value;
 
-    const note = document
-      .getElementById("editResellerCustomerNote")
-      .value.trim();
-
-    if (!customerName || !version) {
+    if (!batchCode || !itemName || !customerId || !customerName || !version) {
       message.textContent =
-        "Nama customer dan versi/member wajib diisi.";
+        "Kode batch, nama barang, customer yang dipilih, dan versi/member wajib diisi.";
       return;
     }
 
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      message.textContent =
-        "Quantity harus berupa bilangan bulat minimal 1.";
+    if (!Number.isInteger(quantity) || quantity < 1 ||
+        !Number.isFinite(exchangeRate) || exchangeRate <= 0 ||
+        modalPrice < 0 || resellerPrice < 0 || coTfFee < 0 ||
+        (taxPerUnit !== null && taxPerUnit < 0)) {
+      message.textContent = "Periksa kembali quantity, rate, dan semua nilai harga/tax.";
       return;
     }
 
-    const itemPrice = unitPrice * quantity;
+    if (!["ready", "seller", "multi_seller"].includes(stockSource)) {
+      message.textContent = "Pilih sumber stok yang valid.";
+      return;
+    }
+
+    const totalPrice = resellerPrice * quantity;
+    const totalTax = taxPerUnit === null ? null : taxPerUnit * quantity;
 
     if (!confirm(
       "Simpan perubahan customer Reseller?\n\n" +
-      "Customer: " + customerName + "\n" +
-      "Versi / Member: " + version + "\n" +
-      "Quantity: " + quantity + "\n" +
-      "Total harga baru: " + money(itemPrice) + "\n\n" +
-      "Harga per item tetap mengikuti header batch.\n" +
-      "Data pembayaran dan tax tidak diubah."
-    )) {
-      return;
-    }
+      "Perubahan harga batch, nama barang, kode batch, dan sumber stok " +
+      "akan diterapkan ke seluruh customer dalam batch lama.\n\n" +
+      "Total harga customer ini: " + money(totalPrice)
+    )) return;
 
-    const saveButton = form.querySelector(
-      'button[type="submit"]'
-    );
-
+    const saveButton = form.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     saveButton.textContent = "Menyimpan...";
-    message.textContent = "Menyimpan perubahan...";
 
-    /*
-     * Hanya memperbarui data customer dan total harga.
-     * Tidak mengubah kolom DP, pembayaran, sisa tagihan,
-     * modal, harga header, rate, fee, atau tax.
-     */
-    const updates = {
-      customer_name: customerName,
-      version: version,
-      quantity: quantity,
-      item_price: itemPrice,
-      note: note || null
-    };
+    try {
+      // Ambil semua baris batch yang lama sebelum mengubah kode batch.
+      const { data: batchRows, error: batchError } = await supabaseClient
+        .from("purchase_recap")
+        .select("id, quantity")
+        .eq("category", data.category)
+        .eq("batch_code", data.batch_code)
+        .eq("recap_type", "Reseller");
 
-    const { error } = await supabaseClient
-      .from("purchase_recap")
-      .update(updates)
-      .eq("id", data.id)
-      .eq("recap_type", "Reseller");
+      if (batchError) throw batchError;
 
-    if (error) {
-      console.error(
-        "Gagal edit customer Reseller:",
-        error
-      );
+      if (!batchRows || !batchRows.some(row => String(row.id) === String(data.id))) {
+        throw new Error("Data batch tidak ditemukan atau tidak cocok.");
+      }
 
-      message.textContent =
-        "Gagal menyimpan: " + error.message;
+      // Perbarui informasi header dan harga untuk semua customer di batch.
+      for (const row of batchRows) {
+        const rowQuantity = Math.max(1, Number(row.quantity) || 1);
+        const rowTaxTotal = taxPerUnit === null
+          ? null
+          : taxPerUnit * rowQuantity;
 
+        const { error } = await supabaseClient
+          .from("purchase_recap")
+          .update({
+            batch_code: batchCode,
+            item_name: itemName,
+            stock_source: stockSource,
+            modal_price: modalPrice,
+            reseller_price: resellerPrice,
+            exchange_rate: exchangeRate,
+            co_tf_fee: coTfFee,
+            tax_per_unit: taxPerUnit,
+            reseller_tax_total: rowTaxTotal
+          })
+          .eq("id", row.id)
+          .eq("recap_type", "Reseller");
+
+        if (error) throw error;
+      }
+
+      // Perbarui data customer yang sedang diedit saja.
+      const { error: customerUpdateError } = await supabaseClient
+        .from("purchase_recap")
+        .update({
+          customer_id: customerId,
+          customer_name: customerName,
+          version,
+          quantity,
+          item_price: totalPrice,
+          payment_status: paymentStatus,
+          tax_status: taxStatus,
+          reseller_tax_total: totalTax,
+          remaining_amount: totalPrice,
+          note: note || null
+        })
+        .eq("id", data.id)
+        .eq("recap_type", "Reseller");
+
+      if (customerUpdateError) throw customerUpdateError;
+
+      alert("Perubahan customer dan batch Reseller berhasil disimpan.");
+      container.innerHTML = "";
+      container.style.display = "none";
+      await loadRecapList(data.category);
+    } catch (error) {
+      console.error("Gagal edit Reseller:", error);
+      message.textContent = "Gagal menyimpan: " + error.message;
       saveButton.disabled = false;
       saveButton.textContent = "💾 Simpan Perubahan";
-      return;
     }
-
-    alert("Data customer Reseller berhasil diperbarui.");
-
-    container.innerHTML = "";
-    container.style.display = "none";
-
-    await loadRecapList(data.category);
   });
+
+  updateTotals();
 }
 
 /* ============================================
