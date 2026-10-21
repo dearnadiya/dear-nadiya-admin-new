@@ -44248,6 +44248,25 @@ if (
   return;
 }
 
+   // FORM EDIT KHUSUS RESELLER
+if (
+  String(firstRow.recap_type || "")
+    .trim()
+    .toLowerCase() === "reseller" ||
+  String(
+    getRecapTypeFromCategory(category) || ""
+  ).trim().toLowerCase() === "reseller"
+) {
+  await showEditResellerBatchForm(
+    data,
+    batchCode,
+    category,
+    container
+  );
+
+  return;
+}
+
   const batchPrice =
     Number(
       firstRow.item_price
@@ -44323,6 +44342,7 @@ const existingCoDeadline =
   firstRow.recap_data_type ||
   "baru";
 
+   
   /* ==========================================
      FORM EDIT BATCH
      ========================================== */
@@ -45265,6 +45285,221 @@ const {
       }
     );
 
+}
+
+/* ============================================
+   EDIT RESELLER
+   ============================================ */
+async function showEditResellerBatchForm(
+  data,
+  batchCode,
+  category,
+  container
+) {
+  if (!Array.isArray(data) || !data.length) {
+    alert("Data batch Reseller tidak ditemukan.");
+    return;
+  }
+
+  const firstRow = data[0];
+
+  const money = value =>
+    formatNominalInput(Number(value) || 0);
+
+  container.style.display = "block";
+
+  container.innerHTML = `
+    <div class="panel recap-form">
+      <h3>✏️ Edit Batch Reseller</h3>
+
+      <form id="editResellerBatchForm">
+        <label>Kategori</label>
+        <input value="${escapeHTML(category)}" disabled>
+
+        <label>Kode Batch</label>
+        <input id="editResellerBatchCode"
+          value="${escapeHTML(batchCode)}" required>
+
+        <label>Nama Barang</label>
+        <input id="editResellerItemName"
+          value="${escapeHTML(firstRow.item_name || "")}" required>
+
+        <hr>
+        <h4>Harga Batch</h4>
+
+        <label>Modal per Item/Set</label>
+        <input id="editResellerModalPrice"
+          class="currency-input"
+          value="${money(firstRow.modal_price)}" required>
+
+        <label>Harga Reseller per Item/Set</label>
+        <input id="editResellerSellingPrice"
+          class="currency-input"
+          value="${money(firstRow.reseller_price)}" required>
+
+        <label>Rate</label>
+        <input id="editResellerExchangeRate"
+          type="number" min="0" step="any"
+          value="${Number(firstRow.exchange_rate) || ""}" required>
+
+        <label>Fee CO/TF</label>
+        <input id="editResellerCoTfFee"
+          class="currency-input"
+          value="${money(firstRow.co_tf_fee)}">
+
+        <label>Tax per Item/Set</label>
+        <input id="editResellerTaxPerUnit"
+          class="currency-input"
+          value="${firstRow.tax_per_unit == null
+            ? ""
+            : money(firstRow.tax_per_unit)}"
+          placeholder="Kosongkan jika belum diketahui">
+
+        <hr>
+        <h4>Pengaturan Batch</h4>
+
+        <label>Jenis Sumber Stok</label>
+        <select id="editResellerStockSource" required>
+          <option value="ready"
+            ${firstRow.stock_source === "ready" ? "selected" : ""}>
+            Stok Ready
+          </option>
+          <option value="seller"
+            ${firstRow.stock_source === "seller" ? "selected" : ""}>
+            Stok Seller
+          </option>
+          <option value="multi_seller"
+            ${firstRow.stock_source === "multi_seller" ? "selected" : ""}>
+            Stok Multi Seller
+          </option>
+        </select>
+
+        <p id="editResellerBatchMessage" class="login-error"></p>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-button">
+            💾 Simpan Perubahan Batch
+          </button>
+          <button type="button" id="cancelEditResellerBatch"
+            class="secondary-button">
+            Batal
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  const form = document.getElementById("editResellerBatchForm");
+  const message = document.getElementById("editResellerBatchMessage");
+
+  document.getElementById("cancelEditResellerBatch")
+    .addEventListener("click", () => {
+      container.innerHTML = "";
+      container.style.display = "none";
+    });
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    message.textContent = "Menyimpan perubahan...";
+
+    const newBatchCode =
+      document.getElementById("editResellerBatchCode").value.trim();
+
+    const newItemName =
+      document.getElementById("editResellerItemName").value.trim();
+
+    const modalPrice = parseNominalInput(
+      document.getElementById("editResellerModalPrice").value
+    );
+
+    const resellerPrice = parseNominalInput(
+      document.getElementById("editResellerSellingPrice").value
+    );
+
+    const exchangeRate = Number(
+      document.getElementById("editResellerExchangeRate").value
+    );
+
+    const coTfFee = parseNominalInput(
+      document.getElementById("editResellerCoTfFee").value
+    );
+
+    const taxText =
+      document.getElementById("editResellerTaxPerUnit").value.trim();
+
+    const taxPerUnit =
+      taxText === "" ? null : parseNominalInput(taxText);
+
+    const stockSource =
+      document.getElementById("editResellerStockSource").value;
+
+    if (!newBatchCode || !newItemName || exchangeRate <= 0) {
+      message.textContent =
+        "Kode batch, nama barang, dan rate wajib diisi dengan benar.";
+      return;
+    }
+
+    if (!["ready", "seller", "multi_seller"].includes(stockSource)) {
+      message.textContent = "Jenis sumber stok tidak valid.";
+      return;
+    }
+
+    if (modalPrice < 0 || resellerPrice < 0 ||
+        coTfFee < 0 || (taxPerUnit !== null && taxPerUnit < 0)) {
+      message.textContent = "Nilai harga, fee, atau tax tidak boleh negatif.";
+      return;
+    }
+
+    const updates = data.map(row => ({
+      id: row.id,
+      batch_code: newBatchCode,
+      item_name: newItemName,
+      stock_source: stockSource,
+      modal_price: modalPrice,
+      reseller_price: resellerPrice,
+      exchange_rate: exchangeRate,
+      co_tf_fee: coTfFee,
+      tax_per_unit: taxPerUnit,
+      reseller_tax_total:
+        taxPerUnit === null
+          ? null
+          : taxPerUnit * (Number(row.quantity) || 1)
+    }));
+
+    for (const row of updates) {
+      const { error } = await supabaseClient
+        .from("purchase_recap")
+        .update({
+          batch_code: row.batch_code,
+          item_name: row.item_name,
+          stock_source: row.stock_source,
+          modal_price: row.modal_price,
+          reseller_price: row.reseller_price,
+          exchange_rate: row.exchange_rate,
+          co_tf_fee: row.co_tf_fee,
+          tax_per_unit: row.tax_per_unit,
+          reseller_tax_total: row.reseller_tax_total
+        })
+        .eq("id", row.id);
+
+      if (error) {
+        console.error("Gagal memperbarui batch Reseller:", error);
+        message.textContent =
+          "Gagal menyimpan perubahan: " + error.message;
+        return;
+      }
+    }
+
+    alert("Perubahan batch Reseller berhasil disimpan.");
+
+    container.innerHTML = "";
+    container.style.display = "none";
+
+    if (typeof loadRecapList === "function") {
+      await loadRecapList(category);
+    }
+  });
 }
 
 /* ============================================
