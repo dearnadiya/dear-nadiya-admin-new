@@ -21851,7 +21851,8 @@ batch_tracking_status:
    ========================================== */
 
 async function showAddRecapMemberForm(
-  batchCode
+  batchCode,
+  category
 ) {
 
   const container =
@@ -21880,23 +21881,26 @@ async function showAddRecapMemberForm(
      ========================================== */
 
   const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("purchase_recap")
-      .select("*")
-      .eq(
-        "batch_code",
-        batchCode
-      )
-      .order(
-        "id",
-        {
-          ascending: true
-        }
-      );
-
+  data,
+  error
+} =
+  await supabaseClient
+    .from("purchase_recap")
+    .select("*")
+    .eq(
+      "batch_code",
+      batchCode
+    )
+    .eq(
+      "category",
+      category
+    )
+    .order(
+      "id",
+      {
+        ascending: true
+      }
+    );
 
   if (error) {
 
@@ -39235,9 +39239,9 @@ container
           }
 
           showAddRecapMemberForm(
-            batchCode
-          );
-
+  batchCode,
+  category
+);
         }
       );
 
