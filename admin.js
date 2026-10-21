@@ -25165,7 +25165,37 @@ async function showResellerRecapForm(category) {
 
         <hr>
         <h3>Versi / Member Reseller</h3>
-        <div id="resellerItemsContainer"></div>
+        <style>
+  #resellerItemsContainer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+
+  #resellerItemsContainer .reseller-item-row {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  #resellerItemsContainer .reseller-item-row input,
+  #resellerItemsContainer .reseller-item-row select,
+  #resellerItemsContainer .reseller-item-row textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (max-width: 700px) {
+    #resellerItemsContainer {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div id="resellerItemsContainer"></div>
 
         <button type="button" id="addResellerItemButton"
           class="primary-button">
@@ -25246,8 +25276,13 @@ async function showResellerRecapForm(category) {
     const row = document.createElement("div");
     row.className = "reseller-item-row";
     row.style.cssText =
-      "border:1px solid #ddd;border-radius:10px;" +
-      "padding:12px;margin:12px 0;";
+  "border:1px solid #ddd;" +
+  "border-radius:10px;" +
+  "padding:12px;" +
+  "margin:0;" +
+  "min-width:0;" +
+  "width:100%;" +
+  "box-sizing:border-box;";
 
     row.innerHTML = `
       <button type="button" class="remove-reseller-item">
