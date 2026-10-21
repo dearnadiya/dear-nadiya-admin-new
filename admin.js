@@ -21991,17 +21991,16 @@ const isReseller =
     getRecapTypeFromCategory(batch.category) || ""
   ).trim().toLowerCase() === "reseller";
 
+
 const recapType =
   batch.recap_type ||
   "Treasure";
 
-
-  const category =
-    batch.category ||
-    "";
+category =
+  category || batch.category || "";
 
 
-  const itemName =
+const itemName =
     batch.item_name ||
     "";
 
