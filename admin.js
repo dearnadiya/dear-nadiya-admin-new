@@ -21977,19 +21977,19 @@ async function showAddRecapMemberForm(
      ========================================== */
 
   const batch =
-    data[0];
+  data[0];
 
-   // FORM KHUSUS TAMBAH RESELLER KE BATCH
-if (
-  String(batch.recap_type || "").trim().toLowerCase() === "reseller" ||
-  String(getRecapTypeFromCategory(batch.category) || "").trim().toLowerCase() === "reseller"
-) {
-  return showAddResellerMemberForm(batch);
-}
+const isReseller =
+  String(batch.recap_type || "")
+    .trim()
+    .toLowerCase() === "reseller" ||
+  String(
+    getRecapTypeFromCategory(batch.category) || ""
+  ).trim().toLowerCase() === "reseller";
 
-  const recapType =
-    batch.recap_type ||
-    "Treasure";
+const recapType =
+  batch.recap_type ||
+  "Treasure";
 
 
   const category =
@@ -22147,7 +22147,57 @@ const batchArrivedAdminAt =
 
       </div>
 
+      ${
+        isReseller
+          ? `
+            <div
+              style="
+                padding:14px;
+                margin:12px 0;
+                background:#fff7fb;
+                border:1px solid #f0c9dc;
+                border-radius:10px;
+              "
+            >
+              <strong>📦 Pengaturan Harga Reseller</strong>
 
+              <div style="margin-top:8px;font-size:13px;">
+                Modal per item/set:
+                <strong>${formatRupiah(batch.modal_price)}</strong>
+              </div>
+
+              <div style="margin-top:5px;font-size:13px;">
+                Harga reseller per item/set:
+                <strong>${formatRupiah(batch.reseller_price)}</strong>
+              </div>
+
+              <div style="margin-top:5px;font-size:13px;">
+                Rate:
+                <strong>${escapeHTML(batch.exchange_rate ?? "—")}</strong>
+              </div>
+
+              <div style="margin-top:5px;font-size:13px;">
+                Fee CO/TF:
+                <strong>${formatRupiah(batch.co_tf_fee)}</strong>
+              </div>
+
+              <div style="margin-top:5px;font-size:13px;">
+                Tax per item/set:
+                <strong>${
+                  batch.tax_per_unit == null
+                    ? "Belum diisi"
+                    : formatRupiah(batch.tax_per_unit)
+                }</strong>
+              </div>
+
+              <small style="display:block;margin-top:8px;color:#777;">
+                Harga dan pengaturan Reseller mengikuti batch ini.
+              </small>
+            </div>
+          `
+          : ""
+      }
+      
       <hr>
 
 
@@ -22422,6 +22472,22 @@ const batchArrivedAdminAt =
     itemsContainer.appendChild(
       item
     );
+
+     if (isReseller) {
+  const standardPriceFields =
+    item.querySelector(".different-price-fields");
+
+  const standardPaymentFields =
+    item.querySelector(".batch-payment-fields");
+
+  if (standardPriceFields) {
+    standardPriceFields.style.display = "none";
+  }
+
+  if (standardPaymentFields) {
+    standardPaymentFields.style.display = "none";
+  }
+}
 
      /* ==========================================
    SEARCHABLE DATA CUSTOMER
@@ -23330,10 +23396,12 @@ quantity:
   quantity,
 
              item_price:
-  price,
+  isReseller
+    ? (Number(batch.reseller_price) || 0) * quantity
+    : price,
 
 minimum_dp_amount:
-  dp,
+  isReseller ? 0 : dp,
 
 /*
  * MEMBER BARU BELUM MEMILIKI
@@ -23377,7 +23445,46 @@ co_deadline:
   batchCoDeadline,
 
 arrived_admin_at:
-  batchArrivedAdminAt
+  batchArrivedAdminAt,
+
+/* DATA KHUSUS RESELLER */
+...(isReseller
+  ? {
+      recap_type: "Reseller",
+
+      modal_price:
+        Number(batch.modal_price) || 0,
+
+      reseller_price:
+        Number(batch.reseller_price) || 0,
+
+      exchange_rate:
+        Number(batch.exchange_rate) || 0,
+
+      co_tf_fee:
+        Number(batch.co_tf_fee) || 0,
+
+      tax_per_unit:
+        batch.tax_per_unit == null
+          ? null
+          : Number(batch.tax_per_unit),
+
+      reseller_tax_total:
+        batch.tax_per_unit == null
+          ? null
+          : Number(batch.tax_per_unit) * quantity,
+
+      tax_status:
+        batch.tax_status || "unpaid",
+
+      stock_source:
+        batch.stock_source || "seller",
+
+      dp_deadline: null,
+
+      payment_deadline: null
+    }
+  : {})
                
             });
 
