@@ -23607,6 +23607,15 @@ function showRecapForm(category) {
     return;
   }
 
+     // FORM KHUSUS REKAP RESELLER
+  if (
+    getRecapTypeFromCategory(category) ===
+    "Reseller"
+  ) {
+    showResellerRecapForm(category);
+    return;
+  }
+
    container.style.display = "block";
 
   container.innerHTML = `
@@ -25103,6 +25112,448 @@ itemsContainer.addEventListener(
       saveBatchRecap
     );
 
+}
+
+/* ============================================
+   FORM REKAP RESELLER
+   ============================================ */
+async function showResellerRecapForm(category) {
+  const container = document.getElementById("recapFormContainer");
+  if (!container) return;
+
+  container.style.display = "block";
+
+  container.innerHTML = `
+    <div class="panel recap-form">
+      <h3>➕ Tambah Rekap Reseller</h3>
+      <p>Kategori: <strong>${escapeHTML(category)}</strong></p>
+
+      <form id="resellerBatchForm">
+        <input type="hidden" id="resellerCategory"
+          value="${escapeHTML(category)}">
+
+        <label>Kode Batch</label>
+        <input id="resellerBatchCode" required>
+
+        <label>Nama Barang</label>
+        <input id="resellerItemName" required>
+
+        <hr>
+        <h3>Harga Batch</h3>
+
+        <label>Modal per Item/Set</label>
+        <input id="resellerModalPrice" class="currency-input"
+          placeholder="Contoh: 150.000" required>
+
+        <label>Harga Reseller per Item/Set</label>
+        <input id="resellerSellingPrice" class="currency-input"
+          placeholder="Contoh: 180.000" required>
+
+        <label>Rate</label>
+        <input id="resellerExchangeRate" type="number"
+          min="0" step="any" required>
+
+        <label>Fee CO/TF</label>
+        <input id="resellerCoTfFee" class="currency-input"
+          placeholder="0">
+
+        <label>Tax per Item/Set</label>
+        <input id="resellerTaxPerUnit" class="currency-input"
+          placeholder="Kosongkan jika belum diketahui">
+
+        <small>Tax dapat diisi setelah barang tiba di Indonesia.</small>
+
+        <hr>
+        <h3>Versi / Member Reseller</h3>
+        <div id="resellerItemsContainer"></div>
+
+        <button type="button" id="addResellerItemButton"
+          class="primary-button">
+          ＋ Tambah Reseller
+        </button>
+
+        <hr>
+        <h3>Pengaturan Batch</h3>
+
+        <label>Sumber Stok</label>
+        <select id="resellerStockSource" required>
+          <option value="ready">Stok Ready</option>
+          <option value="seller">Stok Seller</option>
+          <option value="multi_seller">Stok Multi Seller</option>
+        </select>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-button">
+            Simpan Batch Reseller
+          </button>
+          <button type="button" id="cancelResellerForm">
+            Batal
+          </button>
+        </div>
+
+        <p id="resellerFormMessage" class="login-error"></p>
+      </form>
+    </div>
+  `;
+
+  const itemsContainer =
+    document.getElementById("resellerItemsContainer");
+
+  const message =
+    document.getElementById("resellerFormMessage");
+
+  const { data: customers, error } = await supabaseClient
+    .from("customers")
+    .select("id, dn_id, name, username_wa")
+    .order("id", { ascending: true });
+
+  if (error) {
+    message.textContent =
+      "Gagal memuat customer: " + error.message;
+    return;
+  }
+
+  const customerList = customers || [];
+
+  function updateResellerTotals() {
+    const taxValue = document.getElementById("resellerTaxPerUnit").value;
+    const taxPerUnit = taxValue.trim() === ""
+      ? null
+      : parseNominalInput(taxValue);
+
+    itemsContainer.querySelectorAll(".reseller-item-row")
+      .forEach(row => {
+        const quantity = Math.max(
+          1,
+          Number(row.querySelector(".reseller-quantity").value) || 1
+        );
+
+        const price = parseNominalInput(
+          document.getElementById("resellerSellingPrice").value
+        );
+
+        row.querySelector(".reseller-total-price").value =
+          formatNominalInput(price * quantity);
+
+        row.querySelector(".reseller-tax-total").value =
+          taxPerUnit === null
+            ? ""
+            : formatNominalInput(taxPerUnit * quantity);
+      });
+  }
+
+  function addResellerItem() {
+    const row = document.createElement("div");
+    row.className = "reseller-item-row";
+    row.style.cssText =
+      "border:1px solid #ddd;border-radius:10px;" +
+      "padding:12px;margin:12px 0;";
+
+    row.innerHTML = `
+      <button type="button" class="remove-reseller-item">
+        Hapus reseller ini
+      </button>
+
+      <label>Customer Reseller</label>
+      <input class="reseller-customer-search"
+        placeholder="Cari nama, DN ID, atau username WhatsApp"
+        autocomplete="off" required>
+      <input type="hidden" class="reseller-customer-id">
+      <div class="reseller-customer-results"
+        style="display:none;border:1px solid #ddd;max-height:180px;overflow:auto">
+      </div>
+
+      <label>Versi / Member</label>
+      <input class="reseller-version" required>
+
+      <label>Quantity</label>
+      <input type="number" class="reseller-quantity"
+        min="1" value="1" required>
+
+      <label>Total Harga</label>
+      <input class="reseller-total-price" readonly>
+
+      <label>Status Pembayaran</label>
+      <select class="reseller-payment-status">
+        <option value="unpaid">Belum Dibayar</option>
+        <option value="paid">Sudah Dibayar</option>
+      </select>
+
+      <label>Total Tax</label>
+      <input class="reseller-tax-total" readonly
+        placeholder="Menunggu tax diketahui">
+
+      <label>Status Tax</label>
+      <select class="reseller-tax-status">
+        <option value="Belum Diketahui">Belum Diketahui</option>
+        <option value="Belum Dibayar">Belum Dibayar</option>
+        <option value="Sudah Dibayar">Sudah Dibayar</option>
+      </select>
+
+      <label>Catatan</label>
+      <textarea class="reseller-note" rows="2"></textarea>
+    `;
+
+    itemsContainer.appendChild(row);
+
+    const search = row.querySelector(".reseller-customer-search");
+    const customerId = row.querySelector(".reseller-customer-id");
+    const results = row.querySelector(".reseller-customer-results");
+
+    search.addEventListener("input", () => {
+      customerId.value = "";
+
+      const term = search.value.trim().toLowerCase();
+
+      if (!term) {
+        results.style.display = "none";
+        results.innerHTML = "";
+        return;
+      }
+
+      const matches = customerList.filter(customer =>
+        [
+          customer.name,
+          customer.dn_id,
+          customer.username_wa
+        ].some(value =>
+          String(value || "").toLowerCase().includes(term)
+        )
+      ).slice(0, 30);
+
+      results.innerHTML = matches.length
+        ? matches.map(customer => `
+            <button type="button"
+              class="reseller-customer-option"
+              data-id="${escapeHTML(String(customer.id))}"
+              data-name="${escapeHTML(customer.name || "")}"
+              style="display:block;width:100%;padding:8px;text-align:left">
+              ${escapeHTML(customer.name || "Tanpa Nama")}
+              ${customer.dn_id
+                ? ` — ${escapeHTML(customer.dn_id)}`
+                : ""}
+              ${customer.username_wa
+                ? ` — ${escapeHTML(customer.username_wa)}`
+                : ""}
+            </button>
+          `).join("")
+        : `<div style="padding:8px">Customer tidak ditemukan.</div>`;
+
+      results.style.display = "block";
+    });
+
+    results.addEventListener("click", event => {
+      const option = event.target.closest(".reseller-customer-option");
+      if (!option) return;
+
+      customerId.value = option.dataset.id;
+      search.value = option.dataset.name;
+      results.style.display = "none";
+    });
+
+    row.querySelector(".reseller-quantity").addEventListener(
+      "input", updateResellerTotals
+    );
+
+    row.querySelector(".remove-reseller-item").addEventListener(
+      "click", () => {
+        row.remove();
+        updateResellerTotals();
+      }
+    );
+
+    updateResellerTotals();
+  }
+
+  document.getElementById("addResellerItemButton")
+    .addEventListener("click", addResellerItem);
+
+  document.getElementById("resellerSellingPrice")
+    .addEventListener("input", updateResellerTotals);
+
+  document.getElementById("resellerTaxPerUnit")
+    .addEventListener("input", updateResellerTotals);
+
+  document.getElementById("cancelResellerForm")
+    .addEventListener("click", () => {
+      container.innerHTML = "";
+    });
+
+  document.getElementById("resellerBatchForm")
+    .addEventListener("submit", saveResellerBatch);
+
+  addResellerItem();
+}
+
+/* ============================================
+   SIMPAN BATCH RESELLER
+   ============================================ */
+async function saveResellerBatch(event) {
+  event.preventDefault();
+
+  const message = document.getElementById("resellerFormMessage");
+  message.textContent = "Menyimpan batch Reseller...";
+
+  const category =
+    document.getElementById("resellerCategory").value;
+
+  const batchCode =
+    document.getElementById("resellerBatchCode").value.trim();
+
+  const itemName =
+    document.getElementById("resellerItemName").value.trim();
+
+  const modalPrice = parseNominalInput(
+    document.getElementById("resellerModalPrice").value
+  );
+
+  const resellerPrice = parseNominalInput(
+    document.getElementById("resellerSellingPrice").value
+  );
+
+  const exchangeRate = Number(
+    document.getElementById("resellerExchangeRate").value
+  );
+
+  const coTfFee = parseNominalInput(
+    document.getElementById("resellerCoTfFee").value
+  );
+
+  const taxInput =
+    document.getElementById("resellerTaxPerUnit").value.trim();
+
+  const taxPerUnit = taxInput === ""
+    ? null
+    : parseNominalInput(taxInput);
+
+  const stockSource =
+    document.getElementById("resellerStockSource").value;
+
+  const rows = [
+    ...document.querySelectorAll(
+      "#resellerItemsContainer .reseller-item-row"
+    )
+  ];
+
+  if (!batchCode || !itemName) {
+    message.textContent = "Kode batch dan nama barang wajib diisi.";
+    return;
+  }
+
+  if (modalPrice < 0 || resellerPrice < 0 || exchangeRate <= 0) {
+    message.textContent =
+      "Periksa harga modal, harga reseller, dan rate.";
+    return;
+  }
+
+  if (!rows.length) {
+    message.textContent = "Tambahkan minimal satu reseller.";
+    return;
+  }
+
+  const records = [];
+  let invalid = false;
+
+  rows.forEach(row => {
+    const customerId = Number(
+      row.querySelector(".reseller-customer-id").value
+    ) || null;
+
+    const customerName =
+      row.querySelector(".reseller-customer-search").value.trim();
+
+    const version =
+      row.querySelector(".reseller-version").value.trim();
+
+    const quantity = Math.max(
+      1,
+      Number(row.querySelector(".reseller-quantity").value) || 1
+    );
+
+    if (!customerId || !version) {
+      invalid = true;
+      return;
+    }
+
+    const totalPrice = resellerPrice * quantity;
+
+    records.push({
+      recap_type: "Reseller",
+      category,
+      batch_code: batchCode,
+      item_name: itemName,
+      customer_id: customerId,
+      customer_name: customerName,
+      version,
+      quantity,
+
+      // Kolom harga utama tetap menyimpan total harga jual.
+      item_price: totalPrice,
+
+      // Reseller tidak menggunakan DP pada form ini.
+      minimum_dp_amount: 0,
+      dp_amount: 0,
+      dp_status: "unpaid",
+      remaining_amount: totalPrice,
+
+      payment_status:
+        row.querySelector(".reseller-payment-status").value,
+
+      tracking_status:
+        stockSource === "ready"
+          ? "Arrived Admin"
+          : "Co Web / Seller",
+
+      batch_tracking_status:
+        stockSource === "ready"
+          ? "Arrived Admin"
+          : "Co Web / Seller",
+
+      stock_source: stockSource,
+      recap_data_type: "baru",
+
+      modal_price: modalPrice,
+      reseller_price: resellerPrice,
+      exchange_rate: exchangeRate,
+      co_tf_fee: coTfFee,
+      tax_per_unit: taxPerUnit,
+
+      reseller_tax_total:
+        taxPerUnit === null
+          ? null
+          : taxPerUnit * quantity,
+
+      tax_status:
+        row.querySelector(".reseller-tax-status").value,
+
+      note: row.querySelector(".reseller-note").value.trim(),
+      co_deadline: null,
+      dp_deadline: null,
+      payment_deadline: null
+    });
+  });
+
+  if (invalid) {
+    message.textContent =
+      "Pilih customer dari hasil pencarian dan isi Versi / Member untuk setiap baris.";
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("purchase_recap")
+    .insert(records);
+
+  if (error) {
+    console.error("ERROR SAVE RESELLER BATCH:", error);
+    message.textContent = "Gagal menyimpan: " + error.message;
+    return;
+  }
+
+  alert("Batch Reseller berhasil disimpan.");
+
+  document.getElementById("recapFormContainer").innerHTML = "";
+
+  await loadRecapList(category);
 }
 
 /* ============================================
