@@ -45612,8 +45612,10 @@ async function showEditResellerBatchForm(
 
 /* ============================================
    EDIT CUSTOMER RESELLER
-   Tidak menggunakan field DP standar
+   Edit hanya customer, version, quantity, note.
+   Harga batch dan tax dikelola di Edit Header.
    ============================================ */
+
 async function showEditResellerCustomerForm(data, container) {
   if (!data || !data.id || !container) {
     alert("Data customer Reseller tidak ditemukan.");
@@ -45625,119 +45627,99 @@ async function showEditResellerCustomerForm(data, container) {
   const money = value =>
     formatNominalInput(Number(value) || 0);
 
+  const unitPrice = Number(data.reseller_price) || 0;
+  const currentQuantity = Number(data.quantity) || 1;
+
   container.innerHTML = `
     <div class="panel recap-form">
       <h3>✏️ Edit Customer Reseller</h3>
 
+      <p>
+        Kategori:
+        <strong>${escapeHTML(data.category || "-")}</strong>
+      </p>
+
+      <p>
+        Kode Batch:
+        <strong>${escapeHTML(data.batch_code || "-")}</strong>
+      </p>
+
+      <p>
+        Nama Barang:
+        <strong>${escapeHTML(data.item_name || "-")}</strong>
+      </p>
+
+      <hr>
+      <h4>Data Customer</h4>
+
       <form id="editResellerCustomerForm">
-        <label>Kategori</label>
-        <input value="${escapeHTML(data.category || "")}" disabled>
-
-        <label>Kode Batch</label>
-        <input value="${escapeHTML(data.batch_code || "")}" disabled>
-
-        <label>Nama Barang</label>
-        <input value="${escapeHTML(data.item_name || "")}" disabled>
-
-        <hr>
-        <h4>Data Customer</h4>
-
         <label>Nama Customer</label>
-        <input id="editResellerCustomerName"
-          value="${escapeHTML(data.customer_name || "")}" required>
+        <input
+          id="editResellerCustomerName"
+          value="${escapeHTML(data.customer_name || "")}"
+          required
+        >
 
         <label>Versi / Member</label>
-        <input id="editResellerCustomerVersion"
-          value="${escapeHTML(data.version || "")}" required>
+        <input
+          id="editResellerCustomerVersion"
+          value="${escapeHTML(data.version || "")}"
+          required
+        >
 
         <label>Quantity</label>
-        <input id="editResellerCustomerQuantity"
-          type="number" min="1"
-          value="${Number(data.quantity) || 1}" required>
-
-        <hr>
-        <h4>Informasi Harga Reseller</h4>
-
-        <label>Harga Reseller per Item/Set</label>
-        <input value="${money(data.reseller_price)}" disabled>
-
-        <label>Total Harga Customer</label>
-        <input id="editResellerCustomerTotal"
-          value="${money(data.item_price)}" disabled>
-
-        <label>Modal per Item/Set</label>
-        <input value="${money(data.modal_price)}" disabled>
-
-        <label>Rate</label>
-        <input value="${escapeHTML(data.exchange_rate ?? "")}" disabled>
-
-        <label>Fee CO/TF</label>
-        <input value="${money(data.co_tf_fee)}" disabled>
-
-        <label>Tax per Item/Set</label>
-        <input value="${
-          data.tax_per_unit == null
-            ? "Belum diisi"
-            : money(data.tax_per_unit)
-        }" disabled>
-
-        <label>Total Tax Customer</label>
-        <input id="editResellerCustomerTaxTotal"
-          value="${
-            data.reseller_tax_total == null
-              ? ""
-              : money(data.reseller_tax_total)
-          }" disabled>
-
-        <hr>
-        <label>Status Pembayaran</label>
-        <select id="editResellerCustomerPaymentStatus">
-          <option value="unpaid"
-            ${data.payment_status !== "paid" ? "selected" : ""}>
-            Belum Lunas
-          </option>
-          <option value="paid"
-            ${data.payment_status === "paid" ? "selected" : ""}>
-            Lunas
-          </option>
-        </select>
-
-        <label>Status Pajak</label>
-        <select id="editResellerCustomerTaxStatus">
-          <option value="unpaid"
-            ${data.tax_status !== "paid" ? "selected" : ""}>
-            Belum Dibayar
-          </option>
-          <option value="paid"
-            ${data.tax_status === "paid" ? "selected" : ""}>
-            Sudah Dibayar
-          </option>
-        </select>
-
-        <label>Status Customer</label>
-        <select id="editResellerCustomerStatus">
-          <option value="Belum Checkout Shopee"
-            ${data.customer_status === "Belum Checkout Shopee" ? "selected" : ""}>
-            Belum Checkout Shopee
-          </option>
-          <option value="Sudah Checkout Shopee"
-            ${data.customer_status === "Sudah Checkout Shopee" ? "selected" : ""}>
-            Sudah Checkout Shopee
-          </option>
-        </select>
+        <input
+          id="editResellerCustomerQuantity"
+          type="number"
+          min="1"
+          step="1"
+          value="${currentQuantity}"
+          required
+        >
 
         <label>Catatan</label>
-        <textarea id="editResellerCustomerNote"
-          rows="3">${escapeHTML(data.note || "")}</textarea>
+        <textarea
+          id="editResellerCustomerNote"
+          rows="3"
+        >${escapeHTML(data.note || "")}</textarea>
 
-        <p id="editResellerCustomerMessage" class="login-error"></p>
+        <hr>
+        <h4>Informasi Harga</h4>
+
+        <label>Harga Reseller per Item/Set</label>
+        <input
+          value="${money(unitPrice)}"
+          disabled
+        >
+
+        <label>Total Harga Customer</label>
+        <input
+          id="editResellerCustomerTotal"
+          value="${money(unitPrice * currentQuantity)}"
+          disabled
+        >
+
+        <p style="font-size:12px;color:#777;">
+          Total harga dihitung otomatis berdasarkan
+          harga reseller pada header dikali quantity.
+          Ubah harga dan tax melalui Edit Header.
+        </p>
+
+        <p
+          id="editResellerCustomerMessage"
+          class="login-error"
+        ></p>
 
         <div class="form-actions">
           <button type="submit" class="primary-button">
-            💾 Simpan Perubahan Customer
+            💾 Simpan Perubahan
           </button>
-          <button type="button" id="cancelEditResellerCustomer"
-            class="secondary-button">
+
+          <button
+            type="button"
+            id="cancelEditResellerCustomer"
+            class="secondary-button"
+          >
             Batal
           </button>
         </div>
@@ -45745,83 +45727,121 @@ async function showEditResellerCustomerForm(data, container) {
     </div>
   `;
 
-  const form = document.getElementById("editResellerCustomerForm");
-  const message = document.getElementById("editResellerCustomerMessage");
-  const quantityInput = document.getElementById("editResellerCustomerQuantity");
-  const totalInput = document.getElementById("editResellerCustomerTotal");
-  const taxTotalInput = document.getElementById("editResellerCustomerTaxTotal");
+  const form = document.getElementById(
+    "editResellerCustomerForm"
+  );
 
-  function updateTotals() {
-    const quantity = Math.max(1, Number(quantityInput.value) || 1);
-    const unitPrice = Number(data.reseller_price) || 0;
+  const message = document.getElementById(
+    "editResellerCustomerMessage"
+  );
 
-    totalInput.value = money(unitPrice * quantity);
+  const quantityInput = document.getElementById(
+    "editResellerCustomerQuantity"
+  );
 
-    taxTotalInput.value =
-      data.tax_per_unit == null
-        ? ""
-        : money((Number(data.tax_per_unit) || 0) * quantity);
+  const totalInput = document.getElementById(
+    "editResellerCustomerTotal"
+  );
+
+  function updateTotal() {
+    const quantity = Number(quantityInput.value);
+
+    totalInput.value =
+      Number.isInteger(quantity) && quantity > 0
+        ? money(unitPrice * quantity)
+        : "";
   }
 
-  quantityInput.addEventListener("input", updateTotals);
+  quantityInput.addEventListener("input", updateTotal);
 
-  document.getElementById("cancelEditResellerCustomer")
-    .addEventListener("click", () => {
+  document
+    .getElementById("cancelEditResellerCustomer")
+    .addEventListener("click", function() {
       container.innerHTML = "";
       container.style.display = "none";
     });
 
-  form.addEventListener("submit", async event => {
+  form.addEventListener("submit", async function(event) {
     event.preventDefault();
 
-    const quantity = Math.max(1, Number(quantityInput.value) || 1);
-    const customerName =
-      document.getElementById("editResellerCustomerName").value.trim();
-    const version =
-      document.getElementById("editResellerCustomerVersion").value.trim();
+    const customerName = document
+      .getElementById("editResellerCustomerName")
+      .value.trim();
+
+    const version = document
+      .getElementById("editResellerCustomerVersion")
+      .value.trim();
+
+    const quantity = Number(quantityInput.value);
+
+    const note = document
+      .getElementById("editResellerCustomerNote")
+      .value.trim();
 
     if (!customerName || !version) {
-      message.textContent = "Nama customer dan versi/member wajib diisi.";
+      message.textContent =
+        "Nama customer dan versi/member wajib diisi.";
       return;
     }
 
-    const itemPrice = (Number(data.reseller_price) || 0) * quantity;
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      message.textContent =
+        "Quantity harus berupa bilangan bulat minimal 1.";
+      return;
+    }
 
-    const taxTotal =
-      data.tax_per_unit == null
-        ? null
-        : (Number(data.tax_per_unit) || 0) * quantity;
+    const itemPrice = unitPrice * quantity;
 
+    if (!confirm(
+      "Simpan perubahan customer Reseller?\n\n" +
+      "Customer: " + customerName + "\n" +
+      "Versi / Member: " + version + "\n" +
+      "Quantity: " + quantity + "\n" +
+      "Total harga baru: " + money(itemPrice) + "\n\n" +
+      "Harga per item tetap mengikuti header batch.\n" +
+      "Data pembayaran dan tax tidak diubah."
+    )) {
+      return;
+    }
+
+    const saveButton = form.querySelector(
+      'button[type="submit"]'
+    );
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Menyimpan...";
+    message.textContent = "Menyimpan perubahan...";
+
+    /*
+     * Hanya memperbarui data customer dan total harga.
+     * Tidak mengubah kolom DP, pembayaran, sisa tagihan,
+     * modal, harga header, rate, fee, atau tax.
+     */
     const updates = {
       customer_name: customerName,
-      version,
-      quantity,
+      version: version,
+      quantity: quantity,
       item_price: itemPrice,
-      remaining_amount: Math.max(
-        0,
-        itemPrice - (Number(data.dp_amount) || 0)
-      ),
-      payment_status:
-        document.getElementById("editResellerCustomerPaymentStatus").value,
-      tax_status:
-        document.getElementById("editResellerCustomerTaxStatus").value,
-      customer_status:
-        document.getElementById("editResellerCustomerStatus").value,
-      note:
-        document.getElementById("editResellerCustomerNote").value.trim(),
-      reseller_tax_total: taxTotal
+      note: note || null
     };
-
-    message.textContent = "Menyimpan perubahan...";
 
     const { error } = await supabaseClient
       .from("purchase_recap")
       .update(updates)
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .eq("recap_type", "Reseller");
 
     if (error) {
-      console.error("Gagal edit customer Reseller:", error);
-      message.textContent = "Gagal menyimpan: " + error.message;
+      console.error(
+        "Gagal edit customer Reseller:",
+        error
+      );
+
+      message.textContent =
+        "Gagal menyimpan: " + error.message;
+
+      saveButton.disabled = false;
+      saveButton.textContent = "💾 Simpan Perubahan";
       return;
     }
 
