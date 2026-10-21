@@ -7005,19 +7005,6 @@ modal.style.cssText = `
 
 </div>
 
-<div
-  style="
-    grid-column:1 / -1;
-    margin-top:5px;
-  "
->
-
-  <label>
-
-    <div>
-      Status Pembayaran Seller
-    </div>
-
     <select
       id="purchaseSellerPaymentStatusInput"
       style="
@@ -7088,7 +7075,7 @@ modal.style.cssText = `
   </option>
 
   ${[
-    "Co Seller",
+    "Order Seller",
     "Co Web / Seller",
     "Arrived WH KR",
     "Arrived WH JP",
@@ -7291,13 +7278,6 @@ if (quantity <= 0) {
     )
     .value
     .trim() || null,
-
-seller_payment_status:
-  document
-    .getElementById(
-      "purchaseSellerPaymentStatusInput"
-    )
-    .value || "order",
 
 web_seller:
     document
@@ -7815,6 +7795,11 @@ async function syncPurchaseStockTrackingToRecap(
           continue;
         }
 
+         const recapTrackingStatus =
+  trackingStatus === "Order Seller"
+    ? "Co Seller"
+    : trackingStatus;
+
         const updateData = {
           batch_tracking_status: trackingStatus || null
         };
@@ -7864,6 +7849,7 @@ async function syncPurchaseStockTrackingToRecap(
             batchCode: recap.batch_code,
             purchaseRecapId,
             trackingStatus,
+            recapTrackingStatus,
             updatedRows
           }
         );
