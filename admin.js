@@ -7005,49 +7005,6 @@ modal.style.cssText = `
 
 </div>
 
-    <select
-      id="purchaseSellerPaymentStatusInput"
-      style="
-        width:100%;
-        padding:9px 10px;
-        box-sizing:border-box;
-      "
-    >
-
-      <option
-        value="order"
-        ${
-          String(
-            purchase?.seller_payment_status ||
-            "order"
-          ).toLowerCase() === "order"
-            ? "selected"
-            : ""
-        }
-      >
-        Order
-      </option>
-
-      <option
-        value="paid"
-        ${
-          String(
-            purchase?.seller_payment_status ||
-            "order"
-          ).toLowerCase() === "paid"
-            ? "selected"
-            : ""
-        }
-      >
-        Terbayar
-      </option>
-
-    </select>
-
-  </label>
-
-</div>
-
 <div
   style="
     grid-column:1 / -1;
