@@ -32838,21 +32838,64 @@ style="
                           >
 
                           
+
 ${
   (() => {
     const linked = albumLinkStatusBySource[
       String(row.id)
     ];
 
-    const target = Number(row.tabungan_target) || 0;
     const accumulated = Number(row.tabungan_paid) || 0;
     const price = Number(linked?.item_price) || 0;
+    const minimumDP = Math.max(
+      Number(linked?.minimum_dp_amount) || 0,
+      0
+    );
+    const dpPaid = Math.max(
+      Number(linked?.dp_amount) || 0,
+      0
+    );
+
+    const dpRemaining = Math.max(
+      minimumDP - dpPaid,
+      0
+    );
 
     if (!linked) {
       return "";
     }
 
-    if (linked.dp_status === "paid") {
+    // Jika masih ada kekurangan DP minimum,
+    // tampilkan tombol konfirmasi tambahan DP.
+    if (dpRemaining > 0 && accumulated >= dpRemaining) {
+      return `
+        <button
+          type="button"
+          class="tabungan-confirm-dp-button"
+          data-source-id="${escapeHTML(String(row.id))}"
+          data-target="${dpRemaining}"
+          data-accumulated="${accumulated}"
+          style="
+            padding:8px 12px;
+            border:0;
+            border-radius:8px;
+            background:#16803c;
+            color:#fff;
+            font-weight:600;
+            cursor:pointer;
+          "
+        >
+          ✓ Konfirmasi Pembayaran DP
+        </button>
+      `;
+    }
+
+    // Jika DP sudah memenuhi minimum,
+    // pertahankan logika pelunasan yang lama.
+    if (
+      dpRemaining <= 0 &&
+      linked.dp_status === "paid"
+    ) {
       if (linked.payment_status === "paid") {
         return `
           <span style="
@@ -32899,29 +32942,6 @@ ${
         ">
           ✓ DP Terkonfirmasi
         </span>
-      `;
-    }
-
-    if (target > 0 && accumulated >= target) {
-      return `
-        <button
-          type="button"
-          class="tabungan-confirm-dp-button"
-          data-source-id="${escapeHTML(String(row.id))}"
-          data-target="${target}"
-          data-accumulated="${accumulated}"
-          style="
-            padding:8px 12px;
-            border:0;
-            border-radius:8px;
-            background:#16803c;
-            color:#fff;
-            font-weight:600;
-            cursor:pointer;
-          "
-        >
-          ✓ Konfirmasi Pembayaran DP
-        </button>
       `;
     }
 
@@ -33947,34 +33967,41 @@ if (!indicator) {
   });
 }
 
+
 /* ==========================================
    KONFIRMASI DP TABUNGAN ALBUM
+   MENGHITUNG KEKURANGAN DP DARI DP AKTUAL
    ========================================== */
 
 container
   .querySelectorAll(".tabungan-confirm-dp-button")
   .forEach(function(button) {
+
     button.addEventListener("click", async function() {
+
       const sourceId = Number(button.dataset.sourceId);
+      const accumulated =
+        Number(button.dataset.accumulated) || 0;
 
-      
-const target = Number(button.dataset.target) || 0;
-const accumulated = Number(button.dataset.accumulated) || 0;
+      if (!sourceId) {
+        alert("ID customer Tabungan Album tidak valid.");
+        return;
+      }
 
-if (target <= 0 || accumulated < target) {
-  alert("Target tabungan belum terpenuhi.");
-  return;
-}
-
-      const { data: mapping, error: mappingError } =
-        await supabaseClient
-          .from("dn_tabungan_album_customer_links")
-          .select("target_recap_id")
-          .eq("source_recap_id", sourceId)
-          .maybeSingle();
+      const {
+        data: mapping,
+        error: mappingError
+      } = await supabaseClient
+        .from("dn_tabungan_album_customer_links")
+        .select("target_recap_id")
+        .eq("source_recap_id", sourceId)
+        .maybeSingle();
 
       if (mappingError) {
-        alert("Gagal membaca hubungan customer: " + mappingError.message);
+        alert(
+          "Gagal membaca hubungan customer: " +
+          mappingError.message
+        );
         return;
       }
 
@@ -33983,79 +34010,189 @@ if (target <= 0 || accumulated < target) {
         return;
       }
 
-      const { data: targetRow, error: targetError } =
-        await supabaseClient
-          .from("purchase_recap")
-          .select(
-  "id, item_price, minimum_dp_amount, dp_amount, remaining_amount, dp_status, payment_status"
-)
-          .eq("id", mapping.target_recap_id)
-          .single();
+      const {
+        data: targetRow,
+        error: targetError
+      } = await supabaseClient
+        .from("purchase_recap")
+        .select(
+          "id, item_price, minimum_dp_amount, dp_amount, remaining_amount, dp_status, payment_status"
+        )
+        .eq("id", mapping.target_recap_id)
+        .single();
 
       if (targetError) {
-        alert("Gagal membaca data Rekap GO: " + targetError.message);
+        alert(
+          "Gagal membaca data Rekap GO: " +
+          targetError.message
+        );
         return;
       }
 
-      const price = Number(targetRow.item_price) || 0;
-const minimumDP = Number(targetRow.minimum_dp_amount) || 0;
+      // ==========================================
+      // HITUNG DP MINIMUM DAN DP YANG SUDAH DIBAYAR
+      // ==========================================
 
-if (targetRow.dp_status === "paid") {
-  alert("DP customer ini sudah dikonfirmasi.");
-  await loadRecapList(category);
-  return;
-}
+      const price = Math.max(
+        Number(targetRow.item_price) || 0,
+        0
+      );
 
-if (price <= 0 || minimumDP <= 0 || target <= 0) {
-  alert(
-    "Harga barang, DP minimum, atau target tabungan tidak valid."
-  );
-  return;
-}
+      const minimumDP = Math.max(
+        Number(targetRow.minimum_dp_amount) || 0,
+        0
+      );
 
-const dpActual = Math.min(minimumDP, price);
-const remaining = Math.max(price - dpActual, 0);
+      const dpAlreadyPaid = Math.max(
+        Number(targetRow.dp_amount) || 0,
+        0
+      );
 
-if (!confirm(
-  "Konfirmasi pembayaran DP customer ini?\n\n" +
-  "Target tabungan: " + formatRupiah(target) + "\n" +
-  "Tabungan terkumpul: " + formatRupiah(accumulated) + "\n" +
-  "DP minimum / DP aktual: " + formatRupiah(dpActual) + "\n" +
-  "Sisa pelunasan: " + formatRupiah(remaining)
-)) {
-  return;
-}
+      // Kekurangan DP setelah dikurangi pembayaran sebelumnya.
+      const dpRemaining = Math.max(
+        minimumDP - dpAlreadyPaid,
+        0
+      );
+
+      if (price <= 0 || minimumDP <= 0) {
+        alert(
+          "Harga barang atau DP minimum tidak valid."
+        );
+        return;
+      }
+
+      if (dpRemaining <= 0) {
+        alert(
+          "DP minimum sudah terpenuhi. " +
+          "Tidak ada tambahan DP yang perlu dikonfirmasi."
+        );
+
+        await loadRecapList(category);
+        return;
+      }
+
+      if (accumulated < dpRemaining) {
+        alert(
+          "Tabungan belum mencukupi untuk tambahan DP.\n\n" +
+          "Kekurangan DP: " +
+          formatRupiah(dpRemaining) + "\n" +
+          "Tabungan terkumpul: " +
+          formatRupiah(accumulated)
+        );
+        return;
+      }
+
+      // Nominal tambahan DP yang dikonfirmasi.
+      const dpAdditional = Math.min(
+        dpRemaining,
+        Math.max(price - dpAlreadyPaid, 0)
+      );
+
+      // DP aktual merupakan akumulasi DP sebelumnya
+      // ditambah tambahan DP yang baru dikonfirmasi.
+      const dpActual =
+        dpAlreadyPaid + dpAdditional;
+
+      const remaining = Math.max(
+        price - dpActual,
+        0
+      );
+
+      if (dpAdditional <= 0) {
+        alert("Tidak ada tambahan DP yang dapat dikonfirmasi.");
+        return;
+      }
+
+      if (!confirm(
+        "Konfirmasi tambahan pembayaran DP customer ini?\n\n" +
+
+        "Harga barang: " +
+        formatRupiah(price) + "\n\n" +
+
+        "DP minimum terbaru: " +
+        formatRupiah(minimumDP) + "\n" +
+
+        "DP yang sudah dibayar: " +
+        formatRupiah(dpAlreadyPaid) + "\n" +
+
+        "Tambahan DP yang dikonfirmasi: " +
+        formatRupiah(dpAdditional) + "\n\n" +
+
+        "Total DP setelah konfirmasi: " +
+        formatRupiah(dpActual) + "\n" +
+
+        "Sisa pelunasan: " +
+        formatRupiah(remaining) + "\n\n" +
+
+        "Tabungan terkumpul: " +
+        formatRupiah(accumulated)
+      )) {
+        return;
+      }
 
       button.disabled = true;
 
       try {
-        const { error: updateError } = await supabaseClient
+
+        const {
+          error: updateError
+        } = await supabaseClient
           .from("purchase_recap")
           .update({
-  dp_status: "paid",
-  dp_amount: dpActual,
-  remaining_amount: remaining
-})
+            dp_status:
+              dpActual >= minimumDP
+                ? "paid"
+                : "insufficient",
+
+            dp_amount: dpActual,
+            remaining_amount: remaining
+          })
           .eq("id", targetRow.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          throw updateError;
+        }
 
         alert(
-  "DP berhasil dikonfirmasi.\nDP Aktual: " +
-  formatRupiah(dpActual)
-);
+          "Tambahan DP berhasil dikonfirmasi.\n\n" +
+
+          "DP sebelumnya: " +
+          formatRupiah(dpAlreadyPaid) + "\n" +
+
+          "Tambahan DP: " +
+          formatRupiah(dpAdditional) + "\n" +
+
+          "Total DP aktual: " +
+          formatRupiah(dpActual) + "\n" +
+
+          "Sisa pelunasan: " +
+          formatRupiah(remaining)
+        );
 
         await loadRecapList(category);
 
       } catch (error) {
-        console.error("GAGAL KONFIRMASI DP:", error);
-        alert("Gagal mengonfirmasi DP: " + error.message);
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
 
+        console.error(
+          "GAGAL KONFIRMASI DP:",
+          error
+        );
+
+        alert(
+          "Gagal mengonfirmasi DP: " +
+          error.message
+        );
+
+      } finally {
+
+        button.disabled = false;
+
+      }
+
+    });
+
+  });
+     
      /* ==========================================
    KONFIRMASI PELUNASAN TABUNGAN ALBUM
    ========================================== */
