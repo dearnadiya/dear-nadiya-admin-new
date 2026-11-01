@@ -5319,21 +5319,23 @@ const batches = [
        const draftSelectedBatchKeys =
   getDraftSelectedBatchKeys();
 
-
 /*
- * =====================================
- * 0. BATCH SUDAH DIPILIH DI ALOKASI LAIN
- *    MESKIPUN BELUM DI-SAVE
- * =====================================
+ * BATCH YANG SUDAH DIPILIH DI ALOKASI LAIN
+ *
+ * 1 Seller:
+ * Batch tidak boleh dipilih ulang.
+ *
+ * >1 Seller:
+ * Batch tetap boleh dipilih ulang
+ * untuk customer/version berbeda.
  */
 
 if (
   draftSelectedBatchKeys.has(batchKey) &&
-  selectedSellerSource !== ">1 Seller"
+  sellerModeSelect.value !== "many"
 ) {
   return false;
 }
-
       /*
        * =====================================
        * 1. BATCH SUDAH ARRIVED ADMIN
