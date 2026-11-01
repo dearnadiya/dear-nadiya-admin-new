@@ -41182,14 +41182,42 @@ recapStatusSelects.forEach(
         );
 
 
-        /* ==================================
-           REFRESH REKAP GO
-           ================================== */
+       /* ==================================
+   UPDATE TAMPILAN BARIS LANGSUNG
+   TANPA MEMUAT ULANG SELURUH REKAP
+   ================================== */
 
-        await loadRecapList(
-          category
-        );
+const updatedRow =
+  select.closest("tr");
 
+// Urutan kolom tabel Rekap GO:
+// 0 Barang, 1 Customer, 2 Versi, 3 Qty,
+// 4 Harga, 5 DP, 6 Status DP,
+// 7 Pelunasan Terbayar, 8 Sisa.
+
+const remainingCell =
+  updatedRow?.cells?.[8];
+
+if (
+  remainingCell &&
+  Object.prototype.hasOwnProperty.call(
+    updateData,
+    "remaining_amount"
+  )
+) {
+  remainingCell.textContent =
+    formatRupiah(
+      updateData.remaining_amount
+    );
+}
+
+console.log(
+  "TAMPILAN STATUS REKAP DIPERBARUI TANPA REFRESH:",
+  {
+    id: id,
+    updateData: updateData
+  }
+);
       }
 
     );
