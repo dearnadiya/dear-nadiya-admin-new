@@ -5328,15 +5328,11 @@ const batches = [
  */
 
 if (
-  draftSelectedBatchKeys.has(
-    batchKey
-  )
+  draftSelectedBatchKeys.has(batchKey) &&
+  selectedSellerSource !== ">1 Seller"
 ) {
-
   return false;
-
 }
-
 
       /*
        * =====================================
