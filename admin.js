@@ -1,4 +1,3 @@
-
 /* ============================================
    DEAR NADIYA ADMIN
    CLEAN VERSION    
@@ -23699,8 +23698,10 @@ function showRecapForm(category) {
         <strong>${escapeHTML(category)}</strong>
       </p>
 
-      <form id="batchRecapForm">
-
+      <form
+  id="batchRecapForm"
+  data-category="${escapeHTML(category)}"
+>
         <input
           type="hidden"
           id="batchCategory"
@@ -42329,11 +42330,19 @@ async function saveBatchRecap(event) {
      DATA BATCH
      ========================================== */
 
-  const category =
-    document.getElementById(
-      "batchCategory"
-    ).value;
+  const form = event.currentTarget;
 
+const category =
+  form.dataset.category ||
+  form.querySelector(
+    "#batchCategory"
+  )?.value ||
+  "";
+
+if (!category) {
+  alert("Kategori batch tidak ditemukan. Silakan buka ulang form.");
+  return;
+}
    const recapType =
   getRecapTypeFromCategory(
     category
