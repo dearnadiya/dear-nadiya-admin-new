@@ -2810,62 +2810,49 @@ container
   );
 
 
-  /*
-     ============================================
-     TOMBOL DETAIL
-     ============================================
-  */
+  
+/* ============================================
+   TOMBOL DETAIL PEMBELIAN
+============================================ */
 
-  container
-    .querySelectorAll(
-      ".purchase-stock-detail-button"
-    )
-    .forEach(
-      function(button) {
+container
+  .querySelectorAll(".purchase-stock-detail-button")
+  .forEach(function(button) {
 
-        button.addEventListener(
-          "click",
-          function() {
+    button.addEventListener("click", async function() {
 
-            const purchaseId =
-              Number(
-                button.dataset.purchaseId
-              );
+      const purchaseId = Number(
+        button.dataset.purchaseId
+      );
 
+      const panel = container.querySelector(
+        `[data-detail-id="${purchaseId}"]`
+      );
 
-            const panel =
-              container.querySelector(
-                `[data-detail-id="${purchaseId}"]`
-              );
+      // DETAIL KELOMPOK PEMBELIAN AKTIF
+      // Tetap menggunakan mekanisme lama
+      if (panel) {
 
+        const isOpen =
+          panel.style.display !== "none";
 
-            if (!panel) {
-              return;
-            }
+        panel.style.display =
+          isOpen ? "none" : "block";
 
+        button.textContent =
+          isOpen ? "Detail ▼" : "Detail ▲";
 
-            const isOpen =
-              panel.style.display !==
-              "none";
-
-
-            panel.style.display =
-              isOpen
-                ? "none"
-                : "block";
-
-
-            button.textContent =
-              isOpen
-                ? "Detail ▼"
-                : "Detail ▲";
-
-          }
-        );
-
+        return;
       }
-    );
 
+      // DETAIL KHUSUS ARSIP PEMBELIAN
+      if (purchaseId > 0) {
+        await showArchivedPurchaseStockDetail(purchaseId);
+      }
+
+    });
+
+  });
 
   /*
      ============================================
