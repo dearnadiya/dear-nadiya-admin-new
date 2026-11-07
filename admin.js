@@ -37457,6 +37457,53 @@ if (!hasConfirmedDpAllocation) {
 
 }
 
+     
+/* ==========================================
+   KOREKSI STATUS PEMBAYARAN MANUAL
+   Jangan anggap sisa tagihan sebagai bukti pembayaran.
+   Berlaku untuk data lama dan data baru
+   yang tidak memiliki pembayaran confirmed.
+   ========================================== */
+
+if (!hasConfirmedPayment) {
+
+  const storedDp =
+    Number(row.dp_amount) || 0;
+
+  // Jika admin menandai LUNAS
+  if (row.payment_status === "paid") {
+
+    totalDpPaid =
+      storedDp > 0
+        ? Math.min(storedDp, price)
+        : Math.min(minimumDp, price);
+
+    totalPelunasanPaid =
+      Math.max(price - totalDpPaid, 0);
+
+  }
+
+  // Jika hanya DP yang sudah dibayar
+  else if (row.dp_status === "paid") {
+
+    totalDpPaid =
+      storedDp > 0
+        ? Math.min(storedDp, price)
+        : Math.min(minimumDp, price);
+
+    totalPelunasanPaid = 0;
+
+  }
+
+  // Jika DP dan pelunasan sama-sama belum dibayar
+  else {
+
+    totalDpPaid = 0;
+    totalPelunasanPaid = 0;
+
+  }
+
+}
    
 /* ==========================================
    REKAP GO - NILAI PEMBAYARAN AKTUAL
