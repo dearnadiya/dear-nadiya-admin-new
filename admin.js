@@ -19094,7 +19094,7 @@ function loadRecap() {
   type="button"
   data-recap-type="Reseller"
 >
-  🛍️ Rekap Reseller
+  🛍️ Rekap Jajan Bareng
 </button>
 
       </div>
@@ -25183,7 +25183,7 @@ async function showResellerRecapForm(category) {
 
   container.innerHTML = `
     <div class="panel recap-form">
-      <h3>➕ Tambah Rekap Reseller</h3>
+      <h3>➕ Tambah Rekap Jajan Bareng</h3>
       <p>Kategori: <strong>${escapeHTML(category)}</strong></p>
 
       <form id="resellerBatchForm">
