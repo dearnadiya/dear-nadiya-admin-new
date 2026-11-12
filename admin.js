@@ -23457,7 +23457,7 @@ if (incomplete) {
   if (message) {
 
     message.textContent =
-      "Versi / Member wajib dipilih dari master!";
+      "Customer dan Versi / Member wajib diisi. Versi / Member boleh dipilih dari master atau diketik manual.";
 
   }
 
@@ -23479,6 +23479,18 @@ if (incomplete) {
            SIMPAN KE BATCH YANG SAMA
            ====================================== */
 
+         // Pulihkan modal dasar dari batch sebelum seller baru masuk.
+if (isReseller) {
+  const baseModalPrice = getResellerBaseModalPrice(
+    data,
+    Number(batch.co_tf_fee) || 0
+  );
+
+  records.forEach(record => {
+    record.modal_price = baseModalPrice;
+  });
+}
+         
         const {
           error
         } =
@@ -23521,6 +23533,44 @@ if (incomplete) {
           return;
 
         }
+
+         if (isReseller) {
+  const { data: updatedBatchRows, error: fetchBatchError } =
+    await supabaseClient
+      .from("purchase_recap")
+      .select("id, customer_id, quantity")
+      .eq("category", category)
+      .eq("batch_code", batchCode)
+      .eq("recap_type", "Reseller");
+
+  if (fetchBatchError) throw fetchBatchError;
+
+  const baseModalPrice = getResellerBaseModalPrice(
+    data,
+    Number(batch.co_tf_fee) || 0
+  );
+
+  const sellerAllocations = getResellerSellerFeeAllocation(
+    updatedBatchRows || [],
+    Number(batch.co_tf_fee) || 0
+  );
+
+  for (const row of (updatedBatchRows || [])) {
+    const { error: allocationError } = await supabaseClient
+      .from("purchase_recap")
+      .update({
+        modal_price: getResellerAllocatedModalPrice(
+          row,
+          sellerAllocations,
+          baseModalPrice
+        )
+      })
+      .eq("id", row.id)
+      .eq("recap_type", "Reseller");
+
+    if (allocationError) throw allocationError;
+  }
+}
 
 
         /* ======================================
@@ -25173,6 +25223,79 @@ itemsContainer.addEventListener(
 }
 
 /* ============================================
+   ALOKASI FEE CO/TF JAJAN BARENG
+   Fee dibagi rata per customer_id unik (seller),
+   lalu porsi seller dibagi berdasarkan total quantity
+   seluruh versi/member milik seller tersebut.
+   ============================================ */
+
+function getResellerSellerFeeAllocation(rows, totalFee) {
+  const sellerTotals = new Map();
+
+  (rows || []).forEach(row => {
+    const sellerId = String(row.customer_id || "").trim();
+    if (!sellerId) return;
+
+    sellerTotals.set(
+      sellerId,
+      (sellerTotals.get(sellerId) || 0) +
+        Math.max(1, Number(row.quantity) || 1)
+    );
+  });
+
+  const sellerCount = sellerTotals.size;
+  const feePerSeller = sellerCount
+    ? (Number(totalFee) || 0) / sellerCount
+    : 0;
+
+  const allocations = new Map();
+
+  sellerTotals.forEach((totalQuantity, sellerId) => {
+    allocations.set(sellerId, {
+      feeShare: feePerSeller,
+      totalQuantity,
+      feePerUnit: totalQuantity
+        ? feePerSeller / totalQuantity
+        : 0
+    });
+  });
+
+  return allocations;
+}
+
+function getResellerBaseModalPrice(rows, totalFee) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length) return 0;
+
+  const allocations =
+    getResellerSellerFeeAllocation(list, totalFee);
+
+  const first = list[0];
+  const allocation = allocations.get(
+    String(first.customer_id || "")
+  );
+
+  return Math.max(
+    0,
+    (Number(first.modal_price) || 0) -
+      (allocation ? allocation.feePerUnit : 0)
+  );
+}
+
+function getResellerAllocatedModalPrice(
+  row,
+  allocations,
+  baseModalPrice
+) {
+  const allocation = allocations.get(
+    String(row.customer_id || "")
+  );
+
+  return (Number(baseModalPrice) || 0) +
+    (allocation ? allocation.feePerUnit : 0);
+}
+
+/* ============================================
    FORM REKAP JAJAN BARENG
    ============================================ */
 async function showResellerRecapForm(category) {
@@ -25303,6 +25426,36 @@ async function showResellerRecapForm(category) {
 
   const customerList = customers || [];
 
+   const {
+  data: masterMembers,
+  error: masterMembersError
+} = await supabaseClient
+  .from("po_members")
+  .select(`
+    id,
+    group_name,
+    member_name,
+    entry_type,
+    sort_order
+  `)
+  .order("group_name", { ascending: true })
+  .order("sort_order", { ascending: true });
+
+if (masterMembersError) {
+  console.error(
+    "ERROR LOAD MASTER MEMBER RESELLER:",
+    masterMembersError
+  );
+
+  message.textContent =
+    "Gagal memuat Master Versi/Member: " +
+    masterMembersError.message;
+
+  return;
+}
+
+const masterMemberList = masterMembers || [];
+
   function updateResellerTotals() {
     const taxValue = document.getElementById("resellerTaxPerUnit").value;
     const taxPerUnit = taxValue.trim() === ""
@@ -25357,7 +25510,39 @@ async function showResellerRecapForm(category) {
       </div>
 
       <label>Versi / Member</label>
-      <input class="reseller-version" required>
+
+<div class="member-picker" style="position:relative;width:100%;">
+  <input
+    type="text"
+    class="reseller-version"
+    placeholder="🔎 Cari member / character / versi..."
+    autocomplete="off"
+    required
+  >
+
+  <input
+    type="hidden"
+    class="reseller-member-id"
+  >
+
+  <div
+    class="reseller-member-results"
+    style="
+      display:none;
+      position:absolute;
+      z-index:9999;
+      left:0;
+      right:0;
+      top:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      max-height:240px;
+      overflow-y:auto;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+    "
+  ></div>
+</div>
 
       <label>Quantity</label>
       <input type="number" class="reseller-quantity"
@@ -25444,6 +25629,118 @@ async function showResellerRecapForm(category) {
       results.style.display = "none";
     });
 
+     // PENCARIAN MASTER VERSI / MEMBER
+const versionInput =
+  row.querySelector(".reseller-version");
+
+const memberIdInput =
+  row.querySelector(".reseller-member-id");
+
+const memberResults =
+  row.querySelector(".reseller-member-results");
+
+versionInput.addEventListener("input", function() {
+  const keyword = this.value.trim().toLowerCase();
+
+  memberIdInput.value = "";
+
+  if (!keyword) {
+    memberResults.innerHTML = "";
+    memberResults.style.display = "none";
+    return;
+  }
+
+  const matches = masterMemberList
+    .filter(member => {
+      const groupName =
+        String(member.group_name || "").toLowerCase();
+
+      const memberName =
+        String(member.member_name || "").toLowerCase();
+
+      const entryType =
+        String(member.entry_type || "").toLowerCase();
+
+      return (
+        groupName.includes(keyword) ||
+        memberName.includes(keyword) ||
+        entryType.includes(keyword)
+      );
+    })
+    .slice(0, 15);
+
+  if (!matches.length) {
+    memberResults.innerHTML = `
+      <div style="padding:10px 12px;color:#777;font-size:12px;">
+        Member / versi tidak ditemukan
+      </div>
+    `;
+
+    memberResults.style.display = "block";
+    return;
+  }
+
+  memberResults.innerHTML = matches.map(member => {
+    let typeLabel = "Member";
+
+    if (member.entry_type === "character") {
+      typeLabel = "Character";
+    }
+
+    if (member.entry_type === "version") {
+      typeLabel = "Version";
+    }
+
+    return `
+      <button
+        type="button"
+        class="reseller-member-option"
+        data-id="${escapeHTML(String(member.id))}"
+        data-name="${escapeHTML(member.member_name || "")}"
+        style="
+          display:block;
+          width:100%;
+          text-align:left;
+          padding:8px 10px;
+          border:0;
+          border-bottom:1px solid #eee;
+          background:#fff;
+          cursor:pointer;
+          font-size:13px;
+        "
+      >
+        <strong>
+          ${escapeHTML(member.member_name || "—")}
+        </strong>
+
+        <div style="margin-top:2px;color:#777;font-size:11px;">
+          ${escapeHTML(member.group_name || "—")}
+          · ${typeLabel}
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  memberResults.style.display = "block";
+});
+
+memberResults.addEventListener("click", event => {
+  const option = event.target.closest(".reseller-member-option");
+  if (!option) return;
+
+  versionInput.value = option.dataset.name || "";
+  memberIdInput.value = option.dataset.id || "";
+
+  memberResults.innerHTML = "";
+  memberResults.style.display = "none";
+});
+
+document.addEventListener("click", function(event) {
+  if (!row.contains(event.target)) {
+    memberResults.style.display = "none";
+  }
+});
+     
     row.querySelector(".reseller-quantity").addEventListener(
       "input", updateResellerTotals
     );
@@ -25558,12 +25855,16 @@ async function saveResellerBatch(event) {
     const version =
       row.querySelector(".reseller-version").value.trim();
 
+     const memberId = Number(
+  row.querySelector(".reseller-member-id").value
+) || null;
+
     const quantity = Math.max(
       1,
       Number(row.querySelector(".reseller-quantity").value) || 1
     );
 
-    if (!customerId || !version) {
+    if (!customerId || !memberId || !version) {
       invalid = true;
       return;
     }
@@ -25577,8 +25878,9 @@ async function saveResellerBatch(event) {
       item_name: itemName,
       customer_id: customerId,
       customer_name: customerName,
-      version,
-      quantity,
+member_id: memberId,
+version,
+quantity,
 
       // Kolom harga utama tetap menyimpan total harga jual.
       item_price: totalPrice,
@@ -25631,6 +25933,17 @@ async function saveResellerBatch(event) {
       "Pilih customer dari hasil pencarian dan isi Versi / Member untuk setiap baris.";
     return;
   }
+
+   const sellerAllocations =
+  getResellerSellerFeeAllocation(records, coTfFee);
+
+records.forEach(record => {
+  record.modal_price = getResellerAllocatedModalPrice(
+    record,
+    sellerAllocations,
+    modalPrice
+  );
+});
 
   const { error } = await supabaseClient
     .from("purchase_recap")
@@ -41961,7 +42274,7 @@ async function showTabunganRecapForm(category) {
   }
 
   const customerList = customers || [];
-
+   
   function addCustomerRow() {
 
     const row = document.createElement("div");
@@ -45464,7 +45777,7 @@ async function showEditResellerBatchForm(
         <label>Modal per Item/Set</label>
         <input id="editResellerModalPrice"
           class="currency-input"
-          value="${money(firstRow.modal_price)}" required>
+          value="${money(getResellerBaseModalPrice(data, firstRow.co_tf_fee))}" required>
 
         <label>Harga Reseller per Item/Set</label>
         <input id="editResellerSellingPrice"
@@ -45585,12 +45898,19 @@ async function showEditResellerBatchForm(
       return;
     }
 
+     const sellerAllocations =
+  getResellerSellerFeeAllocation(data, coTfFee);
+
     const updates = data.map(row => ({
       id: row.id,
       batch_code: newBatchCode,
       item_name: newItemName,
       stock_source: stockSource,
-      modal_price: modalPrice,
+      modal_price: getResellerAllocatedModalPrice(
+  row,
+  sellerAllocations,
+  modalPrice
+),
       reseller_price: resellerPrice,
       exchange_rate: exchangeRate,
       co_tf_fee: coTfFee,
@@ -45652,7 +45972,31 @@ async function showEditResellerCustomerForm(data, container) {
 
   const money = value =>
     formatNominalInput(Number(value) || 0);
+const { data: initialBatchRows, error: initialBatchError } =
+  await supabaseClient
+    .from("purchase_recap")
+    .select("id, customer_id, quantity, modal_price, co_tf_fee")
+    .eq("category", data.category)
+    .eq("batch_code", data.batch_code)
+    .eq("recap_type", "Reseller");
 
+if (initialBatchError) {
+  alert(
+    "Gagal memuat data seller dalam batch: " +
+    initialBatchError.message
+  );
+  return;
+}
+
+const batchFeeNow = Number(data.co_tf_fee) || 0;
+
+const baseModalNow = getResellerBaseModalPrice(
+  initialBatchRows && initialBatchRows.length
+    ? initialBatchRows
+    : [data],
+  batchFeeNow
+);
+   
   const { data: customers, error: customerError } =
     await supabaseClient
       .from("customers")
@@ -45693,7 +46037,7 @@ async function showEditResellerCustomerForm(data, container) {
 
         <label>Modal per Item/Set</label>
         <input id="editResellerModalPrice" class="currency-input"
-          value="${money(data.modal_price)}" required>
+          value="${money(baseModalNow)}" required>
 
         <label>Harga Reseller per Item/Set</label>
         <input id="editResellerSellingPrice" class="currency-input"
@@ -45948,46 +46292,72 @@ async function showEditResellerCustomerForm(data, container) {
     saveButton.textContent = "Menyimpan...";
 
     try {
-      // Ambil semua baris batch yang lama sebelum mengubah kode batch.
-      const { data: batchRows, error: batchError } = await supabaseClient
-        .from("purchase_recap")
-        .select("id, quantity")
-        .eq("category", data.category)
-        .eq("batch_code", data.batch_code)
-        .eq("recap_type", "Reseller");
+      // Ambil semua seller dalam batch sebelum perubahan.
+const { data: batchRows, error: batchError } = await supabaseClient
+  .from("purchase_recap")
+  .select("id, customer_id, quantity")
+  .eq("category", data.category)
+  .eq("batch_code", data.batch_code)
+  .eq("recap_type", "Reseller");
 
-      if (batchError) throw batchError;
+if (batchError) throw batchError;
 
-      if (!batchRows || !batchRows.some(row => String(row.id) === String(data.id))) {
-        throw new Error("Data batch tidak ditemukan atau tidak cocok.");
-      }
+if (!batchRows || !batchRows.some(
+  row => String(row.id) === String(data.id)
+)) {
+  throw new Error("Data batch tidak ditemukan atau tidak cocok.");
+}
 
-      // Perbarui informasi header dan harga untuk semua customer di batch.
-      for (const row of batchRows) {
-        const rowQuantity = Math.max(1, Number(row.quantity) || 1);
-        const rowTaxTotal = taxPerUnit === null
+// Ganti customer dan quantity pada data sementara,
+// agar pembagian fee memakai data terbaru.
+const allocationRows = batchRows.map(row => ({
+  ...row,
+  customer_id:
+    String(row.id) === String(data.id)
+      ? customerId
+      : row.customer_id,
+  quantity:
+    String(row.id) === String(data.id)
+      ? quantity
+      : row.quantity
+}));
+
+const sellerAllocations =
+  getResellerSellerFeeAllocation(
+    allocationRows,
+    coTfFee
+  );
+
+// Alokasikan modal baru ke semua seller dalam batch.
+for (const row of allocationRows) {
+  const allocatedModal = getResellerAllocatedModalPrice(
+    row,
+    sellerAllocations,
+    modalPrice
+  );
+
+  const { error } = await supabaseClient
+    .from("purchase_recap")
+    .update({
+      batch_code: batchCode,
+      item_name: itemName,
+      stock_source: stockSource,
+      modal_price: allocatedModal,
+      reseller_price: resellerPrice,
+      exchange_rate: exchangeRate,
+      co_tf_fee: coTfFee,
+      tax_per_unit: taxPerUnit,
+      reseller_tax_total:
+        taxPerUnit === null
           ? null
-          : taxPerUnit * rowQuantity;
+          : taxPerUnit * (Number(row.quantity) || 1)
+    })
+    .eq("id", row.id)
+    .eq("recap_type", "Reseller");
 
-        const { error } = await supabaseClient
-          .from("purchase_recap")
-          .update({
-            batch_code: batchCode,
-            item_name: itemName,
-            stock_source: stockSource,
-            modal_price: modalPrice,
-            reseller_price: resellerPrice,
-            exchange_rate: exchangeRate,
-            co_tf_fee: coTfFee,
-            tax_per_unit: taxPerUnit,
-            reseller_tax_total: rowTaxTotal
-          })
-          .eq("id", row.id)
-          .eq("recap_type", "Reseller");
-
-        if (error) throw error;
-      }
-
+  if (error) throw error;
+}
+       
       // Perbarui data customer yang sedang diedit saja.
       const { error: customerUpdateError } = await supabaseClient
         .from("purchase_recap")
@@ -46000,7 +46370,6 @@ async function showEditResellerCustomerForm(data, container) {
           payment_status: paymentStatus,
           tax_status: taxStatus,
           reseller_tax_total: totalTax,
-          remaining_amount: totalPrice,
           note: note || null
         })
         .eq("id", data.id)
