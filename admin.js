@@ -25320,29 +25320,46 @@ async function showResellerRecapForm(category) {
         <input id="resellerItemName" required>
 
         <hr>
-        <h3>Harga Batch</h3>
+        
+<h3>Harga Batch</h3>
 
-        <label>Modal per Item/Set</label>
-        <input id="resellerModalPrice" class="currency-input"
-          placeholder="Contoh: 150.000" required>
+<label>Harga Seller per Item/Set</label>
+<div style="display:flex;gap:8px;align-items:center;">
+  <input id="resellerSellerPrice" type="number"
+    min="0" step="any"
+    placeholder="Contoh: 100"
+    required style="flex:1;min-width:0;">
 
-        <label>Harga Reseller per Item/Set</label>
-        <input id="resellerSellingPrice" class="currency-input"
-          placeholder="Contoh: 180.000" required>
+  <select id="resellerSellerCurrency"
+    required style="width:125px;">
+    <option value="CNY">CNY (Yuan)</option>
+    <option value="USD">USD (Dollar)</option>
+    <option value="KRW">KRW (Won)</option>
+    <option value="JPY">JPY (Yen)</option>
+    <option value="TWD">TWD (NTD)</option>
+  </select>
+</div>
 
-        <label>Rate</label>
-        <input id="resellerExchangeRate" type="number"
-          min="0" step="any" required>
+<label>Rate</label>
+<input id="resellerExchangeRate"
+  type="number" min="0" step="any" required>
 
-        <label>Fee CO/TF</label>
-        <input id="resellerCoTfFee" class="currency-input"
-          placeholder="0">
+<label>Harga dalam IDR per Item/Set</label>
+<input id="resellerSellingPrice"
+  class="currency-input"
+  placeholder="Otomatis dari Harga Seller × Rate"
+  readonly required>
 
-        <label>Tax per Item/Set</label>
-        <input id="resellerTaxPerUnit" class="currency-input"
-          placeholder="Kosongkan jika belum diketahui">
+<label>Fee CO/TF (Total Pembayaran ke Jasa CO/Transfer)</label>
+<input id="resellerCoTfFee"
+  class="currency-input" placeholder="0">
 
-        <small>Tax dapat diisi setelah barang tiba di Indonesia.</small>
+<label>Tax per Item/Set</label>
+<input id="resellerTaxPerUnit"
+  class="currency-input"
+  placeholder="Kosongkan jika belum diketahui">
+
+<small>Tax dapat diisi setelah barang tiba di Indonesia.</small>
 
         <hr>
         <h3>Versi / Member Reseller</h3>
@@ -25456,32 +25473,78 @@ if (masterMembersError) {
 
 const masterMemberList = masterMembers || [];
 
-  function updateResellerTotals() {
-    const taxValue = document.getElementById("resellerTaxPerUnit").value;
-    const taxPerUnit = taxValue.trim() === ""
-      ? null
-      : parseNominalInput(taxValue);
+  
+function updateResellerTotals() {
+  const sellerPrice = Number(
+    document.getElementById("resellerSellerPrice").value
+  ) || 0;
 
-    itemsContainer.querySelectorAll(".reseller-item-row")
-      .forEach(row => {
-        const quantity = Math.max(
-          1,
-          Number(row.querySelector(".reseller-quantity").value) || 1
-        );
+  const exchangeRate = Number(
+    document.getElementById("resellerExchangeRate").value
+  ) || 0;
 
-        const price = parseNominalInput(
-          document.getElementById("resellerSellingPrice").value
-        );
+  const priceIDR = Math.round(sellerPrice * exchangeRate);
 
-        row.querySelector(".reseller-total-price").value =
-          formatNominalInput(price * quantity);
+  const priceInput =
+    document.getElementById("resellerSellingPrice");
 
-        row.querySelector(".reseller-tax-total").value =
-          taxPerUnit === null
-            ? ""
-            : formatNominalInput(taxPerUnit * quantity);
-      });
-  }
+  priceInput.value = priceIDR
+    ? formatNominalInput(priceIDR)
+    : "";
+
+  const taxValue =
+    document.getElementById("resellerTaxPerUnit").value;
+
+  const taxPerUnit = taxValue.trim() === ""
+    ? null
+    : parseNominalInput(taxValue);
+
+  const rows = [
+    ...itemsContainer.querySelectorAll(".reseller-item-row")
+  ];
+
+  const fee = parseNominalInput(
+    document.getElementById("resellerCoTfFee").value
+  );
+
+  const allocations = getResellerSellerFeeAllocation(
+    rows.map(row => ({
+      customer_id:
+        row.querySelector(".reseller-customer-id").value,
+      quantity:
+        Number(row.querySelector(".reseller-quantity").value) || 1
+    })),
+    fee
+  );
+
+  rows.forEach(row => {
+    const quantity = Math.max(
+      1,
+      Number(row.querySelector(".reseller-quantity").value) || 1
+    );
+
+    const customerId = String(
+      row.querySelector(".reseller-customer-id").value || ""
+    );
+
+    const allocation = allocations.get(customerId);
+
+    const feeShare = allocation
+      ? allocation.feePerUnit * quantity
+      : 0;
+
+    const totalBill =
+      (priceIDR * quantity) + feeShare;
+
+    row.querySelector(".reseller-total-price").value =
+      formatNominalInput(Math.round(totalBill));
+
+    row.querySelector(".reseller-tax-total").value =
+      taxPerUnit === null
+        ? ""
+        : formatNominalInput(taxPerUnit * quantity);
+  });
+}
 
   function addResellerItem() {
     const row = document.createElement("div");
@@ -25758,8 +25821,14 @@ document.addEventListener("click", function(event) {
   document.getElementById("addResellerItemButton")
     .addEventListener("click", addResellerItem);
 
-  document.getElementById("resellerSellingPrice")
+  [
+  "resellerSellerPrice",
+  "resellerExchangeRate",
+  "resellerCoTfFee"
+].forEach(id => {
+  document.getElementById(id)
     .addEventListener("input", updateResellerTotals);
+});
 
   document.getElementById("resellerTaxPerUnit")
     .addEventListener("input", updateResellerTotals);
@@ -25793,13 +25862,20 @@ async function saveResellerBatch(event) {
   const itemName =
     document.getElementById("resellerItemName").value.trim();
 
-  const modalPrice = parseNominalInput(
-    document.getElementById("resellerModalPrice").value
-  );
+  const sellerPrice = Number(
+  document.getElementById("resellerSellerPrice").value
+) || 0;
 
-  const resellerPrice = parseNominalInput(
-    document.getElementById("resellerSellingPrice").value
-  );
+const sellerCurrency =
+  document.getElementById("resellerSellerCurrency").value;
+
+const exchangeRate = Number(
+  document.getElementById("resellerExchangeRate").value
+);
+
+const resellerPrice = Math.round(
+  sellerPrice * exchangeRate
+);
 
   const exchangeRate = Number(
     document.getElementById("resellerExchangeRate").value
@@ -25830,7 +25906,15 @@ async function saveResellerBatch(event) {
     return;
   }
 
-  if (modalPrice < 0 || resellerPrice < 0 || exchangeRate <= 0) {
+  if (
+  sellerPrice <= 0 ||
+  resellerPrice <= 0 ||
+  exchangeRate <= 0
+) {
+  message.textContent =
+    "Harga Seller, Rate, dan hasil konversi IDR harus lebih dari 0.";
+  return;
+}
     message.textContent =
       "Periksa harga modal, harga reseller, dan rate.";
     return;
@@ -25907,10 +25991,12 @@ quantity,
       stock_source: stockSource,
       recap_data_type: "baru",
 
-      modal_price: modalPrice,
-      reseller_price: resellerPrice,
-      exchange_rate: exchangeRate,
-      co_tf_fee: coTfFee,
+      modal_price: resellerPrice,
+reseller_price: resellerPrice,
+seller_price: sellerPrice,
+seller_currency: sellerCurrency,
+exchange_rate: exchangeRate,
+co_tf_fee: coTfFee,
       tax_per_unit: taxPerUnit,
 
       reseller_tax_total:
@@ -25934,15 +26020,33 @@ quantity,
     return;
   }
 
-   const sellerAllocations =
+   
+const sellerAllocations =
   getResellerSellerFeeAllocation(records, coTfFee);
 
 records.forEach(record => {
+  const allocation = sellerAllocations.get(
+    String(record.customer_id || "")
+  );
+
+  const feeShare = allocation
+    ? allocation.feePerUnit * record.quantity
+    : 0;
+
+  const totalBill = Math.round(
+    (resellerPrice * record.quantity) + feeShare
+  );
+
+  // Harga IDR per unit ditambah alokasi fee per unit.
   record.modal_price = getResellerAllocatedModalPrice(
     record,
     sellerAllocations,
-    modalPrice
+    resellerPrice
   );
+
+  // Tagihan customer.
+  record.item_price = totalBill;
+  record.remaining_amount = totalBill;
 });
 
   const { error } = await supabaseClient
