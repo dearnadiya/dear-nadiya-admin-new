@@ -25862,7 +25862,8 @@ async function saveResellerBatch(event) {
   const itemName =
     document.getElementById("resellerItemName").value.trim();
 
-  const sellerPrice = Number(
+  
+const sellerPrice = Number(
   document.getElementById("resellerSellerPrice").value
 ) || 0;
 
@@ -25871,15 +25872,11 @@ const sellerCurrency =
 
 const exchangeRate = Number(
   document.getElementById("resellerExchangeRate").value
-);
+) || 0;
 
 const resellerPrice = Math.round(
   sellerPrice * exchangeRate
 );
-
-  const exchangeRate = Number(
-    document.getElementById("resellerExchangeRate").value
-  );
 
   const coTfFee = parseNominalInput(
     document.getElementById("resellerCoTfFee").value
@@ -25915,10 +25912,6 @@ const resellerPrice = Math.round(
     "Harga Seller, Rate, dan hasil konversi IDR harus lebih dari 0.";
   return;
 }
-    message.textContent =
-      "Periksa harga modal, harga reseller, dan rate.";
-    return;
-  }
 
   if (!rows.length) {
     message.textContent = "Tambahkan minimal satu reseller.";
@@ -25948,7 +25941,7 @@ const resellerPrice = Math.round(
       Number(row.querySelector(".reseller-quantity").value) || 1
     );
 
-    if (!customerId || !memberId || !version) {
+    if (!customerId || !customerName || !version) {
       invalid = true;
       return;
     }
