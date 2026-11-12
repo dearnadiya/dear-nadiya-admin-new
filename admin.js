@@ -23663,7 +23663,7 @@ function showRecapForm(category) {
     return;
   }
 
-     // FORM KHUSUS REKAP RESELLER
+     // FORM KHUSUS REKAP JAJAN BARENG
   if (
     getRecapTypeFromCategory(category) ===
     "Reseller"
@@ -25173,7 +25173,7 @@ itemsContainer.addEventListener(
 }
 
 /* ============================================
-   FORM REKAP RESELLER
+   FORM REKAP JAJAN BARENG
    ============================================ */
 async function showResellerRecapForm(category) {
   const container = document.getElementById("recapFormContainer");
