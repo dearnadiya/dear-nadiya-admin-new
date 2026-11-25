@@ -5434,21 +5434,19 @@ if (multiSellerBatchKeys.has(batchKey)) {
 }
 
       /*
-       * =====================================
-       * 2. BATCH SUDAH DIBELI 1 SELLER
-       * =====================================
-       */
-
-      if (
-        purchasedBatchKeys.has(
-          batchKey
-        ) &&
-        !isCurrentAllocation
-      ) {
-
-        return false;
-
-      }
+ * Batch-level allocation hanya memblokir
+ * stok selain Multi Seller.
+ *
+ * Multi Seller diperiksa per customer
+ * menggunakan purchasedCustomerKeys.
+ */
+if (
+  !multiSellerBatchKeys.has(batchKey) &&
+  purchasedBatchKeys.has(batchKey) &&
+  !isCurrentAllocation
+) {
+  return false;
+}
 
 
       /*
