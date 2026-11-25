@@ -3273,7 +3273,8 @@ while (true) {
     error: recapError
   } = await supabaseClient
     .from("purchase_recap")
-    .select(`
+   
+.select(`
   id,
   recap_type,
   category,
@@ -3281,6 +3282,7 @@ while (true) {
   item_name,
   customer_name,
   version,
+  stock_source,
   batch_tracking_status
 `)
     .not(
@@ -3726,51 +3728,81 @@ const allRekapAllocations =
     }
   );
 
-
-  
 /*
- * Batch yang sudah Arrived Admin
- * tidak ditampilkan untuk alokasi baru.
+ * STATUS DAN SUMBER STOK PER BATCH
  *
- * Saat mengedit, batch yang sedang dipakai
- * tetap boleh muncul.
+ * Multi Seller:
+ * Batch tetap tersedia jika masih ada
+ * customer CO Web/Seller yang belum dialokasikan.
+ *
+ * Non Multi Seller:
+ * Tetap menggunakan aturan Arrived Admin
+ * seperti mekanisme sebelumnya.
  */
+
 const arrivedAdminBatchKeys = new Set();
+const multiSellerBatchKeys = new Set();
+const availableMultiSellerBatchKeys = new Set();
+
+function normalizeStockValue(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function isAvailableSellerStatus(value) {
+  const status = normalizeStockValue(value);
+
+  return [
+    "co web / seller",
+    "co web/seller",
+    "co seller",
+    "order seller"
+  ].includes(status);
+}
 
 (recapData || []).forEach(function(row) {
-  const tracking = String(
-    row.batch_tracking_status || ""
-  )
-    .trim()
-    .toLowerCase();
+  const recapType = String(row.recap_type || "").trim();
+  const category = String(row.category || "").trim();
+  const batchCode = String(row.batch_code || "").trim();
 
-  if (tracking !== "arrived admin") {
+  if (!recapType || !category || !batchCode) {
     return;
   }
 
-  
-const recapType = String(
-  row.recap_type || ""
-).trim();
+  const batchKey =
+    recapType + "||" + category + "||" + batchCode;
 
-const category = String(
-  row.category || ""
-).trim();
+  const stockSource = normalizeStockValue(row.stock_source);
+  const tracking = normalizeStockValue(
+    row.batch_tracking_status
+  );
 
-const batchCode = String(
-  row.batch_code || ""
-).trim();
+  if (tracking === "arrived admin") {
+    arrivedAdminBatchKeys.add(batchKey);
+  }
 
-if (!recapType || !category || !batchCode) {
-  return;
-}
+  if (stockSource !== "multi_seller") {
+    return;
+  }
 
-arrivedAdminBatchKeys.add(
-  recapType + "||" + category + "||" + batchCode
-);
+  multiSellerBatchKeys.add(batchKey);
+
+  const customerKey =
+    batchKey + "||" + String(row.id);
+
+  const alreadyPurchased =
+    purchasedCustomerKeys.has(customerKey);
+
+  if (
+    isAvailableSellerStatus(row.batch_tracking_status) &&
+    !alreadyPurchased
+  ) {
+    availableMultiSellerBatchKeys.add(batchKey);
+  }
 });
 
-   
   /* ==========================================
      4. HAPUS MODAL LAMA
      ========================================== */
@@ -4933,6 +4965,32 @@ if (type === "Reseller") {
                     customer.id
                   );
 
+                 /*
+ * Identifikasi customer yang sedang diedit.
+ * Customer lama tetap dipertahankan agar
+ * edit alokasi tidak menghilangkan pilihan.
+ */
+const isCurrentCustomer =
+  Number(allocation.purchase_recap_id) ===
+  Number(customer.id);
+
+/*
+ * Jika batch merupakan Multi Seller,
+ * hanya customer dengan sumber stok Multi Seller
+ * dan status CO Web/Seller yang dapat dipilih.
+ */
+if (multiSellerBatchKeys.has(batchKey)) {
+  if (
+    normalizeStockValue(customer.stock_source) !==
+      "multi_seller" ||
+    !isAvailableSellerStatus(customer.batch_tracking_status)
+  ) {
+    if (!isCurrentCustomer) {
+      return false;
+    }
+  }
+}
+
                 /*
                  * Customer yang sudah dibeli
                  * pada pembelian lain.
@@ -5338,19 +5396,42 @@ if (
        * lama tidak hilang.
        */
 
-      const isCurrentAllocation =
-        String(
-          allocation.batch_code || ""
-        ).trim() ===
-        batchCode;
+      const currentAllocationBatchKey =
+  String(allocation.recap_type || "").trim() +
+  "||" +
+  String(allocation.category || "").trim() +
+  "||" +
+  String(allocation.batch_code || "").trim();
 
-      if (
-  arrivedAdminBatchKeys.has(batchKey) &&
-  !isCurrentAllocation
-) {
-  return false;
+const isCurrentAllocation =
+  currentAllocationBatchKey === batchKey;
+
+     /*
+ * MULTI SELLER
+ *
+ * Tetap tampil selama masih ada minimal
+ * satu customer CO Web/Seller yang belum
+ * memiliki alokasi pembelian.
+ */
+if (multiSellerBatchKeys.has(batchKey)) {
+  if (
+    !availableMultiSellerBatchKeys.has(batchKey) &&
+    !isCurrentAllocation
+  ) {
+    return false;
+  }
+} else {
+  /*
+   * NON MULTI SELLER
+   * Pertahankan aturan lama.
+   */
+  if (
+    arrivedAdminBatchKeys.has(batchKey) &&
+    !isCurrentAllocation
+  ) {
+    return false;
+  }
 }
-
 
       /*
        * =====================================
