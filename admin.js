@@ -7637,14 +7637,15 @@ async function syncPurchaseStockTrackingToRecap(
     } = await supabaseClient
       .from("purchase_stock_allocation")
       .select(`
-        id,
-        purchase_stock_id,
-        allocation_type,
-        recap_type,
-        category,
-        batch_code,
-        purchase_recap_id
-      `)
+  id,
+  purchase_stock_id,
+  allocation_type,
+  recap_type,
+  category,
+  batch_code,
+  purchase_recap_id,
+  seller_mode
+`)
       .eq("purchase_stock_id", purchaseStockId)
       .eq("allocation_type", "Rekap GO");
 
@@ -7738,14 +7739,15 @@ async function syncPurchaseStockTrackingToRecap(
       /*
        * TENTUKAN MODE SELLER DARI STOCK_SOURCE
        */
-      const isMultiSeller = recapBatchRows.some(
-        function(row) {
-          return (
-            normalizeStockSource(row.stock_source) ===
-            "multi_seller"
-          );
-        }
-      );
+      const isMultiSeller =
+  String(
+    allocation.seller_mode ||
+    (
+      purchaseRecapId
+        ? "many"
+        : "1"
+    )
+  ).trim() === "many";
 
       let targetRows = [];
 
@@ -37271,12 +37273,14 @@ async function loadPurchaseBatchInfoStatus() {
   error: allocationError
 } = await supabaseClient
   .from("purchase_stock_allocation")
-  .select(`
+    .select(`
     purchase_stock_id,
     recap_type,
     category,
     batch_code,
-    allocation_type
+    allocation_type,
+    seller_mode,
+    purchase_recap_id
   `)
   .eq(
     "allocation_type",
@@ -37407,10 +37411,10 @@ const batchCode =
         ) {
 
           purchaseBatchInfoMap[key] = {
-            sellers: [],
-            warehouses: []
-          };
-
+  sellers: [],
+  warehouses: [],
+  sellerModes: []
+};
         }
 
 
@@ -37436,6 +37440,26 @@ const batchCode =
           String(
             purchase.warehouse_name || ""
           ).trim();
+
+         const sellerMode = String(
+  allocation.seller_mode ||
+  (
+    allocation.purchase_recap_id
+      ? "many"
+      : "1"
+  )
+).trim();
+
+if (
+  sellerMode &&
+  !purchaseBatchInfoMap[key].sellerModes.includes(
+    sellerMode
+  )
+) {
+  purchaseBatchInfoMap[key].sellerModes.push(
+    sellerMode
+  );
+}
 
 
         if (
@@ -38617,14 +38641,10 @@ let html = `
         ? trackingInfo.sellers.length
         : 0;
 
-    const isMultiSeller =
-  rows.some(function(row) {
-    return (
-      String(
-        row.stock_source || ""
-      ).trim() === "multi_seller"
-    );
-  });
+   const isMultiSeller =
+  trackingInfo &&
+  Array.isArray(trackingInfo.sellerModes) &&
+  trackingInfo.sellerModes.includes("many");
 
      
 const trackingStatuses = [
