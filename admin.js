@@ -3370,7 +3370,8 @@ console.table(
     error: allocationError
   } = await supabaseClient
     .from("purchase_stock_allocation")
-    .select(`
+    
+.select(`
   id,
   purchase_stock_id,
   allocation_type,
@@ -3383,7 +3384,8 @@ console.table(
   quantity,
   allocation_note,
   purchase_recap_id,
-  reseller_batch_item_id
+  reseller_batch_item_id,
+  seller_mode
 `)
     .eq(
       "purchase_stock_id",
@@ -6376,10 +6378,19 @@ for (const item of allocationItems) {
       item.allocation_type === "Reseller"
         ? item.reseller_name
         : item.batch_code,
-    quantity: item.quantity,
-    allocation_note: item.allocation_note || null,
-    purchase_recap_id: item.purchase_recap_id || null
-  };
+    
+quantity: item.quantity,
+allocation_note: item.allocation_note || null,
+purchase_recap_id: item.purchase_recap_id || null,
+
+seller_mode:
+  item.allocation_type === "Rekap GO"
+    ? (
+        item.seller_mode ||
+        (item.purchase_recap_id ? "many" : "1")
+      )
+    : null
+};
 
   if (item.id) {
     /* Pertahankan ID alokasi yang sudah ada */
