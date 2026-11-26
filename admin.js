@@ -37386,16 +37386,18 @@ async function loadPurchaseBatchInfoStatus() {
     allocationRows.forEach(
       function(allocation) {
 
-        const recapType =
-  String(
-    allocation.recap_type || ""
-  ).trim();
-
-const category =
+        const category =
   String(
     allocation.category || ""
   ).trim();
 
+const recapType =
+  String(
+    getRecapTypeFromCategory(category) ||
+    allocation.recap_type ||
+    ""
+  ).trim();
+         
 const batchCode =
   String(
     allocation.batch_code || ""
