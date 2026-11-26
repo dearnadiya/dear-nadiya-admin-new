@@ -3794,15 +3794,21 @@ function isAvailableSellerStatus(value) {
   const customerKey =
     batchKey + "||" + String(row.id);
 
-  const alreadyPurchased =
-    purchasedCustomerKeys.has(customerKey);
+ 
+const alreadyPurchased =
+  purchasedCustomerKeys.has(customerKey);
 
-  if (
-    isAvailableSellerStatus(row.batch_tracking_status) &&
-    !alreadyPurchased
-  ) {
-    availableMultiSellerBatchKeys.add(batchKey);
-  }
+/*
+ * MULTI SELLER:
+ * Batch tetap tersedia selama masih ada
+ * minimal satu customer yang belum memiliki
+ * alokasi pembelian.
+ *
+ * Status tracking tidak menjadi syarat.
+ */
+if (!alreadyPurchased) {
+  availableMultiSellerBatchKeys.add(batchKey);
+}
 });
 
   /* ==========================================
