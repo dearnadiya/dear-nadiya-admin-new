@@ -7604,6 +7604,8 @@ await renderPurchaseStockList();
 
 /* =========================================================
    SYNC TRACKING PEMBELIAN STOK → REKAP GO
+   1 SELLER  = UPDATE SELURUH CUSTOMER DALAM BATCH
+   >1 SELLER = UPDATE CUSTOMER SESUAI PURCHASE_RECAP_ID
    ========================================================= */
 
 async function syncPurchaseStockTrackingToRecap(
@@ -7614,13 +7616,18 @@ async function syncPurchaseStockTrackingToRecap(
     return;
   }
 
-  // Samakan format tipe rekap.
-  // Contoh: "Multi Group" = "MultiGroup".
   function normalizeRecapType(value) {
     return String(value || "")
       .trim()
       .toLowerCase()
       .replace(/[\s_-]+/g, "");
+  }
+
+  function normalizeStockSource(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
   }
 
   try {
@@ -7673,18 +7680,97 @@ async function syncPurchaseStockTrackingToRecap(
           ? Number(allocation.purchase_recap_id)
           : null;
 
-      /*
-       * ALOKASI PER CUSTOMER / VERSI
-       *
-       * Jika purchase_recap_id tersedia,
-       * gunakan ID sebagai identitas utama.
-       * Jangan menggagalkan sinkronisasi hanya
-       * karena format recap_type berbeda.
-       */
-      let recapRows = [];
+      if (!category || !batchCode || !recapType) {
+        console.warn(
+          "Identitas alokasi tidak lengkap:",
+          allocation
+        );
+        continue;
+      }
 
-      if (purchaseRecapId) {
-        const targetKey = `id:${purchaseRecapId}`;
+      /*
+       * Ambil seluruh customer dalam batch
+       * untuk mengetahui sumber seller batch.
+       */
+      const {
+        data: batchRows,
+        error: batchError
+      } = await supabaseClient
+        .from("purchase_recap")
+        .select(`
+          id,
+          recap_type,
+          category,
+          batch_code,
+          stock_source,
+          batch_tracking_status,
+          arrived_admin_at,
+          co_deadline
+        `)
+        .eq("category", category)
+        .eq("batch_code", batchCode);
+
+      if (batchError) {
+        throw batchError;
+      }
+
+      const recapBatchRows = (batchRows || []).filter(
+        function(row) {
+          return (
+            normalizeRecapType(row.recap_type) ===
+            normalizeRecapType(recapType)
+          );
+        }
+      );
+
+      if (!recapBatchRows.length) {
+        console.warn(
+          "Batch Rekap GO tidak ditemukan:",
+          {
+            category,
+            batchCode,
+            recapType
+          }
+        );
+        continue;
+      }
+
+      /*
+       * TENTUKAN MODE SELLER DARI STOCK_SOURCE
+       */
+      const isMultiSeller = recapBatchRows.some(
+        function(row) {
+          return (
+            normalizeStockSource(row.stock_source) ===
+            "multi_seller"
+          );
+        }
+      );
+
+      let targetRows = [];
+
+      if (isMultiSeller) {
+        /*
+         * MULTI SELLER:
+         * Hanya update customer yang terhubung
+         * dengan Pembelian Stok ini.
+         */
+        if (!purchaseRecapId) {
+          console.warn(
+            "Tracking Multi Seller dilewati karena purchase_recap_id kosong.",
+            {
+              purchaseStockId,
+              category,
+              batchCode,
+              recapType,
+              allocation
+            }
+          );
+          continue;
+        }
+
+        const targetKey =
+          "customer:" + purchaseRecapId;
 
         if (processedTargets.has(targetKey)) {
           continue;
@@ -7692,47 +7778,22 @@ async function syncPurchaseStockTrackingToRecap(
 
         processedTargets.add(targetKey);
 
-        const {
-          data,
-          error
-        } = await supabaseClient
-          .from("purchase_recap")
-          .select(`
-            id,
-            recap_type,
-            category,
-            batch_code,
-            stock_source,
-            batch_tracking_status,
-            arrived_admin_at,
-            co_deadline
-          `)
-          .eq("id", purchaseRecapId);
-
-        if (error) {
-          throw error;
-        }
-
-        recapRows = data || [];
+        targetRows = recapBatchRows.filter(
+          function(row) {
+            return (
+              Number(row.id) === purchaseRecapId
+            );
+          }
+        );
 
       } else {
         /*
-         * ALOKASI LAMA / LEVEL BATCH
-         *
-         * Jika purchase_recap_id NULL,
-         * pertahankan perilaku lama:
-         * tracking berlaku untuk seluruh baris
-         * yang cocok dengan batch tersebut.
+         * 1 SELLER:
+         * Tracking berlaku sama untuk seluruh customer
+         * dalam batch.
          */
-        if (!category || !batchCode || !recapType) {
-          console.warn(
-            "Alokasi lama dilewati karena identitas tidak lengkap:",
-            allocation
-          );
-          continue;
-        }
-
         const targetKey = [
+          "batch",
           normalizeRecapType(recapType),
           category,
           batchCode
@@ -7744,99 +7805,67 @@ async function syncPurchaseStockTrackingToRecap(
 
         processedTargets.add(targetKey);
 
-        const {
-          data,
-          error
-        } = await supabaseClient
-          .from("purchase_recap")
-          .select(`
-            id,
-            recap_type,
-            category,
-            batch_code,
-            stock_source,
-            batch_tracking_status,
-            arrived_admin_at,
-            co_deadline
-          `)
-          .eq("category", category)
-          .eq("batch_code", batchCode);
-
-        if (error) {
-          throw error;
-        }
-
-        // Cocokkan tipe rekap secara normal,
-        // bukan berdasarkan teks yang harus identik.
-        recapRows = (data || []).filter(function(recap) {
-          return normalizeRecapType(recap.recap_type) ===
-            normalizeRecapType(recapType);
-        });
+        targetRows = recapBatchRows;
       }
 
-      if (!recapRows.length) {
+      if (!targetRows.length) {
         console.warn(
-          "Rekap GO tujuan tidak ditemukan:",
+          "Customer tujuan tracking tidak ditemukan:",
           {
             purchaseStockId,
-            recapType,
+            purchaseRecapId,
             category,
             batchCode,
-            purchaseRecapId
+            recapType,
+            isMultiSeller
           }
         );
         continue;
       }
 
-      for (const recap of recapRows) {
-        /*
-         * Untuk alokasi level batch, pastikan
-         * identitas batch benar-benar cocok.
-         * Untuk alokasi dengan ID, ID merupakan
-         * referensi utama ke baris rekap.
-         */
-        if (!purchaseRecapId) {
-          if (
-            recap.category !== category ||
-            recap.batch_code !== batchCode ||
-            normalizeRecapType(recap.recap_type) !==
-              normalizeRecapType(recapType)
-          ) {
-            continue;
-          }
-        }
+      /*
+       * Normalisasi nama tracking.
+       */
+      const recapTrackingStatus =
+        trackingStatus === "Order Seller"
+          ? "Co Seller"
+          : trackingStatus;
 
-        // Tracking Pembelian Stok tidak mengendalikan
-        // tracking barang dari ready stock.
-        if (recap.stock_source === "ready") {
-          console.log(
-            "Sinkronisasi dilewati untuk ready stock:",
-            recap.id
-          );
+      /*
+       * UPDATE TRACKING SESUAI MODE SELLER
+       */
+      for (const recap of targetRows) {
+
+        // Ready Stock tidak mengikuti tracking Pembelian Stok.
+        if (
+          normalizeStockSource(recap.stock_source) ===
+          "ready"
+        ) {
           continue;
         }
 
-         const recapTrackingStatus =
-  trackingStatus === "Order Seller"
-    ? "Co Seller"
-    : trackingStatus;
-
         const updateData = {
-          batch_tracking_status: trackingStatus || null
+          batch_tracking_status:
+            recapTrackingStatus || null
         };
 
-        // Catat waktu saat pertama kali Arrived Admin.
+        // Catat waktu pertama kali Arrived Admin.
         if (
-          trackingStatus === "Arrived Admin" &&
+          recapTrackingStatus === "Arrived Admin" &&
           recap.batch_tracking_status !== "Arrived Admin"
         ) {
           const now = new Date();
           const deadline = new Date(now);
 
-          deadline.setMonth(deadline.getMonth() + 3);
+          deadline.setMonth(
+            deadline.getMonth() + 3
+          );
 
-          updateData.arrived_admin_at = now.toISOString();
-          updateData.co_deadline = deadline.toISOString();
+          updateData.arrived_admin_at =
+            now.toISOString();
+
+          updateData.co_deadline =
+            deadline.toISOString();
         }
 
         const {
@@ -7869,8 +7898,8 @@ async function syncPurchaseStockTrackingToRecap(
             category: recap.category,
             batchCode: recap.batch_code,
             purchaseRecapId,
-            trackingStatus,
-            recapTrackingStatus,
+            isMultiSeller,
+            trackingStatus: recapTrackingStatus,
             updatedRows
           }
         );
@@ -39170,21 +39199,22 @@ const batchTrackingStatus =
     isMultiSeller
   ) {
 
-        return `
-          <strong>
-            Tracking:
-          </strong>
+       
+return `
+  <strong>
+    Tracking Per Customer:
+  </strong>
 
-          <div
-            style="
-              font-size:13px;
-              font-weight:600;
-              white-space:nowrap;
-            "
-          >
-            👥 Per Customer
-          </div>
-        `;
+  <div
+    style="
+      font-size:13px;
+      font-weight:600;
+      white-space:normal;
+    "
+  >
+    👥 Status mengikuti tracking Pembelian Stok masing-masing customer
+  </div>
+`;
 
       }
 
