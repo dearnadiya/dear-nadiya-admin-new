@@ -5061,15 +5061,19 @@ const isCurrentCustomer =
   Number(customer.id);
 
 /*
- * Jika batch merupakan Multi Seller,
- * hanya customer dengan sumber stok Multi Seller
- * dan status CO Web/Seller yang dapat dipilih.
+ * MULTI SELLER
+ *
+ * Customer yang belum memiliki alokasi
+ * dapat dipilih berdasarkan status tracking.
+ *
+ * stock_source tidak dijadikan syarat,
+ * karena pada data lama nilainya bisa NULL.
  */
 if (multiSellerBatchKeys.has(batchKey)) {
   if (
-    normalizeStockValue(customer.stock_source) !==
-      "multi_seller" ||
-    !isAvailableSellerStatus(customer.batch_tracking_status)
+    !isAvailableSellerStatus(
+      customer.batch_tracking_status
+    )
   ) {
     if (!isCurrentCustomer) {
       return false;
