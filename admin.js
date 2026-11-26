@@ -3539,212 +3539,25 @@ const allRekapAllocations =
   }
 
 
-  /* ==========================================
-     BATCH YANG SUDAH DIBELI 1 SELLER
-     ========================================== */
 
-  const purchasedBatchKeys =
-    new Set();
+/* ==========================================
+   STATUS ALOKASI PER BATCH
+   ========================================== */
 
-
-  /* ==========================================
-     CUSTOMER / VERSI YANG SUDAH DIBELI >1 SELLER
-     ========================================== */
-
-  const purchasedCustomerKeys =
-    new Set();
-
-
-  (allRekapAllocations || []).forEach(
-    function(allocation) {
-
-      const recapType =
-        String(
-          allocation.recap_type || ""
-        ).trim();
-
-      const category =
-        String(
-          allocation.category || ""
-        ).trim();
-
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
-
-      const purchaseRecapId =
-        allocation.purchase_recap_id
-          ? Number(
-              allocation.purchase_recap_id
-            )
-          : null;
-
-
-      if (
-        !recapType ||
-        !category ||
-        !batchCode
-      ) {
-        return;
-      }
-
-
-      const batchKey =
-        recapType +
-        "||" +
-        category +
-        "||" +
-        batchCode;
-
-
-      /*
-       * purchase_recap_id NULL
-       * = pembelian 1 Seller
-       *
-       * Maka seluruh batch dianggap sudah dibeli.
-       */
-
-      if (!purchaseRecapId) {
-
-        purchasedBatchKeys.add(
-          batchKey
-        );
-
-        return;
-
-      }
-
-
-      /*
-       * purchase_recap_id ADA
-       * = pembelian >1 Seller
-       *
-       * Maka hanya customer/version tersebut
-       * yang dianggap sudah dibeli.
-       */
-
-      purchasedCustomerKeys.add(
-        batchKey +
-        "||" +
-        String(purchaseRecapId)
-      );
-
-    }
-  );
-
-         /* ==========================================
-     BATCH SUDAH ARRIVED ADMIN
-     DAN SUDAH MASUK ALOKASI BARANG
-     ========================================== */
-
-  const allocatedBatchKeys =
-    new Set();
-
-
-  /*
-   * Alokasi dari pembelian lain
-   */
-  (allRekapAllocations || []).forEach(
-    function(allocation) {
-
-      const recapType =
-        String(
-          allocation.recap_type || ""
-        ).trim();
-
-      const category =
-        String(
-          allocation.category || ""
-        ).trim();
-
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
-
-      if (
-        !recapType ||
-        !category ||
-        !batchCode
-      ) {
-        return;
-      }
-
-      allocatedBatchKeys.add(
-        recapType +
-        "||" +
-        category +
-        "||" +
-        batchCode
-      );
-
-    }
-  );
-
-
-  /*
-   * Alokasi dari pembelian yang sedang dibuka
-   */
-  (allocations || []).forEach(
-    function(allocation) {
-
-      if (
-        String(
-          allocation.allocation_type || ""
-        ).trim() !== "Rekap GO"
-      ) {
-        return;
-      }
-
-      const recapType =
-        String(
-          allocation.recap_type || ""
-        ).trim();
-
-      const category =
-        String(
-          allocation.category || ""
-        ).trim();
-
-      const batchCode =
-        String(
-          allocation.batch_code || ""
-        ).trim();
-
-      if (
-        !recapType ||
-        !category ||
-        !batchCode
-      ) {
-        return;
-      }
-
-      allocatedBatchKeys.add(
-        recapType +
-        "||" +
-        category +
-        "||" +
-        batchCode
-      );
-
-    }
-  );
-
-
-/*
- * STATUS DAN SUMBER STOK PER BATCH
- *
- * Multi Seller ditentukan dari seller_mode
- * pada purchase_stock_allocation.
- *
- * Jika satu alokasi saja menggunakan "many",
- * seluruh batch langsung dianggap Multi Seller.
- */
+const purchasedBatchKeys = new Set();
+const purchasedCustomerKeys = new Set();
 
 const arrivedAdminBatchKeys = new Set();
 const multiSellerBatchKeys = new Set();
 const availableMultiSellerBatchKeys = new Set();
+
+/*
+ * Menyimpan mode seller berdasarkan:
+ * recap_type + category + batch_code
+ *
+ * BUKAN berdasarkan purchase_stock_id.
+ */
+const batchSellerModeByKey = new Map();
 
 function normalizeStockValue(value) {
   return String(value || "")
@@ -3765,41 +3578,95 @@ function isAvailableSellerStatus(value) {
 }
 
 /*
- * PENENTUAN MULTI SELLER
- * Periksa seluruh alokasi Rekap GO.
+ * Mode eksplisit digunakan terlebih dahulu.
+ * Fallback untuk data lama:
+ * - purchase_recap_id ada = many
+ * - purchase_recap_id NULL = 1
  */
+function getAllocationSellerMode(allocation) {
+  const savedMode = String(
+    allocation.seller_mode || ""
+  ).trim().toLowerCase();
 
-// Alokasi dari pembelian lain
+  if (savedMode === "many") {
+    return "many";
+  }
+
+  if (savedMode === "1") {
+    return "1";
+  }
+
+  return allocation.purchase_recap_id
+    ? "many"
+    : "1";
+}
+
+function getAllocationBatchKey(allocation) {
+  const recapType = String(
+    allocation.recap_type || ""
+  ).trim();
+
+  const category = String(
+    allocation.category || ""
+  ).trim();
+
+  const batchCode = String(
+    allocation.batch_code || ""
+  ).trim();
+
+  if (!recapType || !category || !batchCode) {
+    return null;
+  }
+
+  return (
+    recapType +
+    "||" +
+    category +
+    "||" +
+    batchCode
+  );
+}
+
+/*
+ * A. Catat mode dari pembelian lain.
+ */
 (allRekapAllocations || []).forEach(function(allocation) {
+  const batchKey = getAllocationBatchKey(allocation);
 
-  const batchKey =
-    String(allocation.recap_type || "").trim() +
-    "||" +
-    String(allocation.category || "").trim() +
-    "||" +
-    String(allocation.batch_code || "").trim();
+  if (!batchKey) return;
 
-  if (
-    !batchKey ||
-    batchKey === "||||"
-  ) {
+  const sellerMode = getAllocationSellerMode(allocation);
+
+  batchSellerModeByKey.set(
+    batchKey,
+    sellerMode
+  );
+
+  if (sellerMode === "1") {
+    purchasedBatchKeys.add(batchKey);
     return;
   }
 
-  const sellerMode = normalizeStockValue(
-    allocation.seller_mode ||
-    (allocation.purchase_recap_id ? "many" : "1")
-  );
-
-  if (sellerMode === "many") {
-    multiSellerBatchKeys.add(batchKey);
+  if (
+    sellerMode === "many" &&
+    allocation.purchase_recap_id
+  ) {
+    purchasedCustomerKeys.add(
+      batchKey +
+      "||" +
+      String(allocation.purchase_recap_id)
+    );
   }
-
 });
 
-// Alokasi dari pembelian yang sedang dibuka
+/*
+ * B. Catat mode dari alokasi dalam pembelian
+ * yang sedang dibuka.
+ *
+ * Digunakan untuk klasifikasi batch,
+ * bukan untuk menghitung pembelian lain.
+ */
 (allocations || []).forEach(function(allocation) {
-
   if (
     String(allocation.allocation_type || "").trim() !==
     "Rekap GO"
@@ -3807,54 +3674,33 @@ function isAvailableSellerStatus(value) {
     return;
   }
 
-  const batchKey =
-    String(allocation.recap_type || "").trim() +
-    "||" +
-    String(allocation.category || "").trim() +
-    "||" +
-    String(allocation.batch_code || "").trim();
+  const batchKey = getAllocationBatchKey(allocation);
 
-  if (
-    !batchKey ||
-    batchKey === "||||"
-  ) {
-    return;
-  }
+  if (!batchKey) return;
 
-  const sellerMode = normalizeStockValue(
-    allocation.seller_mode ||
-    (allocation.purchase_recap_id ? "many" : "1")
+  batchSellerModeByKey.set(
+    batchKey,
+    getAllocationSellerMode(allocation)
   );
+});
 
+/*
+ * C. Klasifikasi batch berdasarkan seller_mode.
+ */
+batchSellerModeByKey.forEach(function(sellerMode, batchKey) {
   if (sellerMode === "many") {
     multiSellerBatchKeys.add(batchKey);
   }
-
 });
 
-
 /*
- * STATUS ARRIVED ADMIN
- * DAN KETERSEDIAAN CUSTOMER
+ * D. Status Arrived Admin dan ketersediaan
+ * customer untuk batch Multi Seller.
  */
-
 (recapData || []).forEach(function(row) {
+  const batchKey = getAllocationBatchKey(row);
 
-  const recapType =
-    String(row.recap_type || "").trim();
-
-  const category =
-    String(row.category || "").trim();
-
-  const batchCode =
-    String(row.batch_code || "").trim();
-
-  if (!recapType || !category || !batchCode) {
-    return;
-  }
-
-  const batchKey =
-    recapType + "||" + category + "||" + batchCode;
+  if (!batchKey) return;
 
   const tracking = normalizeStockValue(
     row.batch_tracking_status
@@ -3865,8 +3711,8 @@ function isAvailableSellerStatus(value) {
   }
 
   /*
-   * Hanya proses ketersediaan customer
-   * jika batch sudah dikenali sebagai Multi Seller.
+   * Hanya batch yang memang sudah tercatat
+   * sebagai Multi Seller yang diproses di sini.
    */
   if (!multiSellerBatchKeys.has(batchKey)) {
     return;
@@ -3879,15 +3725,14 @@ function isAvailableSellerStatus(value) {
     purchasedCustomerKeys.has(customerKey);
 
   /*
-   * Tidak menggunakan stock_source
-   * dan tidak menggunakan status tracking
-   * sebagai syarat ketersediaan batch.
+   * Batch Multi Seller tetap tersedia selama
+   * minimal satu customer belum dialokasikan.
    */
   if (!alreadyPurchased) {
     availableMultiSellerBatchKeys.add(batchKey);
   }
-
 });
+
 
   /* ==========================================
      4. HAPUS MODAL LAMA
@@ -5495,6 +5340,28 @@ if (
 
 const isCurrentAllocation =
   currentAllocationBatchKey === batchKey;
+
+       /*
+ * MODE SELLER SUDAH DITETAPKAN PER BATCH
+ *
+ * Batch 1 Seller tidak boleh muncul pada
+ * pilihan >1 Seller.
+ *
+ * Batch Multi Seller tidak boleh muncul
+ * pada pilihan 1 Seller.
+ *
+ * Pengecualian: batch yang sedang diedit.
+ */
+const registeredSellerMode =
+  batchSellerModeByKey.get(batchKey);
+
+if (
+  registeredSellerMode &&
+  registeredSellerMode !== sellerModeSelect.value &&
+  !isCurrentAllocation
+) {
+  return false;
+}
 
      /*
  * MULTI SELLER
