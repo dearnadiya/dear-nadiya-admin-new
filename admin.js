@@ -26714,18 +26714,15 @@ async function showWhatsAppTrackingUpdateBuilder() {
       "is",
       null
     )
-    .order(
-      "category",
-      {
-        ascending: true
-      }
-    )
-    .order(
-      "batch_code",
-      {
-        ascending: true
-      }
-    );
+    .order("recap_type", {
+  ascending: true
+})
+.order("category", {
+  ascending: true
+})
+.order("batch_code", {
+  ascending: true
+});
 
 
   if (allocationError) {
@@ -28164,12 +28161,18 @@ async function showShopeeCOListBuilder() {
         arrived_admin_at,
         co_deadline
       `)
-      .order("batch_code", {
-        ascending: true
-      })
-      .order("id", {
-        ascending: true
-      })
+      .order("recap_type", {
+  ascending: true
+})
+.order("category", {
+  ascending: true
+})
+.order("batch_code", {
+  ascending: true
+})
+.order("id", {
+  ascending: true
+})
       .range(from, from + pageSize - 1);
 
     if (error) {
