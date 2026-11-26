@@ -3433,7 +3433,8 @@ console.table(
     recap_type,
     category,
     batch_code,
-    purchase_recap_id
+    purchase_recap_id,
+    seller_mode
   `)
   .eq(
     "allocation_type",
@@ -3730,16 +3731,15 @@ const allRekapAllocations =
     }
   );
 
+
 /*
  * STATUS DAN SUMBER STOK PER BATCH
  *
- * Multi Seller:
- * Batch tetap tersedia jika masih ada
- * customer CO Web/Seller yang belum dialokasikan.
+ * Multi Seller ditentukan dari seller_mode
+ * pada purchase_stock_allocation.
  *
- * Non Multi Seller:
- * Tetap menggunakan aturan Arrived Admin
- * seperti mekanisme sebelumnya.
+ * Jika satu alokasi saja menggunakan "many",
+ * seluruh batch langsung dianggap Multi Seller.
  */
 
 const arrivedAdminBatchKeys = new Set();
@@ -3764,10 +3764,90 @@ function isAvailableSellerStatus(value) {
   ].includes(status);
 }
 
+/*
+ * PENENTUAN MULTI SELLER
+ * Periksa seluruh alokasi Rekap GO.
+ */
+
+// Alokasi dari pembelian lain
+(allRekapAllocations || []).forEach(function(allocation) {
+
+  const batchKey =
+    String(allocation.recap_type || "").trim() +
+    "||" +
+    String(allocation.category || "").trim() +
+    "||" +
+    String(allocation.batch_code || "").trim();
+
+  if (
+    !batchKey ||
+    batchKey === "||||"
+  ) {
+    return;
+  }
+
+  const sellerMode = normalizeStockValue(
+    allocation.seller_mode ||
+    (allocation.purchase_recap_id ? "many" : "1")
+  );
+
+  if (sellerMode === "many") {
+    multiSellerBatchKeys.add(batchKey);
+  }
+
+});
+
+// Alokasi dari pembelian yang sedang dibuka
+(allocations || []).forEach(function(allocation) {
+
+  if (
+    String(allocation.allocation_type || "").trim() !==
+    "Rekap GO"
+  ) {
+    return;
+  }
+
+  const batchKey =
+    String(allocation.recap_type || "").trim() +
+    "||" +
+    String(allocation.category || "").trim() +
+    "||" +
+    String(allocation.batch_code || "").trim();
+
+  if (
+    !batchKey ||
+    batchKey === "||||"
+  ) {
+    return;
+  }
+
+  const sellerMode = normalizeStockValue(
+    allocation.seller_mode ||
+    (allocation.purchase_recap_id ? "many" : "1")
+  );
+
+  if (sellerMode === "many") {
+    multiSellerBatchKeys.add(batchKey);
+  }
+
+});
+
+
+/*
+ * STATUS ARRIVED ADMIN
+ * DAN KETERSEDIAAN CUSTOMER
+ */
+
 (recapData || []).forEach(function(row) {
-  const recapType = String(row.recap_type || "").trim();
-  const category = String(row.category || "").trim();
-  const batchCode = String(row.batch_code || "").trim();
+
+  const recapType =
+    String(row.recap_type || "").trim();
+
+  const category =
+    String(row.category || "").trim();
+
+  const batchCode =
+    String(row.batch_code || "").trim();
 
   if (!recapType || !category || !batchCode) {
     return;
@@ -3776,7 +3856,6 @@ function isAvailableSellerStatus(value) {
   const batchKey =
     recapType + "||" + category + "||" + batchCode;
 
-  const stockSource = normalizeStockValue(row.stock_source);
   const tracking = normalizeStockValue(
     row.batch_tracking_status
   );
@@ -3785,30 +3864,29 @@ function isAvailableSellerStatus(value) {
     arrivedAdminBatchKeys.add(batchKey);
   }
 
-  if (stockSource !== "multi_seller") {
+  /*
+   * Hanya proses ketersediaan customer
+   * jika batch sudah dikenali sebagai Multi Seller.
+   */
+  if (!multiSellerBatchKeys.has(batchKey)) {
     return;
   }
-
-  multiSellerBatchKeys.add(batchKey);
 
   const customerKey =
     batchKey + "||" + String(row.id);
 
- 
-const alreadyPurchased =
-  purchasedCustomerKeys.has(customerKey);
+  const alreadyPurchased =
+    purchasedCustomerKeys.has(customerKey);
 
-/*
- * MULTI SELLER:
- * Batch tetap tersedia selama masih ada
- * minimal satu customer yang belum memiliki
- * alokasi pembelian.
- *
- * Status tracking tidak menjadi syarat.
- */
-if (!alreadyPurchased) {
-  availableMultiSellerBatchKeys.add(batchKey);
-}
+  /*
+   * Tidak menggunakan stock_source
+   * dan tidak menggunakan status tracking
+   * sebagai syarat ketersediaan batch.
+   */
+  if (!alreadyPurchased) {
+    availableMultiSellerBatchKeys.add(batchKey);
+  }
+
 });
 
   /* ==========================================
