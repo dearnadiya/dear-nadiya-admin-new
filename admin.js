@@ -39245,7 +39245,7 @@ return `
       white-space:normal;
     "
   >
-    👥 Status mengikuti tracking Pembelian Stok masing-masing customer
+    👥 Per Customer
   </div>
 `;
 
