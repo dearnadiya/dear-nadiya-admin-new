@@ -12259,6 +12259,54 @@ async function getManualTabunganSummary(
 
 }
 
+/* ==========================================
+   CATATAN REFUND OTOMATIS
+   ========================================== */
+
+function updateRefundNote(
+  existingNote,
+  totalPaid,
+  newPrice
+) {
+
+  const refundPrefix =
+    "Refund menunggu proses:";
+
+  // Hapus hanya catatan refund otomatis
+  // yang pernah dibuat oleh sistem.
+  let note = String(
+    existingNote || ""
+  )
+    .split("\n")
+    .filter(function(line) {
+      return !line.trim().startsWith(
+        refundPrefix
+      );
+    })
+    .join("\n")
+    .trim();
+
+  const refundAmount = Math.max(
+    Number(totalPaid || 0) -
+    Number(newPrice || 0),
+    0
+  );
+
+  // Tidak ada kelebihan pembayaran.
+  if (refundAmount <= 0) {
+    return note;
+  }
+
+  const refundText =
+    refundPrefix +
+    " Rp" +
+    refundAmount.toLocaleString("id-ID");
+
+  return note
+    ? note + "\n" + refundText
+    : refundText;
+}
+
 /* =========================================================
    HITUNG PEMBAYARAN AKTUAL DARI PAYMENT YANG SUDAH CONFIRMED
    ========================================================= */
@@ -45736,14 +45784,32 @@ if (
         : "unpaid";
 
     preparedPriceUpdates.push({
-      id: row.id,
-      customerName: row.customer_name,
-      itemPrice: totalPrice,
-      minimumDpAmount: totalDp,
-      remainingAmount: remainingAmount,
-      paymentStatus: paymentStatus
-    });
 
+  id: row.id,
+
+  customerName:
+    row.customer_name,
+
+  itemPrice:
+    totalPrice,
+
+  minimumDpAmount:
+    totalDp,
+
+  remainingAmount:
+    remainingAmount,
+
+  paymentStatus:
+    paymentStatus,
+
+  note:
+    updateRefundNote(
+      row.note,
+      totalPaid,
+      totalPrice
+    )
+
+});
   }
 
 
@@ -45761,18 +45827,23 @@ if (
     } = await supabaseClient
       .from("purchase_recap")
       .update({
-        item_price:
-          item.itemPrice,
 
-        minimum_dp_amount:
-          item.minimumDpAmount,
+  item_price:
+    item.itemPrice,
 
-        remaining_amount:
-          item.remainingAmount,
+  minimum_dp_amount:
+    item.minimumDpAmount,
 
-        payment_status:
-          item.paymentStatus
-      })
+  remaining_amount:
+    item.remainingAmount,
+
+  payment_status:
+    item.paymentStatus,
+
+  note:
+    item.note
+
+})
       .eq(
         "id",
         item.id
@@ -49304,11 +49375,15 @@ remaining_amount:
       .getElementById("editCustomerStatus")
       .value,
 
-  note:
+ note:
+  updateRefundNote(
     document
       .getElementById("editNote")
       .value
-      .trim()
+      .trim(),
+    totalPaidAfterEdit,
+    newPrice
+  )
 
 };
         const {
