@@ -12530,45 +12530,37 @@ if (
     }
   );
 
+ /* ==========================================
+   PEMENUHAN DP MINIMUM
+   Pelunasan berarti kewajiban DP sudah terpenuhi,
+   tetapi nominal DP tidak boleh ditambahkan
+   ke total uang yang benar-benar dibayar.
+   ========================================== */
 
-  /* ==========================================
-     JIKA ADA PELUNASAN,
-     DP MINIMUM DIANGGAP SUDAH TERPENUHI
-     ========================================== */
+const dpMinimumFulfilled =
+  totalPelunasanPaid > 0 ||
+  totalDpPaid >= minimumDpNumber;
 
-  if (
-    totalPelunasanPaid > 0 &&
-    totalDpPaid < minimumDpNumber
-  ) {
+ /* ==========================================
+   STATUS DP
+   ========================================== */
 
-    totalDpPaid =
-      minimumDpNumber;
+let dpStatus = "unpaid";
 
-  }
+if (
+  minimumDpNumber <= 0 ||
+  dpMinimumFulfilled
+) {
 
+  dpStatus = "paid";
 
-  /* ==========================================
-     STATUS DP
-     ========================================== */
+} else if (
+  totalDpPaid > 0
+) {
 
-  let dpStatus =
-    "unpaid";
+  dpStatus = "insufficient";
 
-
-  if (
-    minimumDpNumber <= 0
-  ) {
-
-    dpStatus =
-      "paid";
-
-  } else if (
-    totalDpPaid >=
-    minimumDpNumber
-  ) {
-
-    dpStatus =
-      "paid";
+}
 
   } else if (
     totalDpPaid > 0
