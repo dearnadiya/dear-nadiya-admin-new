@@ -12580,46 +12580,31 @@ if (
 
  /* ==========================================
    PEMENUHAN DP MINIMUM
-   Pelunasan berarti kewajiban DP sudah terpenuhi,
-   tetapi nominal DP tidak boleh ditambahkan
-   ke total uang yang benar-benar dibayar.
+   Pelunasan memenuhi kewajiban DP,
+   tanpa menambahkan nominal DP fiktif.
    ========================================== */
 
 const dpMinimumFulfilled =
-  totalPelunasanPaid > 0 ||
-  totalDpPaid >= minimumDpNumber;
+  minimumDpNumber <= 0 ||
+  totalDpPaid >= minimumDpNumber ||
+  totalPelunasanPaid > 0;
 
- /* ==========================================
+/* ==========================================
    STATUS DP
    ========================================== */
 
 let dpStatus = "unpaid";
 
-if (
-  minimumDpNumber <= 0 ||
-  dpMinimumFulfilled
-) {
+if (dpMinimumFulfilled) {
 
   dpStatus = "paid";
 
-} else if (
-  totalDpPaid > 0
-) {
+} else if (totalDpPaid > 0) {
 
   dpStatus = "insufficient";
 
 }
-
-  } else if (
-    totalDpPaid > 0
-  ) {
-
-    dpStatus =
-      "insufficient";
-
-  }
-
-
+   
   /* ==========================================
      TOTAL TERBAYAR
      ========================================== */
@@ -12778,11 +12763,11 @@ let recapData = [];
 let recapError = null;
 
 
+
 if (isTabunganPayment) {
 
   /*
     KHUSUS PEMBAYARAN TABUNGAN
-
     Cari berdasarkan customer_id
     dan recap_type = Tabungan.
   */
@@ -12791,17 +12776,11 @@ if (isTabunganPayment) {
     supabaseClient
       .from("purchase_recap")
       .select("*")
-      .eq(
-        "recap_type",
-        "Tabungan"
-      );
-
+      .eq("recap_type", "Tabungan");
 
   if (
-    payment.customer_id !==
-    null &&
-    payment.customer_id !==
-    undefined
+    payment.customer_id !== null &&
+    payment.customer_id !== undefined
   ) {
 
     query = query.eq(
@@ -12818,15 +12797,44 @@ if (isTabunganPayment) {
 
   }
 
+  const result = await query;
 
-  const result =
-    await query;
+  recapData = result.data || [];
+  recapError = result.error || null;
 
-  recapData =
-    result.data || [];
+} else if (
+  Array.isArray(manualRecapIds) &&
+  manualRecapIds.length > 0
+) {
 
-  recapError =
-    result.error || null;
+  /*
+    PEMBAYARAN MANUAL CUSTOMER
+    Ambil langsung berdasarkan ID tagihan
+    yang dipilih oleh admin.
+  */
+
+  let query =
+    supabaseClient
+      .from("purchase_recap")
+      .select("*")
+      .in("id", manualRecapIds);
+
+  if (
+    payment.customer_id !== null &&
+    payment.customer_id !== undefined
+  ) {
+
+    query = query.eq(
+      "customer_id",
+      payment.customer_id
+    );
+
+  }
+
+  const result = await query;
+
+  recapData = result.data || [];
+  recapError = result.error || null;
 
 } else {
 
@@ -12837,22 +12845,18 @@ if (isTabunganPayment) {
 
   const result =
     await supabaseClient
-      .from(
-        "purchase_recap"
-      )
+      .from("purchase_recap")
       .select("*")
       .in(
         "batch_code",
         productCodes
       );
 
-  recapData =
-    result.data || [];
-
-  recapError =
-    result.error || null;
+  recapData = result.data || [];
+  recapError = result.error || null;
 
 }
+
   if (recapError) {
 
     console.error(
@@ -13026,6 +13030,35 @@ if (isTabunganPayment) {
         return;
 
       }
+
+       
+/*
+  KHUSUS PEMBAYARAN MANUAL CUSTOMER
+
+  Jika ID tagihan sudah dipilih secara langsung,
+  jangan cocokkan ulang berdasarkan batch dan versi.
+*/
+
+if (
+  Array.isArray(manualRecapIds) &&
+  manualRecapIds.length > 0
+) {
+
+  const isSelected =
+    manualRecapIds.some(function(id) {
+      return String(id) === String(row.id);
+    });
+
+  if (!isSelected) {
+    return;
+  }
+
+  selectedItems.push(row);
+
+  return;
+
+}
+
 
 
       /*
@@ -15603,8 +15636,8 @@ for (
         "purchase_recap"
       )
       .select(
-        "id, item_price, dp_amount, minimum_dp_amount, remaining_amount, dp_status, payment_status"
-      )
+  "id, item_price, dp_amount, minimum_dp_amount, remaining_amount, dp_status, payment_status, note"
+)
       .eq(
         "id",
         allocation.recap_id
@@ -15949,72 +15982,40 @@ confirmedHistoryAllocations.forEach(
   }
 );
 
-
 /* ==========================================
-   JIKA ADA PELUNASAN,
-   DP MINIMUM DIANGGAP SUDAH TERPENUHI
-========================================== */
+   STATUS DP DAN TOTAL PEMBAYARAN
+   ========================================== */
 
-if (
-  totalPelunasanPaid > 0 &&
-  totalDpPaid < minimumDp
-) {
-
-  totalDpPaid =
-    minimumDp;
-
-}
-
-
-  /* ================================
-   HITUNG STATUS PEMBAYARAN TERBARU
-================================ */
+// Pelunasan memenuhi kewajiban DP,
+// tetapi tidak menambah uang yang benar-benar dibayar.
+const dpMinimumFulfilled =
+  minimumDp <= 0 ||
+  totalDpPaid >= minimumDp ||
+  totalPelunasanPaid > 0;
 
 let dpStatus = "unpaid";
 
-
-/*
-  DP dianggap lunas apabila
-  total pembayaran yang masuk
-  sudah mencapai minimum DP.
-*/
-
-if (
-  totalDpPaid > 0 &&
-  (
-    minimumDp <= 0 ||
-    totalDpPaid >= minimumDp
-  )
-) {
+if (dpMinimumFulfilled) {
 
   dpStatus = "paid";
 
-} else if (
-  totalDpPaid > 0
-) {
+} else if (totalDpPaid > 0) {
 
   dpStatus = "insufficient";
 
-} else {
-
-  dpStatus = "unpaid";
-
 }
 
-
-
-/* ================================
-   HITUNG TOTAL PEMBAYARAN
-================================ */
+/* ==========================================
+   TOTAL PEMBAYARAN AKTUAL
+   ========================================== */
 
 const totalPaid =
   totalDpPaid +
   totalPelunasanPaid;
 
-
-/* ================================
-   HITUNG SISA PEMBAYARAN
-================================ */
+/* ==========================================
+   SISA PEMBAYARAN
+   ========================================== */
 
 let remainingAmount =
   Math.max(
@@ -16026,43 +16027,17 @@ if (price <= 0) {
   remainingAmount = 0;
 }
 
+/* ==========================================
+   CATATAN REFUND
+   ========================================== */
 
-/* ================================
-   STATUS DP
-================================ */
-
-if (
-  price > 0 &&
-  minimumDp <= 0 &&
-  totalPaid > 0
-) {
-
-  // Tidak ada kewajiban DP.
-  dpStatus = "paid";
-
-} else if (
-  totalDpPaid > 0 &&
-  (
-    minimumDp <= 0 ||
-    totalDpPaid >= minimumDp
-  )
-) {
-
-  dpStatus = "paid";
-
-} else if (
-  totalDpPaid > 0
-) {
-
-  dpStatus = "insufficient";
-
-} else {
-
-  dpStatus = "unpaid";
-
-}
-
-
+const updatedNote =
+  updateRefundNote(
+    recapItem.note,
+    totalPaid,
+    price
+  );
+   
 /* ================================
    STATUS PEMBAYARAN
 ================================ */
@@ -16102,7 +16077,10 @@ if (
     remainingAmount,
 
   payment_status:
-    paymentStatus
+    paymentStatus,
+
+  note:
+    updatedNote
 
 })
       .eq(
