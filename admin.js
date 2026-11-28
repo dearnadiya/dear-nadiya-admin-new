@@ -8250,17 +8250,34 @@ if (
          DP
          ========================== */
 
-      if (
-        allocation.payment_part ===
-        "dp"
-      ) {
+      
+if (
+  allocation.payment_part ===
+  "dp"
+) {
 
-        totalDpPaid +=
-          amount;
+  const dpNeeded = Math.max(
+    minimumDp - totalDpPaid,
+    0
+  );
 
-        return;
+  const dpPortion = Math.min(
+    amount,
+    dpNeeded
+  );
 
-      }
+  const pelunasanPortion = Math.max(
+    amount - dpPortion,
+    0
+  );
+
+  totalDpPaid += dpPortion;
+
+  totalPelunasanPaid += pelunasanPortion;
+
+  return;
+
+}
 
 
       /* ==========================
@@ -12506,16 +12523,33 @@ if (
          DP
          ========================== */
 
-      if (
-        history.payment_part ===
-        "dp"
-      ) {
+      
+if (
+  history.payment_part ===
+  "dp"
+) {
 
-        totalDpPaid +=
-          amount;
+  const dpNeeded = Math.max(
+    minimumDpNumber - totalDpPaid,
+    0
+  );
 
-        return;
-      }
+  const dpPortion = Math.min(
+    amount,
+    dpNeeded
+  );
+
+  const pelunasanPortion = Math.max(
+    amount - dpPortion,
+    0
+  );
+
+  totalDpPaid += dpPortion;
+
+  totalPelunasanPaid += pelunasanPortion;
+
+  return;
+}
 
 
       /* ==========================
@@ -37795,17 +37829,40 @@ if (!hasConfirmedDpAllocation) {
            DP
            ========================== */
 
-        if (
-          allocation.payment_part ===
-          "dp"
-        ) {
+        
+if (
+  allocation.payment_part ===
+  "dp"
+) {
 
-          totalDpPaid +=
-            amount;
+  /*
+    DP maksimal sebesar minimum DP.
+    Kelebihan pembayaran DP dialihkan
+    ke Pelunasan Terbayar.
+  */
 
-          return;
+  const dpNeeded = Math.max(
+    minimumDp - totalDpPaid,
+    0
+  );
 
-        }
+  const dpPortion = Math.min(
+    amount,
+    dpNeeded
+  );
+
+  const pelunasanPortion = Math.max(
+    amount - dpPortion,
+    0
+  );
+
+  totalDpPaid += dpPortion;
+
+  totalPelunasanPaid += pelunasanPortion;
+
+  return;
+
+}
 
 
         /* ==========================
